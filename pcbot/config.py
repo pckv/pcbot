@@ -17,7 +17,7 @@ class Config:
         if load:
             loaded_data = self.load()
 
-        if data and not loaded_data:
+        if data is not None and not loaded_data:
             self.data = data
         elif loaded_data:
             self.data = loaded_data
