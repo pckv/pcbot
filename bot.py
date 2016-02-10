@@ -8,6 +8,7 @@ from getpass import getpass
 from sys import exit
 
 import discord
+import asyncio
 
 from pcbot.config import Config
 
@@ -19,7 +20,7 @@ def load_plugins():
     for plugin in os.listdir("plugins/"):
         plugin_name = os.path.splitext(plugin)[0]
         if not plugin_name.startswith("__") or not plugin_name.endswith("__"):
-            plugins[plugin] = importlib.import_module("plugins.{}".format(plugin_name))
+            plugins[plugin_name] = importlib.import_module("plugins.{}".format(plugin_name))
 
 
 def reload_plugin(plugin_name):
@@ -44,13 +45,15 @@ class Bot(discord.Client):
 
         return False
 
-    async def on_ready(self):
+    @asyncio.coroutine
+    def on_ready(self):
         print('Logged in as')
         print(self.user.name)
         print(self.user.id)
         print('------')
 
-    async def on_message(self, message: discord.Message):
+    @asyncio.coroutine
+    def on_message(self, message: discord.Message):
         if message.author == self.user:
             return
 
@@ -67,20 +70,20 @@ class Bot(discord.Client):
         # Below are all owner specific commands
         if message.channel.is_private and message.content == "!setowner":
             if self.owner.data:
-                await self.send_message(message.channel, "An owner is already set.")
+                yield from self.send_message(message.channel, "An owner is already set.")
                 return
 
             owner_code = str(random.randint(100, 999))
             print("Owner code for assignment: {}".format(owner_code))
-            await self.send_message(message.channel,
-                                    "A code has been printed in the console for you to repeat within 15 seconds.")
-            user_code = await self.wait_for_message(timeout=15, content=owner_code)
+            yield from self.send_message(message.channel,
+                                         "A code has been printed in the console for you to repeat within 15 seconds.")
+            user_code = yield from self.wait_for_message(timeout=15, content=owner_code)
             if user_code:
-                await self.send_message(message.channel, "You have been assigned bot owner.")
+                yield from self.send_message(message.channel, "You have been assigned bot owner.")
                 self.owner.data = message.author.id
                 self.owner.save()
             else:
-                await self.send_message(message.channel, "You failed to send the desired code.")
+                yield from self.send_message(message.channel, "You failed to send the desired code.")
 
         if self.is_owner(message.author):
             # Stops the bot
@@ -93,9 +96,9 @@ class Bot(discord.Client):
                 if len(args) > 1:
                     game = discord.Game(name=args[1])
                     logging.log(logging.DEBUG, "Setting bot game to {}".format(args[1]))
-                    await self.change_status(game)
+                    yield from self.change_status(game)
                 else:
-                    await self.send_message(message.channel, "Usage: `!game <game>`")
+                    yield from self.send_message(message.channel, "Usage: `!game <game>`")
 
             # Plugin specific commands
             elif args[0] == "!plugin":
@@ -104,19 +107,19 @@ class Bot(discord.Client):
                         if len(args) > 2:
                             if plugins.get(args[2]):
                                 reload_plugin(args[2])
-                                await self.send_message(message.channel, "Reloaded plugin `{}`".format(args[2]))
+                                yield from self.send_message(message.channel, "Reloaded plugin `{}`".format(args[2]))
                             else:
-                                await self.send_message(message.channel, "`{}` is not a plugin. Use `!plugins`".format(
-                                    args[2]
-                                ))
+                                yield from self.send_message(message.channel,
+                                                             "`{}` is not a plugin. Use `!plugins`".format(args[2]))
                         else:
                             for plugin in plugins.items():
                                 reload_plugin(plugin)
-                            await self.send_message(message.channel, "All plugins reloaded.")
+                            yield from self.send_message(message.channel, "All plugins reloaded.")
                     else:
-                        await self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
+                        yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
                 else:
-                    await self.send_message(message.channel, "Plugins: ```{}```".format("\n,".join(plugins.keys())))
+                    yield from self.send_message(message.channel,
+                                                 "Plugins: ```{}```".format("\n,".join(plugins.keys())))
 
             # Originally just a test command
             elif message.content == "!count":
@@ -124,14 +127,14 @@ class Bot(discord.Client):
                     self.message_count.data[message.channel.id] = 0
 
                 self.message_count.data[message.channel.id] += 1
-                await self.send_message(message.channel, "I have counted `{}` times in this channel.".format(
+                yield from self.send_message(message.channel, "I have counted `{}` times in this channel.".format(
                     self.message_count.data[message.channel.id]
                 ))
                 self.message_count.save()
 
         # Run plugins on_message
         for name, plugin in plugins.items():
-            await plugin.on_message(self, message, args)
+            yield from plugin.on_message(self, message, args)
 
 
 bot = Bot()
