@@ -67,6 +67,28 @@ class Bot(discord.Client):
         # Split content into arguments by space (surround with quotes for spaces)
         args = shlex.split(message.content)
 
+        # Bot help command. Loads info from plugins
+        if args[0] == "!help":
+            # Command specific help
+            if len(args) > 1:
+                plugin_name = args[1].lower()
+                for name, plugin in plugins.items():
+                    if plugin.commands:
+                        cmd = plugin.commands.get(plugin_name)
+                        if cmd:
+                            m = "**Usage**: ```{}```\n" \
+                                "**Description**: {}".format(cmd.get("usage"), cmd.get("desc"))
+                            yield from self.send_message(message.channel, m)
+                            break
+
+            # List all commands
+            else:
+                m = "**Commands:**\n"
+                for name, plugin in plugins.items():
+                    if plugin.commands:
+                        m += "__{}__```\n".format(name) + "\n".join(plugin.commands.keys()) + "```"
+                yield from self.send_message(message.channel, m)
+
         # Below are all owner specific commands
         if message.channel.is_private and message.content == "!setowner":
             if self.owner.data:
