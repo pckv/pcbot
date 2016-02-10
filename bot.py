@@ -31,7 +31,7 @@ def reload_plugin(plugin_name):
 class Bot(discord.Client):
     def __init__(self):
         super().__init__()
-        self.message_count = Config("count")
+        self.message_count = Config("count", data={})
         self.owner = Config("owner")
 
         load_plugins()
