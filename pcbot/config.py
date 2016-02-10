@@ -1,5 +1,6 @@
 import json
 from os.path import exists
+from os import mkdir
 
 
 class Config:
@@ -7,6 +8,9 @@ class Config:
 
     def __init__(self, filename, data=None, load=True):
         self.filepath = "{}{}.json".format(self.config_path, filename)
+
+        if not exists(self.config_path):
+            mkdir(self.config_path)
 
         loaded_data = None
 
