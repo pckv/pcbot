@@ -16,11 +16,23 @@ logging.basicConfig(level=logging.INFO)
 plugins = {}
 
 
+def load_plugin(plugin_name):
+    if not plugin_name.startswith("__") or not plugin_name.endswith("__"):
+        try:
+            plugin = importlib.import_module("plugins.{}".format(plugin_name))
+        except ImportError:
+            return False
+
+        plugins[plugin_name] = plugin
+        return True
+
+    return False
+
+
 def load_plugins():
     for plugin in os.listdir("plugins/"):
         plugin_name = os.path.splitext(plugin)[0]
-        if not plugin_name.startswith("__") or not plugin_name.endswith("__"):
-            plugins[plugin_name] = importlib.import_module("plugins.{}".format(plugin_name))
+        load_plugin(plugin_name)
 
 
 def reload_plugin(plugin_name):
@@ -137,11 +149,20 @@ class Bot(discord.Client):
                             for plugin in plugins.items():
                                 reload_plugin(plugin)
                             yield from self.send_message(message.channel, "All plugins reloaded.")
+                    elif args[1] == "load":
+                        if len(args) > 2:
+                            loaded = load_plugin(args[2].lower())
+                            if loaded:
+                                yield from self.send_message(message.channel, "Plugin `{}` loaded.".format(args[2]))
+                            else:
+                                yield from self.send_message(message.channel,
+                                                             "Plugin `{}` could not be loaded.".format(args[2]))
                     else:
                         yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
                 else:
                     yield from self.send_message(message.channel,
-                                                 "Plugins: ```{}```".format("\n,".join(plugins.keys())))
+                                                 "Plugins: ```\n"
+                                                 "{}```".format(",\n".join(plugins.keys())))
 
             # Originally just a test command
             elif message.content == "!count":
