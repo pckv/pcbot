@@ -62,7 +62,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             if args[1] == "--add":
                 if len(args) > 3:
                     pasta_name = args[2].lower()
-                    pasta = args[3]
+                    pasta = " ".join(args[3:])
                     pastas.data[pasta_name] = pasta
                     pastas.save()
                     m = "Pasta `{}` set.".format(pasta_name)
