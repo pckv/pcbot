@@ -72,7 +72,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             # Remove a pasta
             elif args[1] == "--remove":
                 if len(args) > 2:
-                    pasta_name = args[2].lower()
+                    pasta_name = " ".join(args[2:]).lower()
                     pasta = pastas.data.get(pasta_name)
                     if pasta:
                         pastas.data.pop(pasta_name)
@@ -80,6 +80,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                         m = "Pasta `{}` removed. In case this was a mistake, here's the pasta: ```{}```".format(
                             pasta_name, pasta
                         )
+                    else:
+                        m = "No pasta by name `{}`.".format(pasta_name)
                 else:
                     m = "Please specify a pasta to remove. `!pasta --remove <pastaname>`"
 
@@ -98,5 +100,5 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
         # No arguments
         else:
-            m = "Please see `!help !pasta`."
+            m = "Please see `!help pasta`."
             yield from client.send_message(message.channel, m)
