@@ -69,6 +69,9 @@ class Bot(discord.Client):
         if message.author == self.user:
             return
 
+        if not message.content:
+            return
+
         # Log every command to console (logs anything starting with !)
         if message.content.startswith("!"):
             logging.log(logging.INFO, "{0}@{1.author.name}: {1.content}".format(
@@ -77,7 +80,10 @@ class Bot(discord.Client):
             ))
 
         # Split content into arguments by space (surround with quotes for spaces)
-        args = shlex.split(message.content)
+        try:
+            args = shlex.split(message.content)
+        except ValueError:
+            return
 
         # Bot help command. Loads info from plugins
         if args[0] == "!help":
@@ -141,10 +147,10 @@ class Bot(discord.Client):
                         if len(args) > 2:
                             if plugins.get(args[2]):
                                 reload_plugin(args[2])
-                                yield from self.send_message(message.channel, "Reloaded plugin `{}`".format(args[2]))
+                                yield from self.send_message(message.channel, "Reloaded plugin `{}`.".format(args[2]))
                             else:
                                 yield from self.send_message(message.channel,
-                                                             "`{}` is not a plugin. Use `!plugins`".format(args[2]))
+                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
                         else:
                             for plugin in plugins.items():
                                 reload_plugin(plugin)
@@ -161,7 +167,7 @@ class Bot(discord.Client):
                         yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
                 else:
                     yield from self.send_message(message.channel,
-                                                 "Plugins: ```\n"
+                                                 "**Plugins:** ```\n"
                                                  "{}```".format(",\n".join(plugins.keys())))
 
             # Originally just a test command

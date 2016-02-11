@@ -18,13 +18,14 @@ commands = {
         "usage": "!ping",
         "desc": "Pong"
     },
-    "cool": {
-        "usage": "!cool",
-        "desc": "Inform the bot. Perhaps he really is cool?"
+    "roll": {
+        "usage": "!roll [num | phrase]",
+        "desc": "Roll a number from 1-100 if no second argument or second argument is not a number.\n"
+                "Alternatively rolls *num* times."
     },
     "pasta": {
         "usage": "!pasta <copypasta | action>\n"
-                 "Actions:\n"
+                 "*Actions:*\n"
                  "    --add <pastaname> <pasta>\n"
                  "    --remove <pastaname>",
         "desc": "Use copypastas. Don't forget to enclose the copypasta in quotes: `\"pasta goes here\"` for multiline"
@@ -41,20 +42,17 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!ping":
         yield from client.send_message(message.channel, "pong")
 
-    # Is the bot cool?
-    elif args[0] == "!cool":
-        yield from client.send_message(message.channel, "Do you think I'm cool? (reply yes, no or maybe)")
-        reply = yield from client.wait_for_message(timeout=30, author=message.author, channel=message.channel)
+    # Roll from 1-100 or more
+    elif args[0] == "!roll":
+        if len(args) > 1:
+            try:
+                roll = random.randint(1, int(args[1]))
+            except ValueError:
+                roll = random.randint(1, 100)
+        else:
+            roll = random.randint(1, 100)
 
-        if reply:
-            if reply.content.lower() == "yes":
-                yield from client.send_message(message.channel, "I think you are cool too. :sunglasses:")
-            elif reply.content.lower() == "no":
-                yield from client.send_message(message.channel, "Well I disagree. :thumbsdown:")
-            elif reply.content.lower() == "maybe":
-                yield from client.send_message(message.channel, "What kind of answer is that? :zzz:")
-            else:
-                yield from client.send_message(message.channel, "I don't get it. :frowning:")
+        yield from client.send_message(message.channel, "{0.mention} rolls {1}".format(message.author, roll))
 
     # Copypasta command
     elif args[0] == "!pasta":
