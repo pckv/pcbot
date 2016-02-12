@@ -107,4 +107,5 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     execute = True
 
             if execute:
-                yield from client.send_message(message.channel, command["text"])
+                yield from client.send_message(message.channel,
+                                               "{}: {}".format(message.author.mention, command["text"]))
