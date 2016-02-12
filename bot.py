@@ -106,10 +106,12 @@ class Bot(discord.Client):
 
             # List all commands
             else:
-                m = "**Commands:**\n"
+                m = "**Commands:**```"
                 for name, plugin in plugins.items():
                     if plugin.commands:
-                        m += "__{}__```\n".format(name) + "\n".join(plugin.commands.keys()) + "```"
+                        m += "\n" + "\n".join(plugin.commands.keys())
+
+                m += "```\nUse `!help <comand>` for command specific help."
                 yield from self.send_message(message.channel, m)
 
         # Below are all owner specific commands
@@ -162,7 +164,7 @@ class Bot(discord.Client):
                             yield from self.send_message(message.channel, "All plugins reloaded.")
                     elif args[1] == "load":
                         if len(args) > 2:
-                            if not plugins[args[2].lower()]:
+                            if not plugins.get(args[2].lower()):
                                 loaded = load_plugin(args[2].lower())
                                 if loaded:
                                     yield from self.send_message(message.channel, "Plugin `{}` loaded.".format(args[2]))

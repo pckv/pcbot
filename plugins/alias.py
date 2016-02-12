@@ -14,6 +14,7 @@ commands = {
                  "Options:\n"
                  "    -anywhere <...>\n"
                  "    -case-sensitive <...>\n"
+                 "    -delete-message <...>\n"
                  "    -list\n"
                  "    --remove <trigger>\n",
         "desc": "Assign an alias command, where trigger is the command in it's entirety: `!cmd` or `>cmd` or `cmd`.\n"
@@ -22,9 +23,11 @@ commands = {
                 "requires quotes:* `\"this is my alias command\"`.\n"
                 "Using the `-anywhere` option will trigger the alias anywhere in text you write.\n"
                 "Using the `-case-sensitive` option will ensure that you *need* to follow the same casing.\n"
+                "Using the `-delete-message` option removes the original message. This option can not be mixed with "
+                "the `-anywhere` option.\n"
                 "Using `!alias -list` will list all of the users set aliases. This only shows their trigger.\n"
-                "**To remove an alias**, use the `--remove` options and exclude the **text**. Keep in mind that using "
-                "trigger here **is** case sensitive. Use `!alias -list` to find the correct case."
+                "**To remove an alias**, use the `--remove` option and exclude the **text**. Keep in mind that "
+                "specifying trigger here **is** case sensitive. Use `!alias -list` to find the correct case."
     }
 }
 
@@ -47,7 +50,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                         aliases.data[user_id].pop(trigger)
                         aliases.save()
 
-                        m = "Removed alias `{}`.".format(trigger)
+                        m = "Removed alias `{}` for {}.".format(trigger, message.author.mention)
             else:
                 trigger = args[-2]
                 text = args[-1]
@@ -55,12 +58,15 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 # Set options
                 anywhere = False
                 case_sensitive = False
+                delete_message = False
                 if len(args) > 3:
                     options = args[1:-2]
                     if "-anywhere" in options:
                         anywhere = True
                     if "-case-sensitive" in options:
                         case_sensitive = True
+                    if not anywhere and "-delete-message":
+                        delete_message = True
 
                 if not case_sensitive:
                     trigger = trigger.lower()
@@ -72,7 +78,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 aliases.data[user_id][trigger] = {
                     "text": text,
                     "anywhere": anywhere,
-                    "case-sensitive": case_sensitive
+                    "case-sensitive": case_sensitive,
+                    "delete-message": delete_message
                 }
                 aliases.save()
 
@@ -82,9 +89,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             if len(args) > 1:
                 if args[1] == "-list":
                     if aliases.data.get(user_id):
-                        m = "**Aliases:**```\n" + "\n".join(list(aliases.data[user_id].keys())) + "```"
+                        m = "**Aliases for {}:**```\n".format(message.author.mention) + \
+                            "\n".join(list(aliases.data[user_id].keys())) + "```"
                     else:
-                        m = "You have no aliases. See `!help alias`."
+                        m = "No aliases registered for {}. See `!help alias`.".format(message.author.mention)
 
         yield from client.send_message(message.channel, m)
         return
@@ -96,10 +104,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             execute = False
             msg = message.content
 
-            if not command["case-sensitive"]:
+            if not command.get("case-sensitive", False):
                 msg = msg.lower()
 
-            if command["anywhere"]:
+            if command.get("anywhere", False):
                 if name in msg:
                     execute = True
             else:
@@ -107,5 +115,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     execute = True
 
             if execute:
+                if command.get("delete-message", False):
+                    yield from client.delete_message(message)
+
                 yield from client.send_message(message.channel,
-                                               "{}: {}".format(message.author.mention, command["text"]))
+                                               "{}: {}".format(message.author.mention, command.get("text")))
