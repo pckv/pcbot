@@ -29,15 +29,20 @@ def load_plugin(plugin_name):
     return False
 
 
+def reload_plugin(plugin_name):
+    if plugins.get(plugin_name):
+        plugins[plugin_name] = importlib.reload(plugins[plugin_name])
+
+
+def unload_plugin(plugin_name):
+    if plugins.get(plugin_name):
+        plugins.pop(plugin_name)
+
+
 def load_plugins():
     for plugin in os.listdir("plugins/"):
         plugin_name = os.path.splitext(plugin)[0]
         load_plugin(plugin_name)
-
-
-def reload_plugin(plugin_name):
-    if plugins.get(plugin_name):
-        plugins[plugin_name] = importlib.reload(plugins[plugin_name])
 
 
 class Bot(discord.Client):
@@ -157,12 +162,24 @@ class Bot(discord.Client):
                             yield from self.send_message(message.channel, "All plugins reloaded.")
                     elif args[1] == "load":
                         if len(args) > 2:
-                            loaded = load_plugin(args[2].lower())
-                            if loaded:
-                                yield from self.send_message(message.channel, "Plugin `{}` loaded.".format(args[2]))
+                            if not plugins[args[2].lower()]:
+                                loaded = load_plugin(args[2].lower())
+                                if loaded:
+                                    yield from self.send_message(message.channel, "Plugin `{}` loaded.".format(args[2]))
+                                else:
+                                    yield from self.send_message(message.channel,
+                                                                 "Plugin `{}` could not be loaded.".format(args[2]))
                             else:
                                 yield from self.send_message(message.channel,
-                                                             "Plugin `{}` could not be loaded.".format(args[2]))
+                                                             "Plugin `{}` is already loaded.".format(args[2]))
+                    elif args[1] == "unload":
+                        if len(args) > 2:
+                            if plugins[args[2].lower()]:
+                                unload_plugin(args[2].lower())
+                                yield from self.send_message(message.channel, "Plugin `{}` unloaded.".format(args[2]))
+                            else:
+                                yield from self.send_message(message.channel,
+                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
                     else:
                         yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
                 else:

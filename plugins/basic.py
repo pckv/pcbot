@@ -25,7 +25,7 @@ commands = {
     },
     "pasta": {
         "usage": "!pasta <copypasta | action>\n"
-                 "*Actions:*\n"
+                 "Actions:\n"
                  "    --add <pastaname> <pasta>\n"
                  "    --remove <pastaname>",
         "desc": "Use copypastas. Don't forget to enclose the copypasta in quotes: `\"pasta goes here\"` for multiline"
@@ -56,7 +56,6 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
     # Copypasta command
     elif args[0] == "!pasta":
-        m = ""
         if len(args) > 1:
             # Add a copypasta
             if args[1] == "--add":
@@ -96,9 +95,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 else:
                     m = "There are no defined pastas. Define with `!pasta --add <pastaname> <copypasta ...>`"
 
-            yield from client.send_message(message.channel, m)
-
         # No arguments
         else:
             m = "Please see `!help pasta`."
-            yield from client.send_message(message.channel, m)
+
+        yield from client.send_message(message.channel, m)
