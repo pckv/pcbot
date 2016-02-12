@@ -1,6 +1,7 @@
 """ Script for creating user based alias commands
 
-Commands: none
+Commands:
+!alias
 """
 
 import discord
@@ -21,11 +22,11 @@ commands = {
                 "Feel free to use spaces in a **trigger** by *enclosing it with quotes*, like so: `\"!my cmd\"`.\n"
                 "The **text** parameter can be anything, from a link to a paragraph. *Multiple spaces "
                 "requires quotes:* `\"this is my alias command\"`.\n"
-                "Using the `-anywhere` option will trigger the alias anywhere in text you write.\n"
-                "Using the `-case-sensitive` option will ensure that you *need* to follow the same casing.\n"
-                "Using the `-delete-message` option removes the original message. This option can not be mixed with "
-                "the `-anywhere` option.\n"
-                "Using `!alias -list` will list all of the users set aliases. This only shows their trigger.\n"
+                "`-anywhere`: alias triggers anywhere in text you write.\n"
+                "`-case-sensitive` ensures that you *need* to follow the same casing.\n"
+                "`-delete-message` removes the original message. This option can not be mixed with the `-anywhere` "
+                "option.\n"
+                "`!alias -list` lists all of the users set aliases. This only shows their trigger.\n"
                 "**To remove an alias**, use the `--remove` option and exclude the **text**. Keep in mind that "
                 "specifying trigger here **is** case sensitive. Use `!alias -list` to find the correct case."
     }
@@ -84,6 +85,12 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 aliases.save()
 
                 m = "Alias `{}` set for {}.".format(trigger, message.author.mention)
+
+                # Inform the user when delete message might not work. Basically check if the bot has permissions.
+                if not message.server.get_member(client.user.id).permissions_in(message.channel).manage_messages and \
+                        delete_message:
+                    m += "\n**Note:** *`-delete-message` does not work in this channel. The bot requires " \
+                         "`Manage Messages` permission to delete messages.*"
 
         else:
             if len(args) > 1:
