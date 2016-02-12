@@ -157,7 +157,7 @@ class Bot(discord.Client):
                                 yield from self.send_message(message.channel,
                                                              "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
                         else:
-                            for plugin in plugins.items():
+                            for plugin in list(plugins.keys()):
                                 reload_plugin(plugin)
                             yield from self.send_message(message.channel, "All plugins reloaded.")
                     elif args[1] == "load":
