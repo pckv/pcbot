@@ -33,21 +33,30 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             # List containing participant user ids
             participants = []
 
-            for i in range(1, 6):
-                reply = yield from client.wait_for_message(timeout=120, channel=message.channel,
-                                                           check=lambda m: m.content.lower() == "i")
+            for i in range(6):
+                def check(m):
+                    if m.content.lower() == "i" and m.author.id not in participants:
+                        return True
+
+                    return False
+
+                reply = yield from client.wait_for_message(timeout=10, channel=message.channel, check=check)
+
                 if reply:
-                    yield from client.send_message(message.channel, "{} has entered!".format(reply.author.mention))
+                    yield from client.send_message(message.channel,
+                                                   "{} has entered! `{}/6`".format(reply.author.mention, i+1))
                     participants.append(reply.author.id)
                 else:
                     yield from client.send_message(message.channel, "**The Russian Roulette game failed to gather "
                                                                     "6 participants.**")
+                    started.pop(started.index(message.channel.id))
+
                     return
 
             # Set random order of participants and add one bullet
-            participants = shuffle(participants)
-            bullets = [False] * 6
-            bullets[randint(1, 6)] = True
+            shuffle(participants)
+            bullets = [0] * 6
+            bullets[randint(0, 5)] = 1
 
             for i, participant in enumerate(participants):
                 member = message.server.get_member(participant)
@@ -59,14 +68,16 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
                 hit = ":dash:"
 
-                if bullets[i]:
+                if bullets[i] == 1:
                     hit = ":boom:"
 
                 yield from client.send_message(message.channel, "{} {} :gun: ".format(member.mention, hit))
 
-                if bullets[i]:
-                    yield from client.send_message(message.channel, "**GAME OVER**")
+                if bullets[i] == 1:
                     break
+
+            started.pop(started.index(message.channel.id))
+            yield from client.send_message(message.channel, "**GAME OVER**")
 
         else:
             yield from client.send_message(message.channel, "This channel is already playing Russian Roulette.")
