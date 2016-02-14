@@ -10,8 +10,9 @@ import asyncio
 
 commands = {
     "roulette": {
-        "usage": "!roulette",
+        "usage": "!roulette [participants]",
         "desc": "Starts a game of Russian Roulette. To participate, say `I` in the chat.\n"
+                "The optional `participants` argument sets a custom number of participants.\n"
                 "Please beware that you may or may not die using this command."
     }
 }
@@ -25,15 +26,22 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     if args[0].lower() == "!roulette":
         if message.channel.id not in started:
             started.append(message.channel.id)
+            num = 6
+
+            if len(args) > 1:
+                try:
+                    num = int(args[1])
+                except ValueError:
+                    num = 6
 
             yield from client.send_message(message.channel,
                                            "{} has started a game of Russian Roulette! To participate,"
-                                           " say `I`! 6 players needed.".format(message.author.mention))
+                                           " say `I`! {} players needed.".format(message.author.mention, num))
 
             # List containing participant user ids
             participants = []
 
-            for i in range(6):
+            for i in range(num):
                 def check(m):
                     if m.content.lower() == "i" and m.author.id not in participants:
                         return True
@@ -44,22 +52,22 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
                 if reply:
                     yield from client.send_message(message.channel,
-                                                   "{} has entered! `{}/6`."
-                                                   "Type `I` to join!".format(reply.author.mention, i+1))
+                                                   "{} has entered! `{}/{}`."
+                                                   "Type `I` to join!".format(reply.author.mention, i+1, num))
                     participants.append(reply.author.id)
                     if message.server.get_member(client.user.id).permissions_in(message.channel).manage_messages:
                         yield from client.delete_message(reply)
                 else:
                     yield from client.send_message(message.channel, "**The Russian Roulette game failed to gather "
-                                                                    "6 participants.**")
+                                                                    "{} participants.**".format(num))
                     started.pop(started.index(message.channel.id))
 
                     return
 
             # Set random order of participants and add one bullet
             shuffle(participants)
-            bullets = [0] * 6
-            bullets[randint(0, 5)] = 1
+            bullets = [0] * num
+            bullets[randint(0, num-1)] = 1
 
             for i, participant in enumerate(participants):
                 member = message.server.get_member(participant)
