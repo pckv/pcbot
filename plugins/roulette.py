@@ -44,8 +44,11 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
                 if reply:
                     yield from client.send_message(message.channel,
-                                                   "{} has entered! `{}/6`".format(reply.author.mention, i+1))
+                                                   "{} has entered! `{}/6`."
+                                                   "Type `I` to join!".format(reply.author.mention, i+1))
                     participants.append(reply.author.id)
+                    if message.server.get_member(client.user.id).permissions_in(message.channel).manage_messages:
+                        yield from client.delete_message(reply)
                 else:
                     yield from client.send_message(message.channel, "**The Russian Roulette game failed to gather "
                                                                     "6 participants.**")
