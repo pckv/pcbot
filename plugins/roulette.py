@@ -40,7 +40,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
                     return False
 
-                reply = yield from client.wait_for_message(timeout=10, channel=message.channel, check=check)
+                reply = yield from client.wait_for_message(timeout=120, channel=message.channel, check=check)
 
                 if reply:
                     yield from client.send_message(message.channel,
