@@ -34,6 +34,9 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 except ValueError:
                     num = 6
 
+            if num < 1:
+                num = 6
+
             yield from client.send_message(message.channel,
                                            "{} has started a game of Russian Roulette! To participate,"
                                            " say `I`! {} players needed.".format(message.author.mention, num))
