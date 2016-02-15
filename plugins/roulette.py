@@ -69,7 +69,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     return
 
             # Set random order of participants and add one bullet
-            shuffle(participants)
+            # shuffle(participants)  # We don't want to shuffle the participants, necessarily
             bullets = [0] * num
             bullets[randint(0, num-1)] = 1
 
