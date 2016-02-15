@@ -82,8 +82,11 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
                 hit = ":dash:"
 
-                if bullets[i] == 1:
+                if bullets[i] == 1 or _ is None:
                     hit = ":boom:"
+
+                if _ is None:
+                    yield from client.send_message(message.channel, "*fuck you*")
 
                 yield from client.send_message(message.channel, "{} {} :gun: ".format(member.mention, hit))
 
