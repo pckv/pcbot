@@ -121,9 +121,15 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 if msg.startswith(name):
                     execute = True
 
+            # Add any mentions to the alias
+            mention = ""
+            if message.mentions:
+                mentions = [member.mention for member in message.mentions]
+                mention = " (" + ",".join(mentions) + ")"
+
             if execute:
                 if command.get("delete-message", False):
                     yield from client.delete_message(message)
 
                 yield from client.send_message(message.channel,
-                                               "{}: {}".format(message.author.mention, command.get("text")))
+                                               "{}{}: {}".format(message.author.mention, mention, command.get("text")))
