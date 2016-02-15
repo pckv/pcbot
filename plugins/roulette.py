@@ -46,7 +46,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
             for i in range(num):
                 def check(m):
-                    if m.content.lower() == "i": # and m.author.id not in participants:
+                    if m.content.lower() == "i" and m.author.id not in participants:
                         return True
 
                     return False
