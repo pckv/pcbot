@@ -125,7 +125,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             mention = ""
             if message.mentions:
                 mentions = [member.mention for member in message.mentions]
-                mention = " (" + ",".join(mentions) + ")"
+                mention = " =>(" + ", ".join(mentions) + ")"
 
             if execute:
                 if command.get("delete-message", False):
