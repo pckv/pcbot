@@ -46,7 +46,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
             for i in range(num):
                 def check(m):
-                    if m.content.lower() == "i" and m.author.id not in participants:
+                    if m.content.lower() == "i": # and m.author.id not in participants:
                         return True
 
                     return False
@@ -54,12 +54,13 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 reply = yield from client.wait_for_message(timeout=120, channel=message.channel, check=check)
 
                 if reply:
-                    yield from client.send_message(message.channel,
-                                                   "{} has entered! `{}/{}`."
-                                                   "Type `I` to join!".format(reply.author.mention, i+1, num))
+                    asyncio.ensure_future(
+                        client.send_message(message.channel,
+                                            "{} has entered! `{}/{}`. "
+                                            "Type `I` to join!".format(reply.author.mention, i+1, num)))
                     participants.append(reply.author.id)
                     if message.server.get_member(client.user.id).permissions_in(message.channel).manage_messages:
-                        yield from client.delete_message(reply)
+                        asyncio.ensure_future(client.delete_message(reply))
                 else:
                     yield from client.send_message(message.channel, "**The Russian Roulette game failed to gather "
                                                                     "{} participants.**".format(num))
