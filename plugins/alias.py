@@ -129,9 +129,9 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
             if execute:
                 if command.get("delete-message", False):
-                    asyncio.ensure_future(client.delete_message(message))
+                    asyncio.async(client.delete_message(message))
 
-                asyncio.ensure_future(client.send_message(
+                asyncio.async(client.send_message(
                     message.channel,
                     "{}{}: {}".format(message.author.mention, mention, command.get("text")))
                 )
