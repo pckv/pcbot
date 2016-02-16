@@ -88,7 +88,7 @@ class Bot(discord.Client):
         try:
             args = shlex.split(message.content)
         except ValueError:
-            return
+            args = message.content.split()
 
         # Bot help command. Loads info from plugins
         if args[0] == "!help":

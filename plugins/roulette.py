@@ -46,7 +46,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
             for i in range(num):
                 def check(m):
-                    if m.content.lower() == "i" and m.author.id not in participants:
+                    if m.content.lower().strip() == "i" and m.author.id not in participants:
                         return True
 
                     return False
@@ -78,7 +78,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
                 yield from client.send_message(message.channel,
                                                "{} is up next! Say `go` whenever you are ready.".format(member.mention))
-                _ = yield from client.wait_for_message(timeout=60, channel=message.channel, author=member,
+                _ = yield from client.wait_for_message(timeout=15, channel=message.channel, author=member,
                                                        check=lambda m: "go" in m.content.lower())
 
                 hit = ":dash:"
