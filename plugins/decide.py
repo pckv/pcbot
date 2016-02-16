@@ -50,7 +50,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 if not m:
                     m = yield from client.send_message(message.channel, "`" + choice + "`")
                 else:
-                    m = yield from client.edit_message(m, "`" + choice + "`")
+                    try:
+                        m = yield from client.edit_message(m, "`" + choice + "`")
+                    except discord.errors.HTTPException:
+                        pass
 
                 if sleep_time:
                     sleep(sleep_time)
