@@ -142,7 +142,7 @@ class HotPotato(Roulette):
 
         while self.time_remaining > 0:
             member = self.message.server.get_member(participant)
-            if not pass_to:
+            if pass_to[0] == member.id:
                 while member.id in pass_to:
                     pass_to = [choice(self.participants), choice(self.participants)]
 
