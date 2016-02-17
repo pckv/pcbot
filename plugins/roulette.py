@@ -138,14 +138,14 @@ class HotPotato(Roulette):
         participant = choice(self.participants)
         Timer(1, self.timer).start()
         reply = True
-        pass_to = [choice(self.participants), choice(self.participants)]
 
         while self.time_remaining > 0:
             member = self.message.server.get_member(participant)
 
-            pass_from = self.participants
-            pass_from.pop(pass_from.index(member.id))
-            pass_to = [choice(pass_from), choice(pass_from)]
+            if not pass_to:
+                pass_from = self.participants
+                pass_from.pop(pass_from.index(member.id))
+                pass_to = [choice(pass_from), choice(pass_from)]
 
             if reply is not None:
                 yield from self.client.send_message(
@@ -170,6 +170,7 @@ class HotPotato(Roulette):
 
             if reply:
                 participant = reply.mentions[0].id
+                pass_to = []
             elif self.time_remaining == 5:
                 asyncio.async(self.client.send_message(self.message.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
 
