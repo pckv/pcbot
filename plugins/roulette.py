@@ -155,9 +155,17 @@ class HotPotato(Roulette):
                     )
                 )
 
+            def check(m):
+                mention = m.mentions.get(0)
+                if mention:
+                    if mention.id in pass_to:
+                        return True
+
+                return False
+
             wait = (self.time_remaining - 5) if (self.time_remaining > 5) else self.time_remaining
             reply = yield from self.client.wait_for_message(timeout=wait, channel=self.message.channel, author=member,
-                                                            check=lambda m: m.mentions[0].id in pass_to)
+                                                            check=check)
 
             if reply:
                 participant = reply.mentions[0].id
