@@ -156,9 +156,8 @@ class HotPotato(Roulette):
                 )
 
             def check(m):
-                mention = m.mentions.get(0)
-                if mention:
-                    if mention.id in pass_to:
+                if len(m.mentions) > 0:
+                    if m.mentions[0].id in pass_to:
                         return True
 
                 return False
