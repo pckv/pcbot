@@ -58,7 +58,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 if sleep_time:
                     sleep(sleep_time)
 
-            yield from client.edit_message(m, "**" + m.content[1:-1] + "**")
+            yield from client.edit_message(m, "**" + m.content[1:-1] + "**" +
+                                           " {}".format(message.author.mention))
         else:
             yield from client.send_message(message.channel, "Please see `!help decide`.")
 
