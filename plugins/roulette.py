@@ -175,6 +175,8 @@ class HotPotato(Roulette):
             if reply:
                 participant = reply.mentions[0].id
                 pass_to = []
+                if self.member.permissions_in(self.message.channel).manage_messages:
+                    asyncio.async(self.client.delete_message(reply))
             elif self.time_remaining == notify:
                 asyncio.async(self.client.send_message(self.message.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
                 self.time_remaining -= 1
