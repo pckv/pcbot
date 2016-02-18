@@ -139,6 +139,7 @@ class HotPotato(Roulette):
         Timer(1, self.timer).start()
         reply = True
         pass_to = []
+        notify = randint(2, int(self.time_remaining))
 
         while self.time_remaining > 0:
             member = self.message.server.get_member(participant)
@@ -167,14 +168,14 @@ class HotPotato(Roulette):
 
                 return False
 
-            wait = (self.time_remaining - 5) if (self.time_remaining >= 5) else self.time_remaining
+            wait = (self.time_remaining - notify) if (self.time_remaining >= notify) else self.time_remaining
             reply = yield from self.client.wait_for_message(timeout=wait, channel=self.message.channel, author=member,
                                                             check=check)
 
             if reply:
                 participant = reply.mentions[0].id
                 pass_to = []
-            elif self.time_remaining == 5:
+            elif self.time_remaining == notify:
                 asyncio.async(self.client.send_message(self.message.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
                 self.time_remaining -= 1
 
