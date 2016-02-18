@@ -139,7 +139,7 @@ class HotPotato(Roulette):
         Timer(1, self.timer).start()
         reply = True
         pass_to = []
-        notify = randint(2, int(self.time_remaining))
+        notify = randint(2, int(self.time_remaining/2))
 
         while self.time_remaining > 0:
             member = self.message.server.get_member(participant)
