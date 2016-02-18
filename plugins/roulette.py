@@ -138,14 +138,17 @@ class HotPotato(Roulette):
         participant = choice(self.participants)
         Timer(1, self.timer).start()
         reply = True
+        pass_to = []
 
         while self.time_remaining > 0:
             member = self.message.server.get_member(participant)
 
             if not pass_to:
-                pass_from = self.participants
+                pass_from = list(self.participants)
                 pass_from.pop(pass_from.index(member.id))
-                pass_to = [choice(pass_from), choice(pass_from)]
+                pass_to = [choice(pass_from)]
+                pass_from.pop(pass_from.index(pass_to[0]))
+                pass_to.append(choice(pass_from))
 
             if reply is not None:
                 yield from self.client.send_message(
@@ -173,6 +176,7 @@ class HotPotato(Roulette):
                 pass_to = []
             elif self.time_remaining == 5:
                 asyncio.async(self.client.send_message(self.message.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
+                self.time_remaining -= 1
 
         yield from self.client.send_message(self.message.channel, "{} :fire: :boom: :boom: :fire:".format(
             self.message.server.get_member(participant).mention
@@ -207,16 +211,16 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     if args[0].lower() == "!hotpotato":
         if message.channel.id not in started:
             started.append(message.channel.id)
-            num = 6
+            num = 4
 
             if len(args) > 1:
                 try:
                     num = int(args[1])
                 except ValueError:
-                    num = 6
+                    num = 4
 
             if num < 1:
-                num = 6
+                num = 4
 
             hot_potato = HotPotato(client, message, num)
 
