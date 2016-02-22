@@ -27,7 +27,8 @@ commands = {
         "usage": "!pasta <copypasta | action>\n"
                  "Actions:\n"
                  "    --add <pastaname> <pasta>\n"
-                 "    --remove <pastaname>",
+                 "    --remove <pastaname>\n"
+                 "    -list [page]",
         "desc": "Use copypastas. Don't forget to enclose the copypasta in quotes: `\"pasta goes here\"` for multiline"
                 "pasta action."
     }
@@ -57,14 +58,50 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     # Copypasta command
     elif args[0] == "!pasta":
         if len(args) > 1:
+            # List copypastas
+            if args[1] == "-list":
+                page = 1
+                if len(args) > 2:
+                    try:
+                        page = int(args[2])
+                    except ValueError:
+                        page = 1
+
+                pasta_names = list(pastas.data.keys())
+                pasta_pages = []
+
+                # Divide pasta_names into list of pages
+                for i, pasta_name in enumerate(pasta_names):
+                    p = int(i / 20)  # Current page number
+
+                    if i % 20 == 0:
+                        pasta_pages.append([])
+
+                    pasta_pages[p].append(pasta_name)
+
+                # Don't go over page nor under
+                if page > len(pasta_pages):
+                    page = len(pasta_pages)
+                elif page < 1:
+                    page = 1
+
+                m = "**Pastas (page {0}/{1}):** ```\n{2}\n```\n" \
+                    "Use `!pasta -list [page]` to view another page.".format(
+                        page, len(pasta_pages), "\n".join(pasta_pages[page-1])
+                    )
+
             # Add a copypasta
-            if args[1] == "--add":
+            elif args[1] == "--add":
                 if len(args) > 3:
                     pasta_name = args[2].lower()
                     pasta = " ".join(args[3:])
-                    pastas.data[pasta_name] = pasta
-                    pastas.save()
-                    m = "Pasta `{}` set.".format(pasta_name)
+                    if not pastas.data.get(pasta_name):
+                        pastas.data[pasta_name] = pasta
+                        pastas.save()
+                        m = "Pasta `{}` set.".format(pasta_name)
+                    else:
+                        m = "Pasta `{0}` already exists. " \
+                            "You can remove it with `!pasta --remove {0}`".format(pasta_name)
                 else:
                     m = "Please follow the format of `!pasta --add <pastaname> <copypasta ...>`"
 
@@ -91,7 +128,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                         m = random.choice(list(pastas.data.values()))
                     else:
                         m = pastas.data.get(" ".join(args[1:]).lower()) or \
-                            "No such pasta is defined. Define with `!pasta --add <pastaname> <copypasta ...>`"
+                            "Pasta `{0}` is undefined. " \
+                            "Define with `!pasta --add {0} <copypasta ...>`".format(" ".join(args[1:]))
                 else:
                     m = "There are no defined pastas. Define with `!pasta --add <pastaname> <copypasta ...>`"
 
