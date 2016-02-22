@@ -61,20 +61,26 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             # List copypastas
             if args[1] == "-list":
                 page = 1
+                page_size = 20
+                pasta_names = list(pastas.data.keys())
+
                 if len(args) > 2:
                     try:
-                        page = int(args[2])
+                        if args[2] == "all":
+                            page = 1
+                            page_size = len(pasta_names)
+                        else:
+                            page = int(args[2])
                     except ValueError:
                         page = 1
 
-                pasta_names = list(pastas.data.keys())
                 pasta_pages = []
 
                 # Divide pasta_names into list of pages
                 for i, pasta_name in enumerate(pasta_names):
-                    p = int(i / 20)  # Current page number
+                    p = int(i / page_size)  # Current page number
 
-                    if i % 20 == 0:
+                    if i % page_size == 0:
                         pasta_pages.append([])
 
                     pasta_pages[p].append(pasta_name)
