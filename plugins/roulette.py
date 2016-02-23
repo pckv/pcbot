@@ -2,6 +2,7 @@
 
 Commands:
 !roulette
+!hotpotato
 """
 
 from random import randint, choice

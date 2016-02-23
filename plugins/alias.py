@@ -118,7 +118,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 if name in msg:
                     execute = True
             else:
-                if msg.strip == name:
+                if msg.strip() == name:
                     execute = True
 
             # Add any mentions to the alias
