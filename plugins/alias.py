@@ -66,7 +66,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                         anywhere = True
                     if "-case-sensitive" in options:
                         case_sensitive = True
-                    if not anywhere and "-delete-message":
+                    if not anywhere and "-delete-message" in options:
                         delete_message = True
 
                 if not case_sensitive:
