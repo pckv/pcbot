@@ -7,6 +7,7 @@ Commands:
 """
 
 import random
+import logging
 
 import discord
 import asyncio
@@ -56,7 +57,12 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         yield from client.send_message(message.channel, "{0.mention} rolls {1}".format(message.author, roll))
 
     # Copypasta command
-    elif args[0] == "!pasta":
+    elif args[0] == "!pasta" or args[0].startswith("\\"):
+        if args[0].startswith("\\"):
+            org = args
+            args = ["!pasta", org[0][1:]]
+            args.extend(org[1:])
+            asyncio.async(client.delete_message(message))
         if len(args) > 1:
             # List copypastas
             if args[1] == "-list":
