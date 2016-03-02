@@ -43,22 +43,22 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     def format_record(record):
         r = stats.data[message.server.id].get(record)
         m = "{0}\n" \
-            "Letters typed: {1[letters]}\n" \
-            "Words typed: {1[words]}\n" \
-            "Channels/members mentioned: {1[mentions]}".format(message.server.get_member(r["author"]).name,
-                                                               r)
+            "Letters typed: `{1[letters]}`\n" \
+            "Words typed: `{1[words]}`\n" \
+            "Channels/members mentioned: `{1[mentions]}`".format(message.server.get_member(r["author"]).name,
+                                                                 r)
 
         return m
 
     if args[0] == "!stats":
         m = "**Stats:**\n" \
-            "Letters typed: {0[letters]}\n" \
-            "Words typed: {0[words]}\n" \
-            "Pastas copypasted: {0[pastas]}\n" \
-            "Channels/members mentioned: {0[mentions]}\n\n" \
+            "Letters typed: `{0[letters]}`\n" \
+            "Words typed: `{0[words]}`\n" \
+            "Pastas copypasted: `{0[pastas]}`\n" \
+            "Channels/members mentioned: `{0[mentions]}`\n\n" \
             "**Records:**\n" \
-            "*Longest message*: {1}\n\n" \
-            "*Most mentions in one message*: {2}".format(stats.data[message.server.id],
+            "__Longest message:__ {1}\n\n" \
+            "__Most mentions in one message:__ {2}".format(stats.data[message.server.id],
                                                          format_record("longest-message"),
                                                          format_record("most-mentions")
                                                          )
