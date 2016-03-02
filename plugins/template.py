@@ -25,3 +25,10 @@ commands = {
 def on_message(client: discord.Client, message: discord.Message, args: list):
     # Add any checks here.
     pass
+
+
+@asyncio.coroutine
+def save(client: discord.Client):
+    # Optionally, add anything that should be saved here (eg configs)
+    # Feel free to remove this function when it's not needed
+    pass
