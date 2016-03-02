@@ -52,7 +52,9 @@ class Bot(discord.Client):
         self.owner = Config("owner")
 
         load_plugins()
+        asyncio.async(self.autosave())
 
+    # Return true if user/member is the assigned bot owner
     def is_owner(self, user):
         if type(user) is not str:
             user = user.id
@@ -61,6 +63,27 @@ class Bot(discord.Client):
             return True
 
         return False
+
+    # Save a plugins files if it has a save function
+    def save_plugin(self, plugin):
+        if plugins.get(plugin):
+            try:
+                yield from plugins[plugin].save(self)
+            except AttributeError:
+                pass
+
+    # Looks for any save function in a plugin and saves. Set up for saving on !stop and periodic saving every 30 mins
+    def save_plugins(self):
+        for name, _ in plugins.items():
+            yield from self.save_plugin(name)
+
+    @asyncio.coroutine
+    def autosave(self):
+        while True:
+            # Sleep for 30 minutes before saving (no reason to save on startup)
+            yield from asyncio.sleep(60 * 30)
+            yield from self.save_plugins()
+            logging.log(logging.INFO, "Plugins saved")
 
     @asyncio.coroutine
     def on_ready(self):
@@ -135,6 +158,7 @@ class Bot(discord.Client):
         if self.is_owner(message.author):
             # Stops the bot
             if message.content == "!stop":
+                yield from self.save_plugins()
                 bot.logout()
                 exit("Stopped by owner.")
 
@@ -153,12 +177,14 @@ class Bot(discord.Client):
                     if args[1] == "reload":
                         if len(args) > 2:
                             if plugins.get(args[2]):
+                                yield from self.save_plugin(args[2])
                                 reload_plugin(args[2])
                                 yield from self.send_message(message.channel, "Reloaded plugin `{}`.".format(args[2]))
                             else:
                                 yield from self.send_message(message.channel,
                                                              "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
                         else:
+                            yield from self.save_plugins()
                             for plugin in list(plugins.keys()):
                                 reload_plugin(plugin)
                             yield from self.send_message(message.channel, "All plugins reloaded.")
@@ -177,6 +203,7 @@ class Bot(discord.Client):
                     elif args[1] == "unload":
                         if len(args) > 2:
                             if plugins[args[2].lower()]:
+                                yield from self.save_plugin(args[2])
                                 unload_plugin(args[2].lower())
                                 yield from self.send_message(message.channel, "Plugin `{}` unloaded.".format(args[2]))
                             else:
