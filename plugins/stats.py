@@ -42,10 +42,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
     def format_record(record):
         r = stats.data[message.server.id].get(record)
-        m = "Author: {0}\n" \
+        m = "{0}\n" \
             "Letters typed: {1[letters]}\n" \
             "Words typed: {1[words]}\n" \
-            "Channels/members mentioned: {1[mentions]}".format(message.server.get_member(r["author"]).mention,
+            "Channels/members mentioned: {1[mentions]}".format(message.server.get_member(r["author"]).name,
                                                                r)
 
         return m
@@ -57,11 +57,11 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             "Pastas copypasted: {0[pastas]}\n" \
             "Channels/members mentioned: {0[mentions]}\n\n" \
             "**Records:**\n" \
-            "*Longest message*: \n{1}\n\n" \
-            "*Most mentions in one message*: \n{2}".format(stats.data[message.server.id],
-                                                           format_record("longest-message"),
-                                                           format_record("most-mentions")
-                                                           )
+            "*Longest message*: {1}\n\n" \
+            "*Most mentions in one message*: {2}".format(stats.data[message.server.id],
+                                                         format_record("longest-message"),
+                                                         format_record("most-mentions")
+                                                         )
 
         yield from client.send_message(message.channel, m)
 
