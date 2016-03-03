@@ -15,6 +15,7 @@ Commands:
 """
 
 import re
+from operator import itemgetter
 
 import discord
 import asyncio
@@ -23,8 +24,9 @@ from pcbot import Config
 
 commands = {
     "stats": {
-        "usage": "!stats",
-        "desc": "Display various stats for this server."
+        "usage": "!stats [member]",
+        "desc": "Display various stats for this server.\n"
+                "Mention a user to view user specific stats. Example: `!stats @Member`"
     }
 }
 
@@ -36,32 +38,52 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     if client.user.id == message.author.id:
         return
 
-    # Define any server not listed in stats
+    # Define any server and member not listed in stats
     if message.server.id not in stats.data:
         stats.data[message.server.id] = {}
+    if message.author.id not in stats.data:
+        stats.data[message.author.id] = {}
 
+    # Format a record specific stat
     def format_record(record):
         r = stats.data[message.server.id].get(record)
         m = "{0}\n" \
             "Letters typed: `{1[letters]}`\n" \
             "Words typed: `{1[words]}`\n" \
-            "Channels/members mentioned: `{1[mentions]}`".format(message.server.get_member(r["author"]).name,
-                                                                 r)
+            "Channels/members mentioned: `{1[mentions]}`".format(message.server.get_member(r["author"]).name, r)
 
         return m
 
+    # User command
     if args[0] == "!stats":
-        m = "**Stats:**\n" \
-            "Letters typed: `{0[letters]}`\n" \
-            "Words typed: `{0[words]}`\n" \
-            "Pastas copypasted: `{0[pastas]}`\n" \
-            "Channels/members mentioned: `{0[mentions]}`\n\n" \
-            "**Records:**\n" \
-            "__Longest message:__ {1}\n\n" \
-            "__Most mentions in one message:__ {2}".format(stats.data[message.server.id],
-                                                         format_record("longest-message"),
-                                                         format_record("most-mentions")
-                                                         )
+        m = ""
+        if len(args) > 1 and message.mentions:
+            for member in message.mentions:
+                if member.id in stats.data:
+                    # Sort words descending
+                    words = list(reversed(sorted(stats.data[member.id]["word-count"].items(), key=itemgetter(1))))
+                    len_words = 10 if len(words) >= 10 else len(words)
+
+                    m = "**{}'s {} most used words:**\n".format(member.mention, len_words)
+
+                    # Add all data to our output
+                    for i in range(len_words):
+                        word = words[i]
+                        m += "{}: `{}`\n".format(word[0], word[1])
+                else:
+                    m = "{} has never said anything.".format(member.mention)
+        else:
+            m = "**Stats:**\n" \
+                "Letters typed: `{0[letters]}`\n" \
+                "Words typed: `{0[words]}`\n" \
+                "Pastas copypasted: `{0[pastas]}`\n" \
+                "Channels/members mentioned: `{0[mentions]}`\n\n" \
+                "**Records:**\n" \
+                "__Longest message:__ {1}\n\n" \
+                "__Most mentions in one message:__ {2}".format(stats.data[message.server.id],
+                                                               format_record("longest-message"),
+                                                               format_record("most-mentions")
+                                                               )
 
         yield from client.send_message(message.channel, m)
 
@@ -97,6 +119,13 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
     if mentions > stats.data[message.server.id].get("most-mentions", {}).get("mentions", -1):
         stats.data[message.server.id]["most-mentions"] = message_stats
+
+    # Log every word into a counter for the specific user
+    if not stats.data[message.author.id].get("word-count"):
+        stats.data[message.author.id]["word-count"] = {}
+
+    for word in message.content.split():
+        stats.data[message.author.id]["word-count"][word] = (stats.data[message.author.id]["word-count"].get(word) or 0) + 1
 
 
 @asyncio.coroutine
