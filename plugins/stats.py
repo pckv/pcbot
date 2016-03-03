@@ -125,6 +125,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         stats.data[message.author.id]["word-count"] = {}
 
     for word in message.content.split():
+        word = word.lower()
         stats.data[message.author.id]["word-count"][word] = (stats.data[message.author.id]["word-count"].get(word) or 0) + 1
 
 
