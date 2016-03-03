@@ -14,7 +14,6 @@ Commands:
 !stats
 """
 
-import re
 from operator import itemgetter
 
 import discord
