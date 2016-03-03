@@ -58,10 +58,13 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         record_member = None
         for member in message.server.members:
             if stats.data.get(member.id):
-                words = stats.data[member.id].get("word-count", {})
-                if words.get(word, 0) > record:
-                    record = words[word]
+                word_list = stats.data[member.id].get("word-count", {})
+                if word_list.get(word, 0) > record:
+                    record = word_list[word]
                     record_member = member
+
+        if record_member is None:
+            return "*none*"
 
         return "{}\n" \
                "Count: `{}`".format(record_member.name, record)
