@@ -47,12 +47,24 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     # Format a record specific stat
     def format_record(record):
         r = stats.data[message.server.id].get(record)
-        m = "{0}\n" \
+        return "{0}\n" \
             "Letters typed: `{1[letters]}`\n" \
             "Words typed: `{1[words]}`\n" \
             "Channels/members mentioned: `{1[mentions]}`".format(message.server.get_member(r["author"]).name, r)
 
-        return m
+    # Format a record for user with most of a word
+    def format_words(word):
+        record = 0
+        record_member = None
+        for member in message.server.members:
+            if stats.data.get(member.id):
+                words = stats.data[member.id].get("word-count", {})
+                if words.get(word, 0) > record:
+                    record = words[word]
+                    record_member = member
+
+        return "{}\n" \
+               "Count: `{}`".format(record_member.name, record)
 
     # User command
     if args[0] == "!stats":
@@ -80,10 +92,12 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 "Channels/members mentioned: `{0[mentions]}`\n\n" \
                 "**Records:**\n" \
                 "__Longest message:__ {1}\n\n" \
-                "__Most mentions in one message:__ {2}".format(stats.data[message.server.id],
-                                                               format_record("longest-message"),
-                                                               format_record("most-mentions")
-                                                               )
+                "__Most mentions in one message:__ {2}\n\n" \
+                "__Most xD's total:__ {3}".format(stats.data[message.server.id],
+                                                  format_record("longest-message"),
+                                                  format_record("most-mentions"),
+                                                  format_words("xd")
+                                                  )
 
         yield from client.send_message(message.channel, m)
 
