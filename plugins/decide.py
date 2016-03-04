@@ -32,6 +32,10 @@ commands = {
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!decide":
+        if len(args) > 13:
+            yield from client.send_message(message.channel, "I can't roll that many decisions.")
+            return
+
         if len(args) > 2:
             choices = args[1:]
             rolls = randint(len(choices) * 3, len(choices) * 7)

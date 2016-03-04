@@ -147,7 +147,7 @@ class Bot(discord.Client):
             print("Owner code for assignment: {}".format(owner_code))
             yield from self.send_message(message.channel,
                                          "A code has been printed in the console for you to repeat within 15 seconds.")
-            user_code = yield from self.wait_for_message(timeout=15, content=owner_code)
+            user_code = yield from self.wait_for_message(timeout=15, channel=message.channel, content=owner_code)
             if user_code:
                 yield from self.send_message(message.channel, "You have been assigned bot owner.")
                 self.owner.data = message.author.id
