@@ -171,6 +171,25 @@ class Bot(discord.Client):
                 else:
                     yield from self.send_message(message.channel, "Usage: `!game <game>`")
 
+            # Runs a piece of code
+            elif args[0] == "!do":
+                if len(args) > 1:
+                    def say(msg):
+                        asyncio.async(self.send_message(message.channel, msg))
+
+                    script = message.clean_content[len("!do "):].replace("`", "")
+                    try:
+                        exec(script)
+                    except Exception as e:
+                        say("```" + str(e) + "```")
+
+            # Evaluates a piece of code and prints the result
+            elif args[0] == "!eval":
+                if len(args) > 1:
+                    script = message.clean_content[len("!eval "):].replace("`", "")
+                    result = eval(script)
+                    yield from self.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
+
             # Plugin specific commands
             elif args[0] == "!plugin":
                 if len(args) > 1:
