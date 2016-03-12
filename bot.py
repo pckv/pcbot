@@ -174,8 +174,8 @@ class Bot(discord.Client):
             # Runs a piece of code
             elif args[0] == "!do":
                 if len(args) > 1:
-                    def say(msg):
-                        asyncio.async(self.send_message(message.channel, msg))
+                    def say(msg, c=message.channel):
+                        asyncio.async(self.send_message(c, msg))
 
                     script = message.clean_content[len("!do "):].replace("`", "")
                     try:
