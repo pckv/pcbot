@@ -28,6 +28,8 @@ moderate = Config("moderate", data={})
 
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message, args: list):
+    channel = moderate.data.get(message.server.id, {}).get("nsfw-channel")
+
     if args[0] == "!nsfwchannel":
         if message.author.permissions_in(message.channel).manage_server:
             m = "Please see `!help nsfwchannel`."
@@ -53,10 +55,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         else:
             yield from client.send_message(message.channel, "You need `Manage Server` permission to use this command.")
 
-    if moderate.data.get(message.server.id, {}).get("nsfw-channel"):
+    if channel:
         # Check if message includes keyword nsfw and a link
         msg = message.content.lower()
-        if "nsfw" in msg and ("http://" in msg or "https://" in msg):
+        if "nsfw" in msg and ("http://" in msg or "https://" in msg) and not message.channel == channel:
             if message.server.get_member(client.user.id).permissions_in(message.channel).manage_messages:
                 yield from client.delete_message(message)
 
