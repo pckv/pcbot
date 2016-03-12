@@ -67,16 +67,12 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             # List copypastas
             if args[1] == "-list":
                 page = 1
-                page_size = 20
+                page_size = 75
                 pasta_names = list(pastas.data.keys())
 
                 if len(args) > 2:
                     try:
-                        if args[2] == "all":
-                            page = 1
-                            page_size = len(pasta_names)
-                        else:
-                            page = int(args[2])
+                        page = int(args[2])
                     except ValueError:
                         page = 1
 
