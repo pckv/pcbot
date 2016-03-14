@@ -50,6 +50,8 @@ class Bot(discord.Client):
         super().__init__()
         self.message_count = Config("count", data={})
         self.owner = Config("owner")
+        self.lambdas = Config("lambdas", data={})
+        self.lambda_blacklist = []
 
         load_plugins()
         asyncio.async(self.autosave())
@@ -177,7 +179,7 @@ class Bot(discord.Client):
                     def say(msg, c=message.channel):
                         asyncio.async(self.send_message(c, msg))
 
-                    script = message.clean_content[len("!do "):].replace("`", "")
+                    script = message.content[len("!do "):]
                     try:
                         exec(script)
                     except Exception as e:
@@ -186,9 +188,57 @@ class Bot(discord.Client):
             # Evaluates a piece of code and prints the result
             elif args[0] == "!eval":
                 if len(args) > 1:
-                    script = message.clean_content[len("!eval "):].replace("`", "")
+                    script = message.content[len("!eval "):].replace("`", "")
                     result = eval(script)
                     yield from self.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
+
+            elif args[0] == "!lambda":
+                m = ""
+
+                if len(args) > 2:
+                    name = args[2].lower()
+                    m = "Command `{}` ".format(name)
+
+                    if args[1] == "add" and len(args) > 3:
+                        # Get the clean representation of the command
+                        cmd = message.content[len(" ".join(args[:3]))+1:]
+
+                        if name not in self.lambdas.data:
+                            self.lambdas.data[name] = cmd
+                            self.lambdas.save()
+                            m += "set."
+                        else:
+                            m += "already exists."
+                    elif args[1] == "remove":
+                        if name in self.lambdas.data:
+                            self.lambdas.data.pop(name)
+                            self.lambdas.save()
+                            m += "removed."
+                        else:
+                            m += "does not exist."
+                    elif args[1] == "disable":
+                        if name not in self.lambda_blacklist:
+                            self.lambda_blacklist.append(name)
+                            self.lambdas.save()
+                            m += "disabled."
+                        else:
+                            if name in self.lambdas.data:
+                                m += "is already disabled."
+                            else:
+                                m += "does not exist."
+                    elif args[1] == "enable":
+                        if name in self.lambda_blacklist:
+                            self.lambda_blacklist.remove(name)
+                            self.lambdas.save()
+                            m += "enabled."
+                        else:
+                            if name in self.lambdas.data:
+                                m += "is already enabled."
+                            else:
+                                m += "does not exist."
+
+                if m:
+                    yield from self.send_message(message.channel, m)
 
             # Plugin specific commands
             elif args[0] == "!plugin":
@@ -249,6 +299,19 @@ class Bot(discord.Client):
         # Run plugins on_message
         for name, plugin in plugins.items():
             yield from plugin.on_message(self, message, args)
+
+        name = args[0][1:]
+        if name in self.lambdas.data and name not in self.lambda_blacklist:
+            def say(msg, c=message.channel):
+                asyncio.async(self.send_message(c, msg))
+
+            def arg(i, default=0):
+                if len(args) > i:
+                    return args[i]
+                else:
+                    return default
+
+            exec(self.lambdas.data[name], locals(), globals())
 
 
 bot = Bot()
