@@ -136,7 +136,7 @@ class Bot(discord.Client):
                     if plugin.commands:
                         m += "\n" + "\n".join(plugin.commands.keys())
 
-                m += "```\nUse `!help <comand>` for command specific help."
+                m += "```\nUse `!help <command>` for command specific help."
                 yield from self.send_message(message.channel, m)
 
         # Below are all owner specific commands
@@ -181,7 +181,7 @@ class Bot(discord.Client):
 
                     script = message.content[len("!do "):]
                     try:
-                        exec(script)
+                        exec(script, locals(), globals())
                     except Exception as e:
                         say("```" + str(e) + "```")
 
@@ -300,8 +300,7 @@ class Bot(discord.Client):
         for name, plugin in plugins.items():
             yield from plugin.on_message(self, message, args)
 
-        name = args[0][1:]
-        if name in self.lambdas.data and name not in self.lambda_blacklist:
+        if args[0] in self.lambdas.data and args[0] not in self.lambda_blacklist:
             def say(msg, c=message.channel):
                 asyncio.async(self.send_message(c, msg))
 
@@ -311,7 +310,7 @@ class Bot(discord.Client):
                 else:
                     return default
 
-            exec(self.lambdas.data[name], locals(), globals())
+            exec(self.lambdas.data[args[0]], locals(), globals())
 
 
 bot = Bot()
