@@ -236,6 +236,11 @@ class Bot(discord.Client):
                                 m += "is already enabled."
                             else:
                                 m += "does not exist."
+                    elif args[1] == "source":
+                        if name in self.lambdas.data:
+                            m = "Source for {}: \n{}".format(name, self.lambdas.data[name])
+                        else:
+                            m += "does not exist."
 
                 if m:
                     yield from self.send_message(message.channel, m)
