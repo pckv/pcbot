@@ -8,6 +8,7 @@ Commands:
 
 import random
 import logging
+from datetime import datetime, timedelta
 
 import discord
 import asyncio
@@ -42,7 +43,11 @@ pastas = Config("pastas", data={})
 def on_message(client: discord.Client, message: discord.Message, args: list):
     # Basic check
     if args[0] == "!ping":
-        yield from client.send_message(message.channel, "pong")
+        start = datetime.now()
+        pong = yield from client.send_message(message.channel, "pong")
+        end = datetime.now()
+        response = (end - start).microseconds / 1000
+        yield from client.edit_message(pong, "pong `{}ms`".format(response))
 
     # Roll from 1-100 or more
     elif args[0] == "!roll":

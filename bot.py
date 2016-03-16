@@ -303,7 +303,8 @@ class Bot(discord.Client):
 
         # Run plugins on_message
         for name, plugin in plugins.items():
-            yield from plugin.on_message(self, message, args)
+            if args[0][1:] in plugin.commands or getattr(plugin, "always_run", False):
+                yield from plugin.on_message(self, message, args)
 
         if args[0] in self.lambdas.data and args[0] not in self.lambda_blacklist:
             def say(msg, c=message.channel):

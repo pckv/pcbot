@@ -29,6 +29,8 @@ commands = {
     }
 }
 
+always_run = True
+
 stats = Config("stats", data={})
 
 
