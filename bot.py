@@ -87,6 +87,52 @@ class Bot(discord.Client):
             yield from self.save_plugins()
             logging.log(logging.INFO, "Plugins saved")
 
+    @staticmethod
+    def find_member(server: discord.Server, name, steps=3, mention=True):
+        # Check if name is a mention
+        member = None
+
+        if name.startswith("<@") and name.endswith(">") and mention:
+            member = server.get_member(name[2:-1])
+
+        if not member:
+            # Steps to check, gets more fuzzy over time
+            checks = [lambda m: m.name.lower() == name.lower(),
+                      lambda m: m.name.lower().startswith(name.lower()),
+                      lambda m: name.lower() in m.name.lower()]
+
+            for i in range(steps if steps <= len(checks) else len(checks)):
+                member = discord.utils.find(checks[i], server.members)
+
+                if member:
+                    break
+
+        # Return the found member or None
+        return member
+
+    @staticmethod
+    def find_channel(server: discord.Server, name, steps=3, mention=True):
+        # Check if name is a mention
+        channel = None
+
+        if name.startswith("<#") and name.endswith(">") and mention:
+            channel = server.get_channel(name[2:-1])
+
+        if not channel:
+            # Steps to check, gets more fuzzy over time
+            checks = [lambda c: c.name.lower() == name.lower(),
+                      lambda c: c.name.lower().startswith(name.lower()),
+                      lambda c: name.lower() in c.name.lower()]
+
+            for i in range(steps if steps <= len(checks) else len(checks)):
+                channel = discord.utils.find(checks[i], server.channels)
+
+                if channel:
+                    break
+
+        # Return the found member or None
+        return channel
+
     @asyncio.coroutine
     def on_ready(self):
         print('Logged in as')
