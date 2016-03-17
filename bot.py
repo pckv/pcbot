@@ -140,6 +140,13 @@ class Bot(discord.Client):
         print(self.user.id)
         print('------')
 
+        # Call any on_ready function in plugins
+        for name, plugin in plugins.items():
+            try:
+                yield from plugin.on_ready(self)
+            except AttributeError:
+                pass
+
     @asyncio.coroutine
     def on_message(self, message: discord.Message):
         if message.author == self.user:

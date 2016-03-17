@@ -32,6 +32,8 @@ commands = {
     }
 }
 
+always_run = True
+
 aliases = Config("user_alias", data={})
 
 

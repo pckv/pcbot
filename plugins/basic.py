@@ -36,6 +36,8 @@ commands = {
     }
 }
 
+always_run = True
+
 pastas = Config("pastas", data={})
 
 
