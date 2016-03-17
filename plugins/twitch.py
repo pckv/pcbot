@@ -49,20 +49,20 @@ def on_ready(client: discord.Client):
             if member_id in live_channels:
                 if not stream:
                     live_channels.pop(member_id)
+            else:
+                if stream:
+                    live_channels[member_id] = stream
 
-            if stream:
-                live_channels[member_id] = stream
+                    # Tell every mutual channel between the streamer and the bot that streamer started streaming
+                    for server in client.servers:
+                        member = server.get_member(member_id)
 
-                # Tell every mutual channel between the streamer and the bot that streamer started streaming
-                for server in client.servers:
-                    member = server.get_member(member_id)
-
-                    if member:
-                        m = "{0} went live at {1[channel][url]} !\n" \
-                            "**{1[channel][display_name]}**: {1[channel][status]}\n" \
-                            "*Playing {1[game]}*\n" \
-                            "{1[preview][large]}".format(member.mention, stream)
-                        yield from client.send_message(server, m)
+                        if member:
+                            m = "{0} went live at {1[channel][url]} !\n" \
+                                "**{1[channel][display_name]}**: {1[channel][status]}\n" \
+                                "*Playing {1[game]}*\n" \
+                                "{1[preview][large]}".format(member.mention, stream)
+                            yield from client.send_message(server, m)
 
 
 @asyncio.coroutine
