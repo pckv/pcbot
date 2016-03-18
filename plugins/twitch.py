@@ -29,11 +29,11 @@ commands = {
 
 twitch_channels = Config("twitch-channels", data={"channels": {}})
 live_channels = {}
-update_interval = 60  # Seconds
+update_interval = 180  # Seconds
 
 twitch_api = "https://api.twitch.tv/kraken"
 
-logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("requests").setLevel(logging.INFO)
 
 
 @asyncio.coroutine
@@ -41,23 +41,24 @@ def on_ready(client: discord.Client):
     while True:
         yield from asyncio.sleep(update_interval)
 
-        # Go through all set channels and update their status
+        # Go through all set channels (if they're online on discord) and update their status
         for member_id, channel in twitch_channels.data["channels"].items():
-            request = requests.get(twitch_api + "/streams/" + channel)
-            stream = request.json().get("stream")
+            member = discord.utils.find(lambda m: m.status is not discord.Status.offline and m.id == member_id,
+                                        client.get_all_members())
 
-            if member_id in live_channels:
-                if not stream:
-                    live_channels.pop(member_id)
-            else:
-                if stream:
-                    live_channels[member_id] = stream
+            if member:
+                request = requests.get(twitch_api + "/streams/" + channel)
+                stream = request.json().get("stream")
 
-                    # Tell every mutual channel between the streamer and the bot that streamer started streaming
-                    for server in client.servers:
-                        member = server.get_member(member_id)
+                if member_id in live_channels:
+                    if not stream:
+                        live_channels.pop(member_id)
+                else:
+                    if stream:
+                        live_channels[member_id] = stream
 
-                        if member:
+                        # Tell every mutual channel between the streamer and the bot that streamer started streaming
+                        for server in client.servers:
                             m = "{0} went live at {1[channel][url]} !\n" \
                                 "**{1[channel][display_name]}**: {1[channel][status]}\n" \
                                 "*Playing {1[game]}*\n" \
@@ -70,12 +71,18 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!twitch":
         m = "Please see `!help twitch`."
         if len(args) > 1:
-            # Assign a twitch channel to your name
-            if args[1] == "set" and len(args) > 2:
-                twitch_channel = args[2]
-                twitch_channels.data["channels"][message.author.id] = twitch_channel
-                twitch_channels.save()
-                m = "Set your twitch channel to `{}`.".format(twitch_channel)
+            # Assign a twitch channel to your name or remove it
+            if args[1] == "set":
+                if len(args) > 2:
+                    twitch_channel = args[2]
+                    twitch_channels.data["channels"][message.author.id] = twitch_channel
+                    twitch_channels.save()
+                    m = "Set your twitch channel to `{}`.".format(twitch_channel)
+                else:
+                    if message.author.id in twitch_channels.data["channels"]:
+                        twitch_channels.data["channels"].pop(message.author.id)
+                        twitch_channels.save()
+                        m = "Twitch channel unlinked."
 
             # Return the member's or another member's twitch channel as a link
             elif args[1] == "get":
