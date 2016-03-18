@@ -137,3 +137,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     message.channel,
                     "{}{}: {}".format(message.author.mention, mention, command.get("text")))
                 )
+
+    # See if the user spelled definitely wrong
+    if ["definately", "definatly", "definantly", "definetly", "definently", "defiantly"] in message.clean_content:
+        yield from client.send_message(message.channel,
+                                       "{} http://www.d-e-f-i-n-i-t-e-l-y.com/").format(message.author.mention)
