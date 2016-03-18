@@ -1,3 +1,4 @@
 *.log
 .idea
 config/*
+plugins/prank/pranked.png

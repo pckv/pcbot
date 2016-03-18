@@ -33,13 +33,25 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!prank":
         name = "IT'S A"
 
-        # Set the name to a discord user if found
+        # Set the name and convert any mention to name
         if len(args) > 1:
-            name = " ".join(args[1:])
-            member = client.find_member(message.server, name)
+            name_list = []
 
-            if member:
-                name = member.name
+            for arg in args[1:]:
+                steps = 3 if len(args) == 2 else 1
+                member = client.find_member(message.server, arg, steps=steps)
+
+                if member:
+                    name_list.append(member.name)
+                else:
+                    channel = client.find_channel(message.server, arg, steps=0)
+
+                    if channel:
+                        name_list.append(channel.name)
+                    else:
+                        name_list.append(arg)
+
+            name = " ".join(name_list)
 
         name = name.upper()
 
