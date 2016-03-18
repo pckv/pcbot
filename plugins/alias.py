@@ -142,5 +142,5 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     for spelling in ["definately", "definatly", "definantly", "definetly", "definently", "defiantly"]:
         if spelling in message.clean_content:
             yield from client.send_message(message.channel,
-                                           "{} http://www.d-e-f-i-n-i-t-e-l-y.com/").format(message.author.mention)
+                                           "{} http://www.d-e-f-i-n-i-t-e-l-y.com/".format(message.author.mention))
             break
