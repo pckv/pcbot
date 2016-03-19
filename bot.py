@@ -213,9 +213,10 @@ class Bot(discord.Client):
         if self.is_owner(message.author):
             # Stops the bot
             if message.content == "!stop":
-                yield from self.save_plugins()
-                bot.logout()
-                exit("Stopped by owner.")
+                if self.user.id in [m.id for m in message.mentions]:
+                    yield from self.save_plugins()
+                    bot.logout()
+                    exit("Stopped by owner.")
 
             # Sets the bots game
             elif args[0] == "!game":

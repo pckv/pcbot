@@ -60,7 +60,7 @@ def on_ready(client: discord.Client):
                         # Tell every mutual channel between the streamer and the bot that streamer started streaming
                         for server in client.servers:
                             if member in server.members:
-                                m = "{0} went live at {1[channel][url]} !\n" \
+                                m = "{0} went live at {1[channel][url]}.\n" \
                                     "**{1[channel][display_name]}**: {1[channel][status]}\n" \
                                     "*Playing {1[game]}*\n" \
                                     "{1[preview][medium]}".format(member.mention, stream)
