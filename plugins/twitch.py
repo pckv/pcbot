@@ -33,7 +33,7 @@ update_interval = 180  # Seconds
 
 twitch_api = "https://api.twitch.tv/kraken"
 
-logging.getLogger("requests").setLevel(logging.INFO)
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 @asyncio.coroutine
@@ -59,11 +59,12 @@ def on_ready(client: discord.Client):
 
                         # Tell every mutual channel between the streamer and the bot that streamer started streaming
                         for server in client.servers:
-                            m = "{0} went live at {1[channel][url]} !\n" \
-                                "**{1[channel][display_name]}**: {1[channel][status]}\n" \
-                                "*Playing {1[game]}*\n" \
-                                "{1[preview][large]}".format(member.mention, stream)
-                            yield from client.send_message(server, m)
+                            if member in server.members:
+                                m = "{0} went live at {1[channel][url]} !\n" \
+                                    "**{1[channel][display_name]}**: {1[channel][status]}\n" \
+                                    "*Playing {1[game]}*\n" \
+                                    "{1[preview][medium]}".format(member.mention, stream)
+                                yield from client.send_message(server, m)
 
 
 @asyncio.coroutine
