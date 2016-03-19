@@ -38,8 +38,8 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 @asyncio.coroutine
 def on_ready(client: discord.Client):
-    try:
-        while True:
+    while True:
+        try:
             yield from asyncio.sleep(update_interval)
 
             # Go through all set channels (if they're online on discord) and update their status
@@ -66,8 +66,8 @@ def on_ready(client: discord.Client):
                                         "*Playing {1[game]}*\n" \
                                         "{1[preview][medium]}".format(member.mention, stream)
                                     yield from client.send_message(server, m)
-    except Exception as e:
-        logging.log(logging.INFO, "Error: " + str(e))
+        except Exception as e:
+            logging.log(logging.INFO, "Error: " + str(e))
 
 
 @asyncio.coroutine
