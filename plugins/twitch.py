@@ -38,33 +38,36 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 @asyncio.coroutine
 def on_ready(client: discord.Client):
-    while True:
-        yield from asyncio.sleep(update_interval)
+    try:
+        while True:
+            yield from asyncio.sleep(update_interval)
 
-        # Go through all set channels (if they're online on discord) and update their status
-        for member_id, channel in twitch_channels.data["channels"].items():
-            member = discord.utils.find(lambda m: m.status is not discord.Status.offline and m.id == member_id,
-                                        client.get_all_members())
+            # Go through all set channels (if they're online on discord) and update their status
+            for member_id, channel in twitch_channels.data["channels"].items():
+                member = discord.utils.find(lambda m: m.status is not discord.Status.offline and m.id == member_id,
+                                            client.get_all_members())
 
-            if member:
-                request = requests.get(twitch_api + "/streams/" + channel)
-                stream = request.json().get("stream")
+                if member:
+                    request = requests.get(twitch_api + "/streams/" + channel)
+                    stream = request.json().get("stream")
 
-                if member_id in live_channels:
-                    if not stream:
-                        live_channels.pop(member_id)
-                else:
-                    if stream:
-                        live_channels[member_id] = stream
+                    if member_id in live_channels:
+                        if not stream:
+                            live_channels.pop(member_id)
+                    else:
+                        if stream:
+                            live_channels[member_id] = stream
 
-                        # Tell every mutual channel between the streamer and the bot that streamer started streaming
-                        for server in client.servers:
-                            if member in server.members:
-                                m = "{0} went live at {1[channel][url]}.\n" \
-                                    "**{1[channel][display_name]}**: {1[channel][status]}\n" \
-                                    "*Playing {1[game]}*\n" \
-                                    "{1[preview][medium]}".format(member.mention, stream)
-                                yield from client.send_message(server, m)
+                            # Tell every mutual channel between the streamer and the bot that streamer started streaming
+                            for server in client.servers:
+                                if member in server.members:
+                                    m = "{0} went live at {1[channel][url]}.\n" \
+                                        "**{1[channel][display_name]}**: {1[channel][status]}\n" \
+                                        "*Playing {1[game]}*\n" \
+                                        "{1[preview][medium]}".format(member.mention, stream)
+                                    yield from client.send_message(server, m)
+    except Exception as e:
+        logging.log(logging.INFO, "Error: " + str(e))
 
 
 @asyncio.coroutine
