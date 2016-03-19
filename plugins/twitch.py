@@ -95,8 +95,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 if member:
                     # Send the link if member has set a channel
                     if member.id in twitch_channels.data["channels"]:
-                        m = "{}'s twitch channel: `{}`.".format(member.name,
-                                                                twitch_channels.data["channels"][member.id])
+                        m = "{}'s twitch channel: https://secure.twitch.tv/{}.".format(
+                            member.name,
+                            twitch_channels.data["channels"][member.id]
+                        )
                     else:
                         m = "No twitch channel assigned to {}!".format(member.name)
                 else:
