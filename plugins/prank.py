@@ -24,17 +24,18 @@ commands = {
 prank_path = "plugins/prank/"
 
 image_base = Image.open(prank_path + "discord_prank.png").convert("RGBA")
-image_font = ImageFont.truetype(prank_path + "American Captain.ttf", 50)
 image_width, image_height = image_base.size
 
 
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message, args: list):
+    global image_font
+
     if args[0] == "!prank":
         name = "IT'S A"
 
         # Set the name and convert any mention to name
-        if len(args) > 1:
+        if len(args) > 1: # and len(message.clean_content) < :
             name_list = []
 
             for arg in args[1:]:
@@ -55,20 +56,35 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
         name = name.upper()
 
-        # Initialize the image
+        # Initialize the image anhd font
         image_text = Image.new("RGBA", image_base.size, (255, 255, 255, 0))
+        image_font = ImageFont.truetype(prank_path + "American Captain.ttf", 50)
         image_context = ImageDraw.Draw(image_text)
 
-        # Set x and y coordinates for centered text
+        # Set width and height and scale down when necessary
         width, height = image_context.textsize(name, image_font)
-        x = (image_width-width) / 2
-        y = (height / 2 - 5)
+
+        if width > image_width:
+            scaled_font = None
+            size = image_font.size - 1
+
+            while width > image_width:
+                scaled_font = ImageFont.truetype(prank_path + "American Captain.ttf", size)
+                width, height = image_context.textsize(name, scaled_font)
+                size -= 1
+
+            image_font = scaled_font
+
+        # Set x and y coordinates for centered text
+        x = (image_width - width) / 2
+        y = (image_height - height / 2) - image_height / 1.3
 
         # Draw border
-        image_context.text((x-2, y), name, font=image_font, fill=(0, 0, 0, 255))
-        image_context.text((x+2, y), name, font=image_font, fill=(0, 0, 0, 255))
-        image_context.text((x, y-2), name, font=image_font, fill=(0, 0, 0, 255))
-        image_context.text((x, y+2), name, font=image_font, fill=(0, 0, 0, 255))
+        shadow_offset = image_font.size // 25
+        image_context.text((x-shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
+        image_context.text((x+shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
+        image_context.text((x, y-shadow_offset), name, font=image_font, fill=(0, 0, 0, 255))
+        image_context.text((x, y+shadow_offset), name, font=image_font, fill=(0, 0, 0, 255))
 
         # Draw text
         image_context.text((x, y), name, font=image_font, fill=(255, 255, 255, 255))
