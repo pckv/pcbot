@@ -63,15 +63,15 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
         # Set width and height and scale down when necessary
         width, height = image_context.textsize(name, image_font)
+        font_size = 50
 
         if width > image_width:
             scaled_font = None
-            size = image_font.size - 1
 
             while width > image_width:
-                scaled_font = ImageFont.truetype(prank_path + "American Captain.ttf", size)
+                scaled_font = ImageFont.truetype(prank_path + "American Captain.ttf", font_size)
                 width, height = image_context.textsize(name, scaled_font)
-                size -= 1
+                font_size -= 1
 
             image_font = scaled_font
 
@@ -80,7 +80,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         y = (image_height - height / 2) - image_height / 1.3
 
         # Draw border
-        shadow_offset = image_font.size // 25
+        shadow_offset = font_size // 25
         image_context.text((x-shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
         image_context.text((x+shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
         image_context.text((x, y-shadow_offset), name, font=image_font, fill=(0, 0, 0, 255))

@@ -1,4 +1,6 @@
-""" Twitch notifier template
+""" Twitch notifier
+
+This plugin updates twitch channels of any online users, notifying the server when they go live.
 
 Commands:
 !twitch
@@ -21,7 +23,7 @@ commands = {
                  "    notify-channel [channel]",
         "desc": "Handle twitch commands.\n"
                 "`set` assigns your twitch account for notifying.\n"
-                "`get` returns your assigned twitch username.\n"
+                "`get` returns a twitch channel link.\n"
                 "~~`notify-channel` sets a channel as the notify channel. This channel should not be used by any "
                 "member. Specify no channel to disable. **Requires `Manage Server` permission.**~~"
     }

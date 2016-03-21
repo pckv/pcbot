@@ -24,6 +24,7 @@ def load_plugin(plugin_name):
             return False
 
         plugins[plugin_name] = plugin
+        logging.log(logging.DEBUG, "LOADED PLUGIN " + plugin_name)
         return True
 
     return False
@@ -32,11 +33,13 @@ def load_plugin(plugin_name):
 def reload_plugin(plugin_name):
     if plugins.get(plugin_name):
         plugins[plugin_name] = importlib.reload(plugins[plugin_name])
+        logging.log(logging.DEBUG, "RELOADED PLUGIN " + plugin_name)
 
 
 def unload_plugin(plugin_name):
     if plugins.get(plugin_name):
         plugins.pop(plugin_name)
+        logging.log(logging.DEBUG, "UNLOADED PLUGIN " + plugin_name)
 
 
 def load_plugins():
@@ -96,7 +99,7 @@ class Bot(discord.Client):
             member = server.get_member(name[2:-1])
 
         if not member:
-            # Steps to check, gets more fuzzy over time
+            # Steps to check, higher values equal more fuzzy checks
             checks = [lambda m: m.name.lower() == name.lower(),
                       lambda m: m.name.lower().startswith(name.lower()),
                       lambda m: name.lower() in m.name.lower()]
@@ -112,14 +115,14 @@ class Bot(discord.Client):
 
     @staticmethod
     def find_channel(server: discord.Server, name, steps=3, mention=True):
-        # Check if name is a mention
+        # Check if channel is a mention
         channel = None
 
         if name.startswith("<#") and name.endswith(">") and mention:
             channel = server.get_channel(name[2:-1])
 
         if not channel:
-            # Steps to check, gets more fuzzy over time
+            # Steps to check, higher values equal more fuzzy checks
             checks = [lambda c: c.name.lower() == name.lower(),
                       lambda c: c.name.lower().startswith(name.lower()),
                       lambda c: name.lower() in c.name.lower()]
@@ -130,15 +133,15 @@ class Bot(discord.Client):
                 if channel:
                     break
 
-        # Return the found member or None
+        # Return the found channel or None
         return channel
 
     @asyncio.coroutine
     def on_ready(self):
-        print('Logged in as')
-        print(self.user.name)
-        print(self.user.id)
-        print('------')
+        logging.log(logging.INFO, "\nLogged in as\n"
+                                  "{0.user.name}\n"
+                                  "{0.user.id}\n".format(self) +
+                                  "-" * len(self.user.id))
 
         # Call any on_ready function in plugins
         for name, plugin in plugins.items():
