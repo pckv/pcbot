@@ -34,8 +34,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!prank":
         name = "IT'S A"
 
-        # Set the name and convert any mention to name
-        if len(args) > 1: # and len(message.clean_content) < :
+        # Set the name and convert any mention to name (this ignores punctuation and converts "@PC," to "PC")
+        if len(args) > 1 and len(message.clean_content) < 200:
             name_list = []
 
             for arg in args[1:]:

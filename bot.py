@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import shlex
+import re
 import importlib
 from datetime import datetime
 from getpass import getpass
@@ -92,11 +93,12 @@ class Bot(discord.Client):
 
     @staticmethod
     def find_member(server: discord.Server, name, steps=3, mention=True):
-        # Check if name is a mention
         member = None
 
-        if name.startswith("<@") and name.endswith(">") and mention:
-            member = server.get_member(name[2:-1])
+        # Return a member from mention
+        found_mention = re.search("<@([0-9]+)>", name)
+        if found_mention and mention:
+            member = server.get_member(found_mention.group(1))
 
         if not member:
             # Steps to check, higher values equal more fuzzy checks
@@ -115,11 +117,12 @@ class Bot(discord.Client):
 
     @staticmethod
     def find_channel(server: discord.Server, name, steps=3, mention=True):
-        # Check if channel is a mention
         channel = None
 
-        if name.startswith("<#") and name.endswith(">") and mention:
-            channel = server.get_channel(name[2:-1])
+        # Return a member from mention
+        found_mention = re.search("<#([0-9]+)>", name)
+        if found_mention and mention:
+            channel = server.get_channel(found_mention.group(1))
 
         if not channel:
             # Steps to check, higher values equal more fuzzy checks
