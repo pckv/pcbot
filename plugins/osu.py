@@ -45,6 +45,9 @@ logging.getLogger("requests").setLevel(logging.DEBUG)
 def on_ready(client: discord.Client):
     global osu_tracking
 
+    if osu.data["key"] == "change to your api key":
+        logging.log(logging.WARNING, "osu! functionality is unavailable until an API key is provided")
+
     while True:
         try:
             yield from asyncio.sleep(update_interval)
@@ -73,8 +76,7 @@ def on_ready(client: discord.Client):
                     }
                     request = requests.get(osu_api + "get_user_best", request_params)
 
-                    print("MEMBER FOUND {0.name}".format(member))
-                    if request:
+                    if request.ok:
                         scores = request.json()
 
                         # Go through all scores and see if they've already been tracked
@@ -89,15 +91,12 @@ def on_ready(client: discord.Client):
                             if new_score:
                                 for server in client.servers:
                                     if member in server.members:
-                                        print("{0.name} set a new best!".format(member))
 
                                         m = "{0.mention} set a new best on " \
                                             "https://osu.ppy.sh/b/{1[beatmap_id]}\n" \
                                             "**{1[pp]}pp, {1[rank]}**\n" \
                                             "**Profile**: https://osu.ppy.sh/u/{1[user_id]}".format(member, new_score)
                                         yield from client.send_message(server, m)
-                            else:
-                                print("NO NEW SCORES")
 
                         osu_tracking[member_id] = list(scores)
 
