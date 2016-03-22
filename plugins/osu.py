@@ -21,9 +21,9 @@ commands = {
     "osu": {
         "usage": "!osu <option>\n"
                  "Options:\n"
-                 "    set <username>\n"
-                 "    get\n"
-                 "    notify-channel [channel]",
+                 "     set <username>\n"
+                 "     get\n"
+                 "     notify-channel [channel]\n",
         "desc": "Handle osu! commands.\n"
                 "`set` assigns your osu! user for notifying.\n"
                 "`get` returns an osu! userpage link..\n"
@@ -48,10 +48,12 @@ def on_ready(client: discord.Client):
     if osu.data["key"] == "change to your api key":
         logging.log(logging.WARNING, "osu! functionality is unavailable until an API key is provided")
 
+    sent_requests = 0
+    updated = 0
+
     while True:
         try:
             yield from asyncio.sleep(update_interval)
-            sent_requests = 0
 
             # Go through all set channels playing osu! and update their status
             for member_id, profile in osu.data["profiles"].items():
@@ -100,7 +102,12 @@ def on_ready(client: discord.Client):
 
                         osu_tracking[member_id] = list(scores)
 
-            logging.log(logging.INFO, "Requested scores from {} users playing osu!.".format(sent_requests))
+            # Send info on how many requests were sent the last 10 minutes (20 requests)
+            updated += 1
+
+            if updated % 20 == 0:
+                logging.log(logging.INFO, "Requested scores from {} users playing osu!.".format(sent_requests))
+                sent_requests = 0
 
         except Exception as e:
             logging.log(logging.INFO, "Error: " + str(e))
