@@ -38,7 +38,7 @@ update_interval = 30  # Seconds
 
 osu_api = "https://osu.ppy.sh/api/"
 
-logging.getLogger("requests").setLevel(logging.DEBUG)
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 @asyncio.coroutine
@@ -114,7 +114,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             # Assign an osu! profile to your name or remove it
             if args[1] == "set":
                 if len(args) > 2:
-                    profile = args[2]
+                    profile = " ".join(args[2:])
 
                     request_params = {
                         "k": osu.data["key"],
@@ -142,7 +142,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             # Return the member's or another member's osu! profile as a link and upload a signature
             elif args[1] == "get":
                 if len(args) > 2:
-                    member = client.find_member(message.server, args[2])
+                    member = client.find_member(message.server, " ".join(args[2:]))
                 else:
                     member = message.author
 
