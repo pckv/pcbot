@@ -35,7 +35,7 @@ update_interval = 180  # Seconds
 
 twitch_api = "https://api.twitch.tv/kraken"
 
-# logging.getLogger("requests").setLevel(logging.DEBUG)
+logging.getLogger("requests").setLevel(logging.DEBUG)
 
 
 @asyncio.coroutine

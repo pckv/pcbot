@@ -13,7 +13,7 @@ import asyncio
 
 from pcbot.config import Config
 
-logging_level = logging.DEBUG  # Change this is you want more / less log info
+logging_level = logging.INFO  # Change this is you want more / less log info
 logging.basicConfig(level=logging_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
 plugins = {}
 
