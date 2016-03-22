@@ -51,6 +51,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         response = (end - start).microseconds / 1000
         yield from client.edit_message(pong, "pong `{}ms`".format(response))
 
+        logging.log(logging.INFO, "Response time: {}ms".format(response))
+
     # Roll from 1-100 or more
     elif args[0] == "!roll":
         if len(args) > 1:

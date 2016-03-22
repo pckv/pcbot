@@ -13,7 +13,8 @@ import asyncio
 
 from pcbot.config import Config
 
-logging.basicConfig(level=logging.INFO)
+logging_level = logging.DEBUG  # Change this is you want more / less log info
+logging.basicConfig(level=logging_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
 plugins = {}
 
 
@@ -149,7 +150,7 @@ class Bot(discord.Client):
         # Call any on_ready function in plugins
         for name, plugin in plugins.items():
             try:
-                yield from plugin.on_ready(self)
+                asyncio.async(plugin.on_ready(self))
             except AttributeError:
                 pass
 
@@ -163,10 +164,11 @@ class Bot(discord.Client):
 
         # Log every command to console (logs anything starting with !)
         if message.content.startswith("!"):
-            logging.log(logging.INFO, "{0}@{1.author.name}: {1.content}".format(
-                datetime.now().strftime("%d.%m.%y %H:%M:%S"),
-                message
-            ))
+            # logging.log(logging.INFO, "{0}@{1.author.name}: {1.content}".format(
+            #     datetime.now().strftime("%d.%m.%y %H:%M:%S"),
+            #     message
+            # ))
+            logging.log(logging.INFO, message.content)
 
         # Split content into arguments by space (surround with quotes for spaces)
         try:
