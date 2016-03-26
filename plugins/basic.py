@@ -155,3 +155,12 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             m = "Please see `!help pasta`."
 
         yield from client.send_message(message.channel, m)
+
+    # Have the bot reply confused whenever someone mentions it
+    if not message.content.startswith("!"):
+        phrases = ["what", "huh", "sorry", "pardon", "...", "!", "", "EH!", "wat", "excuse me", "really"]
+        phrase = random.choice(phrases)
+        if random.randint(0, 4) > 0:
+            phrase += "?"
+
+        yield from client.send_message(message.channel, phrase)
