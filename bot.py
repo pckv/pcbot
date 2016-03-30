@@ -97,7 +97,7 @@ class Bot(discord.Client):
         member = None
 
         # Return a member from mention
-        found_mention = re.search("<@([0-9]+)>", name)
+        found_mention = re.search(r"<@([0-9]+)>", name)
         if found_mention and mention:
             member = server.get_member(found_mention.group(1))
 
@@ -121,7 +121,7 @@ class Bot(discord.Client):
         channel = None
 
         # Return a member from mention
-        found_mention = re.search("<#([0-9]+)>", name)
+        found_mention = re.search(r"<#([0-9]+)>", name)
         if found_mention and mention:
             channel = server.get_channel(found_mention.group(1))
 
