@@ -8,7 +8,10 @@ Commands:
 
 import random
 import logging
-from datetime import datetime, timedelta
+import requests
+from re import match
+from io import BytesIO
+from datetime import datetime
 
 import discord
 import asyncio
@@ -150,11 +153,29 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 else:
                     m = "There are no defined pastas. Define with `!pasta --add <pastaname> <copypasta ...>`"
 
+                # Download and send the image if m is a link to an image (png, jpg, gif, etc)
+                if match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m):
+                    # Get the headers for the link before downloading the file
+                    request_head = requests.head(m)
+
+                    if request_head.ok and request_head.headers["content-type"].startswith("image"):
+                        asyncio.async(client.send_typing(message.channel))  # Send typing to the channel
+                        request = requests.get(m)
+
+                        file = BytesIO(request.content)
+                        ext_match = match(r"^\S+\.(?P<ext>[a-zA-Z0-9]+)$", m)
+
+                        if ext_match:
+                            yield from client.send_file(message.channel, file,
+                                                        filename="image.{}".format(ext_match.group("ext")))
+                            m = None
+
         # No arguments
         else:
             m = "Please see `!help pasta`."
 
-        yield from client.send_message(message.channel, m)
+        if m:
+            yield from client.send_message(message.channel, m)
 
     # Have the bot reply confused whenever someone mentions it
     if not message.content.startswith("!") and client.user.id in [m.id for m in message.mentions]:
