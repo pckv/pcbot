@@ -168,7 +168,7 @@ class Bot(discord.Client):
             #     datetime.now().strftime("%d.%m.%y %H:%M:%S"),
             #     message
             # ))
-            logging.log(logging.INFO, message.content)
+            logging.log(logging.INFO, "@{0.author} -> {0.content}".format(message))
 
         # Split content into arguments by space (surround with quotes for spaces)
         try:
