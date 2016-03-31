@@ -153,12 +153,13 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 else:
                     m = "There are no defined pastas. Define with `!pasta --add <pastaname> <copypasta ...>`"
 
-                # Download and send the image if m is a link to an image (png, jpg, gif, etc)
+                # Download and send the image if m is a link to an image (png, jpg, etc) although not gifs
                 if match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m):
                     # Get the headers for the link before downloading the file
                     request_head = requests.head(m)
+                    content_type = request_head.headers["content-type"]
 
-                    if request_head.ok and request_head.headers["content-type"].startswith("image"):
+                    if request_head.ok and content_type.startswith("image") and "gif" not in content_type:
                         asyncio.async(client.send_typing(message.channel))  # Send typing to the channel
                         request = requests.get(m)
 
