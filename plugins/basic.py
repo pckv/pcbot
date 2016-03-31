@@ -9,7 +9,7 @@ Commands:
 import random
 import logging
 import requests
-from re import match
+from re import match, search
 from io import BytesIO
 from datetime import datetime
 
@@ -164,7 +164,16 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                         request = requests.get(m)
 
                         file = BytesIO(request.content)
-                        ext_match = match(r"^\S+\.(?P<ext>[a-zA-Z0-9]+)$", m)
+                        filename = m
+
+                        if "content-disposition" in request.headers:
+                            if "filename" in request.headers["content-disposition"]:
+                                filename_match = search("filename=\"(?P<filename>\S+)\"",
+                                                        request.headers["content-disposition"])
+                                if filename_match:
+                                    filename = filename_match.group("filename")
+
+                        ext_match = match(r"^\S+\.(?P<ext>[a-zA-Z0-9]+)$", filename)
 
                         if ext_match:
                             yield from client.send_file(message.channel, file,
