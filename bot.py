@@ -7,6 +7,7 @@ import importlib
 from datetime import datetime
 from getpass import getpass
 from sys import exit
+from operator import itemgetter
 
 import discord
 import asyncio
@@ -365,10 +366,18 @@ class Bot(discord.Client):
                 ))
                 self.message_count.save()
 
+        # Create list with plugin generators where always_run plugins are at the end (slightly more efficient)
+        plugin_list = [
+            ((name, plugin) for name, plugin in plugins.items() if not getattr(plugin, "always_run", False)),
+            ((name, plugin) for name, plugin in plugins.items() if getattr(plugin, "always_run", False))
+        ]
+
         # Run plugins on_message
-        for name, plugin in plugins.items():
-            if args[0][1:] in plugin.commands or getattr(plugin, "always_run", False):
-                yield from plugin.on_message(self, message, args)
+        for generator in plugin_list:
+            for name, plugin in generator:
+                print(getattr(plugin, "always_run", False))
+                if args[0][1:] in plugin.commands or getattr(plugin, "always_run", False):
+                    yield from plugin.on_message(self, message, args)
 
         if args[0] in self.lambdas.data and args[0] not in self.lambda_blacklist:
             def say(msg, c=message.channel):
