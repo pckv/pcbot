@@ -23,6 +23,8 @@ commands = {
     }
 }
 
+always_run = True
+
 moderate = Config("moderate", data={})
 
 
