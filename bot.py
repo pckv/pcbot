@@ -88,9 +88,12 @@ class Bot(discord.Client):
     def autosave(self):
         while True:
             # Sleep for 30 minutes before saving (no reason to save on startup)
-            yield from asyncio.sleep(60 * 30)
-            yield from self.save_plugins()
-            logging.log(logging.INFO, "Plugins saved")
+            try:
+                yield from asyncio.sleep(60 * 30)
+                yield from self.save_plugins()
+                logging.log(logging.INFO, "Plugins saved")
+            except Exception as e:
+                logging.log(logging.INFO, "Error: " + str(e))
 
     @staticmethod
     def find_member(server: discord.Server, name, steps=3, mention=True):
