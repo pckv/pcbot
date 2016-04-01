@@ -375,7 +375,6 @@ class Bot(discord.Client):
         # Run plugins on_message
         for generator in plugin_list:
             for name, plugin in generator:
-                print(getattr(plugin, "always_run", False))
                 if args[0][1:] in plugin.commands or getattr(plugin, "always_run", False):
                     yield from plugin.on_message(self, message, args)
 
