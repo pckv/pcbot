@@ -4,10 +4,8 @@ import random
 import shlex
 import re
 import importlib
-from datetime import datetime
 from getpass import getpass
 from sys import exit
-from operator import itemgetter
 
 import discord
 import asyncio
