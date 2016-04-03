@@ -3,3 +3,4 @@
 config/*
 plugins/prank/pranked.png
 *.bat
+*.sh
