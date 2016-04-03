@@ -1,11 +1,12 @@
 import logging
-import os
 import random
-import shlex
 import re
 import importlib
-from getpass import getpass
+from os import listdir, path
 from sys import exit
+from getpass import getpass
+from argparse import ArgumentParser
+from shlex import split as splitargs
 
 import discord
 import asyncio
@@ -16,6 +17,11 @@ logging_level = logging.INFO  # Change this is you want more / less log info
 logging.basicConfig(level=logging_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
 plugins = {}
 
+parser = ArgumentParser(description="Run PCBOT.")
+parser.add_argument("--email", "-e", help="The email to login to. Prompts if omitted.")
+parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
+start_args = parser.parse_args()
+
 
 def load_plugin(plugin_name):
     if not plugin_name.startswith("__") or not plugin_name.endswith("__"):
@@ -25,7 +31,7 @@ def load_plugin(plugin_name):
             return False
 
         plugins[plugin_name] = plugin
-        logging.log(logging.DEBUG, "LOADED PLUGIN " + plugin_name)
+        logging.debug("LOADED PLUGIN " + plugin_name)
         return True
 
     return False
@@ -34,18 +40,18 @@ def load_plugin(plugin_name):
 def reload_plugin(plugin_name):
     if plugins.get(plugin_name):
         plugins[plugin_name] = importlib.reload(plugins[plugin_name])
-        logging.log(logging.DEBUG, "RELOADED PLUGIN " + plugin_name)
+        logging.debug("RELOADED PLUGIN " + plugin_name)
 
 
 def unload_plugin(plugin_name):
     if plugins.get(plugin_name):
         plugins.pop(plugin_name)
-        logging.log(logging.DEBUG, "UNLOADED PLUGIN " + plugin_name)
+        logging.debug("UNLOADED PLUGIN " + plugin_name)
 
 
 def load_plugins():
-    for plugin in os.listdir("plugins/"):
-        plugin_name = os.path.splitext(plugin)[0]
+    for plugin in listdir("plugins/"):
+        plugin_name = path.splitext(plugin)[0]
         load_plugin(plugin_name)
 
 
@@ -56,9 +62,9 @@ class Bot(discord.Client):
         self.owner = Config("owner")
         self.lambdas = Config("lambdas", data={})
         self.lambda_blacklist = []
+        self.autosave_interval = 60 * 30
 
         load_plugins()
-        asyncio.async(self.autosave())
 
     # Return true if user/member is the assigned bot owner
     def is_owner(self, user):
@@ -85,14 +91,14 @@ class Bot(discord.Client):
 
     @asyncio.coroutine
     def autosave(self):
-        while True:
-            # Sleep for 30 minutes before saving (no reason to save on startup)
+        while not self.is_closed:
+            # Sleep for set time (default 30 minutes) before saving
             try:
-                yield from asyncio.sleep(60 * 30)
+                yield from asyncio.sleep(self.autosave_interval)
                 yield from self.save_plugins()
-                logging.log(logging.INFO, "Plugins saved")
+                logging.info("Plugins saved")
             except Exception as e:
-                logging.log(logging.INFO, "Error: " + str(e))
+                logging.info("Error: " + str(e))
 
     @staticmethod
     def find_member(server: discord.Server, name, steps=3, mention=True):
@@ -144,17 +150,19 @@ class Bot(discord.Client):
 
     @asyncio.coroutine
     def on_ready(self):
-        logging.log(logging.INFO, "\nLogged in as\n"
-                                  "{0.user.name}\n"
-                                  "{0.user.id}\n".format(self) +
-                                  "-" * len(self.user.id))
+        logging.info("\nLogged in as\n"
+                     "{0.user.name}\n"
+                     "{0.user.id}\n".format(self) +
+                     "-" * len(self.user.id))
 
         # Call any on_ready function in plugins
         for name, plugin in plugins.items():
             try:
-                asyncio.async(plugin.on_ready(self))
+                self.loop.create_task(plugin.on_ready(self))
             except AttributeError:
                 pass
+
+        self.loop.create_task(self.autosave())
 
     @asyncio.coroutine
     def on_message(self, message: discord.Message):
@@ -166,15 +174,15 @@ class Bot(discord.Client):
 
         # Log every command to console (logs anything starting with !)
         if message.content.startswith("!"):
-            # logging.log(logging.INFO, "{0}@{1.author.name}: {1.content}".format(
+            # logging.info("{0}@{1.author.name}: {1.content}".format(
             #     datetime.now().strftime("%d.%m.%y %H:%M:%S"),
             #     message
             # ))
-            logging.log(logging.INFO, "@{0.author} -> {0.content}".format(message))
+            logging.info("@{0.author} -> {0.content}".format(message))
 
         # Split content into arguments by space (surround with quotes for spaces)
         try:
-            args = shlex.split(message.content)
+            args = splitargs(message.content)
         except ValueError:
             args = message.content.split()
 
@@ -224,14 +232,13 @@ class Bot(discord.Client):
             # Stops the bot
             if message.content == "!stop":
                 yield from self.save_plugins()
-                bot.logout()
                 exit("Stopped by owner.")
 
             # Sets the bots game
             elif args[0] == "!game":
                 if len(args) > 1:
                     game = discord.Game(name=args[1])
-                    logging.log(logging.DEBUG, "Setting bot game to {}".format(args[1]))
+                    logging.debug("Setting bot game to {}".format(args[1]))
                     yield from self.change_status(game)
                 else:
                     yield from self.send_message(message.channel, "Usage: `!game <game>`")
@@ -374,7 +381,7 @@ class Bot(discord.Client):
         for generator in plugin_list:
             for name, plugin in generator:
                 if args[0][1:] in plugin.commands or getattr(plugin, "always_run", False):
-                    yield from plugin.on_message(self, message, args)
+                    self.loop.create_task(plugin.on_message(self, message, args))
 
         if args[0] in self.lambdas.data and args[0] not in self.lambda_blacklist:
             def say(msg, c=message.channel):
@@ -388,10 +395,16 @@ class Bot(discord.Client):
 
             exec(self.lambdas.data[args[0]], locals(), globals())
 
-
 bot = Bot()
 
 if __name__ == "__main__":
-    email = input("Email: ")
-    password = getpass()
+    # Get the email either from commandline argument or input
+    email = start_args.email or input("Email: ")
+
+    # See if the email is stored in cache and only prompt for password if it isn't
+    # (or the --new-pass commandline argument is passed)
+    password = ""
+    if start_args.new_pass or not path.exists(bot._get_cache_filename(email)):
+        password = getpass()
+
     bot.run(email, password)

@@ -69,7 +69,7 @@ def on_ready(client: discord.Client):
                                         "{1[preview][medium]}".format(member.mention, stream)
                                     yield from client.send_message(server, m)
         except Exception as e:
-            logging.log(logging.INFO, "Error: " + str(e))
+            logging.info("Error: " + str(e))
 
 
 @asyncio.coroutine

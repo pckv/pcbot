@@ -45,12 +45,12 @@ def on_ready(client: discord.Client):
     global osu_tracking
 
     if osu.data["key"] == "change to your api key":
-        logging.log(logging.WARNING, "osu! functionality is unavailable until an API key is provided")
+        logging.warning("osu! functionality is unavailable until an API key is provided")
 
     sent_requests = 0
     updated = 0
 
-    while True:
+    while not client.is_closed:
         try:
             yield from asyncio.sleep(update_interval)
 
@@ -105,11 +105,11 @@ def on_ready(client: discord.Client):
             updated += 1
 
             if updated % 20 == 0:
-                logging.log(logging.INFO, "Requested scores from {} users playing osu!.".format(sent_requests))
+                logging.info("Requested scores from {} users playing osu!.".format(sent_requests))
                 sent_requests = 0
 
         except Exception as e:
-            logging.log(logging.INFO, "Error: " + str(e))
+            logging.info("Error: " + str(e))
 
 
 @asyncio.coroutine
