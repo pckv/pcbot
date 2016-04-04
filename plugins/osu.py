@@ -34,10 +34,59 @@ commands = {
 osu = Config("osu", data={"key": "change to your api key", "profiles": {}})
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
 update_interval = 30  # Seconds
+logging_interval = 30  # Minutes
 
 osu_api = "https://osu.ppy.sh/api/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)
+
+
+def updates_per_log():
+    """ Returns the amount of updates needed before logging interval is met. """
+    return logging_interval // (update_interval / 60)
+
+
+def get_beatmaps(**request_params):
+    """ Returns a list of beatmaps specified by lookup.
+
+    Request_params is any parameter accepted by the osu! API.
+    """
+    request_params["k"] = osu.data["key"]
+    request = requests.get(osu_api + "get_beatmaps", request_params)
+
+    if request.ok:
+        beatmaps = request.json()
+
+        return beatmaps
+
+    return None
+
+
+def get_beatmap(beatmaps, **lookup):
+    """ Finds and returns the first beatmap with the lookup specified.
+
+    Beatmaps is a list of beatmaps and could be used with get_beatmaps()
+    Lookup is any key stored in a beatmap from get_beatmaps()
+    """
+    if not beatmaps:
+        return None
+
+    matched_beatmap = None
+
+    for beatmap in beatmaps:
+        match = True
+        for key, value in lookup.items():
+            if key.lower() not in beatmap:
+                raise KeyError("The list of beatmaps does not have key: {}".format(key))
+
+            if not beatmap[key].lower() == value.lower():
+                match = False
+
+        if match:
+            matched_beatmap = beatmap
+            break
+
+    return matched_beatmap
 
 
 @asyncio.coroutine
@@ -101,11 +150,11 @@ def on_ready(client: discord.Client):
 
                         osu_tracking[member_id] = list(scores)
 
-            # Send info on how many requests were sent the last 10 minutes (20 requests)
+            # Send info on how many requests were sent the last 30 minutes (60 loops)
             updated += 1
 
-            if updated % 20 == 0:
-                logging.info("Requested scores from {} users playing osu!.".format(sent_requests))
+            if updated % updates_per_log() == 0:
+                logging.info("Requested osu! scores {} times in {} minutes.".format(sent_requests, logging_interval))
                 sent_requests = 0
 
         except Exception as e:

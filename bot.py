@@ -232,7 +232,7 @@ class Bot(discord.Client):
             # Stops the bot
             if message.content == "!stop":
                 yield from self.save_plugins()
-                exit("Stopped by owner.")
+                yield from self.logout()
 
             # Sets the bots game
             elif args[0] == "!game":
