@@ -33,6 +33,8 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!nsfwchannel":
         if message.author.permissions_in(message.channel).manage_server:
             m = "Please see `!help nsfwchannel`."
+            set_channel = message.server.get_channel(moderate.data.get(message.server.id, {}).get("nsfw-channel"))
+
             if len(args) > 1:
                 if args[1] == "set" and len(args) > 2:
                     if message.channel_mentions:
@@ -46,10 +48,13 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
                         moderate.save()
                         m = "Set server NSFW channel to {}".format(nsfw_channel.mention)
                 elif args[1] == "remove":
-                    if moderate.data.get(message.server.id, {}).get("nsfw-channel"):
+                    if set_channel:
                         moderate.data[message.server.id].pop("nsfw-channel")
                         moderate.save()
-                        m = "Removed linked NSFW channel info."
+                        m = "{0.mention} is no longer the NSFW channel.".format(set_channel)
+            else:
+                if set_channel:
+                    m = "NSFW channel is {0.mention}".format(set_channel)
 
             yield from client.send_message(message.channel, m)
         else:
