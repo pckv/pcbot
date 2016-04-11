@@ -31,7 +31,7 @@ class Roulette:
     def __init__(self, client: discord.Client, message: discord.Message, num: int):
         self.client = client
         self.message = message
-        self.member = message.server.get_member(client.user.id)
+        self.member = message.server.me
 
         self.num = num if num >= self.min_num else self.min_num
         self.participants = []
@@ -191,7 +191,7 @@ class HotPotato(Roulette):
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     if args[0].lower() == "!roulette":
         if message.channel.id not in started:
             started.append(message.channel.id)

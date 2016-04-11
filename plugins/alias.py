@@ -32,13 +32,11 @@ commands = {
     }
 }
 
-always_run = True
-
 aliases = Config("user_alias", data={})
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     user_id = message.author.id
 
     # !alias command
@@ -89,8 +87,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 m = "Alias `{}` set for {}.".format(trigger, message.author.mention)
 
                 # Inform the user when delete message might not work. Basically check if the bot has permissions.
-                if not message.server.get_member(client.user.id).permissions_in(message.channel).manage_messages and \
-                        delete_message:
+                if not message.server.me.permissions_in(message.channel).manage_messages and delete_message:
                     m += "\n**Note:** *`-delete-message` does not work in this channel. The bot requires " \
                          "`Manage Messages` permission to delete messages.*"
 
@@ -104,7 +101,11 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                         m = "No aliases registered for {}. See `!help alias`.".format(message.author.mention)
 
         yield from client.send_message(message.channel, m)
-        return
+
+
+@asyncio.coroutine
+def on_message(client: discord.Client, message: discord.Message, args: list):
+    user_id = message.author.id
 
     # User alias check
     if aliases.data.get(user_id):
@@ -131,7 +132,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
             if execute:
                 if command.get("delete-message", False):
-                    asyncio.async(client.delete_message(message))
+                    if message.server.me.permissions_in(message.channel).manage_messages:
+                        asyncio.async(client.delete_message(message))
 
                 asyncio.async(client.send_message(
                     message.channel,

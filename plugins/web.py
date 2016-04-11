@@ -18,7 +18,7 @@ commands = {
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!define":
         m = ""
         if len(args) > 1:

@@ -3,7 +3,6 @@ import random
 import re
 import importlib
 from os import listdir, path
-from sys import exit
 from getpass import getpass
 from argparse import ArgumentParser
 from shlex import split as splitargs
@@ -23,7 +22,11 @@ parser.add_argument("--new-pass", "-n", help="Always prompts for password.", act
 start_args = parser.parse_args()
 
 
-def load_plugin(plugin_name):
+def load_plugin(plugin_name: str):
+    """ Load a plugin with :param plugin_name:. This plugin has to be
+    situated under plugins/
+
+    Any loaded plugin is imported and stored in the plugins dictionary."""
     if not plugin_name.startswith("__") or not plugin_name.endswith("__"):
         try:
             plugin = importlib.import_module("plugins.{}".format(plugin_name))
@@ -37,25 +40,29 @@ def load_plugin(plugin_name):
     return False
 
 
-def reload_plugin(plugin_name):
+def reload_plugin(plugin_name: str):
+    """ Reload a plugin. """
     if plugins.get(plugin_name):
         plugins[plugin_name] = importlib.reload(plugins[plugin_name])
         logging.debug("RELOADED PLUGIN " + plugin_name)
 
 
-def unload_plugin(plugin_name):
+def unload_plugin(plugin_name: str):
+    """ Unload a plugin by removing it from the plugin dictionary. """
     if plugins.get(plugin_name):
         plugins.pop(plugin_name)
         logging.debug("UNLOADED PLUGIN " + plugin_name)
 
 
 def load_plugins():
+    """ Perform load_plugin(plugin_name) on all plugins in plugins/"""
     for plugin in listdir("plugins/"):
         plugin_name = path.splitext(plugin)[0]
         load_plugin(plugin_name)
 
 
 class Bot(discord.Client):
+    """ The bot, really. """
     def __init__(self):
         super().__init__()
         self.message_count = Config("count", data={})
@@ -66,8 +73,8 @@ class Bot(discord.Client):
 
         load_plugins()
 
-    # Return true if user/member is the assigned bot owner
     def is_owner(self, user):
+        """ Return true if user/member is the assigned bot owner. """
         if type(user) is not str:
             user = user.id
 
@@ -76,32 +83,55 @@ class Bot(discord.Client):
 
         return False
 
-    # Save a plugins files if it has a save function
     def save_plugin(self, plugin):
+        """ Save a plugins files if it has a save function. """
         if plugins.get(plugin):
             try:
                 yield from plugins[plugin].save(self)
             except AttributeError:
                 pass
 
-    # Looks for any save function in a plugin and saves. Set up for saving on !stop and periodic saving every 30 mins
     def save_plugins(self):
+        """ Looks for any save function in a plugin and saves.
+        Set up for saving on !stop and periodic saving every 30 mins. """
         for name, _ in plugins.items():
             yield from self.save_plugin(name)
 
     @asyncio.coroutine
     def autosave(self):
+        """ Sleep for set time (default 30 minutes) before saving. """
         while not self.is_closed:
-            # Sleep for set time (default 30 minutes) before saving
             try:
                 yield from asyncio.sleep(self.autosave_interval)
                 yield from self.save_plugins()
-                logging.info("Plugins saved")
+                logging.debug("Plugins saved")
             except Exception as e:
                 logging.info("Error: " + str(e))
 
     @staticmethod
+    def log_message(message: discord.Message, prefix: str=""):
+        """ Logs a command/message. """
+        logging.info("{prefix}@{0.author} -> {0.content}".format(message, prefix=prefix))
+
+    @staticmethod
     def find_member(server: discord.Server, name, steps=3, mention=True):
+        """ Find any member by their name or a formatted mention.
+        Steps define the depth at which to search. More steps equal
+        less accurate checks.
+
+        +--------+------------------+
+        |  step  |     function     |
+        +--------+------------------+
+        |    0   | perform no check |
+        |    1   |   name is equal  |
+        |    2   | name starts with |
+        |    3   |    name is in    |
+        +--------+------------------+
+
+        :param server: discord.Server to look through for members.
+        :param name: name as a string or mention to find.
+        :param steps: int from 0-3 to specify search depth.
+        :param mention: check for mentions. """
         member = None
 
         # Return a member from mention
@@ -126,6 +156,23 @@ class Bot(discord.Client):
 
     @staticmethod
     def find_channel(server: discord.Server, name, steps=3, mention=True):
+        """ Find any channel by its name or a formatted mention.
+            Steps define the depth at which to search. More steps equal
+            less accurate checks.
+
+            +--------+------------------+
+            |  step  |     function     |
+            +--------+------------------+
+            |    0   | perform no check |
+            |    1   |   name is equal  |
+            |    2   | name starts with |
+            |    3   |    name is in    |
+            +--------+------------------+
+
+            :param server: discord.Server to look through for channels.
+            :param name: name as a string or mention to find.
+            :param steps: int from 0-3 to specify search depth.
+            :param mention: check for mentions. """
         channel = None
 
         # Return a member from mention
@@ -149,7 +196,18 @@ class Bot(discord.Client):
         return channel
 
     @asyncio.coroutine
+    def on_plugin_message(self, function, message: discord.Message, args: list):
+        """ Run the given plugin function (either on_message() or on_command()).
+        If the function returns True, log the sent message. """
+        success = yield from function(self, message, args)
+
+        if success:
+            self.log_message(message, prefix="... ")
+
+    @asyncio.coroutine
     def on_ready(self):
+        """ Create any tasks for plugins' on_ready() coroutine and create task
+        for autosaving. """
         logging.info("\nLogged in as\n"
                      "{0.user.name}\n"
                      "{0.user.id}\n".format(self) +
@@ -166,19 +224,30 @@ class Bot(discord.Client):
 
     @asyncio.coroutine
     def on_message(self, message: discord.Message):
+        """ What to do on any message received.
+
+        This coroutine has several built-in commands hardcoded. These are
+        currently undocumented, and categorized into:
+
+        Universal commands:
+           * !help [command]
+           * !setowner          Private message only
+
+        Owner only commands:
+           * !stop
+           * !game <name ...>
+           * !do <python code>
+           * !eval <python code>
+           * !plugin [reload | load | unload] [plugin]
+           * !lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]
+
+        The bot then proceeds to run any plugin's on_command() and on_message() function.
+        """
         if message.author == self.user:
             return
 
         if not message.content:
             return
-
-        # Log every command to console (logs anything starting with !)
-        if message.content.startswith("!"):
-            # logging.info("{0}@{1.author.name}: {1.content}".format(
-            #     datetime.now().strftime("%d.%m.%y %H:%M:%S"),
-            #     message
-            # ))
-            logging.info("@{0.author} -> {0.content}".format(message))
 
         # Split content into arguments by space (surround with quotes for spaces)
         try:
@@ -231,6 +300,7 @@ class Bot(discord.Client):
         if self.is_owner(message.author):
             # Stops the bot
             if message.content == "!stop":
+                yield from self.send_message(message.channel, ":boom: :gun:")
                 yield from self.save_plugins()
                 yield from self.logout()
 
@@ -261,6 +331,51 @@ class Bot(discord.Client):
                     script = message.content[len("!eval "):].replace("`", "")
                     result = eval(script)
                     yield from self.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
+
+            # Plugin specific commands
+            elif args[0] == "!plugin":
+                if len(args) > 1:
+                    if args[1] == "reload":
+                        if len(args) > 2:
+                            if plugins.get(args[2]):
+                                yield from self.save_plugin(args[2])
+                                reload_plugin(args[2])
+                                yield from self.send_message(message.channel, "Reloaded plugin `{}`.".format(args[2]))
+                            else:
+                                yield from self.send_message(message.channel,
+                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
+                        else:
+                            yield from self.save_plugins()
+                            for plugin in list(plugins.keys()):
+                                reload_plugin(plugin)
+                            yield from self.send_message(message.channel, "All plugins reloaded.")
+                    elif args[1] == "load":
+                        if len(args) > 2:
+                            if not plugins.get(args[2].lower()):
+                                loaded = load_plugin(args[2].lower())
+                                if loaded:
+                                    yield from self.send_message(message.channel, "Plugin `{}` loaded.".format(args[2]))
+                                else:
+                                    yield from self.send_message(message.channel,
+                                                                 "Plugin `{}` could not be loaded.".format(args[2]))
+                            else:
+                                yield from self.send_message(message.channel,
+                                                             "Plugin `{}` is already loaded.".format(args[2]))
+                    elif args[1] == "unload":
+                        if len(args) > 2:
+                            if plugins[args[2].lower()]:
+                                yield from self.save_plugin(args[2])
+                                unload_plugin(args[2].lower())
+                                yield from self.send_message(message.channel, "Plugin `{}` unloaded.".format(args[2]))
+                            else:
+                                yield from self.send_message(message.channel,
+                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
+                    else:
+                        yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
+                else:
+                    yield from self.send_message(message.channel,
+                                                 "**Plugins:** ```\n"
+                                                 "{}```".format(",\n".join(plugins.keys())))
 
             elif args[0] == "!lambda":
                 m = ""
@@ -315,51 +430,6 @@ class Bot(discord.Client):
                 if m:
                     yield from self.send_message(message.channel, m)
 
-            # Plugin specific commands
-            elif args[0] == "!plugin":
-                if len(args) > 1:
-                    if args[1] == "reload":
-                        if len(args) > 2:
-                            if plugins.get(args[2]):
-                                yield from self.save_plugin(args[2])
-                                reload_plugin(args[2])
-                                yield from self.send_message(message.channel, "Reloaded plugin `{}`.".format(args[2]))
-                            else:
-                                yield from self.send_message(message.channel,
-                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
-                        else:
-                            yield from self.save_plugins()
-                            for plugin in list(plugins.keys()):
-                                reload_plugin(plugin)
-                            yield from self.send_message(message.channel, "All plugins reloaded.")
-                    elif args[1] == "load":
-                        if len(args) > 2:
-                            if not plugins.get(args[2].lower()):
-                                loaded = load_plugin(args[2].lower())
-                                if loaded:
-                                    yield from self.send_message(message.channel, "Plugin `{}` loaded.".format(args[2]))
-                                else:
-                                    yield from self.send_message(message.channel,
-                                                                 "Plugin `{}` could not be loaded.".format(args[2]))
-                            else:
-                                yield from self.send_message(message.channel,
-                                                             "Plugin `{}` is already loaded.".format(args[2]))
-                    elif args[1] == "unload":
-                        if len(args) > 2:
-                            if plugins[args[2].lower()]:
-                                yield from self.save_plugin(args[2])
-                                unload_plugin(args[2].lower())
-                                yield from self.send_message(message.channel, "Plugin `{}` unloaded.".format(args[2]))
-                            else:
-                                yield from self.send_message(message.channel,
-                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
-                    else:
-                        yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
-                else:
-                    yield from self.send_message(message.channel,
-                                                 "**Plugins:** ```\n"
-                                                 "{}```".format(",\n".join(plugins.keys())))
-
             # Originally just a test command
             elif message.content == "!count":
                 if not self.message_count.data.get(message.channel.id):
@@ -371,17 +441,17 @@ class Bot(discord.Client):
                 ))
                 self.message_count.save()
 
-        # Create list with plugin generators where always_run plugins are at the end (slightly more efficient)
-        plugin_list = [
-            ((name, plugin) for name, plugin in plugins.items() if not getattr(plugin, "always_run", False)),
-            ((name, plugin) for name, plugin in plugins.items() if getattr(plugin, "always_run", False))
-        ]
-
         # Run plugins on_message
-        for generator in plugin_list:
-            for name, plugin in generator:
-                if args[0][1:] in plugin.commands or getattr(plugin, "always_run", False):
-                    self.loop.create_task(plugin.on_message(self, message, args))
+        for name, plugin in plugins.items():
+            # Try running the command function in this plugin if a command matches
+            if args[0][1:] in plugin.commands:
+                if getattr(plugin, "on_command", False):
+                    self.log_message(message)
+                    self.loop.create_task(plugin.on_command(self, message, args))
+
+            # Always run the on_message function if it exists
+            if getattr(plugin, "on_message", False):
+                self.loop.create_task(self.on_plugin_message(plugin.on_message, message, args))
 
         if args[0] in self.lambdas.data and args[0] not in self.lambda_blacklist:
             def say(msg, c=message.channel):
@@ -394,6 +464,7 @@ class Bot(discord.Client):
                     return default
 
             exec(self.lambdas.data[args[0]], locals(), globals())
+            logging.info("@{0.author} -> {0.content}".format(message))
 
 bot = Bot()
 

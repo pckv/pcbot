@@ -35,7 +35,7 @@ stats = Config("stats", data={})
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     if client.user.id == message.author.id:
         return
 
