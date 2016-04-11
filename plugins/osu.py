@@ -36,6 +36,8 @@ osu_tracking = {}  # Saves the requested data or deletes whenever the user stops
 update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
 
+request_limit = 100
+
 osu_api = "https://osu.ppy.sh/api/"
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -122,7 +124,7 @@ def on_ready(client: discord.Client):
                         "k": osu.data["key"],
                         "u": profile,
                         "type": "id",
-                        "limit": 50
+                        "limit": request_limit
                     }
                     request = requests.get(osu_api + "get_user_best", request_params)
 
