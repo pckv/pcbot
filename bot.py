@@ -447,7 +447,7 @@ class Bot(discord.Client):
             if args[0][1:] in plugin.commands:
                 if getattr(plugin, "on_command", False):
                     self.log_message(message)
-                    self.loop.create_task(plugin.on_command(self, message, args))
+                    yield from plugin.on_command(self, message, args)
 
             # Always run the on_message function if it exists
             if getattr(plugin, "on_message", False):

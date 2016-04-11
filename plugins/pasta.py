@@ -28,6 +28,7 @@ commands = {
 }
 
 pastas = Config("pastas", data={})
+page_size = 150
 
 
 @asyncio.coroutine
@@ -44,7 +45,6 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             # List copypastas
             if args[1] == "-list":
                 page = 1
-                page_size = 75
                 pasta_names = list(pastas.data.keys())
 
                 if len(args) > 2:
@@ -65,10 +65,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     pasta_pages[p].append(pasta_name)
 
                 # Don't go over page nor under
-                if page > len(pasta_pages):
-                    page = len(pasta_pages)
-                elif page < 1:
-                    page = 1
+                page = len(pasta_pages) if page > len(pasta_pages) else 1
 
                 m = "**Pastas (page {0}/{1}):** ```\n{2}\n```\n" \
                     "Use `!pasta -list [page]` to view another page.".format(page,
@@ -114,12 +111,13 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     else:
                         m = pastas.data.get(" ".join(args[1:]).lower()) or \
                             "Pasta `{0}` is undefined. " \
-                            "Define with `!pasta --add {0} <copypasta ...>`".format(" ".join(args[1:]))
+                            "Define with `!pasta --add \"{0}\" <copypasta ...>`".format(" ".join(args[1:]))
                 else:
                     m = "There are no defined pastas. Define with `!pasta --add <pastaname> <copypasta ...>`"
 
                 # Download and send the image if m is a link to an image (png, jpg, etc) although not gifs
                 if match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m):
+                    # TODO: Integrate aiohttp
                     # Get the headers for the link before downloading the file
                     request_head = requests.head(m)
                     content_type = request_head.headers["content-type"]
