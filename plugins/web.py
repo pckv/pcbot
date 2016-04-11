@@ -4,10 +4,9 @@ Commands:
 !define
 """
 
-import requests
-
 import discord
 import asyncio
+import aiohttp
 
 commands = {
     "define": {
@@ -22,10 +21,16 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!define":
         m = ""
         if len(args) > 1:
-            request_params = {"term": " ".join(args[1:])}
-            definitions_request = requests.get("http://api.urbandictionary.com/v0/define", request_params)
-            definitions = definitions_request.json().get("list")
+            params = {"term": " ".join(args[1:])}
 
+            # Request a JSON object as a list of definitions
+            with aiohttp.ClientSession() as session:
+                response = yield from session.get("http://api.urbandictionary.com/v0/define", params=params)
+                json = yield from response.json()
+
+            definitions = json["list"] if "list" in json else []
+
+            # Send any valid definition (length of message < 2000 characters)
             if definitions:
                 for definition in definitions:
                     if definition.get("example"):

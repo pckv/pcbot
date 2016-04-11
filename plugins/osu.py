@@ -8,13 +8,13 @@ Commands:
 """
 
 import logging
-from io import BytesIO
 
 import discord
 import asyncio
-import requests
+import aiohttp
 
 from pcbot import Config
+from pcbot import download_file
 
 commands = {
     "osu": {
@@ -48,20 +48,18 @@ def updates_per_log():
     return logging_interval // (update_interval / 60)
 
 
-def get_beatmaps(**request_params):
+def get_beatmaps(**params):
     """ Returns a list of beatmaps specified by lookup.
 
     Request_params is any parameter accepted by the osu! API.
     """
-    request_params["k"] = osu.data["key"]
-    request = requests.get(osu_api + "get_beatmaps", request_params)
+    params["k"] = osu.data["key"]
 
-    if request.ok:
-        beatmaps = request.json()
+    with aiohttp.ClientSession() as session:
+        response = yield from session.get(osu_api + "get_beatmaps", params=params)
+        beatmaps = yield from response.json() if response.status == 200 else []
 
-        return beatmaps
-
-    return None
+    return beatmaps
 
 
 def get_beatmap(beatmaps, **lookup):
@@ -120,17 +118,19 @@ def on_ready(client: discord.Client):
                 if member:
                     sent_requests += 1
 
-                    request_params = {
+                    params = {
                         "k": osu.data["key"],
                         "u": profile,
                         "type": "id",
                         "limit": request_limit
                     }
-                    request = requests.get(osu_api + "get_user_best", request_params)
 
-                    if request.ok:
-                        scores = request.json()
+                    with aiohttp.ClientSession() as session:
+                        response = yield from session.get(osu_api + "get_user_best", params=params)
 
+                        scores = yield from response.json() if response.status == 200 else []
+
+                    if scores:
                         # Go through all scores and see if they've already been tracked
                         if member_id in osu_tracking:
                             new_score = None
@@ -173,12 +173,15 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
                 if len(args) > 2:
                     profile = " ".join(args[2:])
 
-                    request_params = {
+                    params = {
                         "k": osu.data["key"],
                         "u": profile
                     }
-                    request = requests.get(osu_api + "get_user", request_params)
-                    user = request.json()
+
+                    with aiohttp.ClientSession() as session:
+                        response = yield from session.get(osu_api + "get_user", params=params)
+
+                        user = yield from response.json() if response.status == 200 else []
 
                     if user:
                         # Clear the scores when changing user
@@ -214,7 +217,7 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
                             color = "hex{0:02x}{1:02x}{2:02x}".format(*member.roles[1].colour.to_tuple())
 
                         # Download and upload the signature
-                        request_params = {
+                        params = {
                             "colour": color,
                             "uname": user_id,
                             "pp": 1,
@@ -222,13 +225,9 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
                             "xpbar": True
                         }
 
-                        request = requests.get("http://lemmmy.pw/osusig/sig.php", request_params)
+                        signature = yield from download_file("http://lemmmy.pw/osusig/sig.php", **params)
 
-                        if request.ok:
-                            signature = BytesIO(request.content)
-
-                            yield from client.send_file(message.channel, signature, filename="sig.png")
-
+                        yield from client.send_file(message.channel, signature, filename="sig.png")
                         m = "https://osu.ppy.sh/u/{}".format(user_id)
                     else:
                         m = "No osu! profile assigned to {}!".format(member.name)

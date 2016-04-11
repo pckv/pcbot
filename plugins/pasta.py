@@ -5,14 +5,14 @@ Commands:
 """
 
 from random import choice
-from re import match, search
-from io import BytesIO
+# from re import match, search
+# from io import BytesIO
 
 import discord
 import asyncio
-import requests
 
-from pcbot.config import Config
+from pcbot import Config
+# from pcbot import download_file
 
 
 commands = {
@@ -116,32 +116,32 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     m = "There are no defined pastas. Define with `!pasta --add <pastaname> <copypasta ...>`"
 
                 # Download and send the image if m is a link to an image (png, jpg, etc) although not gifs
-                if match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m):
-                    # TODO: Integrate aiohttp
-                    # Get the headers for the link before downloading the file
-                    request_head = requests.head(m)
-                    content_type = request_head.headers["content-type"]
-
-                    if request_head.ok and content_type.startswith("image") and "gif" not in content_type:
-                        asyncio.async(client.send_typing(message.channel))  # Send typing to the channel
-                        request = requests.get(m)
-
-                        file = BytesIO(request.content)
-                        filename = m
-
-                        if "content-disposition" in request.headers:
-                            if "filename" in request.headers["content-disposition"]:
-                                filename_match = search("filename=\"(?P<filename>\S+)\"",
-                                                        request.headers["content-disposition"])
-                                if filename_match:
-                                    filename = filename_match.group("filename")
-
-                        ext_match = match(r"^\S+\.(?P<ext>[a-zA-Z0-9]+)$", filename)
-
-                        if ext_match:
-                            yield from client.send_file(message.channel, file,
-                                                        filename="image.{}".format(ext_match.group("ext")))
-                            m = None
+                # if match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m):
+                #     # TODO: Integrate aiohttp, disabled uploading for now.
+                #     # Get the headers for the link before downloading the file
+                #     request_head = requests.head(m)
+                #     content_type = request_head.headers["content-type"]
+                #
+                #     if request_head.ok and content_type.startswith("image") and "gif" not in content_type:
+                #         asyncio.async(client.send_typing(message.channel))  # Send typing to the channel
+                #         request = requests.get(m)
+                #
+                #         file = BytesIO(request.content)
+                #         filename = m
+                #
+                #         if "content-disposition" in request.headers:
+                #             if "filename" in request.headers["content-disposition"]:
+                #                 filename_match = search("filename=\"(?P<filename>\S+)\"",
+                #                                         request.headers["content-disposition"])
+                #                 if filename_match:
+                #                     filename = filename_match.group("filename")
+                #
+                #         ext_match = match(r"^\S+\.(?P<ext>[a-zA-Z0-9]+)$", filename)
+                #
+                #         if ext_match:
+                #             yield from client.send_file(message.channel, file,
+                #                                         filename="image.{}".format(ext_match.group("ext")))
+                #             m = None
 
         # No arguments
         else:

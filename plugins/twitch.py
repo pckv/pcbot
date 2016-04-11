@@ -10,9 +10,10 @@ import logging
 
 import discord
 import asyncio
-import requests
+import aiohttp
 
 from pcbot import Config
+from pcbot import download_file
 
 commands = {
     "twitch": {
@@ -31,7 +32,7 @@ commands = {
 
 twitch_channels = Config("twitch-channels", data={"channels": {}})
 live_channels = {}
-update_interval = 180  # Seconds
+update_interval = 20  # Seconds
 
 twitch_api = "https://api.twitch.tv/kraken"
 
@@ -50,8 +51,11 @@ def on_ready(client: discord.Client):
                                             client.get_all_members())
 
                 if member:
-                    request = requests.get(twitch_api + "/streams/" + channel)
-                    stream = request.json().get("stream")
+                    with aiohttp.ClientSession() as session:
+                        response = yield from session.get(twitch_api + "/streams/" + channel)
+                        json = yield from response.json() if response.status == 200 else []
+
+                    stream = json.get("stream")
 
                     if member_id in live_channels:
                         if not stream:
@@ -65,9 +69,11 @@ def on_ready(client: discord.Client):
                                 if member in server.members:
                                     m = "{0} went live at {1[channel][url]}.\n" \
                                         "**{1[channel][display_name]}**: {1[channel][status]}\n" \
-                                        "*Playing {1[game]}*\n" \
-                                        "{1[preview][medium]}".format(member.mention, stream)
-                                    yield from client.send_message(server, m)
+                                        "*Playing {1[game]}*".format(member.mention, stream)
+                                    asyncio.async(client.send_message(server, m))
+
+                                    preview = yield from download_file(stream["preview"]["medium"])
+                                    yield from client.send_file(server, preview, filename="preview.jpg")
         except Exception as e:
             logging.info("Error: " + str(e))
 
