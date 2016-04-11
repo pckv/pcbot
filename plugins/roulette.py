@@ -16,7 +16,13 @@ commands = {
         "usage": "!roulette [participants]",
         "desc": "Starts a game of Russian Roulette. To participate, say `I` in the chat.\n"
                 "The optional `participants` argument sets a custom number of participants.\n"
-                "Please beware that you may or may not die using this command."
+                "*Please beware that you may or may not die using this command.*"
+    },
+    "hotpotato": {
+        "usage": "!hotpotato [participants]",
+        "desc": "Starts a game of Hot Potato. To participate, say `I` in the chat.\n"
+                "The optional `participants` argument sets a custom number of participants.\n"
+                "*Please beware that you may or may not die using this command.*"
     }
 }
 
