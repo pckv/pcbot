@@ -63,6 +63,9 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
 
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message, args: list):
+    if message.channel.is_private:
+        return False
+
     channel = moderate.data.get(message.server.id, {}).get("nsfw-channel")
 
     if channel:
@@ -82,3 +85,6 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 yield from client.send_message(message.channel, "{}: **I did not find the specified NSFW channel.** "
                                                                 "If you wish to remove this feature, see `!help "
                                                                 "nsfwchannel`.".format(message.server.owner.mention))
+            return True
+
+    return False
