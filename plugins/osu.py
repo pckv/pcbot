@@ -45,19 +45,19 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 def format_new_score(member: discord.Member, score: dict):
     """ Format any score set by the member. """
-    perfect = "-"
+    sign = "-"
     if score["perfect"]:
-        perfect = "+"
+        sign = "+"
 
     return """
     {member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}
     **{pp}pp, {rank} +{mods}**
     ```diff
      300s    100s    50s     miss    combo
-    {perfect}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}
+    {sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}
     ```
     **Profile**: https://osu.ppy.sh/u/{user_id}
-    """.format(member=member, perfect=perfect, **score)
+    """.format(member=member, sign=sign, **score)
 
 
 def updates_per_log():
