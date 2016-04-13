@@ -50,13 +50,13 @@ def format_new_score(member: discord.Member, score: dict):
         sign = "+"
 
     return """
-    {member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}
-    **{pp}pp, {rank}**
-    ```diff
-     300s    100s    50s     miss    combo
-    {sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}
-    ```
-    **Profile**: https://osu.ppy.sh/u/{user_id}
+{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}
+**{pp}pp, {rank}**
+```diff
+ 300s    100s    50s     miss    combo
+{sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}
+```
+**Profile**: https://osu.ppy.sh/u/{user_id}
     """.format(member=member, sign=sign, **score)
 
 
