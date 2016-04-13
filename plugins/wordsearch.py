@@ -117,7 +117,7 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
         else:
             m = ""
 
-        if guessed_word.startswith("word"):
+        if guessed_word.startswith(word):
             # User guessed the right word (kind of)
             m = "{0.mention} ***got it*** after **{tries}** tries! The word was `{word}`.".format(reply.author,
                                                                                                   tries=tries,
