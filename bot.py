@@ -329,7 +329,12 @@ class Bot(discord.Client):
             elif args[0] == "!eval":
                 if len(args) > 1:
                     script = message.content[len("!eval "):].replace("`", "")
-                    result = eval(script)
+                    
+                    try:
+                        result = eval(script, globals(), locals())
+                    except Exception as e:
+                        result = "```" + str(e) + "```"
+
                     yield from self.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
 
             # Plugin specific commands

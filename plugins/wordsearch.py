@@ -115,7 +115,10 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
             m = "{0.mention} `{1}` is *before* in the dictionary.".format(reply.author, guessed_word) + \
                 format_hint(hint)
         else:
-            # User guessed the right word
+            m = ""
+
+        if guessed_word.startswith("word"):
+            # User guessed the right word (kind of)
             m = "{0.mention} ***got it*** after **{tries}** tries! The word was `{word}`.".format(reply.author,
                                                                                                   tries=tries,
                                                                                                   word=word)

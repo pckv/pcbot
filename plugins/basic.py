@@ -25,7 +25,6 @@ commands = {
         "desc": "Roll a number from 1-100 if no second argument or second argument is not a number.\n"
                 "Alternatively rolls *num* times."
     },
-
 }
 
 

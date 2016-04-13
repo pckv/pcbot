@@ -43,6 +43,23 @@ osu_api = "https://osu.ppy.sh/api/"
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 
+def format_new_score(member: discord.Member, score: dict):
+    """ Format any score set by the member. """
+    perfect = "-"
+    if score["perfect"]:
+        perfect = "+"
+
+    return """
+    {member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}
+    **{pp}pp, {rank} +{mods}**
+    ```diff
+     300s    100s    50s     miss    combo
+    {perfect}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}
+    ```
+    **Profile**: https://osu.ppy.sh/u/{user_id}
+    """.format(member=member, perfect=perfect, **score)
+
+
 def updates_per_log():
     """ Returns the amount of updates needed before logging interval is met. """
     return logging_interval // (update_interval / 60)
@@ -105,15 +122,14 @@ def on_ready(client: discord.Client):
 
             # Go through all set channels playing osu! and update their status
             for member_id, profile in osu.data["profiles"].items():
-                def find_playing(m):
-                    if m.id == member_id:
-                        if m.game:
-                            if m.game.name.startswith("osu!"):
-                                return True
+                def check_playing(m):
+                    if m.id == member_id and m.game:
+                        if m.game.name.startswith("osu!"):
+                            return True
 
                     return False
 
-                member = discord.utils.find(find_playing, client.get_all_members())
+                member = discord.utils.find(check_playing, client.get_all_members())
 
                 if member:
                     sent_requests += 1
@@ -143,12 +159,10 @@ def on_ready(client: discord.Client):
                             if new_score:
                                 for server in client.servers:
                                     if member in server.members:
-
-                                        m = "{0.mention} set a new best on " \
-                                            "https://osu.ppy.sh/b/{1[beatmap_id]}\n" \
-                                            "**{1[pp]}pp, {1[rank]}**\n" \
-                                            "**Profile**: https://osu.ppy.sh/u/{1[user_id]}".format(member, new_score)
-                                        yield from client.send_message(server, m)
+                                        yield from client.send_message(
+                                            server,
+                                            format_new_score(member=member, score=new_score)
+                                        )
 
                         osu_tracking[member_id] = list(scores)
 
