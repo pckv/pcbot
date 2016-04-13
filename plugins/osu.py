@@ -46,7 +46,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 def format_new_score(member: discord.Member, score: dict):
     """ Format any score set by the member. """
     sign = "-"
-    if score["perfect"]:
+    if score["perfect"] == "1":
         sign = "+"
 
     return """{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}
