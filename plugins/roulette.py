@@ -140,8 +140,8 @@ class HotPotato(Roulette):
 
     def game(self):
         self.time_remaining = randint(
-            int(pow(7 * len(self.participants), 0.8)),
-            int(pow(15 * len(self.participants), 0.8))
+            int(pow(14 * len(self.participants), 0.8)),
+            int(pow(30 * len(self.participants), 0.8))
         )
 
         participant = choice(self.participants)
