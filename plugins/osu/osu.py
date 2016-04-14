@@ -58,14 +58,14 @@ def format_new_score(member: discord.Member, score: dict):
     if score["perfect"] == "1":
         sign = "+"
 
-    acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"])
+    acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"]) * 100
 
     return (
         "{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}\n"
         "**{pp}pp, {rank} +{mods}**\n"
         "```diff\n"
         "  300s    100s    50s     miss    combo   acc\n"
-        "{sign} {count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}{acc:<8}```"
+        "{sign} {count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}{acc:.2f}%```"
         "**Profile**: https://osu.ppy.sh/u/{user_id}"
     ).format(
         member=member,
