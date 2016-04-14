@@ -16,6 +16,7 @@ import aiohttp
 import bot
 from pcbot import Config
 from pcbot import download_file
+from plugins.osu.mods import Mods
 
 commands = {
     "osu": {
@@ -51,11 +52,14 @@ def format_new_score(member: discord.Member, score: dict):
         sign = "+"
 
     return ("{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}\n"
-            "**{pp}pp, {rank}**\n"
+            "**{pp}pp, {rank} +{mods}**\n"
             "```diff\n"
             " 300s    100s    50s     miss    combo\n"
             "{sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}```"
-            "**Profile**: https://osu.ppy.sh/u/{user_id}").format(member=member, sign=sign, **score)
+            "**Profile**: https://osu.ppy.sh/u/{user_id}").format(member=member,
+                                                                  sign=sign,
+                                                                  mods=Mods.format_mods(score["enabled_mods"]),
+                                                                  **score)
 
 
 def updates_per_log():
