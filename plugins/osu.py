@@ -13,6 +13,7 @@ import discord
 import asyncio
 import aiohttp
 
+import bot
 from pcbot import Config
 from pcbot import download_file
 
@@ -49,12 +50,12 @@ def format_new_score(member: discord.Member, score: dict):
     if score["perfect"] == "1":
         sign = "+"
 
-    return """{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}
-**{pp}pp, {rank}**
-```diff
- 300s    100s    50s     miss    combo
-{sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}```
-**Profile**: https://osu.ppy.sh/u/{user_id}""".format(member=member, sign=sign, **score)
+    return ("{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}\n"
+            "**{pp}pp, {rank}**\n"
+            "```diff\n"
+            " 300s    100s    50s     miss    combo\n"
+            "{sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}```"
+            "**Profile**: https://osu.ppy.sh/u/{user_id}").format(member=member, sign=sign, **score)
 
 
 def updates_per_log():
@@ -104,7 +105,7 @@ def get_beatmap(beatmaps, **lookup):
 
 
 @asyncio.coroutine
-def on_ready(client: discord.Client):
+def on_ready(client: bot.Bot):
     global osu_tracking
 
     if osu.data["key"] == "change to your api key":
@@ -175,7 +176,7 @@ def on_ready(client: discord.Client):
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     if args[0] == "!osu":
         m = "Please see `!help osu`."
         if len(args) > 1:

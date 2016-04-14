@@ -10,6 +10,7 @@ Commands:
 import discord
 import asyncio
 
+import bot
 from pcbot.config import Config
 
 commands = {
@@ -27,7 +28,7 @@ moderate = Config("moderate", data={})
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     channel = moderate.data.get(message.server.id, {}).get("nsfw-channel")
 
     if args[0] == "!nsfwchannel":
@@ -62,7 +63,7 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_message(client: bot.Bot, message: discord.Message, args: list):
     if message.channel.is_private:
         return False
 

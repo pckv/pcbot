@@ -21,6 +21,8 @@ from enum import Enum
 import discord
 import asyncio
 
+import bot
+
 commands = {
 
 }
@@ -115,7 +117,7 @@ deck = Deck()
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     global deck
 
     if args[0] == "!deck":

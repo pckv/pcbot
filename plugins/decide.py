@@ -19,6 +19,8 @@ from time import sleep
 import discord
 import asyncio
 
+import bot
+
 commands = {
     "decide": {
         "usage": "!decide <args ...>",
@@ -30,7 +32,7 @@ commands = {
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     if args[0] == "!decide":
         if len(args) > 13:
             yield from client.send_message(message.channel, "I can't roll that many decisions.")

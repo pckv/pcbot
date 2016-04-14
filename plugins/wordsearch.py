@@ -11,6 +11,8 @@ from re import match
 import discord
 import asyncio
 
+import bot
+
 commands = {
     "wordsearch": {
         "usage": "!wordsearch [action]\n"
@@ -58,7 +60,7 @@ def stop_wordsearch(channel: discord.Channel):
 
 
 @asyncio.coroutine
-def start_wordsearch(client: discord.Client, channel: discord.Channel, host: discord.Member):
+def start_wordsearch(client: bot.Bot, channel: discord.Channel, host: discord.Member):
     # Initialize the wordsearch
     wordsearch.append(channel.id)
 
@@ -128,7 +130,7 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     if args[0] == "!wordsearch":
         if len(args) > 1:
             if args[1] == "auto":

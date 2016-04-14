@@ -11,6 +11,8 @@ from threading import Timer
 import discord
 import asyncio
 
+import bot
+
 commands = {
     "roulette": {
         "usage": "!roulette [participants]",
@@ -34,7 +36,7 @@ class Roulette:
     name = "Russian Roulette"
     min_num = 1
 
-    def __init__(self, client: discord.Client, message: discord.Message, num: int):
+    def __init__(self, client: bot.Bot, message: discord.Message, num: int):
         self.client = client
         self.message = message
         self.member = message.server.me
@@ -121,7 +123,7 @@ class HotPotato(Roulette):
     name = "Hot Potato"
     min_num = 3
 
-    def __init__(self, client: discord.Client, message: discord.Message, num: int):
+    def __init__(self, client: bot.Bot, message: discord.Message, num: int):
         super().__init__(client, message, num)
 
         self.time_remaining = 0
@@ -197,7 +199,7 @@ class HotPotato(Roulette):
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     if args[0].lower() == "!roulette":
         if message.channel.id not in started:
             started.append(message.channel.id)

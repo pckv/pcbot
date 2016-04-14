@@ -11,6 +11,7 @@ from random import choice
 import discord
 import asyncio
 
+import bot
 from pcbot import Config
 # from pcbot import download_file
 
@@ -32,7 +33,7 @@ page_size = 150
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_message(client: bot.Bot, message: discord.Message, args: list):
     """ Here I'm using on_message instead of on_command in order to allow pastas
     to be triggered by the | notation. """
     if args[0] == "!pasta" or args[0].startswith("|"):

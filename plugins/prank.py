@@ -12,6 +12,8 @@ import discord
 import asyncio
 from PIL import Image, ImageDraw, ImageFont
 
+import bot
+
 commands = {
     "prank": {
         "usage": "!prank [user]",
@@ -28,7 +30,7 @@ image_width, image_height = image_base.size
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     if args[0] == "!prank":
         name = "IT'S A"
 

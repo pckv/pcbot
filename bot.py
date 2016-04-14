@@ -348,7 +348,7 @@ class Bot(discord.Client):
                                 yield from self.send_message(message.channel, "Reloaded plugin `{}`.".format(args[2]))
                             else:
                                 yield from self.send_message(message.channel,
-                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
+                                                             "`{}` is not a plugin. See `!plugin`.".format(args[2]))
                         else:
                             yield from self.save_plugins()
                             for plugin in list(plugins.keys()):
@@ -374,7 +374,7 @@ class Bot(discord.Client):
                                 yield from self.send_message(message.channel, "Plugin `{}` unloaded.".format(args[2]))
                             else:
                                 yield from self.send_message(message.channel,
-                                                             "`{}` is not a plugin. Use `!plugins`.".format(args[2]))
+                                                             "`{}` is not a plugin. See `!plugin`.".format(args[2]))
                     else:
                         yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
                 else:

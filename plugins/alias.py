@@ -7,6 +7,7 @@ Commands:
 import discord
 import asyncio
 
+import bot
 from pcbot.config import Config
 
 commands = {
@@ -36,7 +37,7 @@ aliases = Config("user_alias", data={})
 
 
 @asyncio.coroutine
-def on_command(client: discord.Client, message: discord.Message, args: list):
+def on_command(client: bot.Bot, message: discord.Message, args: list):
     user_id = message.author.id
 
     # !alias command
@@ -104,7 +105,7 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_message(client: bot.Bot, message: discord.Message, args: list):
     user_id = message.author.id
 
     # User alias check
