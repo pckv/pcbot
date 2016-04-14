@@ -333,7 +333,7 @@ class Bot(discord.Client):
                     try:
                         result = eval(script, globals(), locals())
                     except Exception as e:
-                        result = "```" + str(e) + "```"
+                        result = str(e)
 
                     yield from self.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
 

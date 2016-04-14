@@ -45,21 +45,35 @@ osu_api = "https://osu.ppy.sh/api/"
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 
+def calculate_acc(c50, c100, c300, miss):
+    total_points_of_hits = int(c50) * 50 + int(c100) * 100 + int(c300) * 300
+    total_number_of_hits = int(miss) + int(c50) + int(c100) + int(c300)
+
+    return total_points_of_hits / (total_number_of_hits * 300)
+
+
 def format_new_score(member: discord.Member, score: dict):
-    """ Format any score set by the member. """
+    """ Format any osu!Standard score set by the member. """
     sign = "-"
     if score["perfect"] == "1":
         sign = "+"
 
-    return ("{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}\n"
-            "**{pp}pp, {rank} +{mods}**\n"
-            "```diff\n"
-            " 300s    100s    50s     miss    combo\n"
-            "{sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}```"
-            "**Profile**: https://osu.ppy.sh/u/{user_id}").format(member=member,
-                                                                  sign=sign,
-                                                                  mods=Mods.format_mods(int(score["enabled_mods"])),
-                                                                  **score)
+    acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"])
+
+    return (
+        "{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}\n"
+        "**{pp}pp, {rank} +{mods}**\n"
+        "```diff\n"
+        "  300s    100s    50s     miss    combo   acc\n"
+        "{sign} {count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}{acc:<8}```"
+        "**Profile**: https://osu.ppy.sh/u/{user_id}"
+    ).format(
+        member=member,
+        sign=sign,
+        mods=Mods.format_mods(int(score["enabled_mods"])),
+        acc=acc,
+        **score
+    )
 
 
 def updates_per_log():
