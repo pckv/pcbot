@@ -391,7 +391,7 @@ class Bot(discord.Client):
 
                     if args[1] == "add" and len(args) > 3:
                         # Get the clean representation of the command
-                        cmd = message.content[len(" ".join(args[:3]))+1:]
+                        cmd = message.content[len(" ".join(args[:3])) + 1:]
 
                         if name not in self.lambdas.data:
                             self.lambdas.data[name] = cmd
