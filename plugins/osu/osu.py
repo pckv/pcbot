@@ -58,7 +58,7 @@ def format_new_score(member: discord.Member, score: dict):
             "{sign}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}```"
             "**Profile**: https://osu.ppy.sh/u/{user_id}").format(member=member,
                                                                   sign=sign,
-                                                                  mods=Mods.format_mods(score["enabled_mods"]),
+                                                                  mods=Mods.format_mods(int(score["enabled_mods"])),
                                                                   **score)
 
 
