@@ -54,7 +54,11 @@ def on_ready(client: bot.Bot):
                 if member:
                     with aiohttp.ClientSession() as session:
                         response = yield from session.get(twitch_api + "/streams/" + channel)
-                        json = yield from response.json() if response.status == 200 else []
+
+                        if response:
+                            json = yield from response.json() if response.status == 200 else {}
+                        else:
+                            json = {}
 
                     stream = json.get("stream")
 
