@@ -51,17 +51,13 @@ def calculate_acc(c50, c100, c300, miss):
     return total_points_of_hits / (total_number_of_hits * 300)
 
 
-def format_new_score(member: discord.Member, score: dict):
+def format_new_score(member: discord.Member, score: dict, beatmap: dict):
     """ Format any osu!Standard score set by the member. """
     sign = "-"
     if score["perfect"] == "1":
         sign = "+"
 
     acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"]) * 100
-
-    # Find some beatmap information
-    beatmap_search = yield from get_beatmaps(b=int(score["beatmap_id"]))
-    beatmap = get_beatmap(beatmap_search)
 
     return (
         "{member.mention} set a new best on *{artist} - {title}* **[{version}]**\n"
@@ -183,9 +179,13 @@ def on_ready(client: discord.Client):
                             if new_score:
                                 for server in client.servers:
                                     if member in server.members:
+                                        # Find some beatmap information
+                                        beatmap_search = yield from get_beatmaps(b=int(new_score["beatmap_id"]))
+                                        beatmap = get_beatmap(beatmap_search)
+
                                         yield from client.send_message(
                                             server,
-                                            format_new_score(member=member, score=new_score)
+                                            format_new_score(member=member, score=new_score, beatmap=beatmap)
                                         )
 
                         osu_tracking[member_id] = list(scores)
