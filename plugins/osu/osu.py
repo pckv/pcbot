@@ -61,11 +61,12 @@ def format_new_score(member: discord.Member, score: dict, beatmap: dict):
 
     return (
         "{member.mention} set a new best on *{artist} - {title}* **[{version}]**\n"
-        "**{pp}pp, {rank} +{mods}**\n"
+        "**{pp}pp, {rank} +{mods}**"
         "```diff\n"
-        "  300s    100s    50s     miss    combo   acc\n"
-        "{sign} {count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}{acc:.2f}%```"
-        "**Profile**: https://osu.ppy.sh/u/{user_id}. **Beatmap**: https://osu.ppy.sh/b/{beatmap_id}."
+        "  acc     300s    100s    50s     miss    combo\n"
+        "{sign} {acc:<8}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}/{max_combo}%```"
+        "**Profile**: https://osu.ppy.sh/u/{user_id}.\n"
+        "**Beatmap**: https://osu.ppy.sh/b/{beatmap_id}."
     ).format(
         member=member,
         sign=sign,
