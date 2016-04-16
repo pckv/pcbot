@@ -59,13 +59,14 @@ def format_new_score(member: discord.Member, score: dict, beatmap: dict):
         sign = "+"
 
     acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"]) * 100
+    acc = "{:.2f}%".format(acc)
 
     return (
         "{member.mention} set a new best on *{artist} - {title}* **[{version}]**\n"
         "**{pp}pp, {rank} +{mods}**"
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
-        "{sign} {acc:<8}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}/{max_combo}%```"
+        "{sign} {acc:<8}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}/{max_combo}```"
         "**Profile**: https://osu.ppy.sh/u/{user_id}.\n"
         "**Beatmap**: https://osu.ppy.sh/b/{beatmap_id}."
     ).format(
