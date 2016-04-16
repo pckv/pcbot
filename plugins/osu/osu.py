@@ -13,7 +13,6 @@ import discord
 import asyncio
 import aiohttp
 
-import bot
 from pcbot import Config
 from pcbot import download_file
 from plugins.osu.mods import Mods
@@ -60,18 +59,25 @@ def format_new_score(member: discord.Member, score: dict):
 
     acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"]) * 100
 
+    # Find some beatmap information
+    beatmap_search = yield from get_beatmaps(b=int(score["beatmap_id"]))
+    beatmap = get_beatmap(beatmap_search)
+
     return (
-        "{member.mention} set a new best on https://osu.ppy.sh/b/{beatmap_id}\n"
+        "{member.mention} set a new best on *{artist} - {title}* **[{version}]**\n"
         "**{pp}pp, {rank} +{mods}**\n"
         "```diff\n"
         "  300s    100s    50s     miss    combo   acc\n"
         "{sign} {count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo:<8}{acc:.2f}%```"
-        "**Profile**: https://osu.ppy.sh/u/{user_id}"
+        "**Profile**: https://osu.ppy.sh/u/{user_id}. **Beatmap**: https://osu.ppy.sh/b/{beatmap_id}."
     ).format(
         member=member,
         sign=sign,
         mods=Mods.format_mods(int(score["enabled_mods"])),
         acc=acc,
+        artist=beatmap["artist"],
+        title=beatmap["title"],
+        version=beatmap["version"],
         **score
     )
 
@@ -81,12 +87,14 @@ def updates_per_log():
     return logging_interval // (update_interval / 60)
 
 
+@asyncio.coroutine
 def get_beatmaps(**params):
     """ Returns a list of beatmaps specified by lookup.
 
-    Request_params is any parameter accepted by the osu! API.
+    params is any parameter accepted by the osu! API.
     """
-    params["k"] = osu.data["key"]
+    if "k" not in params:
+        params["k"] = osu.data["key"]
 
     with aiohttp.ClientSession() as session:
         response = yield from session.get(osu_api + "get_beatmaps", params=params)
@@ -95,7 +103,7 @@ def get_beatmaps(**params):
     return beatmaps
 
 
-def get_beatmap(beatmaps, **lookup):
+def get_beatmap(beatmaps: list, **lookup):
     """ Finds and returns the first beatmap with the lookup specified.
 
     Beatmaps is a list of beatmaps and could be used with get_beatmaps()
@@ -123,7 +131,7 @@ def get_beatmap(beatmaps, **lookup):
 
 
 @asyncio.coroutine
-def on_ready(client: bot.Bot):
+def on_ready(client: discord.Client):
     global osu_tracking
 
     if osu.data["key"] == "change to your api key":
@@ -194,7 +202,7 @@ def on_ready(client: bot.Bot):
 
 
 @asyncio.coroutine
-def on_command(client: bot.Bot, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!osu":
         m = "Please see `!help osu`."
         if len(args) > 1:
@@ -263,6 +271,11 @@ def on_command(client: bot.Bot, message: discord.Message, args: list):
                         m = "No osu! profile assigned to {}!".format(member.name)
                 else:
                     m = "Found no such member."
+
+            elif args[1] == "test":
+                beatmap_search = yield from get_beatmaps(b=713442)
+                beatmap = get_beatmap(beatmap_search)
+                m = "```" + beatmap + "```"
 
             # # Set or get the osu! notify channel
             # elif args[1] == "notify-channel":

@@ -12,7 +12,6 @@ import discord
 import asyncio
 import aiohttp
 
-import bot
 from pcbot import Config
 from pcbot import download_file
 
@@ -41,7 +40,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 @asyncio.coroutine
-def on_ready(client: bot.Bot):
+def on_ready(client: discord.Client):
     while True:
         try:
             yield from asyncio.sleep(update_interval)
@@ -84,7 +83,7 @@ def on_ready(client: bot.Bot):
 
 
 @asyncio.coroutine
-def on_command(client: bot.Bot, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!twitch":
         m = "Please see `!help twitch`."
         if len(args) > 1:

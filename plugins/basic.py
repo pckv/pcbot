@@ -15,7 +15,6 @@ from datetime import datetime
 import discord
 import asyncio
 
-import bot
 from pcbot import Config
 
 
@@ -74,7 +73,7 @@ def format_req(plugin, req_id: int):
 
 
 @asyncio.coroutine
-def on_command(client: bot.Bot, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     # Basic check
     if args[0] == "!ping":
         start = datetime.now()
@@ -181,7 +180,7 @@ def on_command(client: bot.Bot, message: discord.Message, args: list):
 
 
 @asyncio.coroutine
-def on_message(client: bot.Bot, message: discord.Message, args: list):
+def on_message(client: discord.Client, message: discord.Message, args: list):
     # Have the bot reply confused whenever someone mentions it
     if not message.content.startswith("!") and client.user.id in [m.id for m in message.mentions]:
         phrases = ["what", "huh", "sorry", "pardon", "...", "!", "", "EH!", "wat", "excuse me", "really"]

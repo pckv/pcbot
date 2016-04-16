@@ -16,7 +16,6 @@ Commands: none
 import discord
 import asyncio
 
-import bot
 
 commands = {
 
@@ -24,20 +23,20 @@ commands = {
 
 
 @asyncio.coroutine
-def on_command(client: bot.Bot, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     # Add any checks here.
     pass
 
 
 @asyncio.coroutine
-def on_message(client: bot.Bot, message: discord.Message, args: list):
+def on_message(client: discord.Client, message: discord.Message, args: list):
     # Optionally, Add any checks here.
     # NOTE: Any successful event should return True
     return False
 
 
 @asyncio.coroutine
-def save(client: bot.Bot):
+def save(client: discord.Client):
     # Optionally, add anything that should be saved here (eg configs)
     # Feel free to remove this function when it's not needed
     pass

@@ -8,7 +8,6 @@ import discord
 import asyncio
 import aiohttp
 
-import bot
 
 commands = {
     "define": {
@@ -19,7 +18,7 @@ commands = {
 
 
 @asyncio.coroutine
-def on_command(client: bot.Bot, message: discord.Message, args: list):
+def on_command(client: discord.Client, message: discord.Message, args: list):
     if args[0] == "!define":
         m = ""
         if len(args) > 1:
