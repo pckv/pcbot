@@ -7,6 +7,7 @@ Commands:
 """
 
 import logging
+from traceback import print_exc
 
 import discord
 import asyncio
@@ -78,8 +79,8 @@ def on_ready(client: discord.Client):
 
                                     preview = yield from download_file(stream["preview"]["medium"])
                                     yield from client.send_file(server, preview, filename="preview.jpg")
-        except Exception as e:
-            logging.info("Error: " + str(e))
+        except:
+            print_exc()
 
 
 @asyncio.coroutine

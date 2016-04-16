@@ -8,6 +8,7 @@ Commands:
 """
 
 import logging
+from traceback import print_exc
 
 import discord
 import asyncio
@@ -198,8 +199,8 @@ def on_ready(client: discord.Client):
                 logging.info("Requested osu! scores {} times in {} minutes.".format(sent_requests, logging_interval))
                 sent_requests = 0
 
-        except Exception as e:
-            logging.info("Error: " + str(e))
+        except:
+            print_exc()
 
 
 @asyncio.coroutine
