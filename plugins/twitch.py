@@ -33,7 +33,7 @@ commands = {
 
 twitch_channels = Config("twitch-channels", data={"channels": {}})
 live_channels = {}
-update_interval = 20  # Seconds
+update_interval = 180  # Seconds
 
 twitch_api = "https://api.twitch.tv/kraken"
 
@@ -79,6 +79,10 @@ def on_ready(client: discord.Client):
 
                                     preview = yield from download_file(stream["preview"]["medium"])
                                     yield from client.send_file(server, preview, filename="preview.jpg")
+
+                    # Wait a second before sending a new server request
+                    yield from asyncio.sleep(1)
+
         except:
             print_exc()
 
