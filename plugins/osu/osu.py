@@ -76,6 +76,7 @@ def format_new_score(member: discord.Member, score: dict, beatmap: dict):
         artist=beatmap["artist"],
         title=beatmap["title"],
         version=beatmap["version"],
+        max_combo=beatmap["max_combo"],
         **score
     )
 
