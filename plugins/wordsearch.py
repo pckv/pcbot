@@ -73,7 +73,6 @@ def auto_word(count=1):
     for _ in range(count):
         word += choice(wordsearch_words).strip()
 
-    print(word)
     return word.lower()
 
 
