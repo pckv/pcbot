@@ -8,7 +8,7 @@ This bot is the successor to PCBOT, my first discord bot. Seemed only fair to gi
 This branch is for python 3.4.4. I am not sure why I didn't make this the master branch.
 
 ## Installing
-This bot requires no extra python modules (as of yet). To install the bot, one can clone the repo:
+The bot requires no extra python modules (as of yet). To install the bot, one can clone the repo:
 
 ```
 git clone https://github.com/PcBoy111/PC-BOT-V2.git
