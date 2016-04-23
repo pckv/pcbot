@@ -102,7 +102,7 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
         m = "Please see `!help feature`."
         if len(args) > 2:
             plugin = args[1]
-            if plugin in bot.plugins:
+            if client.has_plugin(plugin):
                 # Initialize the plugin for features
                 if plugin not in feature_reqs.data:
                     feature_reqs.data[plugin] = []

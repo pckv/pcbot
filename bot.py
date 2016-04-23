@@ -83,6 +83,12 @@ class Bot(discord.Client):
 
         return False
 
+    @staticmethod
+    def has_plugin(plugin):
+        """ Returns true if given plugin is loaded. """
+        if plugin in plugins:
+            return True
+
     def save_plugin(self, plugin):
         """ Save a plugins files if it has a save function. """
         if plugins.get(plugin):
