@@ -114,6 +114,21 @@ class Bot(discord.Client):
         logging.info("{prefix}@{0.author} -> {0.content}".format(message, prefix=prefix))
 
     @staticmethod
+    def get_formatted_code(code):
+        """ Format code from markdown format. This will filter out markdown code
+        and give the executable python code, or return a string that would raise
+        an error when it's executed by exec() or eval()."""
+        match = re.match(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", code, re.DOTALL)
+
+        if match:
+            code = match.group("code")
+
+            if not code == "`":
+                return code
+
+        return "raise Exception(\"Could not format code.\")"
+
+    @staticmethod
     def find_member(server: discord.Server, name, steps=3, mention=True):
         """ Find any member by their name or a formatted mention.
         Steps define the depth at which to search. More steps equal
@@ -319,7 +334,10 @@ class Bot(discord.Client):
                     def say(msg, c=message.channel):
                         asyncio.async(self.send_message(c, msg))
 
-                    script = message.content[len("!do "):]
+                    script = self.get_formatted_code(message.content[len("!do "):])
+
+                    print(script)
+
                     try:
                         exec(script, locals(), globals())
                     except Exception as e:
@@ -328,7 +346,7 @@ class Bot(discord.Client):
             # Evaluates a piece of code and prints the result
             elif args[0] == "!eval":
                 if len(args) > 1:
-                    script = message.content[len("!eval "):].replace("`", "")
+                    script = self.get_formatted_code(message.content[len("!eval "):])
                     
                     try:
                         result = eval(script, globals(), locals())
@@ -391,7 +409,7 @@ class Bot(discord.Client):
 
                     if args[1] == "add" and len(args) > 3:
                         # Get the clean representation of the command
-                        cmd = message.content[len(" ".join(args[:3])) + 1:]
+                        cmd = self.get_formatted_code(message.content[len(" ".join(args[:3])) + 1:])
 
                         if name not in self.lambdas.data:
                             self.lambdas.data[name] = cmd
