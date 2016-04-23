@@ -27,7 +27,7 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
             # Request a JSON object as a list of definitions
             with aiohttp.ClientSession() as session:
                 response = yield from session.get("http://api.urbandictionary.com/v0/define", params=params)
-                json = yield from response.json()
+                json = yield from response.json() if response.status == 200 else []
 
             definitions = json["list"] if "list" in json else []
 
