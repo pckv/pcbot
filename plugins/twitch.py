@@ -42,7 +42,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 @asyncio.coroutine
 def on_ready(client: discord.Client):
-    while True:
+    while not client.is_closed:
         try:
             yield from asyncio.sleep(update_interval)
 
