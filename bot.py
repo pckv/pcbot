@@ -2,7 +2,7 @@ import logging
 import random
 import re
 import importlib
-from os import listdir, path
+from os import listdir, path, remove
 from getpass import getpass
 from argparse import ArgumentParser
 from shlex import split as splitargs
@@ -16,8 +16,8 @@ from pcbot.config import Config
 parser = ArgumentParser(description="Run PCBOT.")
 parser.add_argument("--version", help="Return the current version (placebo command; only tells you to git status).",
                     action="version", version="Try: git status")
-parser.add_argument("--email", "-e", help="The email to login to. Prompts if omitted.")
-parser.add_argument("--token", "-t", help="The token to login with. Email prompt is default.")
+parser.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
+parser.add_argument("--email", "-e", help="The email to login to. Token prompt is default.")
 parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
 parser.add_argument("--log-level", "-l", help="Use the specified logging level (see the docs on logging for values).",
                     type=lambda s: getattr(logging, s.upper()), default=logging.INFO)
@@ -318,8 +318,8 @@ class Bot(discord.Client):
             owner_code = str(random.randint(100, 999))
             print("Owner code for assignment: {}".format(owner_code))
             yield from self.send_message(message.channel,
-                                         "A code has been printed in the console for you to repeat within 15 seconds.")
-            user_code = yield from self.wait_for_message(timeout=15, channel=message.channel, content=owner_code)
+                                         "A code has been printed in the console for you to repeat within 60 seconds.")
+            user_code = yield from self.wait_for_message(timeout=60, channel=message.channel, content=owner_code)
             if user_code:
                 yield from self.send_message(message.channel, "You have been assigned bot owner.")
                 self.owner.data = message.author.id
@@ -509,19 +509,32 @@ bot = Bot()
 if __name__ == "__main__":
     login = []
 
-    if start_args.token:
+    if not start_args.email:
         # Login with the specified token if specified
+        token = start_args.token or input("Token: ")
+
         login = [start_args.token]
     else:
-        # Get the email either from commandline argument or input
-        email = start_args.email or input("Email: ")
+        # Get the email from commandline argument
+        email = start_args.email
 
-        # See if the email is stored in cache and only prompt for password if it isn't
-        # (or the --new-pass commandline argument is passed)
         password = ""
-        if start_args.new_pass or not path.exists(bot._get_cache_filename(email)):
+        cached_path = bot._get_cache_filename(email)  # Get the name of the would-be cached email
+
+        # If the --new-pass command-line argument is specified, remove the cached password.
+        # Useful for when you have changed the password.
+        if start_args.new_pass:
+            if path.exists(cached_path):
+                remove(cached_path)
+
+        # Prompt for password if the cached file does not exist (the user has not logged in before or
+        # they they entered the --new-pass argument.
+        if not path.exists(cached_path):
             password = getpass()
 
         login = [email, password]
 
-    bot.run(*login)
+    try:
+        bot.run(*login)
+    except discord.errors.LoginFailure as e:
+        logging.error(e)
