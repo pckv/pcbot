@@ -40,7 +40,7 @@ class Config:
     def load(self):
         """ Load the config from file if it exists.
 
-        :returns: config parsed from json or None"""
+        :return: config parsed from json or None"""
         if exists(self.filepath):
             with open(self.filepath, "r") as f:
                 return json.load(f)
