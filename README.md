@@ -26,6 +26,19 @@ Running the bot is simple. Go to the root directory of the bot, and run bot.py:
 python bot.py
 ```
 
+## Assigning ownership
+After running the bot for the first time, you want to make sure you're assigned the owner account. 
+This process is very straight-forward and requires that you have access to the bot log, and can respond
+to the bot within 60 seconds of reading the log (By default, the log is printed to the terminal).
+
+**The first step** is to send the command `!setowner` in a private message. The bot will wait for 
+a response matching the 3-digit code logged to the console. the log message looks something like this:
+
+```CRITICAL [bot] 2016-04-24 23:03:49,138: Owner code for assignment: 263```
+
+After sending the code in a private message, in the case of the example `263`, your account will be
+registered as the bot owner.
+
 ## Command-line arguments
 Execute `python bot.py -h` to see a list of supported command-line arguments.
 
