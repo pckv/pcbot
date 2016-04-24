@@ -30,7 +30,8 @@ def load_plugin(plugin_name: str):
     if not plugin_name.startswith("__") or not plugin_name.endswith("__"):
         try:
             plugin = importlib.import_module("plugins.{}".format(plugin_name))
-        except ImportError:
+        except ImportError as e:
+            logging.warn("COULD NOT LOAD PLUGIN " + plugin_name + "\nReason: " + str(e))
             return False
 
         plugins[plugin_name] = plugin

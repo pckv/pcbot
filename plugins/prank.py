@@ -80,10 +80,10 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
 
         # Draw border
         shadow_offset = font_size // 25
-        image_context.text((x-shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
-        image_context.text((x+shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
-        image_context.text((x, y-shadow_offset), name, font=image_font, fill=(0, 0, 0, 255))
-        image_context.text((x, y+shadow_offset), name, font=image_font, fill=(0, 0, 0, 255))
+        image_context.text((x - shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
+        image_context.text((x + shadow_offset, y), name, font=image_font, fill=(0, 0, 0, 255))
+        image_context.text((x, y - shadow_offset), name, font=image_font, fill=(0, 0, 0, 255))
+        image_context.text((x, y + shadow_offset), name, font=image_font, fill=(0, 0, 0, 255))
 
         # Draw text
         image_context.text((x, y), name, font=image_font, fill=(255, 255, 255, 255))
