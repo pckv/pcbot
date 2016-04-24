@@ -4,14 +4,14 @@ This bot is the successor to PCBOT, my first discord bot. Seemed only fair to gi
 
 [discord.py]: https://github.com/Rapptz/discord.py
 
-## Notice
-This branch is for python 3.4.4. I am not sure why I didn't make this the master branch.
+## Version
+PCBOT is supported
 
 ## Installing
 The bot requires no extra python modules (as of yet). To install the bot, one can clone the repo:
 
 ```
-git clone https://github.com/PcBoy111/PC-BOT-V2.git
+git clone https://github.com/PcBoy111/PCBOT.git
 ```
 
 *Or*, just simply [download the repo as ZIP][zip].
