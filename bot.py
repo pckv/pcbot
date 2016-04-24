@@ -12,7 +12,7 @@ import asyncio
 
 from pcbot.config import Config
 
-
+# Add all command-line arguments
 parser = ArgumentParser(description="Run PCBOT.")
 parser.add_argument("--version", help="Return the current version (placebo command; only tells you to git status).",
                     action="version", version="Try: git status")
@@ -23,8 +23,10 @@ parser.add_argument("--log-level", "-l", help="Use the specified logging level (
                     type=lambda s: getattr(logging, s.upper()), default=logging.INFO)
 start_args = parser.parse_args()
 
-logging_level = start_args.log_level  # Set logging level as the passed argument
-logging.basicConfig(level=logging_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
+# Setup logger with level specified in start_args or logging.INFO
+logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
+
+# Initialize dictionary for plugins
 plugins = {}
 
 
