@@ -1,12 +1,10 @@
-# PC-BOT-V2
-WIP better-than-PCBOT discord bot using [discord.py].
-This bot is the successor to PCBOT, my first discord bot. Seemed only fair to give him a second chance.
+# PCBOT
+WIP discord bot using [discord.py]. 
 
-[discord.py]: https://github.com/Rapptz/discord.py
-
-## Version
 PCBOT should be supported by all python versions above 3.4.2. It is however only tested and worked on in python
 3.4.4, so please give me a yell if something is unsupported.
+
+[discord.py]: https://github.com/Rapptz/discord.py
 
 ## Installing
 The bot itself requires no extra python modules, although `prank` plugin needs Pillow. To install the bot, 
