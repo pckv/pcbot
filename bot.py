@@ -12,14 +12,20 @@ import asyncio
 
 from pcbot.config import Config
 
-logging_level = logging.INFO  # Change this is you want more / less log info
-logging.basicConfig(level=logging_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
-plugins = {}
 
 parser = ArgumentParser(description="Run PCBOT.")
+parser.add_argument("--version", help="Return the current version (placebo command; only tells you to git status).",
+                    action="version", version="Try: git status")
 parser.add_argument("--email", "-e", help="The email to login to. Prompts if omitted.")
+parser.add_argument("--token", "-t", help="The token to login with. Email prompt is default.")
 parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
+parser.add_argument("--log-level", "-l", help="Use the specified logging level (see the docs on logging for values).",
+                    type=lambda s: getattr(logging, s.upper()), default=logging.INFO)
 start_args = parser.parse_args()
+
+logging_level = start_args.log_level  # Set logging level as the passed argument
+logging.basicConfig(level=logging_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
+plugins = {}
 
 
 def load_plugin(plugin_name: str):
@@ -499,13 +505,21 @@ class Bot(discord.Client):
 bot = Bot()
 
 if __name__ == "__main__":
-    # Get the email either from commandline argument or input
-    email = start_args.email or input("Email: ")
+    login = []
 
-    # See if the email is stored in cache and only prompt for password if it isn't
-    # (or the --new-pass commandline argument is passed)
-    password = ""
-    if start_args.new_pass or not path.exists(bot._get_cache_filename(email)):
-        password = getpass()
+    if start_args.token:
+        # Login with the specified token if specified
+        login = [start_args.token]
+    else:
+        # Get the email either from commandline argument or input
+        email = start_args.email or input("Email: ")
 
-    bot.run(email, password)
+        # See if the email is stored in cache and only prompt for password if it isn't
+        # (or the --new-pass commandline argument is passed)
+        password = ""
+        if start_args.new_pass or not path.exists(bot._get_cache_filename(email)):
+            password = getpass()
+
+        login = [email, password]
+
+    bot.run(*login)
