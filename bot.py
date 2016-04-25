@@ -316,7 +316,7 @@ class Bot(discord.Client):
                 return
 
             owner_code = str(random.randint(100, 999))
-            print("Owner code for assignment: {}".format(owner_code))
+            logging.critical("Owner code for assignment: {}".format(owner_code))
             yield from self.send_message(message.channel,
                                          "A code has been printed in the console for you to repeat within 60 seconds.")
             user_code = yield from self.wait_for_message(timeout=60, channel=message.channel, content=owner_code)

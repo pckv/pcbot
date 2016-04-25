@@ -28,8 +28,6 @@ moderate = Config("moderate", data={})
 
 @asyncio.coroutine
 def on_command(client: discord.Client, message: discord.Message, args: list):
-    channel = moderate.data.get(message.server.id, {}).get("nsfw-channel")
-
     if args[0] == "!nsfwchannel":
         if message.author.permissions_in(message.channel).manage_server:
             m = "Please see `!help nsfwchannel`."
