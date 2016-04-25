@@ -68,8 +68,8 @@ Option | Function
 -------|--------
 !plugin | list all loaded plugins
 !plugin reload [plugin] | reload all or the specified plugin
-!plugin unload <plugin> | unload a plugin temporarily
-!plugin load <plugin> | load a plugin from the `plugins/` folder
+!plugin unload \<plugin\> | unload a plugin temporarily
+!plugin load \<plugin\> | load a plugin from the `plugins/` folder
 
 When building plugins, make sure you're using syntax supported by your version of python. Considering the bot is
 built for version 3.4.2+, the best would be to follow this syntax. 
