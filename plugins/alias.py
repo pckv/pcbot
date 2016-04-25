@@ -109,6 +109,8 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
 
     # User alias check
     if aliases.data.get(user_id):
+        success = False
+
         user_aliases = aliases.data[user_id]
         for name, command in user_aliases.items():
             execute = False
@@ -140,7 +142,9 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                     "{}{}: {}".format(message.author.mention, mention, command.get("text")))
                 )
 
-        return True
+                success = True
+
+        return success
 
     # See if the user spelled definitely wrong
     for spelling in ["definately", "definatly", "definantly", "definetly", "definently", "defiantly"]:
