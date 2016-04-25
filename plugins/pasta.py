@@ -151,3 +151,5 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             yield from client.send_message(message.channel, m)
 
         return True
+
+    return False
