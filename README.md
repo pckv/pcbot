@@ -1,7 +1,7 @@
 # PCBOT
 WIP discord bot using [discord.py]. 
 
-PCBOT should be supported by all python versions above 3.4.2. It is however only tested and worked on in python
+PCBOT should be supported by all python versions above 3.4.2. It is however only tested and developed in python
 3.4.4, so please give me a yell if something is unsupported.
 
 [discord.py]: https://github.com/Rapptz/discord.py
@@ -57,9 +57,19 @@ Execute `python bot.py -h` to see a list of supported command-line arguments.
 
 ## Plugins
 PCBOT has a folder based plugin system. The plugins do not need any specific imports 
-(other than `discord` of course). A template plugin can be found in the `plugins/` folder as well.
+(other than `discord` of course). A template plugin can be found in the `plugins/` folder.
 
 **To remove an unwanted plugin from the bot**, simply remove it from the `plugins/` folder.
+*This process of handling plugins will soon be migrated to a blacklist system.*
+
+Currently, the owner can reload, unload and load plugins with the `!plugin` command:
+
+Option | Function
+-------|--------
+!plugin | list all loaded plugins
+!plugin reload [plugin] | reload all or the specified plugin
+!plugin unload <plugin> | unload a plugin temporarily
+!plugin load <plugin> | load a plugin from the `plugins/` folder
 
 When building plugins, make sure you're using syntax supported by your version of python. Considering the bot is
-built for version 3.4.2+, the best would be to use this syntax. 
+built for version 3.4.2+, the best would be to follow this syntax. 
