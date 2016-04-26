@@ -62,7 +62,7 @@ def format_new_score(member: discord.Member, score: dict, beatmap: dict):
     acc = "{:.2f}%".format(acc)
 
     return (
-        "{member.mention} set a new best on *{artist} - {title}* **[{version}]**\n"
+        "{member.mention} set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
         "**{pp}pp, {rank} +{mods}**"
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
@@ -77,6 +77,7 @@ def format_new_score(member: discord.Member, score: dict, beatmap: dict):
         artist=beatmap["artist"],
         title=beatmap["title"],
         version=beatmap["version"],
+        stars=float(beatmap["difficultyrating"]),
         max_combo=beatmap["max_combo"],
         **score
     )
