@@ -254,10 +254,7 @@ def on_command(client: discord.Client, message: discord.Message, args: list):
                         user_id = osu.data["profiles"][member.id]
 
                         # Set the signature color to that of the role color
-                        color = "pink"
-
-                        if len(member.roles) > 1:
-                            color = "hex{0:02x}{1:02x}{2:02x}".format(*member.roles[1].colour.to_tuple())
+                        color = "pink" if member.color is discord.Color.default() else member.color
 
                         # Download and upload the signature
                         params = {
