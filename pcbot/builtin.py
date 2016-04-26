@@ -9,9 +9,12 @@ commands = {
 import re
 import random
 import logging
+import builtins
 
 import discord
 import asyncio
+
+from pcbot.utils import Annotate
 
 
 commands = {
@@ -35,12 +38,12 @@ def get_formatted_code(code):
 
 
 def owner(f):
-    def decorator(client: discord.Client, member: discord.Member, *args, **kwargs):
-        if not client.is_owner(member):
-            return
+    """ Decorator that runs the command only if the author is an owner. """
+    def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
+        if client.is_owner(message.author):
+            f(client, message, *args, **kwargs)
 
-        f(client, member, *args, **kwargs)
-
+    setattr(decorator, "checks_owner", True)
     return decorator
 
 
@@ -50,24 +53,25 @@ def owner(f):
 @asyncio.coroutine
 def help(client: discord.Client, message: discord.Message,
          command: str.lower=None):
+    """  """
     # Command specific help
     if command:
         usage, desc = "", ""
 
-        for plugin in client.plugins.values():
+        for pl in client.plugins.values():
             # Return if the bot doesn't have any commands
-            if not plugin.commands:
+            if not pl.commands:
                 return
 
             # Return if the specified plugin doesn't have the specified command
-            if command not in plugin.commands:
+            if command not in pl.commands:
                 return
 
-            if not getattr(plugin, command):
+            if not getattr(pl, command):
                 return
 
-            usage = plugin.commands["usage"]
-            desc = getattr(plugin, command).__doc__.strip()
+            usage = pl.commands["usage"]
+            desc = getattr(pl, command).__doc__.strip()
 
         if usage:
             m = "**Usage**: ```{}```\n" \
@@ -80,9 +84,9 @@ def help(client: discord.Client, message: discord.Message,
     # List all commands
     else:
         m = "**Commands:**```"
-        for plugin in client.plugins.values():
-            if plugin.commands:
-                m += "\n" + "\n".join(plugin.commands.keys())
+        for pl in client.plugins.values():
+            if pl.commands:
+                m += "\n" + "\n".join(pl.commands.keys())
 
         m += "```\nUse `!help <command>` for command specific help."
         yield from client.send_message(message.channel, m)
@@ -90,6 +94,7 @@ def help(client: discord.Client, message: discord.Message,
 
 @asyncio.coroutine
 def setowner(client: discord.Client, message: discord.Message):
+    """  """
     if not message.channel.is_private:
         return
 
@@ -115,6 +120,7 @@ def setowner(client: discord.Client, message: discord.Message):
 @asyncio.coroutine
 @owner
 def stop(client: discord.Client, message: discord.Message):
+    """  """
     yield from client.send_message(message.channel, ":boom: :gun:")
     yield from client.save_plugins()
     yield from client.logout()
@@ -124,6 +130,7 @@ def stop(client: discord.Client, message: discord.Message):
 @owner
 def game(client: discord.Client, message: discord.Message,
          *name: str):
+    """  """
     if name:
         m = "Set the game to {}.".format(name)
     else:
@@ -137,4 +144,89 @@ def game(client: discord.Client, message: discord.Message,
 @asyncio.coroutine
 @owner
 def do(client: discord.Client, message: discord.Message,
-       *code: str):
+       code: Annotate.Content):
+    """  """
+    def say(msg, c=message.channel):
+        asyncio.async(client.send_message(c, msg))
+
+    script = get_formatted_code(code)
+
+    try:
+        exec(script, locals(), globals())
+    except Exception as e:
+        say("```" + str(e) + "```")
+
+
+@asyncio.coroutine
+@owner
+def eval(client: discord.Client, message: discord.Message,
+         code: Annotate.Content):
+    """  """
+    script = get_formatted_code(code)
+
+    try:
+        result = builtins.eval(script, globals(), locals())
+    except Exception as e:
+        result = str(e)
+
+    yield from client.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
+
+
+@asyncio.coroutine
+@owner
+def plugin(client: discord.Client, message: discord.Message,
+           option: str, plugin_name: str.lower=""):
+    """  """
+    if option == "reload":
+        if plugin_name:
+            if plugin_name in client.plugins:
+                yield from client.save_plugin(plugin_name)
+                client.reload_plugin(plugin_name)
+                
+                m = "Reloaded plugin `{}`.".format(plugin_name)
+            else:
+                m = "`{}` is not a plugin. See `!plugin`.".format(plugin_name)
+        else:
+            yield from client.save_plugins()
+
+            for pl in client.plugins.keys():
+                client.reload_plugin(pl)
+
+            m = "All plugins reloaded."
+
+    elif option == "load":
+        if plugin_name:
+            if plugin_name not in client.plugins:
+                loaded = client.load_plugin(plugin_name)
+
+                if loaded:
+                    m = "Plugin `{}` loaded.".format(plugin_name)
+                else:
+                    m = "Plugin `{}` could not be loaded.".format(plugin_name)
+            else:
+                m = "Plugin `{}` is already loaded.".format(plugin_name)
+        else:
+            m = "You need to specify the name of the plugin to load."
+
+    elif option == "unload":
+        if plugin_name:
+            if plugin_name in client.plugins:
+                yield from client.save_plugin(plugin_name)
+                client.unload_plugin(plugin_name)
+
+                m = "Plugin `{}` unloaded.".format(plugin_name)
+            else:
+                m = "`{}` is not a plugin. See `!plugin`.".format(plugin_name)
+        else:
+            m = "You need to specify the name of the plugin to unload."
+    else:
+        m = "`{}` is not a valid option.".format(option)
+
+    yield from client.send_message(message.channel, m)
+
+
+@asyncio.coroutine
+def plugin__noargs(client: discord.Client, message: discord.Message):
+    """  """
+    yield from client.send_message(message.channel,
+                                   "**Plugins:** ```\n" "{}```".format(",\n".join(client.plugins.keys())))

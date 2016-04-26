@@ -1,5 +1,4 @@
 import logging
-import random
 import re
 import importlib
 from os import listdir, path, remove
@@ -11,6 +10,7 @@ import discord
 import asyncio
 
 from pcbot.config import Config
+
 
 # Add all command-line arguments
 parser = ArgumentParser(description="Run PCBOT.")
@@ -85,18 +85,18 @@ class Bot(discord.Client):
 
         return False
 
+    @asyncio.coroutine
     def save_plugin(self, plugin):
         """ Save a plugins files if it has a save function. """
-        if self.plugins.get(plugin):
-            try:
+        if plugin in self.plugins:
+            if getattr(plugin, "save"):
                 yield from self.plugins[plugin].save(self)
-            except AttributeError:
-                pass
 
+    @asyncio.coroutine
     def save_plugins(self):
         """ Looks for any save function in a plugin and saves.
         Set up for saving on !stop and periodic saving every 30 mins. """
-        for name, _ in self.plugins.items():
+        for name in self.plugins.keys():
             yield from self.save_plugin(name)
 
     @asyncio.coroutine
@@ -258,94 +258,7 @@ class Bot(discord.Client):
             args = message.content.split()
 
         if self.is_owner(message.author):
-            # Stops the bot
-            if message.content == "!stop":
-                yield from self.send_message(message.channel, ":boom: :gun:")
-                yield from self.save_plugins()
-                yield from self.logout()
-
-            # Sets the bots game
-            elif args[0] == "!game":
-                if len(args) > 1:
-                    game = discord.Game(name=args[1])
-                    logging.debug("Setting bot game to {}".format(args[1]))
-                    yield from self.change_status(game)
-                else:
-                    yield from self.send_message(message.channel, "Usage: `!game <game>`")
-
-            # Runs a piece of code
-            elif args[0] == "!do":
-                if len(args) > 1:
-                    def say(msg, c=message.channel):
-                        asyncio.async(self.send_message(c, msg))
-
-                    script = self.get_formatted_code(message.content[len("!do "):])
-
-                    print(script)
-
-                    try:
-                        exec(script, locals(), globals())
-                    except Exception as e:
-                        say("```" + str(e) + "```")
-
-            # Evaluates a piece of code and prints the result
-            elif args[0] == "!eval":
-                if len(args) > 1:
-                    script = self.get_formatted_code(message.content[len("!eval "):])
-
-                    try:
-                        result = eval(script, globals(), locals())
-                    except Exception as e:
-                        result = str(e)
-
-                    yield from self.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
-
-            # Plugin specific commands
-            elif args[0] == "!plugin":
-                if len(args) > 1:
-                    if args[1] == "reload":
-                        if len(args) > 2:
-                            if self.plugins.get(args[2]):
-                                yield from self.save_plugin(args[2])
-                                self.reload_plugin(args[2])
-                                yield from self.send_message(message.channel, "Reloaded plugin `{}`.".format(args[2]))
-                            else:
-                                yield from self.send_message(message.channel,
-                                                             "`{}` is not a plugin. See `!plugin`.".format(args[2]))
-                        else:
-                            yield from self.save_plugins()
-                            for plugin in list(self.plugins.keys()):
-                                self.reload_plugin(plugin)
-                            yield from self.send_message(message.channel, "All plugins reloaded.")
-                    elif args[1] == "load":
-                        if len(args) > 2:
-                            if not self.plugins.get(args[2].lower()):
-                                loaded = self.load_plugin(args[2].lower())
-                                if loaded:
-                                    yield from self.send_message(message.channel, "Plugin `{}` loaded.".format(args[2]))
-                                else:
-                                    yield from self.send_message(message.channel,
-                                                                 "Plugin `{}` could not be loaded.".format(args[2]))
-                            else:
-                                yield from self.send_message(message.channel,
-                                                             "Plugin `{}` is already loaded.".format(args[2]))
-                    elif args[1] == "unload":
-                        if len(args) > 2:
-                            if self.plugins[args[2].lower()]:
-                                yield from self.save_plugin(args[2])
-                                self.unload_plugin(args[2].lower())
-                                yield from self.send_message(message.channel, "Plugin `{}` unloaded.".format(args[2]))
-                            else:
-                                yield from self.send_message(message.channel,
-                                                             "`{}` is not a plugin. See `!plugin`.".format(args[2]))
-                    else:
-                        yield from self.send_message(message.channel, "`{}` is not a valid argument.".format(args[1]))
-                else:
-                    yield from self.send_message(message.channel,
-                                                 "**Plugins:** ```\n"
-                                                 "{}```".format(",\n".join(self.plugins.keys())))
-
-            elif args[0] == "!lambda":
+            if args[0] == "!lambda":
                 m = ""
 
                 if len(args) > 2:
@@ -397,17 +310,6 @@ class Bot(discord.Client):
 
                 if m:
                     yield from self.send_message(message.channel, m)
-
-            # Originally just a test command
-            elif message.content == "!count":
-                if not self.message_count.data.get(message.channel.id):
-                    self.message_count.data[message.channel.id] = 0
-
-                self.message_count.data[message.channel.id] += 1
-                yield from self.send_message(message.channel, "I have counted `{}` times in this channel.".format(
-                    self.message_count.data[message.channel.id]
-                ))
-                self.message_count.save()
 
         # Run plugins on_message
         for name, plugin in self.plugins.items():

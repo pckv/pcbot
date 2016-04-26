@@ -1,5 +1,12 @@
+from enum import Enum
+
 import asyncio
 import aiohttp
+
+
+class Annotate(Enum):
+    """ Command annotation enum. """
+    Content = 1  # Return all the content after command and/or arguments
 
 
 @asyncio.coroutine
