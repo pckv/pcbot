@@ -55,3 +55,8 @@ def download_file(url, **params):
         file = yield from response.read() if response.status == 200 else []
 
     return file
+
+
+def format_exception(e):
+    """ Returns a formatted string of Exception: str """
+    return type(e).__name__ + ": " + str(e)

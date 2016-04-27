@@ -10,7 +10,7 @@ import logging
 import discord
 import asyncio
 
-from pcbot import owner, Annotate, Config, get_command
+from pcbot import owner, Annotate, Config, get_command, format_exception
 
 
 commands = {
@@ -131,7 +131,7 @@ def cmd_game(client: discord.Client, message: discord.Message,
              name: Annotate.Content):
     """  """
     if name:
-        m = "Set the game to {}.".format(name)
+        m = "Set the game to **{}**.".format(name)
     else:
         m = "No longer playing."
 
@@ -152,7 +152,7 @@ def cmd_do(client: discord.Client, message: discord.Message,
     try:
         exec(script, locals(), globals())
     except Exception as e:
-        say("```" + str(e) + "```")
+        say("```" + format_exception(e) + "```")
 
 
 @asyncio.coroutine
@@ -165,7 +165,7 @@ def cmd_eval(client: discord.Client, message: discord.Message,
     try:
         result = eval(script, globals(), locals())
     except Exception as e:
-        result = str(e)
+        result = format_exception(e)
 
     yield from client.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
 
@@ -231,7 +231,8 @@ def cmd_plugin(client: discord.Client, message: discord.Message,
 
 @asyncio.coroutine
 def cmd_lambda_noargs(client: discord.Client, message: discord.Message):
-    yield from cmd_help_noargs(client, message)
+    yield from client.send_message(message.channel,
+                                   "**Lambdas:** ```\n" "{}```".format("\n".join(lambdas.data.keys())))
 
 
 @asyncio.coroutine
@@ -306,5 +307,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             else:
                 return default
 
-        exec(lambdas.data[args[0]], locals(), globals())
+        try:
+            exec(lambdas.data[args[0]], locals(), globals())
+        except Exception as e:
+            if client.is_owner(message.author):
+                say("```" + format_exception(e) + "```")
+
         logging.info("@{0.author} -> {0.content}".format(message))
