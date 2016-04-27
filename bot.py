@@ -33,8 +33,6 @@ class Bot(discord.Client):
         super().__init__()
         self.plugins = {}
         self.owner = Config("owner")
-        self.lambdas = Config("lambdas", data={})
-        self.lambda_blacklist = []
         self.autosave_interval = 60 * 30
 
         self.load_plugins()
@@ -228,21 +226,6 @@ class Bot(discord.Client):
     def on_message(self, message: discord.Message):
         """ What to do on any message received.
 
-        This coroutine has several built-in commands hardcoded. These are
-        currently undocumented, and categorized into:
-
-        Universal commands:
-           * !help [command]
-           * !setowner          Private message only
-
-        Owner only commands:
-           * !stop
-           * !game <name ...>
-           * !do <python code>
-           * !eval <python code>
-           * !plugin [reload | load | unload] [plugin]
-           * !lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]
-
         The bot then proceeds to run any plugin's on_command() and on_message() function.
         """
         if message.author == self.user:
@@ -257,60 +240,6 @@ class Bot(discord.Client):
         except ValueError:
             args = message.content.split()
 
-        if self.is_owner(message.author):
-            if args[0] == "!lambda":
-                m = ""
-
-                if len(args) > 2:
-                    name = args[2].lower()
-                    m = "Command `{}` ".format(name)
-
-                    if args[1] == "add" and len(args) > 3:
-                        # Get the clean representation of the command
-                        cmd = self.get_formatted_code(message.content[len(" ".join(args[:3])) + 1:])
-
-                        if name not in self.lambdas.data:
-                            self.lambdas.data[name] = cmd
-                            self.lambdas.save()
-                            m += "set."
-                        else:
-                            m += "already exists."
-                    elif args[1] == "remove":
-                        if name in self.lambdas.data:
-                            self.lambdas.data.pop(name)
-                            self.lambdas.save()
-                            m += "removed."
-                        else:
-                            m += "does not exist."
-                    elif args[1] == "disable":
-                        if name not in self.lambda_blacklist:
-                            self.lambda_blacklist.append(name)
-                            self.lambdas.save()
-                            m += "disabled."
-                        else:
-                            if name in self.lambdas.data:
-                                m += "is already disabled."
-                            else:
-                                m += "does not exist."
-                    elif args[1] == "enable":
-                        if name in self.lambda_blacklist:
-                            self.lambda_blacklist.remove(name)
-                            self.lambdas.save()
-                            m += "enabled."
-                        else:
-                            if name in self.lambdas.data:
-                                m += "is already enabled."
-                            else:
-                                m += "does not exist."
-                    elif args[1] == "source":
-                        if name in self.lambdas.data:
-                            m = "Source for {}: \n{}".format(name, self.lambdas.data[name])
-                        else:
-                            m += "does not exist."
-
-                if m:
-                    yield from self.send_message(message.channel, m)
-
         # Run plugins on_message
         for name, plugin in self.plugins.items():
             # Try running the command function in this plugin if a command matches
@@ -322,19 +251,6 @@ class Bot(discord.Client):
             # Always run the on_message function if it exists
             if getattr(plugin, "on_message", False):
                 self.loop.create_task(self.on_plugin_message(plugin.on_message, message, args))
-
-        if args[0] in self.lambdas.data and args[0] not in self.lambda_blacklist:
-            def say(msg, c=message.channel):
-                asyncio.async(self.send_message(c, msg))
-
-            def arg(i, default=0):
-                if len(args) > i:
-                    return args[i]
-                else:
-                    return default
-
-            exec(self.lambdas.data[args[0]], locals(), globals())
-            logging.info("@{0.author} -> {0.content}".format(message))
 
 bot = Bot()
 

@@ -1,25 +1,32 @@
 """ Script for built-in commands.
 
 This script works just like any of the plugins in plugins/
-
-commands = {
-
-}"""
+"""
 
 import re
 import random
 import logging
-import builtins
 
 import discord
 import asyncio
 
-from pcbot.utils import Annotate
+from pcbot import owner, Annotate, Config, command_func_name
 
 
 commands = {
-    "help": "!help [command]"
+    "help": "!help [command]",
+    "setowner": None,
+    "stop": "!stop",
+    "game": "!game <name ...>",
+    "do": "!do <python code>",
+    "eval": "!eval <python code>",
+    "plugin": "!plugin [reload | load | unload] [plugin]",
+    "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]"
 }
+
+
+lambdas = Config("lambdas", data={})
+lambda_blacklist = []
 
 
 def get_formatted_code(code):
@@ -37,63 +44,65 @@ def get_formatted_code(code):
     return "raise Exception(\"Could not format code.\")"
 
 
-def owner(f):
-    """ Decorator that runs the command only if the author is an owner. """
-    def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
-        if client.is_owner(message.author):
-            f(client, message, *args, **kwargs)
+def get_command(plugin, command: str):
+    """ Find and return a command from a plugin. """
+    # Return None if the bot doesn't have any commands
+    if not plugin.commands:
+        return None
 
-    setattr(decorator, "checks_owner", True)
-    return decorator
+    # Return None if the specified plugin doesn't have the specified command
+    if command not in plugin.commands:
+        return None
+
+    # Return None if the plugin has no command function of the specified command
+    if not getattr(plugin, command_func_name(command)):
+        return None
+
+    return getattr(plugin, command_func_name(command))
 
 
 # COMMANDS
 
 
 @asyncio.coroutine
-def help(client: discord.Client, message: discord.Message,
-         command: str.lower=None):
-    """  """
-    # Command specific help
-    if command:
-        usage, desc = "", ""
+def cmd_help_noargs(client: discord.Client, message: discord.Message):
+    m = "**Commands:**```"
+    for plugin in client.plugins.values():
+        if plugin.commands:
+            m += "\n" + "\n".join(s for cmd, s in plugin.commands
+                                  if getattr(get_command(plugin, cmd), "__owner__", False))
 
-        for pl in client.plugins.values():
-            # Return if the bot doesn't have any commands
-            if not pl.commands:
-                return
-
-            # Return if the specified plugin doesn't have the specified command
-            if command not in pl.commands:
-                return
-
-            if not getattr(pl, command):
-                return
-
-            usage = pl.commands["usage"]
-            desc = getattr(pl, command).__doc__.strip()
-
-        if usage:
-            m = "**Usage**: ```{}```\n" \
-                "**Description**: {}".format(usage, desc)
-        else:
-            m = "Command `{}` does not exist.".format(command)
-
-        yield from client.send_message(message.channel, m)
-
-    # List all commands
-    else:
-        m = "**Commands:**```"
-        for pl in client.plugins.values():
-            if pl.commands:
-                m += "\n" + "\n".join(pl.commands.keys())
-
-        m += "```\nUse `!help <command>` for command specific help."
-        yield from client.send_message(message.channel, m)
+    m += "```\nUse `!help <command>` for command specific help."
+    yield from client.send_message(message.channel, m)
 
 
 @asyncio.coroutine
-def setowner(client: discord.Client, message: discord.Message):
+def cmd_help(client: discord.Client, message: discord.Message,
+             command: str.lower) -> cmd_help_noargs:
+    """  """
+    usage, desc = "", ""
+
+    for plugin in client.plugins.values():
+        command = get_command(plugin, command)
+
+        usage = plugin.commands["usage"]
+        desc = getattr(plugin, command).__doc__.strip()
+
+        # Notify the user when a command is owner specific
+        if getattr(command, "__owner__", False):
+            desc += "\n**Only the bot owner can execute this command.**"
+
+    if usage:
+        m = "**Usage**: ```{}```\n" \
+            "**Description**: {}".format(usage, desc)
+    else:
+        m = "Command `{}` does not exist.".format(command)
+
+    yield from client.send_message(message.channel, m)
+
+
+@asyncio.coroutine
+def cmd_setowner(client: discord.Client, message: discord.Message):
     """  """
     if not message.channel.is_private:
         return
@@ -119,7 +128,7 @@ def setowner(client: discord.Client, message: discord.Message):
 
 @asyncio.coroutine
 @owner
-def stop(client: discord.Client, message: discord.Message):
+def cmd_stop(client: discord.Client, message: discord.Message):
     """  """
     yield from client.send_message(message.channel, ":boom: :gun:")
     yield from client.save_plugins()
@@ -128,8 +137,8 @@ def stop(client: discord.Client, message: discord.Message):
 
 @asyncio.coroutine
 @owner
-def game(client: discord.Client, message: discord.Message,
-         *name: str):
+def cmd_game(client: discord.Client, message: discord.Message,
+             name: Annotate.Content):
     """  """
     if name:
         m = "Set the game to {}.".format(name)
@@ -143,8 +152,8 @@ def game(client: discord.Client, message: discord.Message,
 
 @asyncio.coroutine
 @owner
-def do(client: discord.Client, message: discord.Message,
-       code: Annotate.Content):
+def cmd_do(client: discord.Client, message: discord.Message,
+           code: Annotate.Content):
     """  """
     def say(msg, c=message.channel):
         asyncio.async(client.send_message(c, msg))
@@ -159,13 +168,13 @@ def do(client: discord.Client, message: discord.Message,
 
 @asyncio.coroutine
 @owner
-def eval(client: discord.Client, message: discord.Message,
-         code: Annotate.Content):
+def cmd_eval(client: discord.Client, message: discord.Message,
+             code: Annotate.Content):
     """  """
     script = get_formatted_code(code)
 
     try:
-        result = builtins.eval(script, globals(), locals())
+        result = eval(script, globals(), locals())
     except Exception as e:
         result = str(e)
 
@@ -173,9 +182,15 @@ def eval(client: discord.Client, message: discord.Message,
 
 
 @asyncio.coroutine
+def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
+    yield from client.send_message(message.channel,
+                                   "**Plugins:** ```\n" "{}```".format(",\n".join(client.plugins.keys())))
+
+
+@asyncio.coroutine
 @owner
-def plugin(client: discord.Client, message: discord.Message,
-           option: str, plugin_name: str.lower=""):
+def cmd_plugin(client: discord.Client, message: discord.Message,
+               option: str, plugin_name: str.lower="") -> cmd_plugin_noargs:
     """  """
     if option == "reload":
         if plugin_name:
@@ -189,8 +204,8 @@ def plugin(client: discord.Client, message: discord.Message,
         else:
             yield from client.save_plugins()
 
-            for pl in client.plugins.keys():
-                client.reload_plugin(pl)
+            for plugin in client.plugins.keys():
+                client.reload_plugin(plugin)
 
             m = "All plugins reloaded."
 
@@ -226,7 +241,81 @@ def plugin(client: discord.Client, message: discord.Message,
 
 
 @asyncio.coroutine
-def plugin__noargs(client: discord.Client, message: discord.Message):
+def cmd_lambda_noargs(client: discord.Client, message: discord.Message):
+    yield from cmd_help_noargs(client, message)
+
+
+@asyncio.coroutine
+@owner
+def cmd_lambda(client: discord.Client, message: discord.Message,
+               option: str.lower, trigger: str.lower, code: Annotate.Content="") -> cmd_lambda_noargs:
     """  """
-    yield from client.send_message(message.channel,
-                                   "**Plugins:** ```\n" "{}```".format(",\n".join(client.plugins.keys())))
+    m = "Command `{}` ".format(trigger)
+
+    if option == "add":
+        if code:
+            script = get_formatted_code(code)
+
+            if trigger not in lambdas.data:
+                lambdas.data[trigger] = script
+                lambdas.save()
+                m += "set."
+            else:
+                m += "already exists."
+        else:
+            m = ""
+    elif option == "remove":
+        if trigger in lambdas.data:
+            lambdas.data.pop(trigger)
+            lambdas.save()
+            m += "removed."
+        else:
+            m += "does not exist."
+    elif option == "enable":
+        if trigger in lambda_blacklist:
+            lambda_blacklist.remove(trigger)
+            lambdas.save()
+            m += "enabled."
+        else:
+            if trigger in lambdas.data:
+                m += "is already enabled."
+            else:
+                m += "does not exist."
+    elif option == "disable":
+        if trigger not in lambda_blacklist:
+            lambda_blacklist.append(trigger)
+            lambdas.save()
+            m += "disabled."
+        else:
+            if trigger in lambdas.data:
+                m += "is already disabled."
+            else:
+                m += "does not exist."
+    elif option == "source":
+        if trigger in lambdas.data:
+            m = "Source for {}: \n{}".format(trigger, lambdas.data[trigger])
+        else:
+            m += "does not exist."
+    else:
+        m += ""
+
+    yield from client.send_message(message.channel, m)
+
+
+# EVENTS
+
+
+@asyncio.coroutine
+def on_message(client: discord.Client, message: discord.Message, args: list):
+    if args[0] in lambdas.data and args[0] not in lambda_blacklist:
+        def say(msg, c=message.channel):
+            asyncio.async(client.send_message(c, msg))
+
+        def arg(i, default=0):
+            if len(args) > i:
+                return args[i]
+            else:
+                return default
+
+        exec(lambdas.data[args[0]], locals(), globals())
+        logging.info("@{0.author} -> {0.content}".format(message))
