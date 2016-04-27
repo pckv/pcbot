@@ -2,7 +2,7 @@ import logging
 import re
 import importlib
 import inspect
-from os import listdir, path, remove
+from os import listdir, mkdir, path, remove
 from getpass import getpass
 from argparse import ArgumentParser
 from shlex import split as splitargs
@@ -74,6 +74,9 @@ class Bot(discord.Client):
 
     def load_plugins(self):
         """ Perform load_plugin(plugin_name) on all plugins in plugins/ """
+        if not path.exists("plugins/"):
+            mkdir("plugins/")
+
         for plugin in listdir("plugins/"):
             plugin_name = path.splitext(plugin)[0]
             self.load_plugin(plugin_name)
@@ -91,7 +94,7 @@ class Bot(discord.Client):
     @asyncio.coroutine
     def save_plugin(self, plugin):
         """ Save a plugins files if it has a save function. """
-        if plugin in self.plugins:
+        if plugin in self.plugins.values():
             if getattr(plugin, "save"):
                 yield from self.plugins[plugin].save(self)
 
@@ -217,49 +220,81 @@ class Bot(discord.Client):
         if param.annotation:  # Any annotation is a function or Annotation enum
             anno = param.annotation
 
-            if type(anno) is utils.Annotate:  # Annotation is a valid enum
-                if anno is utils.Annotate.Content:
-                    return message.content.split(maxsplit=index)[-1]
+            # Valid enum checks
+            if anno is utils.Annotate.Content:
+                return message.content.split(maxsplit=index)[-1]
             
             try:  # Try running as a method
                 return anno(arg)
             except TypeError:
-                TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a function")
+                raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a function")
         
         return arg  # Return if there was no annotation
 
-    def parse_command_args(self, command, cmd_args, message):
+    def _parse_command_args(self, command, cmd_args, message):
         """ Parse commands from chat and return args and kwargs to pass into the
         command's function. """
         signature = inspect.signature(command)
         args, kwargs = [], {}
         i = -1
 
-        for arg, param in signature.parameters:
+        for arg, param in signature.parameters.items():
             i += 1
-            
+
             if i == 0:  # Param should have a Client annotation
-                if type(param.annotation) is not discord.Client:
+                if param.annotation is not discord.Client:
                     raise Exception("First command parameter must be of type discord.Client")
+
+                continue
             elif i == 1:  # Param should have a Client annotation
-                if type(param.annotation) is not discord.Client:
-                    raise Exception("First command parameter must be of type discord.Client")
+                if param.annotation is not discord.Message:
+                    raise Exception("Second command parameter must be of type discord.Message")
+
+                continue
             
             # Any argument to fetch
             if i <= len(cmd_args):  # If there is an argument passed
                 cmd_arg = cmd_args[i - 1]
             else:
-                if param.default:
+                if param.default is not inspect._empty:
                     args.append(param.default)
                     continue  # Move onwards once we find a default
                 else:
                     break  # We're done when there is no default argument and none passed
 
             if param.kind is param.POSITIONAL_OR_KEYWORD:
-                args.append(self._parse_annotation(param, cmd_arg, i - 1, message))
+                tmp_arg = self._parse_annotation(param, cmd_arg, i - 1, message)
+
+                if tmp_arg:
+                    args.append(tmp_arg)
             # TODO: add positional arguments and keyword arguments
-        
-        return args, kwargs
+
+        complete = len(args) == len(signature.parameters.items()) - 2
+
+        return args, kwargs, complete
+
+    @asyncio.coroutine
+    def _parse_command(self, plugin, cmd, cmd_args, message):
+        """ Try finding a command """
+        command = utils.get_command(plugin, cmd)
+        args, kwargs = [], {}
+
+        while True:
+            if command:
+                args, kwargs, complete = self._parse_command_args(command, cmd_args, message)
+
+                if not complete:
+                    if "return" in command.__annotations__:
+                        command = command.__annotations__["return"]
+                        continue
+                    else:
+                        self.log_message(message)  # Log the command
+                        yield from self.plugins["builtin"].cmd_help(self, message, cmd)
+                        command = None
+
+            break
+
+        return command, args, kwargs
 
     @asyncio.coroutine
     def on_ready(self):
@@ -292,34 +327,28 @@ class Bot(discord.Client):
 
         # Split content into arguments by space (surround with quotes for spaces)
         try:
-            args = splitargs(message.content)
+            cmd_args = splitargs(message.content)
         except ValueError:
-            args = message.content.split()
+            cmd_args = message.content.split()
 
         # Get command name
         cmd = ""
 
-        if args[0].startswith(self.command_prefix) and len(args[0]) > 1:
-            cmd = args[0][1:]
+        if cmd_args[0].startswith(self.command_prefix) and len(cmd_args[0]) > 1:
+            cmd = cmd_args[0][1:]
 
         # Handle commands
         for plugin in self.plugins.values():
-            command = utils.get_command(plugin, cmd)
+            if cmd:
+                command, args, kwargs = yield from self._parse_command(plugin, cmd, cmd_args, message)
 
-            # Handle and run the command function
-            if command:
-                ins = inspect.getfullargspec(command)
-
-                # Parse arguments
-                args, kwargs = self.parse_command_args(command, args, message)
-
-                # Run command
-                self.loop.create_task(command(self, message, *args, **kwargs))
-
+                if command:
+                    self.log_message(message)  # Log the command
+                    self.loop.create_task(command(self, message, *args, **kwargs))  # Run command
 
             # Always run the on_message function if it exists
             if getattr(plugin, "on_message", False):
-                self.loop.create_task(self.on_plugin_message(plugin.on_message, message, args))
+                self.loop.create_task(self.on_plugin_message(plugin.on_message, message, cmd_args))
 
 bot = Bot()
 

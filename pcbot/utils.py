@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import wraps
 
 import discord
 import asyncio
@@ -11,20 +12,17 @@ def format_command_func(command: str):
 
 
 def get_command(plugin, command: str):
-    """ Find and return a command from a plugin. """
-    # Return None if the bot doesn't have any commands
-    if not plugin.commands:
+    """ Find and return a command function from a plugin. """
+    if not plugin.commands:  # Return None if the bot doesn't have any commands
         return None
 
-    # Return None if the specified plugin doesn't have the specified command
-    if command not in plugin.commands:
+    if command not in plugin.commands:  # Return None if the specified plugin doesn't have the specified command
         return None
 
-    # Return None if the plugin has no command function of the specified command
-    if not getattr(plugin, format_command_func(command)):
-        return None
+    command = format_command_func(command)
 
-    return getattr(plugin, format_command_func(command))
+    # Return the found command or None if plugin doesn't have the function
+    return getattr(plugin, command, None)
 
 
 class Annotate(Enum):
@@ -34,9 +32,11 @@ class Annotate(Enum):
 
 def owner(f):
     """ Decorator that runs the command only if the author is an owner. """
+    @wraps(f)
+    @asyncio.coroutine
     def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
         if client.is_owner(message.author):
-            f(client, message, *args, **kwargs)
+            yield from f(client, message, *args, **kwargs)
 
     setattr(decorator, "__owner__", True)
     return decorator

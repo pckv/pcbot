@@ -16,7 +16,7 @@ import aiohttp
 
 from pcbot import Config
 from pcbot import download_file
-from plugins.osu.mods import Mods
+from .mods import Mods
 
 commands = {
     "osu": {

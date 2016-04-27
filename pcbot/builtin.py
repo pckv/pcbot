@@ -18,8 +18,8 @@ commands = {
     "setowner": None,
     "stop": "!stop",
     "game": "!game <name ...>",
-    "do": "!do <python code>",
-    "eval": "!eval <python code>",
+    "do": "!do <python code ...>",
+    "eval": "!eval <expression ...>",
     "plugin": "!plugin [reload | load | unload] [plugin]",
     "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]"
 }
@@ -50,10 +50,12 @@ def get_formatted_code(code):
 @asyncio.coroutine
 def cmd_help_noargs(client: discord.Client, message: discord.Message):
     m = "**Commands:**```"
+
     for plugin in client.plugins.values():
         if plugin.commands:
-            m += "\n" + "\n".join(s for cmd, s in plugin.commands
-                                  if getattr(get_command(plugin, cmd), "__owner__", False))
+            m += "\n" + "\n".join(usage for cmd, usage in plugin.commands.items() if usage and
+                                  (not getattr(get_command(plugin, cmd), "__owner__", False) or
+                                  client.is_owner(message.author)))
 
     m += "```\nUse `!help <command>` for command specific help."
     yield from client.send_message(message.channel, m)
@@ -62,22 +64,27 @@ def cmd_help_noargs(client: discord.Client, message: discord.Message):
 @asyncio.coroutine
 def cmd_help(client: discord.Client, message: discord.Message,
              command: str.lower) -> cmd_help_noargs:
-    """  """
+    """ Display commands or their usage and description. """
     usage, desc = "", ""
 
     for plugin in client.plugins.values():
-        command = get_command(plugin, command)
+        command_func = get_command(plugin, command)
 
-        usage = plugin.commands["usage"]
-        desc = getattr(plugin, command).__doc__.strip()
+        if not command_func:
+            continue
+
+        usage = plugin.commands[command]
+        if command_func.__doc__:
+            desc = command_func.__doc__.strip()
+        else:
+            desc = "Undocumented."
 
         # Notify the user when a command is owner specific
-        if getattr(command, "__owner__", False):
+        if getattr(command_func, "__owner__", False):
             desc += "\n**Only the bot owner can execute this command.**"
 
     if usage:
-        m = "**Usage**: ```{}```\n" \
-            "**Description**: {}".format(usage, desc)
+        m = "**Usage**: ```{}``` **Description**: {}".format(usage, desc)
     else:
         m = "Command `{}` does not exist.".format(command)
 
@@ -128,7 +135,6 @@ def cmd_game(client: discord.Client, message: discord.Message,
     else:
         m = "No longer playing."
 
-    name = " ".join(name)
     yield from client.change_status(discord.Game(name=name))
     yield from client.send_message(message.channel, m)
 
@@ -153,7 +159,7 @@ def cmd_do(client: discord.Client, message: discord.Message,
 @owner
 def cmd_eval(client: discord.Client, message: discord.Message,
              code: Annotate.Content):
-    """  """
+    """ Evaluate an expression. """
     script = get_formatted_code(code)
 
     try:
@@ -174,7 +180,7 @@ def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
 @owner
 def cmd_plugin(client: discord.Client, message: discord.Message,
                option: str, plugin_name: str.lower="") -> cmd_plugin_noargs:
-    """  """
+    """ Manage plugins. """
     if option == "reload":
         if plugin_name:
             if plugin_name in client.plugins:
@@ -280,7 +286,7 @@ def cmd_lambda(client: discord.Client, message: discord.Message,
         else:
             m += "does not exist."
     else:
-        m += ""
+        m = ""
 
     yield from client.send_message(message.channel, m)
 
