@@ -1,6 +1,7 @@
 import logging
 import re
 import importlib
+import inspect
 from os import listdir, path, remove
 from getpass import getpass
 from argparse import ArgumentParser
@@ -10,6 +11,7 @@ import discord
 import asyncio
 
 from pcbot.config import Config
+from pcbot import utils
 
 
 # Add all command-line arguments
@@ -28,6 +30,8 @@ logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)
 
 
 class Bot(discord.Client):
+    command_prefix = "!"
+
     """ The bot, really. """
     def __init__(self):
         super().__init__()
@@ -35,16 +39,17 @@ class Bot(discord.Client):
         self.owner = Config("owner")
         self.autosave_interval = 60 * 30
 
-        self.load_plugins()
+        self.load_plugin("builtin", "pcbot")  # Load plugin for builtin commands
+        self.load_plugins()  # Load all plugins in plugins/
 
-    def load_plugin(self, plugin_name: str):
+    def load_plugin(self, plugin_name: str, module: str = "plugins"):
         """ Load a plugin with the name plugin_name. This plugin has to be
         situated under plugins/
 
         Any loaded plugin is imported and stored in the self.plugins dictionary. """
         if not plugin_name.startswith("__") or not plugin_name.endswith("__"):
             try:
-                plugin = importlib.import_module("plugins.{}".format(plugin_name))
+                plugin = importlib.import_module("{module}.{plugin}".format(plugin=plugin_name, module=module))
             except ImportError as e:
                 logging.warn("COULD NOT LOAD PLUGIN " + plugin_name + "\nReason: " + str(e))
                 return False
@@ -204,6 +209,58 @@ class Bot(discord.Client):
         if success:
             self.log_message(message, prefix="... ")
 
+    @staticmethod
+    def _parse_annotation(param, arg, index, message):
+        """ Parse annotations and return the command to use.
+
+        index is basically the arg's index in shelx.split(message.content) """
+        if param.annotation:  # Any annotation is a function or Annotation enum
+            anno = param.annotation
+
+            if type(anno) is utils.Annotate:  # Annotation is a valid enum
+                if anno is utils.Annotate.Content:
+                    return message.content.split(maxsplit=index)[-1]
+            
+            try:  # Try running as a method
+                return anno(arg)
+            except TypeError:
+                TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a function")
+        
+        return arg  # Return if there was no annotation
+
+    def parse_command_args(self, command, cmd_args, message):
+        """ Parse commands from chat and return args and kwargs to pass into the
+        command's function. """
+        signature = inspect.signature(command)
+        args, kwargs = [], {}
+        i = -1
+
+        for arg, param in signature.parameters:
+            i += 1
+            
+            if i == 0:  # Param should have a Client annotation
+                if type(param.annotation) is not discord.Client:
+                    raise Exception("First command parameter must be of type discord.Client")
+            elif i == 1:  # Param should have a Client annotation
+                if type(param.annotation) is not discord.Client:
+                    raise Exception("First command parameter must be of type discord.Client")
+            
+            # Any argument to fetch
+            if i <= len(cmd_args):  # If there is an argument passed
+                cmd_arg = cmd_args[i - 1]
+            else:
+                if param.default:
+                    args.append(param.default)
+                    continue  # Move onwards once we find a default
+                else:
+                    break  # We're done when there is no default argument and none passed
+
+            if param.kind is param.POSITIONAL_OR_KEYWORD:
+                args.append(self._parse_annotation(param, cmd_arg, i - 1, message))
+            # TODO: add positional arguments and keyword arguments
+        
+        return args, kwargs
+
     @asyncio.coroutine
     def on_ready(self):
         """ Create any tasks for plugins' on_ready() coroutine and create task
@@ -226,8 +283,7 @@ class Bot(discord.Client):
     def on_message(self, message: discord.Message):
         """ What to do on any message received.
 
-        The bot then proceeds to run any plugin's on_command() and on_message() function.
-        """
+        The bot will handle all commands in plugins and send on_message to plugins using it. """
         if message.author == self.user:
             return
 
@@ -240,13 +296,26 @@ class Bot(discord.Client):
         except ValueError:
             args = message.content.split()
 
-        # Run plugins on_message
-        for name, plugin in self.plugins.items():
-            # Try running the command function in this plugin if a command matches
-            if args[0][1:] in plugin.commands:
-                if getattr(plugin, "on_command", False):
-                    self.log_message(message)
-                    yield from plugin.on_command(self, message, args)
+        # Get command name
+        cmd = ""
+
+        if args[0].startswith(self.command_prefix) and len(args[0]) > 1:
+            cmd = args[0][1:]
+
+        # Handle commands
+        for plugin in self.plugins.values():
+            command = utils.get_command(plugin, cmd)
+
+            # Handle and run the command function
+            if command:
+                ins = inspect.getfullargspec(command)
+
+                # Parse arguments
+                args, kwargs = self.parse_command_args(command, args, message)
+
+                # Run command
+                self.loop.create_task(command(self, message, *args, **kwargs))
+
 
             # Always run the on_message function if it exists
             if getattr(plugin, "on_message", False):

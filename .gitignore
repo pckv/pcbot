@@ -1,7 +1,7 @@
 *.log
 .idea
 config/*
-plugins/prank/pranked.png
+_plugins/prank/pranked.png
 *.bat
 *.sh
 __pycache__

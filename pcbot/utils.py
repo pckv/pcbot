@@ -5,9 +5,26 @@ import asyncio
 import aiohttp
 
 
-def command_func_name(command: str):
+def format_command_func(command: str):
     """ Return a formatted string representing the command function name. """
     return "cmd_" + command
+
+
+def get_command(plugin, command: str):
+    """ Find and return a command from a plugin. """
+    # Return None if the bot doesn't have any commands
+    if not plugin.commands:
+        return None
+
+    # Return None if the specified plugin doesn't have the specified command
+    if command not in plugin.commands:
+        return None
+
+    # Return None if the plugin has no command function of the specified command
+    if not getattr(plugin, format_command_func(command)):
+        return None
+
+    return getattr(plugin, format_command_func(command))
 
 
 class Annotate(Enum):

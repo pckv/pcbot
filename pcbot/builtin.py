@@ -10,7 +10,7 @@ import logging
 import discord
 import asyncio
 
-from pcbot import owner, Annotate, Config, command_func_name
+from pcbot import owner, Annotate, Config, get_command
 
 
 commands = {
@@ -42,23 +42,6 @@ def get_formatted_code(code):
             return code
 
     return "raise Exception(\"Could not format code.\")"
-
-
-def get_command(plugin, command: str):
-    """ Find and return a command from a plugin. """
-    # Return None if the bot doesn't have any commands
-    if not plugin.commands:
-        return None
-
-    # Return None if the specified plugin doesn't have the specified command
-    if command not in plugin.commands:
-        return None
-
-    # Return None if the plugin has no command function of the specified command
-    if not getattr(plugin, command_func_name(command)):
-        return None
-
-    return getattr(plugin, command_func_name(command))
 
 
 # COMMANDS
