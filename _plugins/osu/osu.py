@@ -54,8 +54,6 @@ def calculate_acc(c50, c100, c300, miss):
 
 def format_new_score(member: discord.Member, score: dict, beatmap: dict):
     """ Format any osu!Standard score set by the member. """
-    sign = "+" if score["perfect"] == "1" else "-"
-
     return (
         "{member.mention} set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
         "**{pp}pp, {rank} +{mods}**"
@@ -66,7 +64,7 @@ def format_new_score(member: discord.Member, score: dict, beatmap: dict):
         "**Beatmap**: https://osu.ppy.sh/b/{beatmap_id}."
     ).format(
         member=member,
-        sign=sign,
+        sign="+" if score["perfect"] == "1" else "-",
         mods=Mods.format_mods(int(score["enabled_mods"])),
         acc=calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"]),
         artist=beatmap["artist"],
