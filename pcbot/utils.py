@@ -27,7 +27,8 @@ def get_command(plugin, command: str):
 
 class Annotate(Enum):
     """ Command annotation enum. """
-    Content = 1  # Return all the content after command and/or arguments
+    Content = 1  # Return all the content after command and/or arguments with Message.content
+    CleanContent = 2  # Same as above but uses Message.clean_content
 
 
 def owner(f):

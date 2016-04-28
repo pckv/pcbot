@@ -21,7 +21,8 @@ commands = {
     "do": "!do <python code ...>",
     "eval": "!eval <expression ...>",
     "plugin": "!plugin [reload | load | unload] [plugin]",
-    "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]"
+    "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]",
+    "ping": "!ping [message]"
 }
 
 
@@ -179,7 +180,7 @@ def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
 @asyncio.coroutine
 @owner
 def cmd_plugin(client: discord.Client, message: discord.Message,
-               option: str, plugin_name: str.lower="") -> cmd_plugin_noargs:
+               option: str.lower, plugin_name: str.lower="") -> cmd_plugin_noargs:
     """ Manage plugins. """
     if option == "reload":
         if plugin_name:
@@ -290,6 +291,13 @@ def cmd_lambda(client: discord.Client, message: discord.Message,
         m = ""
 
     yield from client.send_message(message.channel, m)
+
+
+@asyncio.coroutine
+def cmd_ping(client: discord.Client, message: discord.Message,
+             *, msg: Annotate.CleanContent="Ping!"):
+    """ Pings along with a message. """
+    yield from client.send_message(message.channel, msg)
 
 
 # EVENTS

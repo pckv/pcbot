@@ -51,7 +51,7 @@ class Bot(discord.Client):
             try:
                 plugin = importlib.import_module("{module}.{plugin}".format(plugin=plugin_name, module=module))
             except ImportError as e:
-                logging.warn("COULD NOT LOAD PLUGIN " + plugin_name + "\nReason: " + str(e))
+                logging.warn("COULD NOT LOAD PLUGIN " + plugin_name + "\n" + utils.format_exception(e))
                 return False
 
             self.plugins[plugin_name] = plugin
@@ -92,16 +92,21 @@ class Bot(discord.Client):
         return False
 
     @asyncio.coroutine
-    def save_plugin(self, plugin):
-        """ Save a plugins files if it has a save function. """
-        if plugin in self.plugins.values():
-            if getattr(plugin, "save"):
-                yield from self.plugins[plugin].save(self)
+    def save_plugin(self, plugin_name):
+        """ Save a plugin's files if it has a save function. """
+        if plugin_name in self.plugins.keys():
+            plugin = self.plugins[plugin_name]
+            if getattr(plugin, "save", False):
+                try:
+                    yield from plugin.save(self)
+                except Exception as e:
+                    logging.error("An error occurred when saving plugin " + plugin_name + "\n" +
+                                  utils.format_exception(e))
 
     @asyncio.coroutine
     def save_plugins(self):
         """ Looks for any save function in a plugin and saves.
-        Set up for saving on !stop and periodic saving every 30 mins. """
+        Set up for saving on !stop and periodic saving every 30 minutes. """
         for name in self.plugins.keys():
             yield from self.save_plugin(name)
 
@@ -109,12 +114,9 @@ class Bot(discord.Client):
     def autosave(self):
         """ Sleep for set time (default 30 minutes) before saving. """
         while not self.is_closed:
-            try:
-                yield from asyncio.sleep(self.autosave_interval)
-                yield from self.save_plugins()
-                logging.debug("Plugins saved")
-            except Exception as e:
-                logging.info("Error: " + str(e))
+            yield from asyncio.sleep(self.autosave_interval)
+            yield from self.save_plugins()
+            logging.debug("Plugins saved")
 
     @staticmethod
     def log_message(message: discord.Message, prefix: str=""):
@@ -223,6 +225,8 @@ class Bot(discord.Client):
             # Valid enum checks
             if anno is utils.Annotate.Content:
                 return message.content.split(maxsplit=index)[-1]
+            elif anno is utils.Annotate.CleanContent:
+                return message.clean_content.split(maxsplit=index)[-1]
             
             try:  # Try running as a method
                 return anno(arg)
@@ -251,25 +255,35 @@ class Bot(discord.Client):
                     raise Exception("Second command parameter must be of type discord.Message")
 
                 continue
-            
+
             # Any argument to fetch
             if i <= len(cmd_args):  # If there is an argument passed
                 cmd_arg = cmd_args[i - 1]
             else:
                 if param.default is not inspect._empty:
-                    args.append(param.default)
+                    if param.kind is param.POSITIONAL_OR_KEYWORD:
+                        args.append(param.default)
+                    elif param.kind is param.KEYWORD_ONLY:
+                        kwargs[arg] = param.default
+
                     continue  # Move onwards once we find a default
                 else:
                     break  # We're done when there is no default argument and none passed
 
-            if param.kind is param.POSITIONAL_OR_KEYWORD:
+            if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
                 tmp_arg = self._parse_annotation(param, cmd_arg, i - 1, message)
 
                 if tmp_arg:
                     args.append(tmp_arg)
-            # TODO: add positional arguments and keyword arguments
+            elif param.kind is param.KEYWORD_ONLY:  # Parse a regular arg as a kwarg
+                tmp_arg = self._parse_annotation(param, cmd_arg, i - 1, message)
 
-        complete = len(args) == len(signature.parameters.items()) - 2
+                if tmp_arg:
+                    kwargs[arg] = tmp_arg
+
+            # TODO: add positional arguments
+
+        complete = (len(args) + len(kwargs)) == len(signature.parameters.items()) - 2
 
         return args, kwargs, complete
 
@@ -307,10 +321,8 @@ class Bot(discord.Client):
 
         # Call any on_ready function in plugins
         for name, plugin in self.plugins.items():
-            try:
+            if getattr(plugin, "on_ready", False):
                 self.loop.create_task(plugin.on_ready(self))
-            except AttributeError:
-                pass
 
         self.loop.create_task(self.autosave())
 
