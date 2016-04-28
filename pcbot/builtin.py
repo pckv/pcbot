@@ -21,8 +21,7 @@ commands = {
     "do": "!do <python code ...>",
     "eval": "!eval <expression ...>",
     "plugin": "!plugin [reload | load | unload] [plugin]",
-    "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]",
-    "ping": "!ping [message]"
+    "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]"
 }
 
 
@@ -117,8 +116,8 @@ def cmd_setowner(client: discord.Client, message: discord.Message):
         yield from client.send_message(message.channel, "You failed to send the desired code.")
 
 
-@asyncio.coroutine
 @owner
+@asyncio.coroutine
 def cmd_stop(client: discord.Client, message: discord.Message):
     """  """
     yield from client.send_message(message.channel, ":boom: :gun:")
@@ -126,8 +125,8 @@ def cmd_stop(client: discord.Client, message: discord.Message):
     yield from client.logout()
 
 
-@asyncio.coroutine
 @owner
+@asyncio.coroutine
 def cmd_game(client: discord.Client, message: discord.Message,
              name: Annotate.Content):
     """  """
@@ -140,8 +139,8 @@ def cmd_game(client: discord.Client, message: discord.Message,
     yield from client.send_message(message.channel, m)
 
 
-@asyncio.coroutine
 @owner
+@asyncio.coroutine
 def cmd_do(client: discord.Client, message: discord.Message,
            code: Annotate.Content):
     """  """
@@ -156,8 +155,8 @@ def cmd_do(client: discord.Client, message: discord.Message,
         say("```" + format_exception(e) + "```")
 
 
-@asyncio.coroutine
 @owner
+@asyncio.coroutine
 def cmd_eval(client: discord.Client, message: discord.Message,
              code: Annotate.Content):
     """ Evaluate an expression. """
@@ -177,8 +176,8 @@ def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
                                    "**Plugins:** ```\n" "{}```".format(",\n".join(client.plugins.keys())))
 
 
-@asyncio.coroutine
 @owner
+@asyncio.coroutine
 def cmd_plugin(client: discord.Client, message: discord.Message,
                option: str.lower, plugin_name: str.lower="") -> cmd_plugin_noargs:
     """ Manage plugins. """
@@ -236,8 +235,8 @@ def cmd_lambda_noargs(client: discord.Client, message: discord.Message):
                                    "**Lambdas:** ```\n" "{}```".format("\n".join(lambdas.data.keys())))
 
 
-@asyncio.coroutine
 @owner
+@asyncio.coroutine
 def cmd_lambda(client: discord.Client, message: discord.Message,
                option: str.lower, trigger: str.lower, code: Annotate.Content="") -> cmd_lambda_noargs:
     """  """
@@ -291,13 +290,6 @@ def cmd_lambda(client: discord.Client, message: discord.Message,
         m = ""
 
     yield from client.send_message(message.channel, m)
-
-
-@asyncio.coroutine
-def cmd_ping(client: discord.Client, message: discord.Message,
-             *, msg: Annotate.CleanContent="Ping!"):
-    """ Pings along with a message. """
-    yield from client.send_message(message.channel, msg)
 
 
 # EVENTS

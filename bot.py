@@ -224,9 +224,9 @@ class Bot(discord.Client):
 
             # Valid enum checks
             if anno is utils.Annotate.Content:
-                return message.content.split(maxsplit=index)[-1]
+                return utils.split(message.content, maxsplit=index)[-1]
             elif anno is utils.Annotate.CleanContent:
-                return message.clean_content.split(maxsplit=index)[-1]
+                return utils.split(message.clean_content, maxsplit=index)[-1]
             
             try:  # Try running as a method
                 return anno(arg)
@@ -240,27 +240,31 @@ class Bot(discord.Client):
         command's function. """
         signature = inspect.signature(command)
         args, kwargs = [], {}
-        i = -1
+        index = -1
+        num_kwargs = sum(1 for param in signature.parameters.values() if param.kind is param.KEYWORD_ONLY)
+        has_pos = False
+        num_pos_args = 0
 
+        # Parse all arguments
         for arg, param in signature.parameters.items():
-            i += 1
+            index += 1
 
-            if i == 0:  # Param should have a Client annotation
+            if index == 0:  # Param should have a Client annotation
                 if param.annotation is not discord.Client:
                     raise Exception("First command parameter must be of type discord.Client")
 
                 continue
-            elif i == 1:  # Param should have a Client annotation
+            elif index == 1:  # Param should have a Client annotation
                 if param.annotation is not discord.Message:
                     raise Exception("Second command parameter must be of type discord.Message")
 
                 continue
 
             # Any argument to fetch
-            if i <= len(cmd_args):  # If there is an argument passed
-                cmd_arg = cmd_args[i - 1]
+            if index <= len(cmd_args):  # If there is an argument passed
+                cmd_arg = cmd_args[index - 1]
             else:
-                if param.default is not inspect._empty:
+                if param.default is not param.empty:
                     if param.kind is param.POSITIONAL_OR_KEYWORD:
                         args.append(param.default)
                     elif param.kind is param.KEYWORD_ONLY:
@@ -268,23 +272,39 @@ class Bot(discord.Client):
 
                     continue  # Move onwards once we find a default
                 else:
+                    index -= 1  # Decrement index since there was no argument
                     break  # We're done when there is no default argument and none passed
 
             if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
-                tmp_arg = self._parse_annotation(param, cmd_arg, i - 1, message)
+                tmp_arg = self._parse_annotation(param, cmd_arg, index - 1, message)
 
                 if tmp_arg:
                     args.append(tmp_arg)
             elif param.kind is param.KEYWORD_ONLY:  # Parse a regular arg as a kwarg
-                tmp_arg = self._parse_annotation(param, cmd_arg, i - 1, message)
+                tmp_arg = self._parse_annotation(param, cmd_arg, index - 1, message)
 
                 if tmp_arg:
                     kwargs[arg] = tmp_arg
+            elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
+                has_pos = True
 
-            # TODO: add positional arguments
+                for cmd_arg in cmd_args[index - 1:-num_kwargs]:
+                    tmp_arg = self._parse_annotation(param, cmd_arg, index, message)
 
-        complete = (len(args) + len(kwargs)) == len(signature.parameters.items()) - 2
+                    if tmp_arg:
+                        args.append(tmp_arg)
+                        num_pos_args += 1
 
+                index += (num_pos_args - 1) if num_pos_args else 0  # Update the new index
+
+        # Number of required arguments are: signature variables - client and message
+        # If there are no positional arguments, subtract one from the required arguments
+        num_args = len(signature.parameters.items()) - 2
+        if has_pos:
+            num_args -= int(not bool(num_pos_args))
+
+        num_given = index - 1  # Arguments parsed
+        complete = num_given == num_args
         return args, kwargs, complete
 
     @asyncio.coroutine
@@ -338,10 +358,7 @@ class Bot(discord.Client):
             return
 
         # Split content into arguments by space (surround with quotes for spaces)
-        try:
-            cmd_args = splitargs(message.content)
-        except ValueError:
-            cmd_args = message.content.split()
+        cmd_args = utils.split(message.content)
 
         # Get command name
         cmd = ""

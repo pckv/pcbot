@@ -1,9 +1,16 @@
 from enum import Enum
 from functools import wraps
+import shlex
 
 import discord
 import asyncio
 import aiohttp
+
+
+class Annotate(Enum):
+    """ Command annotation enum. """
+    Content = 1  # Return all the content after command and/or arguments with Message.content
+    CleanContent = 2  # Same as above but uses Message.clean_content
 
 
 def format_command_func(command: str):
@@ -23,12 +30,6 @@ def get_command(plugin, command: str):
 
     # Return the found command or None if plugin doesn't have the function
     return getattr(plugin, command, None)
-
-
-class Annotate(Enum):
-    """ Command annotation enum. """
-    Content = 1  # Return all the content after command and/or arguments with Message.content
-    CleanContent = 2  # Same as above but uses Message.clean_content
 
 
 def owner(f):
@@ -61,3 +62,26 @@ def download_file(url, **params):
 def format_exception(e):
     """ Returns a formatted string of Exception: str """
     return type(e).__name__ + ": " + str(e)
+
+
+def split(string, maxsplit=-1):
+    if maxsplit == -1:
+        try:
+            return shlex.split(string)
+        except ValueError:
+            return string.split()
+
+    split_object = shlex.shlex(string, posix=True)
+    split_object.whitespace_split = True
+    split_object.commenters = ""
+    maxsplit_object = []
+    splits = 0
+
+    while splits < maxsplit:
+        maxsplit_object.append(next(split_object))
+
+        splits += 1
+
+    maxsplit_object.append(split_object.instream.read())
+
+    return maxsplit_object
