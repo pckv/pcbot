@@ -54,12 +54,10 @@ def calculate_acc(c50, c100, c300, miss):
 
 def format_new_score(member: discord.Member, score: dict, beatmap: dict):
     """ Format any osu!Standard score set by the member. """
-    sign = "-"
-    if score["perfect"] == "1":
-        sign = "+"
+    sign = "+" if score["perfect"] == "1" else sign = "-"
 
-    acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"]) * 100
-    acc = "{:.2f}%".format(acc)
+    acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"])
+    acc = "{:.2%}".format(acc)
 
     return (
         "{member.mention} set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
