@@ -37,15 +37,19 @@ def command(usage=None):
     If no usage is specified, the builtin help command will not display help for this command. """
     def decorator(func):
         # Command function name needs to start with cmd_
-        assert func.__name__.startswith("cmd_"), "Command functions require the cmd_ prefix as the command name"
+        if not func.__name__.startswith("cmd_"):
+            raise Exception("Command functions require the cmd_ prefix as the command name")
 
         name = func.__name__[4:]
         plugin = inspect.getmodule(func)
         commands = getattr(plugin, "__commands", {})
 
         # Assert that __commands is usable and that this command doesn't already exist
-        assert type(commands) is dict, "__commands is reserved for the plugin's commands, and must be of type dict"
-        assert name in commands, "You can't assign two commands with the same name"
+        if type(commands) is not dict:
+            raise Exception("__commands is reserved for the plugin's commands, and must be of type dict")
+
+        if name in commands:
+            raise Exception("You can't assign two commands with the same name")
 
         # Update the __commands dictionary
         commands[name] = usage

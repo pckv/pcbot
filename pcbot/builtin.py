@@ -302,4 +302,6 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             if utils.is_owner(message.author):
                 say("```" + utils.format_exception(e) + "```")
 
-        logging.info("@{0.author} -> {0.content}".format(message))
+        return True
+
+    return False
