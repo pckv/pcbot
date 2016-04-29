@@ -12,6 +12,7 @@ import discord
 import asyncio
 
 from pcbot import utils, Config, Annotate
+import plugins
 
 
 commands = {
@@ -31,33 +32,15 @@ lambdas = Config("lambdas", data={})
 lambda_blacklist = []
 
 
-def get_formatted_code(code):
-    """ Format code from markdown format. This will filter out markdown code
-    and give the executable python code, or return a string that would raise
-    an error when it's executed by exec() or eval(). """
-    match = re.match(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", code, re.DOTALL)
-
-    if match:
-        code = match.group("code")
-
-        if not code == "`":
-            return code
-
-    return "raise Exception(\"Could not format code.\")"
-
-
-# COMMANDS
-
-
 @asyncio.coroutine
 def cmd_help_noargs(client: discord.Client, message: discord.Message):
     m = "**Commands:**```"
 
-    for plugin in client.plugins.values():
+    for plugin in plugins.all_values():
         if plugin.commands:
             m += "\n" + "\n".join(sorted(usage for cmd, usage in plugin.commands.items() if usage and
                                   (not getattr(utils.get_command(plugin, cmd), "__owner__", False) or
-                                  client.is_owner(message.author))))
+                                  utils.is_owner(message.author))))
 
     m += "```\nUse `!help <command>` for command specific help."
     yield from client.send_message(message.channel, m)
@@ -69,7 +52,7 @@ def cmd_help(client: discord.Client, message: discord.Message,
     """ Display commands or their usage and description. """
     usage, desc = "", ""
 
-    for plugin in client.plugins.values():
+    for plugin in plugins.all_values():
         command_func = utils.get_command(plugin, command)
 
         if not command_func:
@@ -99,7 +82,7 @@ def cmd_setowner(client: discord.Client, message: discord.Message):
     if not message.channel.is_private:
         return
 
-    if client.owner.data:
+    if utils.owner_cfg.data:
         yield from client.send_message(message.channel, "An owner is already set.")
         return
 
@@ -112,8 +95,8 @@ def cmd_setowner(client: discord.Client, message: discord.Message):
 
     if user_code:
         yield from client.send_message(message.channel, "You have been assigned bot owner.")
-        client.owner.data = message.author.id
-        client.owner.save()
+        utils.owner_cfg.data = message.author.id
+        utils.owner_cfg.save()
     else:
         yield from client.send_message(message.channel, "You failed to send the desired code.")
 
@@ -123,7 +106,7 @@ def cmd_setowner(client: discord.Client, message: discord.Message):
 def cmd_stop(client: discord.Client, message: discord.Message):
     """ Stops the bot. """
     yield from client.send_message(message.channel, ":boom: :gun:")
-    yield from client.save_plugins()
+    yield from plugins.save_plugins()
     yield from client.logout()
 
 
@@ -144,13 +127,11 @@ def cmd_game(client: discord.Client, message: discord.Message,
 @utils.owner
 @asyncio.coroutine
 def cmd_do(client: discord.Client, message: discord.Message,
-           code: Annotate.Content):
+           script: Annotate.Code):
     """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
     to send a message, optionally to a channel. Eg: `say("Hello!")`. """
     def say(msg, c=message.channel):
         asyncio.async(client.send_message(c, msg))
-
-    script = get_formatted_code(code)
 
     try:
         exec(script, locals(), globals())
@@ -161,10 +142,8 @@ def cmd_do(client: discord.Client, message: discord.Message,
 @utils.owner
 @asyncio.coroutine
 def cmd_eval(client: discord.Client, message: discord.Message,
-             code: Annotate.Content):
+             script: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one line that returns something. """
-    script = get_formatted_code(code)
-
     try:
         result = eval(script, globals(), locals())
     except Exception as e:
@@ -176,54 +155,54 @@ def cmd_eval(client: discord.Client, message: discord.Message,
 @asyncio.coroutine
 def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
     yield from client.send_message(message.channel,
-                                   "**Plugins:** ```\n" "{}```".format(",\n".join(client.plugins.keys())))
+                                   "**Plugins:** ```\n" "{}```".format(",\n".join(plugins.all_keys())))
 
 
 @utils.owner
 @asyncio.coroutine
 def cmd_plugin(client: discord.Client, message: discord.Message,
-               option: str.lower, plugin_name: str.lower="") -> cmd_plugin_noargs:
+               option: str.lower, name: str.lower= "") -> cmd_plugin_noargs:
     """ Manage plugins. """
     if option == "reload":
-        if plugin_name:
-            if plugin_name in client.plugins:
-                yield from client.save_plugin(plugin_name)
-                client.reload_plugin(plugin_name)
+        if name:
+            if plugins.get_plugin(name):
+                yield from plugins.save_plugin(name)
+                plugins.reload_plugin(name)
                 
-                m = "Reloaded plugin `{}`.".format(plugin_name)
+                m = "Reloaded plugin `{}`.".format(name)
             else:
-                m = "`{}` is not a plugin. See `!plugin`.".format(plugin_name)
+                m = "`{}` is not a plugin. See `!plugin`.".format(name)
         else:
-            yield from client.save_plugins()
+            yield from plugins.save_plugins()
 
-            for plugin in client.plugins.keys():
-                client.reload_plugin(plugin)
+            for plugin in plugins.all_keys():
+                plugins.reload_plugin(plugin)
 
             m = "All plugins reloaded."
 
     elif option == "load":
-        if plugin_name:
-            if plugin_name not in client.plugins:
-                loaded = client.load_plugin(plugin_name)
+        if name:
+            if not plugins.get_plugin(name):
+                loaded = plugins.load_plugin(name)
 
                 if loaded:
-                    m = "Plugin `{}` loaded.".format(plugin_name)
+                    m = "Plugin `{}` loaded.".format(name)
                 else:
-                    m = "Plugin `{}` could not be loaded.".format(plugin_name)
+                    m = "Plugin `{}` could not be loaded.".format(name)
             else:
-                m = "Plugin `{}` is already loaded.".format(plugin_name)
+                m = "Plugin `{}` is already loaded.".format(name)
         else:
             m = "You need to specify the name of the plugin to load."
 
     elif option == "unload":
-        if plugin_name:
-            if plugin_name in client.plugins:
-                yield from client.save_plugin(plugin_name)
-                client.unload_plugin(plugin_name)
+        if name:
+            if plugins.get_plugin(name):
+                yield from plugins.save_plugin(name)
+                plugins.unload_plugin(name)
 
-                m = "Plugin `{}` unloaded.".format(plugin_name)
+                m = "Plugin `{}` unloaded.".format(name)
             else:
-                m = "`{}` is not a plugin. See `!plugin`.".format(plugin_name)
+                m = "`{}` is not a plugin. See `!plugin`.".format(name)
         else:
             m = "You need to specify the name of the plugin to unload."
     else:
@@ -241,16 +220,14 @@ def cmd_lambda_noargs(client: discord.Client, message: discord.Message):
 @utils.owner
 @asyncio.coroutine
 def cmd_lambda(client: discord.Client, message: discord.Message,
-               option: str.lower, trigger: str.lower, code: Annotate.Content="") -> cmd_lambda_noargs:
+               option: str.lower, trigger: str.lower, script: Annotate.Code=None) -> cmd_lambda_noargs:
     """ Create commands. See `!help do` for information on how the code works.
     **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
     where the default argument is what to return when the argument does not exist."""
     m = "Command `{}` ".format(trigger)
 
     if option == "add":
-        if code:
-            script = get_formatted_code(code)
-
+        if script:
             if trigger not in lambdas.data:
                 lambdas.data[trigger] = script
                 lambdas.save()
@@ -294,7 +271,8 @@ def cmd_lambda(client: discord.Client, message: discord.Message,
     else:
         m = ""
 
-    yield from client.send_message(message.channel, m)
+    if m:
+        yield from client.send_message(message.channel, m)
 
 
 @asyncio.coroutine
@@ -329,7 +307,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         try:
             exec(lambdas.data[args[0]], locals(), globals())
         except Exception as e:
-            if client.is_owner(message.author):
+            if utils.is_owner(message.author):
                 say("```" + utils.format_exception(e) + "```")
 
         logging.info("@{0.author} -> {0.content}".format(message))

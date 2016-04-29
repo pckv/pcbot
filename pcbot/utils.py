@@ -2,11 +2,14 @@ from enum import Enum
 from functools import wraps
 import shlex
 import re
-import logging
 
 import discord
 import asyncio
 import aiohttp
+
+from pcbot import Config
+
+owner_cfg = Config("owner")
 
 
 class Annotate(Enum):
@@ -16,6 +19,7 @@ class Annotate(Enum):
     CleanContent = 2  # Same as above but uses Message.clean_content
     User = Member = 3  # Return a member (uses find_member with steps=3)
     Channel = 4  # Return a channel (uses find_channel with steps=3)
+    Code = 5  # Get formatted code (like Content but extracts any code)
 
 
 def format_command_func(command: str):
@@ -37,12 +41,23 @@ def get_command(plugin, command: str):
     return getattr(plugin, command, None)
 
 
+def is_owner(user):
+    """ Return true if user/member is the assigned bot owner. """
+    if type(user) is not str:
+        user = user.id
+
+    if user == owner_cfg.data:
+        return True
+
+    return False
+
+
 def owner(f):
     """ Decorator that runs the command only if the author is an owner. """
     @wraps(f)
     @asyncio.coroutine
     def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
-        if client.is_owner(message.author):
+        if is_owner(message.author):
             yield from f(client, message, *args, **kwargs)
 
     setattr(decorator, "__owner__", True)
@@ -151,7 +166,23 @@ def format_exception(e):
     return type(e).__name__ + ": " + str(e)
 
 
+def get_formatted_code(code):
+    """ Format code from markdown format. This will filter out markdown code
+    and give the executable python code, or return a string that would raise
+    an error when it's executed by exec() or eval(). """
+    match = re.match(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", code, re.DOTALL)
+
+    if match:
+        code = match.group("code")
+
+        if not code == "`":
+            return code
+
+    return "raise Exception(\"Could not format code.\")"
+
+
 def split(string, maxsplit=-1):
+    """ Split a string with shlex when possible, and add support for maxsplit. """
     if maxsplit == -1:
         try:
             return shlex.split(string)
@@ -172,9 +203,3 @@ def split(string, maxsplit=-1):
     maxsplit_object.append(split_object.instream.read())
 
     return maxsplit_object
-
-
-def log_message(message: discord.Message, prefix: str=""):
-    """ Logs a command/message. """
-    logging.info("{prefix}@{0.author} -> {0.content}".format(message, prefix=prefix))
-
