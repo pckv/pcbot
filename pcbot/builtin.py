@@ -24,7 +24,7 @@ def cmd_help_noargs(client: discord.Client, message: discord.Message):
 
     for plugin in plugins.all_values():
         if plugin.__commands:
-            m += "\n" + "\n".join(sorted(usage for cmd, usage in plugin.__commands.items() if usage and
+            m += "\n" + "\n".join(sorted(usage for cmd, usage in plugin.__commands.items() if usage is not None and
                                   (not getattr(utils.get_command(plugin, cmd), "__owner__", False) or
                                   utils.is_owner(message.author))))
 
@@ -32,7 +32,7 @@ def cmd_help_noargs(client: discord.Client, message: discord.Message):
     yield from client.send_message(message.channel, m)
 
 
-@plugins.command(usage="!help [command]")
+@plugins.command(usage="[command]")
 @asyncio.coroutine
 def cmd_help(client: discord.Client, message: discord.Message,
              command: str.lower) -> cmd_help_noargs:
@@ -64,7 +64,7 @@ def cmd_help(client: discord.Client, message: discord.Message,
     yield from client.send_message(message.channel, m)
 
 
-@plugins.command()
+@plugins.command(usage=None)
 @asyncio.coroutine
 def cmd_setowner(client: discord.Client, message: discord.Message):
     """ Set the bot owner. Only works in private messages. """
@@ -90,7 +90,7 @@ def cmd_setowner(client: discord.Client, message: discord.Message):
         yield from client.send_message(message.channel, "You failed to send the desired code.")
 
 
-@plugins.command(usage="!stop")
+@plugins.command()
 @utils.owner
 @asyncio.coroutine
 def cmd_stop(client: discord.Client, message: discord.Message):
@@ -100,7 +100,7 @@ def cmd_stop(client: discord.Client, message: discord.Message):
     yield from client.logout()
 
 
-@plugins.command(usage="!game [name ...]")
+@plugins.command(usage="[name ...]")
 @utils.owner
 @asyncio.coroutine
 def cmd_game(client: discord.Client, message: discord.Message,
@@ -115,7 +115,7 @@ def cmd_game(client: discord.Client, message: discord.Message,
     yield from client.send_message(message.channel, m)
 
 
-@plugins.command(usage="!do <python code ...>")
+@plugins.command(usage="<python code ...>")
 @utils.owner
 @asyncio.coroutine
 def cmd_do(client: discord.Client, message: discord.Message,
@@ -131,7 +131,7 @@ def cmd_do(client: discord.Client, message: discord.Message,
         say("```" + utils.format_exception(e) + "```")
 
 
-@plugins.command(usage="!eval <python code ...>")
+@plugins.command(usage="<python code ...>")
 @utils.owner
 @asyncio.coroutine
 def cmd_eval(client: discord.Client, message: discord.Message,
@@ -151,7 +151,7 @@ def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
                                    "**Plugins:** ```\n" "{}```".format(",\n".join(plugins.all_keys())))
 
 
-@plugins.command(usage="!plugin [reload | load | unload] [plugin]")
+@plugins.command(usage="[reload | load | unload] [plugin]")
 @utils.owner
 @asyncio.coroutine
 def cmd_plugin(client: discord.Client, message: discord.Message,
@@ -211,7 +211,7 @@ def cmd_lambda_noargs(client: discord.Client, message: discord.Message):
                                    "**Lambdas:** ```\n" "{}```".format("\n".join(lambdas.data.keys())))
 
 
-@plugins.command(usage="!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]")
+@plugins.command(usage="[add <trigger> <python code> | [remove | enable | disable | source] <trigger>]")
 @utils.owner
 @asyncio.coroutine
 def cmd_lambda(client: discord.Client, message: discord.Message,
@@ -270,7 +270,7 @@ def cmd_lambda(client: discord.Client, message: discord.Message,
         yield from client.send_message(message.channel, m)
 
 
-@plugins.command(usage="!ping")
+@plugins.command()
 @asyncio.coroutine
 def cmd_ping(client: discord.Client, message: discord.Message):
     """ Tracks the time spent parsing the command and sending a message. """
