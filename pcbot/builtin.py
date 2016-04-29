@@ -47,7 +47,8 @@ def cmd_help(client: discord.Client, message: discord.Message,
 
         usage = plugin.__commands[command]
         if command_func.__doc__:
-            desc = command_func.__doc__.strip()
+            # Strip each line of the description
+            desc = "\n".join(s.strip() for s in command_func.__doc__.split("\n"))
         else:
             desc = "Undocumented."
 
@@ -154,7 +155,7 @@ def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
 @utils.owner
 @asyncio.coroutine
 def cmd_plugin(client: discord.Client, message: discord.Message,
-               option: str.lower, name: str.lower= "") -> cmd_plugin_noargs:
+               option: str.lower, name: str.lower="") -> cmd_plugin_noargs:
     """ Manage plugins. """
     if option == "reload":
         if name:
