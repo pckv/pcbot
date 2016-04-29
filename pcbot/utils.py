@@ -29,10 +29,10 @@ def format_command_func(command: str):
 
 def get_command(plugin, command: str):
     """ Find and return a command function from a plugin. """
-    if not plugin.commands:  # Return None if the bot doesn't have any commands
+    if not getattr(plugin, "__commands", None):  # Return None if the bot doesn't have any commands
         return None
 
-    if command not in plugin.commands:  # Return None if the specified plugin doesn't have the specified command
+    if command not in plugin.__commands:  # Return None if the specified plugin doesn't have the specified command
         return None
 
     command = format_command_func(command)
