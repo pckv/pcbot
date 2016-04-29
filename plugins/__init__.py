@@ -5,6 +5,7 @@ import inspect
 
 import asyncio
 
+from bot import command_prefix
 from pcbot import utils
 
 plugins = {}
@@ -29,7 +30,7 @@ def all_values():
     return plugins.values()
 
 
-def command(usage=None):
+def command(usage=""):
     """ Decorator function that adds a command to the module's __commands dict.
     This allows the user to dynamically create commands without the use of a dictionary
     in the module itself.
@@ -52,7 +53,7 @@ def command(usage=None):
             raise Exception("You can't assign two commands with the same name")
 
         # Update the __commands dictionary
-        commands[name] = usage
+        commands[name] = "{prefix}{name} {usage}".format(prefix=command_prefix, name=name, usage=usage)
         setattr(plugin, "__commands", commands)
 
         return func
