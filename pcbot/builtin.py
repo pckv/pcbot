@@ -6,22 +6,24 @@ This script works just like any of the plugins in plugins/
 import re
 import random
 import logging
+from time import time
 
 import discord
 import asyncio
 
-from pcbot import owner, Annotate, Config, get_command, format_exception
+from pcbot import utils, Config, Annotate
 
 
 commands = {
     "help": "!help [command]",
     "setowner": None,
     "stop": "!stop",
-    "game": "!game <name ...>",
+    "game": "!game [name ...]",
     "do": "!do <python code ...>",
     "eval": "!eval <expression ...>",
     "plugin": "!plugin [reload | load | unload] [plugin]",
-    "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]"
+    "lambda": "!lambda [add <trigger> <python code> | [remove | enable | disable | source] <trigger>]",
+    "ping": "!ping",
 }
 
 
@@ -53,9 +55,9 @@ def cmd_help_noargs(client: discord.Client, message: discord.Message):
 
     for plugin in client.plugins.values():
         if plugin.commands:
-            m += "\n" + "\n".join(usage for cmd, usage in plugin.commands.items() if usage and
-                                  (not getattr(get_command(plugin, cmd), "__owner__", False) or
-                                  client.is_owner(message.author)))
+            m += "\n" + "\n".join(sorted(usage for cmd, usage in plugin.commands.items() if usage and
+                                  (not getattr(utils.get_command(plugin, cmd), "__owner__", False) or
+                                  client.is_owner(message.author))))
 
     m += "```\nUse `!help <command>` for command specific help."
     yield from client.send_message(message.channel, m)
@@ -68,7 +70,7 @@ def cmd_help(client: discord.Client, message: discord.Message,
     usage, desc = "", ""
 
     for plugin in client.plugins.values():
-        command_func = get_command(plugin, command)
+        command_func = utils.get_command(plugin, command)
 
         if not command_func:
             continue
@@ -81,7 +83,7 @@ def cmd_help(client: discord.Client, message: discord.Message,
 
         # Notify the user when a command is owner specific
         if getattr(command_func, "__owner__", False):
-            desc += "\n**Only the bot owner can execute this command.**"
+            desc += "\n:information_source:`Only the bot owner can execute this command.`"
 
     if usage:
         m = "**Usage**: ```{}``` **Description**: {}".format(usage, desc)
@@ -93,7 +95,7 @@ def cmd_help(client: discord.Client, message: discord.Message,
 
 @asyncio.coroutine
 def cmd_setowner(client: discord.Client, message: discord.Message):
-    """  """
+    """ Set the bot owner. Only works in private messages. """
     if not message.channel.is_private:
         return
 
@@ -116,34 +118,35 @@ def cmd_setowner(client: discord.Client, message: discord.Message):
         yield from client.send_message(message.channel, "You failed to send the desired code.")
 
 
-@owner
+@utils.owner
 @asyncio.coroutine
 def cmd_stop(client: discord.Client, message: discord.Message):
-    """  """
+    """ Stops the bot. """
     yield from client.send_message(message.channel, ":boom: :gun:")
     yield from client.save_plugins()
     yield from client.logout()
 
 
-@owner
+@utils.owner
 @asyncio.coroutine
 def cmd_game(client: discord.Client, message: discord.Message,
-             name: Annotate.Content):
-    """  """
+             name: Annotate.Content=""):
+    """ Stop playing or set game to `game`. """
     if name:
-        m = "Set the game to **{}**.".format(name)
+        m = "*Set the game to* **{}**.".format(name)
     else:
-        m = "No longer playing."
+        m = "*No longer playing.*"
 
     yield from client.change_status(discord.Game(name=name))
     yield from client.send_message(message.channel, m)
 
 
-@owner
+@utils.owner
 @asyncio.coroutine
 def cmd_do(client: discord.Client, message: discord.Message,
            code: Annotate.Content):
-    """  """
+    """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
+    to send a message, optionally to a channel. Eg: `say("Hello!")`. """
     def say(msg, c=message.channel):
         asyncio.async(client.send_message(c, msg))
 
@@ -152,20 +155,20 @@ def cmd_do(client: discord.Client, message: discord.Message,
     try:
         exec(script, locals(), globals())
     except Exception as e:
-        say("```" + format_exception(e) + "```")
+        say("```" + utils.format_exception(e) + "```")
 
 
-@owner
+@utils.owner
 @asyncio.coroutine
 def cmd_eval(client: discord.Client, message: discord.Message,
              code: Annotate.Content):
-    """ Evaluate an expression. """
+    """ Evaluate a python expression. Can be any python code on one line that returns something. """
     script = get_formatted_code(code)
 
     try:
         result = eval(script, globals(), locals())
     except Exception as e:
-        result = format_exception(e)
+        result = utils.format_exception(e)
 
     yield from client.send_message(message.channel, "**Result:** \n```{}\n```".format(result))
 
@@ -176,7 +179,7 @@ def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
                                    "**Plugins:** ```\n" "{}```".format(",\n".join(client.plugins.keys())))
 
 
-@owner
+@utils.owner
 @asyncio.coroutine
 def cmd_plugin(client: discord.Client, message: discord.Message,
                option: str.lower, plugin_name: str.lower="") -> cmd_plugin_noargs:
@@ -235,11 +238,13 @@ def cmd_lambda_noargs(client: discord.Client, message: discord.Message):
                                    "**Lambdas:** ```\n" "{}```".format("\n".join(lambdas.data.keys())))
 
 
-@owner
+@utils.owner
 @asyncio.coroutine
 def cmd_lambda(client: discord.Client, message: discord.Message,
                option: str.lower, trigger: str.lower, code: Annotate.Content="") -> cmd_lambda_noargs:
-    """  """
+    """ Create commands. See `!help do` for information on how the code works.
+    **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
+    where the default argument is what to return when the argument does not exist."""
     m = "Command `{}` ".format(trigger)
 
     if option == "add":
@@ -292,6 +297,20 @@ def cmd_lambda(client: discord.Client, message: discord.Message,
     yield from client.send_message(message.channel, m)
 
 
+@asyncio.coroutine
+def cmd_ping(client: discord.Client, message: discord.Message):
+    """ Tracks the time spent parsing the command and sending a message. """
+    # Track the time it took to receive a message and send it.
+    start_time = time()
+    first_message = yield from client.send_message(message.channel, "Ping")
+    stop_time = time()
+
+    # Edit our message with the tracked time (in ms)
+    time_elapsed = (stop_time - start_time) * 1000
+    yield from client.edit_message(first_message,
+                                   "Ping `{elapsed:.4f}ms`".format(elapsed=time_elapsed))
+
+
 # EVENTS
 
 
@@ -311,6 +330,6 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             exec(lambdas.data[args[0]], locals(), globals())
         except Exception as e:
             if client.is_owner(message.author):
-                say("```" + format_exception(e) + "```")
+                say("```" + utils.format_exception(e) + "```")
 
         logging.info("@{0.author} -> {0.content}".format(message))

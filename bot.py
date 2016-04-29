@@ -1,17 +1,15 @@
 import logging
-import re
 import importlib
 import inspect
-from os import listdir, mkdir, path, remove
+import os
+from time import time
 from getpass import getpass
 from argparse import ArgumentParser
-from shlex import split as splitargs
 
 import discord
 import asyncio
 
-from pcbot.config import Config
-from pcbot import utils
+from pcbot import utils, Config
 
 
 # Add all command-line arguments
@@ -30,9 +28,9 @@ logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)
 
 
 class Bot(discord.Client):
+    """ The bot, really. """
     command_prefix = "!"
 
-    """ The bot, really. """
     def __init__(self):
         super().__init__()
         self.plugins = {}
@@ -74,11 +72,11 @@ class Bot(discord.Client):
 
     def load_plugins(self):
         """ Perform load_plugin(plugin_name) on all plugins in plugins/ """
-        if not path.exists("plugins/"):
-            mkdir("plugins/")
+        if not os.path.exists("plugins/"):
+            os.mkdir("plugins/")
 
-        for plugin in listdir("plugins/"):
-            plugin_name = path.splitext(plugin)[0]
+        for plugin in os.listdir("plugins/"):
+            plugin_name = os.path.splitext(plugin)[0]
             self.load_plugin(plugin_name)
 
     def is_owner(self, user):
@@ -118,93 +116,6 @@ class Bot(discord.Client):
             yield from self.save_plugins()
             logging.debug("Plugins saved")
 
-    @staticmethod
-    def log_message(message: discord.Message, prefix: str=""):
-        """ Logs a command/message. """
-        logging.info("{prefix}@{0.author} -> {0.content}".format(message, prefix=prefix))
-
-    @staticmethod
-    def find_member(server: discord.Server, name, steps=3, mention=True):
-        """ Find any member by their name or a formatted mention.
-        Steps define the depth at which to search. More steps equal
-        less accurate checks.
-
-        +--------+------------------+
-        |  step  |     function     |
-        +--------+------------------+
-        |    0   | perform no check |
-        |    1   |   name is equal  |
-        |    2   | name starts with |
-        |    3   |    name is in    |
-        +--------+------------------+
-
-        :param server: discord.Server to look through for members.
-        :param name: name as a string or mention to find.
-        :param steps: int from 0-3 to specify search depth.
-        :param mention: check for mentions. """
-        member = None
-
-        # Return a member from mention
-        found_mention = re.search(r"<@([0-9]+)>", name)
-        if found_mention and mention:
-            member = server.get_member(found_mention.group(1))
-
-        if not member:
-            # Steps to check, higher values equal more fuzzy checks
-            checks = [lambda m: m.name.lower() == name.lower(),
-                      lambda m: m.name.lower().startswith(name.lower()),
-                      lambda m: name.lower() in m.name.lower()]
-
-            for i in range(steps if steps <= len(checks) else len(checks)):
-                member = discord.utils.find(checks[i], server.members)
-
-                if member:
-                    break
-
-        # Return the found member or None
-        return member
-
-    @staticmethod
-    def find_channel(server: discord.Server, name, steps=3, mention=True):
-        """ Find any channel by its name or a formatted mention.
-            Steps define the depth at which to search. More steps equal
-            less accurate checks.
-
-            +--------+------------------+
-            |  step  |     function     |
-            +--------+------------------+
-            |    0   | perform no check |
-            |    1   |   name is equal  |
-            |    2   | name starts with |
-            |    3   |    name is in    |
-            +--------+------------------+
-
-            :param server: discord.Server to look through for channels.
-            :param name: name as a string or mention to find.
-            :param steps: int from 0-3 to specify search depth.
-            :param mention: check for mentions. """
-        channel = None
-
-        # Return a member from mention
-        found_mention = re.search(r"<#([0-9]+)>", name)
-        if found_mention and mention:
-            channel = server.get_channel(found_mention.group(1))
-
-        if not channel:
-            # Steps to check, higher values equal more fuzzy checks
-            checks = [lambda c: c.name.lower() == name.lower(),
-                      lambda c: c.name.lower().startswith(name.lower()),
-                      lambda c: name.lower() in c.name.lower()]
-
-            for i in range(steps if steps <= len(checks) else len(checks)):
-                channel = discord.utils.find(checks[i], server.channels)
-
-                if channel:
-                    break
-
-        # Return the found channel or None
-        return channel
-
     @asyncio.coroutine
     def on_plugin_message(self, function, message: discord.Message, args: list):
         """ Run the given plugin function (either on_message() or on_command()).
@@ -212,7 +123,7 @@ class Bot(discord.Client):
         success = yield from function(self, message, args)
 
         if success:
-            self.log_message(message, prefix="... ")
+            utils.log_message(message, prefix="... ")
 
     @staticmethod
     def _parse_annotation(param, arg, index, message):
@@ -227,11 +138,17 @@ class Bot(discord.Client):
                 return utils.split(message.content, maxsplit=index)[-1]
             elif anno is utils.Annotate.CleanContent:
                 return utils.split(message.clean_content, maxsplit=index)[-1]
+            elif anno is utils.Annotate.Member:  # Checks bot .Member and .User
+                return utils.find_member(message.server, arg)
+            elif anno is utils.Annotate.Channel:
+                return utils.find_channel(message.server, arg)
             
             try:  # Try running as a method
                 return anno(arg)
             except TypeError:
                 raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a function")
+            except:  # On error, eg when annotation is int and given argument is str
+                return None
         
         return arg  # Return if there was no annotation
 
@@ -280,17 +197,29 @@ class Bot(discord.Client):
 
                 if tmp_arg:
                     args.append(tmp_arg)
+                else:
+                    if param.default is not param.empty:
+                        args.append(param.default)
+                    else:
+                        return args, kwargs, False  # Force quit
             elif param.kind is param.KEYWORD_ONLY:  # Parse a regular arg as a kwarg
                 tmp_arg = self._parse_annotation(param, cmd_arg, index - 1, message)
 
                 if tmp_arg:
                     kwargs[arg] = tmp_arg
+                else:
+                    if param.default is not param.empty:
+                        kwargs[arg] = param.default
+                    else:
+                        return args, kwargs, False  # Force quit
             elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
                 has_pos = True
 
                 for cmd_arg in cmd_args[index - 1:-num_kwargs]:
                     tmp_arg = self._parse_annotation(param, cmd_arg, index, message)
 
+                    # Add an option if it's not None. Since positional arguments are optional,
+                    # it will not matter that we don't pass it.
                     if tmp_arg:
                         args.append(tmp_arg)
                         num_pos_args += 1
@@ -304,7 +233,7 @@ class Bot(discord.Client):
             num_args -= int(not bool(num_pos_args))
 
         num_given = index - 1  # Arguments parsed
-        complete = num_given == num_args
+        complete = (num_given == num_args)
         return args, kwargs, complete
 
     @asyncio.coroutine
@@ -322,7 +251,7 @@ class Bot(discord.Client):
                         command = command.__annotations__["return"]
                         continue
                     else:
-                        self.log_message(message)  # Log the command
+                        utils.log_message(message)  # Log the command
                         yield from self.plugins["builtin"].cmd_help(self, message, cmd)
                         command = None
 
@@ -351,6 +280,8 @@ class Bot(discord.Client):
         """ What to do on any message received.
 
         The bot will handle all commands in plugins and send on_message to plugins using it. """
+        start_time = time()
+
         if message.author == self.user:
             return
 
@@ -372,8 +303,13 @@ class Bot(discord.Client):
                 command, args, kwargs = yield from self._parse_command(plugin, cmd, cmd_args, message)
 
                 if command:
-                    self.log_message(message)  # Log the command
+                    utils.log_message(message)  # Log the command
                     self.loop.create_task(command(self, message, *args, **kwargs))  # Run command
+
+                    # Log time spent parsing the command
+                    stop_time = time()
+                    time_elapsed = (stop_time - start_time) * 1000
+                    logging.debug("Time spent parsing comand: {elapsed:.6f}".format(elapsed=time_elapsed))
 
             # Always run the on_message function if it exists
             if getattr(plugin, "on_message", False):
@@ -399,12 +335,12 @@ if __name__ == "__main__":
         # If the --new-pass command-line argument is specified, remove the cached password.
         # Useful for when you have changed the password.
         if start_args.new_pass:
-            if path.exists(cached_path):
-                remove(cached_path)
+            if os.path.exists(cached_path):
+                os.remove(cached_path)
 
         # Prompt for password if the cached file does not exist (the user has not logged in before or
         # they they entered the --new-pass argument.
-        if not path.exists(cached_path):
+        if not os.path.exists(cached_path):
             password = getpass()
 
         login = [email, password]
