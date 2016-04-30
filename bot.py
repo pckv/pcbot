@@ -69,8 +69,12 @@ def parse_annotation(param, arg, index, message):
         # Valid enum checks
         if anno is utils.Annotate.Content:
             return utils.split(message.content, maxsplit=index)[-1]
+        elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
+            return utils.split(message.content, maxsplit=index)[-1].lower()
         elif anno is utils.Annotate.CleanContent:
             return utils.split(message.clean_content, maxsplit=index)[-1]
+        elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
+            return utils.split(message.clean_content, maxsplit=index)[-1].lower()
         elif anno is utils.Annotate.Member:  # Checks bot .Member and .User
             return utils.find_member(message.server, arg)
         elif anno is utils.Annotate.Channel:

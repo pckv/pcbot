@@ -17,10 +17,12 @@ class Annotate(Enum):
     """ Command annotation enum.
     Annotate a command argument with one of these to get the commented value. """
     Content = 1  # Return all the content after command and/or arguments with Message.content
-    CleanContent = 2  # Same as above but uses Message.clean_content
-    User = Member = 3  # Return a member (uses find_member with steps=3)
-    Channel = 4  # Return a channel (uses find_channel with steps=3)
-    Code = 5  # Get formatted code (like Content but extracts any code)
+    LowerContent = 2  # Same as above but returns the contents in lowercase
+    CleanContent = 3  # Return all the content after command and/or arguments with Message.clean_content
+    LowerCleanContent = 4  # Same as above but returns the contents in lowercase
+    User = Member = 5  # Return a member (uses find_member with steps=3)
+    Channel = 6  # Return a channel (uses find_channel with steps=3)
+    Code = 7  # Get formatted code (like Content but extracts any code)
 
 
 def format_command_func(command: str):

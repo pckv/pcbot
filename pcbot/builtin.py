@@ -157,7 +157,8 @@ def cmd_plugin_noargs(client: discord.Client, message: discord.Message):
 @asyncio.coroutine
 def cmd_plugin(client: discord.Client, message: discord.Message,
                option: str.lower, name: str.lower="") -> cmd_plugin_noargs:
-    """ Manage plugins. """
+    """ Manage plugins.
+    **Owner command unless no argument is specified.**"""
     if option == "reload":
         if name:
             if plugins.get_plugin(name):
@@ -219,7 +220,8 @@ def cmd_lambda(client: discord.Client, message: discord.Message,
                option: str.lower, trigger: str.lower, script: Annotate.Code=None) -> cmd_lambda_noargs:
     """ Create commands. See `!help do` for information on how the code works.
     **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
-    where the default argument is what to return when the argument does not exist."""
+    where the default argument is what to return when the argument does not exist.
+    **Owner command unless no argument is specified.**"""
     m = "Command `{}` ".format(trigger)
 
     if option == "add":
