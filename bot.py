@@ -29,7 +29,6 @@ logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)
 
 # Setup our client
 client = discord.Client()
-command_prefix = "!"
 autosave_interval = 60 * 30
 
 plugins.load_plugin("builtin", "pcbot")  # Load plugin for builtin commands
@@ -133,7 +132,7 @@ def parse_command_args(command, cmd_args, message):
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
             tmp_arg = parse_annotation(param, cmd_arg, index - 1, message)
 
-            if tmp_arg:
+            if tmp_arg is not None:
                 args.append(tmp_arg)
             else:
                 if param.default is not param.empty:
@@ -143,7 +142,7 @@ def parse_command_args(command, cmd_args, message):
         elif param.kind is param.KEYWORD_ONLY:  # Parse a regular arg as a kwarg
             tmp_arg = parse_annotation(param, cmd_arg, index - 1, message)
 
-            if tmp_arg:
+            if tmp_arg is not None:
                 kwargs[arg] = tmp_arg
             else:
                 if param.default is not param.empty:
@@ -158,7 +157,7 @@ def parse_command_args(command, cmd_args, message):
 
                 # Add an option if it's not None. Since positional arguments are optional,
                 # it will not matter that we don't pass it.
-                if tmp_arg:
+                if tmp_arg is not None:
                     args.append(tmp_arg)
                     num_pos_args += 1
 
@@ -191,7 +190,7 @@ def parse_command(plugin, cmd, cmd_args, message):
                     continue
                 else:
                     log_message(message)  # Log the command
-                    yield from plugins.get_plugin("builtin").cmd_help(message, cmd)
+                    yield from plugins.get_plugin("builtin").cmd_help(client, message, cmd)
                     command = None
 
         break
@@ -235,7 +234,7 @@ def on_message(message: discord.Message):
     # Get command name
     cmd = ""
 
-    if cmd_args[0].startswith(command_prefix) and len(cmd_args[0]) > 1:
+    if cmd_args[0].startswith(utils.command_prefix) and len(cmd_args[0]) > 1:
         cmd = cmd_args[0][1:]
 
     # Handle commands

@@ -23,8 +23,9 @@ def cmd_help_noargs(client: discord.Client, message: discord.Message):
     m = "**Commands:**```"
 
     for plugin in plugins.all_values():
-        if plugin.__commands:
-            m += "\n" + "\n".join(sorted(usage for cmd, usage in plugin.__commands.items() if usage is not None and
+        if getattr(plugin, "__commands", False):
+            m += "\n" + "\n".join(sorted(usage for cmd, usage in plugin.__commands.items()
+                                  if usage is not None and
                                   (not getattr(utils.get_command(plugin, cmd), "__owner__", False) or
                                   utils.is_owner(message.author))))
 

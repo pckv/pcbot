@@ -5,7 +5,6 @@ import inspect
 
 import asyncio
 
-from bot import command_prefix
 from pcbot import utils
 
 plugins = {}
@@ -53,7 +52,7 @@ def command(usage=""):
             raise Exception("You can't assign two commands with the same name")
 
         # Update the __commands dictionary
-        commands[name] = "{prefix}{name} {usage}".format(prefix=command_prefix, name=name, usage=usage)
+        commands[name] = "{prefix}{name} {usage}".format(prefix=utils.command_prefix, name=name, usage=usage)
         setattr(plugin, "__commands", commands)
 
         return func
@@ -70,7 +69,7 @@ def load_plugin(name: str, package: str="plugins"):
         try:
             plugin = importlib.import_module("{package}.{plugin}".format(plugin=name, package=package))
         except ImportError as e:
-            logging.warn("COULD NOT LOAD PLUGIN " + name + "\n" + utils.format_exception(e))
+            logging.warn("COULD NOT LOAD PLUGIN {name}\n{e}".format(name=name, e=utils.format_exception(e)))
             return False
 
         plugins[name] = plugin
