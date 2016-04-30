@@ -67,6 +67,38 @@ def owner(f):
     return decorator
 
 
+def permission(*perms: str):
+    """ Decorator that runs the command only if the author has the specified permissions.
+    perms must be a string matching any property of discord.Permissions"""
+    def wrapped(f):
+        @wraps(f)
+        @asyncio.coroutine
+        def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
+            member_perms = message.author.permissions_in(message.channel)
+
+            if all(getattr(member_perms, perm, False) for perm in perms):
+                yield from f(client, message, *args, **kwargs)
+
+        return decorator
+    return wrapped
+
+
+def role(*roles: str):
+    """ Decorator that runs the command only if the author has the specified Roles.
+    roles must be a string representing a role's name. """
+    def wrapped(f):
+        @wraps(f)
+        @asyncio.coroutine
+        def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
+            member_roles = [r.name for r in message.author.roles[1:]]
+
+            if any(r in member_roles for r in roles):
+                yield from f(client, message, *args, **kwargs)
+
+        return decorator
+    return wrapped
+
+
 @asyncio.coroutine
 def download_file(url, **params):
     """ Download and return a byte-like object of a file.
