@@ -1,9 +1,8 @@
 """ Script for basic commands
 
 Commands:
-!ping
-!cool
-!pasta
+!roll
+!feature
 """
 
 import random
