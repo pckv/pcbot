@@ -63,12 +63,6 @@ def owner(f):
         if is_owner(message.author):
             yield from f(client, message, *args, **kwargs)
 
-    # Mark the command as owner if return annotation is also marked owner.
-    # This basically defines what a help function would display.
-    if "return" in f.__annotations__:
-        if not getattr(f.__annotations__["return"], "__owner__", False):
-            return decorator
-
     setattr(decorator, "__owner__", True)
     return decorator
 

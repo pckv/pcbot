@@ -52,7 +52,11 @@ def command(usage=""):
             raise Exception("You can't assign two commands with the same name")
 
         # Update the __commands dictionary
-        commands[name] = "{prefix}{name} {usage}".format(prefix=utils.command_prefix, name=name, usage=usage)
+        if usage:
+            commands[name] = "{prefix}{name} {usage}".format(prefix=utils.command_prefix, name=name, usage=usage)
+        else:
+            commands[name] = None
+
         setattr(plugin, "__commands", commands)
 
         return func
