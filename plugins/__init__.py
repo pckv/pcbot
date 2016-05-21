@@ -125,7 +125,8 @@ def load_plugin(name: str, package: str = "plugins"):
 def reload_plugin(name: str):
     """ Reload a plugin. """
     if plugins.get(name):
-        delattr(plugins[name], "__commands")  # Remove all registered plugins
+        if hasattr(plugins[name], "__commands"):  # Remove all registered commands
+            delattr(plugins[name], "__commands")
         plugins[name] = importlib.reload(plugins[name])
         logging.debug("RELOADED PLUGIN " + name)
 
