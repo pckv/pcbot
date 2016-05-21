@@ -60,11 +60,9 @@ def prank(client: discord.Client, message: discord.Message, phrase: Annotate.Cle
 
     # Combine the base image with the font image
     image = Image.alpha_composite(image_base, image_text)
+
+    # Upload the image
     buffer = BytesIO()
     image.save(buffer, "PNG")
     buffer.seek(0)
     yield from client.send_file(message.channel, buffer, filename="pranked.png")
-
-    # Save and send the image
-    # image.save(prank_path + "pranked.png")
-    # yield from client.send_file(message.channel, prank_path + "pranked.png")
