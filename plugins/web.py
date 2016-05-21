@@ -5,7 +5,6 @@ Commands:
 """
 
 import discord
-import asyncio
 import aiohttp
 
 from pcbot import Annotate
@@ -13,9 +12,7 @@ import plugins
 
 
 @plugins.command(usage="<query ...>")
-@asyncio.coroutine
-def cmd_define(client: discord.Client, message: discord.Message,
-               term: Annotate.LowerCleanContent):
+def define(client: discord.Client, message: discord.Message, term: Annotate.LowerCleanContent):
     """ Defines a term using Urban Dictionary. """
     params = {"term": term}
 
@@ -28,7 +25,7 @@ def cmd_define(client: discord.Client, message: discord.Message,
 
     # Send any valid definition (length of message < 2000 characters)
     if not definitions:
-        yield from client.send_message(message.channel, "Could not define `{0}`.".format(term))
+        yield from client.say(message, "Could not define `{0}`.".format(term))
         return
 
     msg = ""
@@ -50,7 +47,7 @@ def cmd_define(client: discord.Client, message: discord.Message,
             break
 
         # Cancel if the message is too long
-        yield from client.send_message(message.channel, "Defining this word would be a bad idea.")
+        yield from client.say(message, "Defining this word would be a bad idea.")
         return
 
-    yield from client.send_message(message.channel, msg)
+    yield from client.say(message, msg)

@@ -4,6 +4,7 @@ If enabled on the server, spots any text containing the keyword nsfw and a link.
 Then tries to delete their message, and post a link to the dedicated nsfw channel.
 
 Commands:
+!moderate
 """
 
 from collections import defaultdict
