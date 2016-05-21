@@ -1,4 +1,4 @@
-""" Script for built-in commands.
+""" Plugin for built-in commands.
 
 This script works just like any of the plugins in plugins/
 """
@@ -42,17 +42,20 @@ def help_(client: discord.Client, message: discord.Message, name: str.lower=None
         else:
             yield from client.say(message, "Command `{}` does not exist.".format(name))
     else:  # Display this section when no arguments are passed
-        m = "**Commands:**```"
+        commands = []
 
         for plugin in plugins.all_values():
             if getattr(plugin, "__commands", False):  # Massive pile of shit that works (so sorry)
-                m += "\n" + "\n".join(sorted(
+                commands.extend(
                     cmd.usage for cmd in plugin.__commands
                     if not cmd.hidden and
                     (not getattr(getattr(cmd, "function"), "__owner__", False) or
-                     utils.is_owner(message.author))))
+                     utils.is_owner(message.author))
+                )
 
-        m += "```\nUse `!help <command>` for command specific help."
+        commands = "\n".join(sorted(commands))
+
+        m = "**Commands:**```{}```\nUse `!help <command>` for command specific help.".format(commands)
         yield from client.say(message, m)
 
 
