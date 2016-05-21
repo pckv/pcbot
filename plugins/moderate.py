@@ -61,14 +61,14 @@ def nsfwfilter(client: discord.Client, message: discord.Message, option: str.low
 
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message, args: list):
+    # Do not check in private messages
+    if message.channel.is_private:
+        return False
+
     setup_default_config(message.server)
 
     # Check if this server has nsfwfilter enabled
     if not moderate.data[message.server.id]["nsfwfilter"]:
-        return False
-
-    # Do not check in private messages
-    if message.channel.is_private:
         return False
 
     # Do not check if the channel is designed for nsfw content
