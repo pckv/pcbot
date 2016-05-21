@@ -36,6 +36,16 @@ plugins.load_plugins()  # Load all plugins in plugins/
 
 
 @asyncio.coroutine
+def say(message: discord.Message, content: str):
+    """ Equivalent to client.send_message(message.channel, content) """
+    msg = yield from client.send_message(message.channel, content)
+    return msg
+
+
+setattr(client, "say", say)
+
+
+@asyncio.coroutine
 def autosave():
     """ Sleep for set time (default 30 minutes) before saving. """
     while not client.is_closed:
@@ -210,7 +220,7 @@ def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: d
         if command.error:
             yield from client.send_message(message.channel, command.error)
         else:
-            yield from plugins.get_plugin("builtin").cmd_help(client, message, cmd)
+            yield from plugins.get_plugin("builtin").help_(client, message, cmd)
 
         command = None
 

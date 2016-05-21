@@ -61,6 +61,9 @@ def is_owner(user):
 
 def owner(f):
     """ Decorator that runs the command only if the author is an owner. """
+    if not asyncio.iscoroutine(f):
+        f = asyncio.coroutine(f)
+
     @wraps(f)
     @asyncio.coroutine
     def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
@@ -75,6 +78,9 @@ def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
     perms must be a string matching any property of discord.Permissions"""
     def wrapped(f):
+        if not asyncio.iscoroutine(f):
+            f = asyncio.coroutine(f)
+
         @wraps(f)
         @asyncio.coroutine
         def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
@@ -91,6 +97,9 @@ def role(*roles: str):
     """ Decorator that runs the command only if the author has the specified Roles.
     roles must be a string representing a role's name. """
     def wrapped(f):
+        if not asyncio.iscoroutine(f):
+            f = asyncio.coroutine(f)
+
         @wraps(f)
         @asyncio.coroutine
         def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):

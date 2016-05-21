@@ -49,13 +49,17 @@ def command(**options):
 
         # Define all function stats
         name = options.get("name", func.__name__)
-        description = options.get("description") or func.__doc__ or "Undocumented."
-        usage = "{prefix}{name} {usage}".format(prefix=utils.command_prefix,
-                                                name=name,
-                                                usage=options.get("usage", ""))
         hidden = options.get("hidden", False)
         parent = options.get("parent", None)
         error = options.get("error", None)
+        description = options.get("description") or func.__doc__ or "Undocumented."
+
+        if not parent:
+            usage = "{prefix}{name} {usage}".format(prefix=utils.command_prefix,
+                                                    name=name,
+                                                    usage=options.get("usage", ""))
+        else:
+            usage = None
 
         # Properly format description when using docstrings
         if description == func.__doc__:
@@ -77,7 +81,7 @@ def command(**options):
         cmd = Command(name=name,
                       usage=usage,
                       description=description,
-                      function=options.get("function", func),
+                      function=func,
                       sub_commands=[],
                       parent=parent,
                       hidden=hidden,
@@ -93,7 +97,7 @@ def command(**options):
 
         setattr(func, "command", partial(command, parent=cmd))
         logging.debug("Registered {} {} from plugin {}".format("subcommand" if parent else "command",
-                                                              name, plugin.__name__))
+                                                               name, plugin.__name__))
         return func
 
     return decorator
