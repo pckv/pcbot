@@ -106,7 +106,7 @@ def game(client: discord.Client, message: discord.Message, name: Annotate.Conten
 @utils.owner
 def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
     """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
-    to send a message, optionally to a channel. Eg: `say("Hello!")`. """
+        to send a message, optionally to a channel. Eg: `say("Hello!")`. """
     def say(msg, m=message):
         asyncio.async(client.say(m, msg))
 
@@ -132,7 +132,7 @@ def eval_(client: discord.Client, message: discord.Message,
 @plugins.command(name="plugin", usage="[reload | load | unload] [plugin]")
 def plugin_(client: discord.Client, message: discord.Message):
     """ Manage plugins.
-    **Owner command unless no argument is specified.** """
+        **Owner command unless no argument is specified.** """
     yield from client.say(message,
                           "**Plugins:** ```\n" "{}```".format(",\n".join(plugins.all_keys())))
 
@@ -192,9 +192,9 @@ def unload(client: discord.Client, message: discord.Message, name: str.lower):
 def lambda_(client: discord.Client, message: discord.Message):
     """ Create commands. See `!help do` for information on how the code works.
 
-    **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
-    where the default argument is what to return when the argument does not exist.
-    **Owner command unless no argument is specified.**"""
+        **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
+        where the default argument is what to return when the argument does not exist.
+        **Owner command unless no argument is specified.**"""
     yield from client.say(message,
                           "**Lambdas:** ```\n" "{}```".format("\n".join(lambdas.data.keys())))
 
