@@ -59,7 +59,7 @@ def on_plugin_message(function, message: discord.Message, args: list):
         log_message(message, prefix="... ")
 
 
-def parse_annotation(param, arg, index, message):
+def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: discord.Message):
     """ Parse annotations and return the command to use.
 
     index is basically the arg's index in shelx.split(message.content) """
@@ -93,10 +93,10 @@ def parse_annotation(param, arg, index, message):
     return arg  # Return if there was no annotation
 
 
-def parse_command_args(command, cmd_args, message):
+def parse_command_args(command: plugins.Command, cmd_args: list, start_index: int, message: discord.Message):
     """ Parse commands from chat and return args and kwargs to pass into the
     command's function. """
-    signature = inspect.signature(command)
+    signature = inspect.signature(command.function)
     args, kwargs = [], {}
     index = -1
     num_kwargs = sum(1 for param in signature.parameters.values() if param.kind is param.KEYWORD_ONLY)
@@ -134,7 +134,7 @@ def parse_command_args(command, cmd_args, message):
                 break  # We're done when there is no default argument and none passed
 
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
-            tmp_arg = parse_annotation(param, cmd_arg, index - 1, message)
+            tmp_arg = parse_annotation(param, cmd_arg, (index - 1) + start_index, message)
 
             if tmp_arg is not None:
                 args.append(tmp_arg)
@@ -144,7 +144,7 @@ def parse_command_args(command, cmd_args, message):
                 else:
                     return args, kwargs, False  # Force quit
         elif param.kind is param.KEYWORD_ONLY:  # Parse a regular arg as a kwarg
-            tmp_arg = parse_annotation(param, cmd_arg, index - 1, message)
+            tmp_arg = parse_annotation(param, cmd_arg, (index - 1) + start_index, message)
 
             if tmp_arg is not None:
                 kwargs[arg] = tmp_arg
@@ -157,7 +157,7 @@ def parse_command_args(command, cmd_args, message):
             has_pos = True
 
             for cmd_arg in cmd_args[index - 1:-num_kwargs]:
-                tmp_arg = parse_annotation(param, cmd_arg, index, message)
+                tmp_arg = parse_annotation(param, cmd_arg, index + start_index, message)
 
                 # Add an option if it's not None. Since positional arguments are optional,
                 # it will not matter that we don't pass it.
@@ -178,26 +178,41 @@ def parse_command_args(command, cmd_args, message):
     return args, kwargs, complete
 
 
+def get_sub_command(command: plugins.Command, cmd_args: list):
+    """ Go through all arguments and return any group command function.
+
+    This function returns the found command and all arguments starting from
+    any specified sub command. """
+    new_index = 0
+
+    for arg in cmd_args[1:]:
+        names = [cmd.name for cmd in command.sub_commands]
+
+        if arg in names:
+            command = command.sub_commands[names.index(arg)]
+            new_index += 1
+
+    return command, cmd_args[new_index:], new_index
+
+
 @asyncio.coroutine
-def parse_command(plugin, cmd, cmd_args, message):
+def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: discord.Message):
     """ Try finding a command """
-    command = utils.get_command(plugin, cmd)
-    args, kwargs = [], {}
+    command, cmd_args, start_index = get_sub_command(command, cmd_args)
 
-    while True:
-        if command:
-            args, kwargs, complete = parse_command_args(command, cmd_args, message)
+    # Parse the command and return the parsed arguments
+    args, kwargs, complete = parse_command_args(command, cmd_args, start_index, message)
 
-            if not complete:
-                if "return" in command.__annotations__:
-                    command = command.__annotations__["return"]
-                    continue
-                else:
-                    log_message(message)  # Log the command
-                    yield from plugins.get_plugin("builtin").cmd_help(client, message, cmd)
-                    command = None
+    # If command parsing failed, display help for the command or the error message
+    if not complete:
+        log_message(message)  # Log the command
 
-        break
+        if command.error:
+            yield from client.send_message(message.channel, command.error)
+        else:
+            yield from plugins.get_plugin("builtin").cmd_help(client, message, cmd)
+
+        command = None
 
     return command, args, kwargs
 
@@ -244,16 +259,19 @@ def on_message(message: discord.Message):
     # Handle commands
     for plugin in plugins.all_values():
         if cmd:
-            command, args, kwargs = yield from parse_command(plugin, cmd, cmd_args, message)
+            command = utils.get_command(plugin, cmd)
 
             if command:
-                log_message(message)  # Log the command
-                client.loop.create_task(command(client, message, *args, **kwargs))  # Run command
+                command, args, kwargs = yield from parse_command(command, cmd, cmd_args, message)
 
-                # Log time spent parsing the command
-                stop_time = time()
-                time_elapsed = (stop_time - start_time) * 1000
-                logging.debug("Time spent parsing comand: {elapsed:.6f}".format(elapsed=time_elapsed))
+                if command:
+                    log_message(message)  # Log the command
+                    client.loop.create_task(command.function(client, message, *args, **kwargs))  # Run command
+
+                    # Log time spent parsing the command
+                    stop_time = time()
+                    time_elapsed = (stop_time - start_time) * 1000
+                    logging.debug("Time spent parsing comand: {elapsed:.6f}".format(elapsed=time_elapsed))
 
         # Always run the on_message function if it exists
         if getattr(plugin, "on_message", False):

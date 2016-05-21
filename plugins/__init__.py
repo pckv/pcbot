@@ -2,12 +2,15 @@ import importlib
 import os
 import logging
 import inspect
+from collections import namedtuple
+from functools import partial
 
 import asyncio
 
 from pcbot import utils
 
 plugins = {}
+Command = namedtuple("Command", "name usage description function sub_commands parent hidden error")
 
 
 def get_plugin(name):
@@ -29,42 +32,74 @@ def all_values():
     return plugins.values()
 
 
-def command(usage=""):
+def command(**options):
     """ Decorator function that adds a command to the module's __commands dict.
     This allows the user to dynamically create commands without the use of a dictionary
     in the module itself.
 
-    If no usage is specified, the builtin help command will not display help for this command. """
-    def decorator(func):
-        # Command function name needs to start with cmd_
-        if not func.__name__.startswith("cmd_"):
-            raise Exception("Command functions require the cmd_ prefix as the command name")
+    Command attributes are:
+        name        : The commands name. Will use the function name by default
+        usage       : The command usage following the command trigger, e.g the `[cmd]` in `!help [cmd]`
+        description : The commands description. By default this uses the docstring of the function
+    """
 
-        name = func.__name__[4:]
+    def decorator(func):
+        if not asyncio.iscoroutine(func):
+            func = asyncio.coroutine(func)
+
+        # Define all function stats
+        name = options.get("name", func.__name__)
+        description = options.get("description") or func.__doc__ or "Undocumented."
+        usage = "{prefix}{name} {usage}".format(prefix=utils.command_prefix,
+                                                name=name,
+                                                usage=options.get("usage", ""))
+        hidden = options.get("hidden", False)
+        parent = options.get("parent", None)
+        error = options.get("error", None)
+
+        # Properly format description when using docstrings
+        if description == func.__doc__:
+            description = "\n".join(s.strip() for s in description.split("\n"))
+
+        # Load the plugin the function is from, so that we can modify the __commands attribute
         plugin = inspect.getmodule(func)
-        commands = getattr(plugin, "__commands", {})
+        commands = getattr(plugin, "__commands", list())
 
         # Assert that __commands is usable and that this command doesn't already exist
-        if type(commands) is not dict:
-            raise Exception("__commands is reserved for the plugin's commands, and must be of type dict")
+        if type(commands) is not list:
+            raise Exception("__commands is reserved for the plugin's commands, and must be of type list")
 
-        if name in commands:
+        # Assert that there are no commands already defined with the given name
+        if any(cmd.name == name for cmd in commands):
             raise Exception("You can't assign two commands with the same name")
 
-        # Update the __commands dictionary
-        if usage:
-            commands[name] = "{prefix}{name} {usage}".format(prefix=utils.command_prefix, name=name, usage=usage)
-        else:
-            commands[name] = None
+        # Create our command
+        cmd = Command(name=name,
+                      usage=usage,
+                      description=description,
+                      function=options.get("function", func),
+                      sub_commands=[],
+                      parent=parent,
+                      hidden=hidden,
+                      error=error)
 
+        if parent:
+            parent.sub_commands.append(cmd)
+        else:
+            commands.append(cmd)
+
+        # Update the plugin's __commands attribute
         setattr(plugin, "__commands", commands)
 
+        setattr(func, "command", partial(command, parent=cmd))
+        logging.debug("Registered {} {} from plugin {}".format("subcommand" if parent else "command",
+                                                              name, plugin.__name__))
         return func
 
     return decorator
 
 
-def load_plugin(name: str, package: str="plugins"):
+def load_plugin(name: str, package: str = "plugins"):
     """ Load a plugin with the name name. This plugin has to be
     situated under plugins/
 

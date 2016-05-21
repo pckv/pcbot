@@ -32,16 +32,20 @@ def format_command_func(command: str):
 
 def get_command(plugin, command: str):
     """ Find and return a command function from a plugin. """
-    if not getattr(plugin, "__commands", None):  # Return None if the bot doesn't have any commands
+    commands = getattr(plugin, "__commands", None)
+
+    # Return None if the bot doesn't have any commands
+    if not commands:
         return None
 
-    if command not in plugin.__commands:  # Return None if the specified plugin doesn't have the specified command
+    names = [cmd.name for cmd in plugin.__commands]
+
+    # Return None if the specified plugin doesn't have the specified command
+    if command not in names:
         return None
 
-    command = format_command_func(command)
-
-    # Return the found command or None if plugin doesn't have the function
-    return getattr(plugin, command, None)
+    # Return the found command or None if plugin doesn't have one
+    return commands[names.index(command)]
 
 
 def is_owner(user):
