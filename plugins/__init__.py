@@ -10,7 +10,7 @@ import asyncio
 from pcbot import utils
 
 plugins = {}
-Command = namedtuple("Command", "name usage description function sub_commands parent hidden error")
+Command = namedtuple("Command", "name usage description function sub_commands parent hidden error pos_check")
 
 
 def get_plugin(name):
@@ -38,9 +38,12 @@ def command(**options):
     in the module itself.
 
     Command attributes are:
-        name        : The commands name. Will use the function name by default
-        usage       : The command usage following the command trigger, e.g the `[cmd]` in `!help [cmd]`
-        description : The commands description. By default this uses the docstring of the function
+        name        : str   : The commands name. Will use the function name by default.
+        usage       : str   : The command usage following the command trigger, e.g the `[cmd]` in `!help [cmd]`.
+        description : str   : The commands description. By default this uses the docstring of the function.
+        hidden      : bool  : Whether or not to show this function in the builtin help command.
+        error       : str   : An optional message to send when argument requirements are not met.
+        pos_check   : func  : An optional check function for positional arguments, eg: pos_check=lambda s: s
     """
 
     def decorator(func):
@@ -52,6 +55,7 @@ def command(**options):
         hidden = options.get("hidden", False)
         parent = options.get("parent", None)
         error = options.get("error", None)
+        pos_check = options.get("pos_check", lambda s: s)
         description = options.get("description") or func.__doc__ or "Undocumented."
 
         if not parent:
@@ -85,7 +89,8 @@ def command(**options):
                       sub_commands=[],
                       parent=parent,
                       hidden=hidden,
-                      error=error)
+                      error=error,
+                      pos_check=pos_check)
 
         if parent:
             parent.sub_commands.append(cmd)

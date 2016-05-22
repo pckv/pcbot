@@ -12,7 +12,7 @@ from collections import defaultdict
 import discord
 import asyncio
 
-from pcbot.config import Config
+from pcbot import Config, utils, Annotate
 import plugins
 
 moderate = Config("moderate", data=defaultdict(dict))
@@ -36,6 +36,47 @@ def setup_default_config(server: discord.Server):
         moderate.save()
 
 
+def get_muted_role(server: discord.Server):
+    """ Return the server's Muted role or None. """
+    for role in server.roles:
+        if role.name == "Muted":
+            return role
+
+    return None
+
+
+@asyncio.coroutine
+def manage_mute(client: discord.Client, message: discord.Message, function, *members: discord.Member):
+    """ Add or remove Muted role for given members.
+
+    Function is either client.add_roles or client.remove_roles. """
+    # Manage Roles is required to add or remove the Muted role
+    if not message.server.me.permissions_in(message.channel).manage_roles:
+        yield from client.say(message, "I need `Manage Roles` permission to use this command.")
+        return False
+
+    muted_role = get_muted_role(message.server)
+
+    # The server needs to properly manage the Muted role
+    if not muted_role:
+        yield from client.say(message, "No role assigned for muting. Please create a `Muted` role.")
+        return False
+
+    # Try giving members the Muted role
+    for member in members:
+        while True:
+            try:
+                yield from function(member, muted_role)
+                break
+            except discord.errors.Forbidden:
+                yield from client.say(message, "I do not have permission to give members the `Muted` role.")
+                return False
+            except discord.errors.HTTPException:
+                continue
+
+    return True
+
+
 @plugins.command(name="moderate", usage="<nsfwfilter <on | off>>")
 def moderate_(client: discord.Client, message: discord.Message, setting: str.lower):
     """ Change moderation settings. """
@@ -43,6 +84,7 @@ def moderate_(client: discord.Client, message: discord.Message, setting: str.low
 
 
 @moderate_.command()
+@utils.permission("manage_server")
 def nsfwfilter(client: discord.Client, message: discord.Message, option: str.lower=None):
     """ Change NSFW filter settings. """
     if option == "on":  # Enable filter
@@ -57,6 +99,46 @@ def nsfwfilter(client: discord.Client, message: discord.Message, option: str.low
         setup_default_config(message.server)
         current = moderate.data[message.server.id]["nsfwfilter"]
         yield from client.say(message, "NSFW filter is `{}`.".format("ON" if current else "OFF"))
+
+
+@plugins.command(usage="<users ...>")
+@utils.permission("manage_messages")
+def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
+    """ Mute users. """
+    success = yield from manage_mute(client, message, client.add_roles, *members)
+
+    # Member was muted, success!
+    if success:
+        yield from client.say(message, "Muted {}".format(utils.format_members(*members)))
+
+
+@plugins.command(usage="<users ...>")
+@utils.permission("manage_messages")
+def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
+    """ Unmute users. """
+    success = yield from manage_mute(client, message, client.remove_roles, *members)
+
+    # Member was muted, success!
+    if success:
+        yield from client.say(message, "Unmuted {}".format(utils.format_members(*members)))
+
+
+@plugins.command(usage="<users ...> <minutes>")
+@utils.permission("manage_messages")
+def timeout(client: discord.Client, message: discord.Message, *members: Annotate.Member, minutes: int):
+    """ Timeout users for given minutes. """
+    success = yield from manage_mute(client, message, client.add_roles, *members)
+
+    # Do not progress if the member was not successfully muted
+    # At this point, manage_mute will have reported any errors
+    if not success:
+        return
+
+    yield from client.say(message, "Timed out {} for `{}` minutes.".format(utils.format_members(*members), minutes))
+
+    # Sleep for the given minutes and unmute the member
+    yield from asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60
+    yield from manage_mute(client, message, client.remove_roles, *members)
 
 
 @asyncio.coroutine

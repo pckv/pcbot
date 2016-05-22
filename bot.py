@@ -75,19 +75,20 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
     index is basically the arg's index in shelx.split(message.content) """
     if param.annotation:  # Any annotation is a function or Annotation enum
         anno = param.annotation
+        anno = anno if anno is not param.empty else str
 
         # Valid enum checks
-        if anno is utils.Annotate.Content:
+        if anno is utils.Annotate.Content:  # Split and get raw content from this point
             return utils.split(message.content, maxsplit=index)[-1]
         elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
             return utils.split(message.content, maxsplit=index)[-1].lower()
-        elif anno is utils.Annotate.CleanContent:
+        elif anno is utils.Annotate.CleanContent:  # Split and get clean raw content from this point
             return utils.split(message.clean_content, maxsplit=index)[-1]
         elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
             return utils.split(message.clean_content, maxsplit=index)[-1].lower()
-        elif anno is utils.Annotate.Member:  # Checks bot .Member and .User
+        elif anno is utils.Annotate.Member:  # Checks member names or mentions
             return utils.find_member(message.server, arg)
-        elif anno is utils.Annotate.Channel:
+        elif anno is utils.Annotate.Channel:  # Checks channel names or mentions
             return utils.find_channel(message.server, arg)
         elif anno is utils.Annotate.Code:  # Works like Content but extracts code
             code = utils.split(message.content, maxsplit=index)[-1]
@@ -166,7 +167,11 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
             has_pos = True
 
-            for cmd_arg in cmd_args[index - 1:-num_kwargs]:
+            for cmd_arg in cmd_args[index - 1:-num_kwargs or len(cmd_args) + 1]:
+                # Do not register the positional argument if it does not meet the optional criteria
+                if not command.pos_check(cmd_arg):
+                    continue
+
                 tmp_arg = parse_annotation(param, cmd_arg, index + start_index, message)
 
                 # Add an option if it's not None. Since positional arguments are optional,
@@ -175,7 +180,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
                     args.append(tmp_arg)
                     num_pos_args += 1
 
-            index += (num_pos_args - 1) if num_pos_args else 0  # Update the new index
+            index += (num_pos_args - 1) if num_pos_args else -1  # Update the new index
 
     # Number of required arguments are: signature variables - client and message
     # If there are no positional arguments, subtract one from the required arguments
@@ -184,7 +189,11 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
         num_args -= int(not bool(num_pos_args))
 
     num_given = index - 1  # Arguments parsed
+    if has_pos:
+        num_given -= (num_pos_args - 1) if not num_pos_args == 0 else 0
+
     complete = (num_given == num_args)
+    print(num_args, num_given)
     return args, kwargs, complete
 
 
@@ -254,6 +263,9 @@ def on_message(message: discord.Message):
     if message.author == client.user:
         return
 
+    if message.author.bot:
+        return
+
     if not message.content:
         return
 
@@ -276,6 +288,7 @@ def on_message(message: discord.Message):
 
                 if command:
                     log_message(message)  # Log the command
+                    print(args, kwargs)
                     client.loop.create_task(command.function(client, message, *args, **kwargs))  # Run command
 
                     # Log time spent parsing the command

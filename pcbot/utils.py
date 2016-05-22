@@ -25,11 +25,6 @@ class Annotate(Enum):
     Code = 7  # Get formatted code (like Content but extracts any code)
 
 
-def format_command_func(command: str):
-    """ Return a formatted string representing the command function name. """
-    return "cmd_" + command
-
-
 def get_command(plugin, command: str):
     """ Find and return a command function from a plugin. """
     commands = getattr(plugin, "__commands", None)
@@ -119,9 +114,7 @@ def download_file(url, **params):
     :param url: download url as str
     :param params: any additional url parameters. """
     with aiohttp.ClientSession() as session:
-        response = yield from session.get(url,
-                                          params=params)
-
+        response = yield from session.get(url, params=params)
         file = yield from response.read() if response.status == 200 else []
 
     return file
@@ -144,7 +137,8 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     :param server: discord.Server to look through for members.
     :param name: name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
-    :param mention: check for mentions. """
+    :param mention: check for mentions.
+    :param nicknames: check nicknames. """
     member = None
 
     # Return a member from mention
@@ -152,11 +146,13 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     if found_mention and mention:
         member = server.get_member(found_mention.group(1))
 
+    name = name.lower()
+
     if not member:
         # Steps to check, higher values equal more fuzzy checks
-        checks = [lambda m: m.name.lower() == name.lower(),
-                  lambda m: m.name.lower().startswith(name.lower()),
-                  lambda m: name.lower() in m.name.lower()]
+        checks = [lambda m: m.name.lower() == name,
+                  lambda m: m.name.lower().startswith(name),
+                  lambda m: name in m.name.lower()]
 
         for i in range(steps if steps <= len(checks) else len(checks)):
             member = discord.utils.find(checks[i], server.members)
@@ -227,6 +223,12 @@ def get_formatted_code(code):
             return code
 
     return "raise Exception(\"Could not format code.\")"
+
+
+def format_members(*members: discord.Member, dec: str="`", sep: str=", "):
+    """ Return a formatted string of members (or member) using the given
+    decorator and the given separator. """
+    return sep.join(dec + (m.nick or m.name) + dec for m in members)
 
 
 def split(string, maxsplit=-1):
