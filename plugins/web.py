@@ -5,22 +5,16 @@ Commands:
 """
 
 import discord
-import aiohttp
 
-from pcbot import Annotate
+from pcbot import Annotate, utils
 import plugins
 
 
 @plugins.command(usage="<query ...>")
 def define(client: discord.Client, message: discord.Message, term: Annotate.LowerCleanContent):
     """ Defines a term using Urban Dictionary. """
-    params = {"term": term}
 
-    # Request a JSON object as a list of definitions
-    with aiohttp.ClientSession() as session:
-        response = yield from session.get("http://api.urbandictionary.com/v0/define", params=params)
-        json = yield from response.json() if response.status == 200 else []
-
+    json = yield from utils.download_json("http://api.urbandictionary.com/v0/define", term=term)
     definitions = json["list"] if "list" in json else []
 
     # Send any valid definition (length of message < 2000 characters)

@@ -5,6 +5,9 @@ Then tries to delete their message, and post a link to the dedicated nsfw channe
 
 Commands:
 !moderate
+!mute
+!unmute
+!timeout
 """
 
 from collections import defaultdict

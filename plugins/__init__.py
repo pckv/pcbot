@@ -150,7 +150,9 @@ def load_plugins():
 
     for plugin in os.listdir("plugins/"):
         name = os.path.splitext(plugin)[0]
-        load_plugin(name)
+
+        if not name.endswith("lib"):  # Skip libraries
+            load_plugin(name)
 
 
 @asyncio.coroutine

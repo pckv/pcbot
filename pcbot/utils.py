@@ -120,6 +120,19 @@ def download_file(url, **params):
     return file
 
 
+@asyncio.coroutine
+def download_json(url, **params):
+    """ Download and return a json file.
+
+    :param url: download url as str
+    :param params: any additional url parameters. """
+    with aiohttp.ClientSession() as session:
+        response = yield from session.get(url, params=params)
+        json = yield from response.json() if response.status == 200 else []
+
+    return json
+
+
 def find_member(server: discord.Server, name, steps=3, mention=True):
     """ Find any member by their name or a formatted mention.
     Steps define the depth at which to search. More steps equal
@@ -137,8 +150,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     :param server: discord.Server to look through for members.
     :param name: name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
-    :param mention: check for mentions.
-    :param nicknames: check nicknames. """
+    :param mention: check for mentions. """
     member = None
 
     # Return a member from mention

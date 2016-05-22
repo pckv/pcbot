@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 from pcbot import Annotate
 import plugins
 
-prank_path = "plugins/prank-lib/"
+prank_path = "plugins/pranklib/"
 __commands = []
 
 image_base = Image.open(prank_path + "discord_prank.png").convert("RGBA")
