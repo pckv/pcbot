@@ -193,7 +193,6 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
         num_given -= (num_pos_args - 1) if not num_pos_args == 0 else 0
 
     complete = (num_given == num_args)
-    print(num_args, num_given)
     return args, kwargs, complete
 
 
@@ -288,7 +287,6 @@ def on_message(message: discord.Message):
 
                 if command:
                     log_message(message)  # Log the command
-                    print(args, kwargs)
                     client.loop.create_task(command.function(client, message, *args, **kwargs))  # Run command
 
                     # Log time spent parsing the command
