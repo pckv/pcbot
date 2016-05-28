@@ -80,9 +80,9 @@ def roll(client: discord.Client, message: discord.Message, max_roll: int=100):
 def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id=None):
     """ Handle plugin feature requests where plugin is a plugin name. See `!plugin` for a list of plugins.
 
-        `#feature_id` shows a plugin's feature request with the specified id.
-        `new <feature>` is used to request a new plugin feature.
-        `mark <#feature_id>` marks a feature as complete. **Owner command.**
+        `#feature_id` shows a plugin's feature request with the specified id.  /
+        `new <feature>` is used to request a new plugin feature.  /
+        `mark <#feature_id>` marks a feature as complete. **Owner command.**  /
         `remove <#feature_id>` removes a requested feature from the list entirely. **Owner command.**"""
 
     if req_id:

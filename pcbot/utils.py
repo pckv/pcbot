@@ -15,14 +15,22 @@ command_prefix = "!"
 
 class Annotate(Enum):
     """ Command annotation enum.
-    Annotate a command argument with one of these to get the commented value. """
+    Annotate a command argument with one of these to get the commented result. """
     Content = 1  # Return all the content after command and/or arguments with Message.content
     LowerContent = 2  # Same as above but returns the contents in lowercase
     CleanContent = 3  # Return all the content after command and/or arguments with Message.clean_content
     LowerCleanContent = 4  # Same as above but returns the contents in lowercase
-    User = Member = 5  # Return a member (uses find_member with steps=3)
-    Channel = 6  # Return a channel (uses find_channel with steps=3)
+    User = Member = 5  # Return a member (uses utils.find_member with steps=3)
+    Channel = 6  # Return a channel (uses utils.find_channel with steps=3)
     Code = 7  # Get formatted code (like Content but extracts any code)
+
+
+def placeholder(_: str):
+    """ This function always returns False in order to invalidate any args.
+
+    This means you can use it as a command annotation and the command will
+    execute only if a sub command is passed. """
+    return False
 
 
 def get_command(plugin, command: str):

@@ -61,7 +61,7 @@ def log_message(message: discord.Message, prefix: str=""):
 
 @asyncio.coroutine
 def on_plugin_message(function, message: discord.Message, args: list):
-    """ Run the given plugin function (either on_message() or on_command()).
+    """ Run the given plugin function.
     If the function returns True, log the sent message. """
     success = yield from function(client, message, args)
 
@@ -73,9 +73,8 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
     """ Parse annotations and return the command to use.
 
     index is basically the arg's index in shelx.split(message.content) """
-    if param.annotation:  # Any annotation is a function or Annotation enum
+    if param.annotation is not param.empty:  # Any annotation is a function or Annotation enum
         anno = param.annotation
-        anno = anno if anno is not param.empty else str
 
         # Valid enum checks
         if anno is utils.Annotate.Content:  # Split and get raw content from this point
@@ -101,7 +100,7 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
         except:  # On error, eg when annotation is int and given argument is str
             return None
         
-    return arg  # Return if there was no annotation
+    return str(arg)  # Return str of arg if there was no annotation
 
 
 def parse_command_args(command: plugins.Command, cmd_args: list, start_index: int, message: discord.Message):
@@ -123,7 +122,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
                 raise Exception("First command parameter must be of type discord.Client")
 
             continue
-        elif index == 1:  # Param should have a Client annotation
+        elif index == 1:  # Param should have a Message annotation
             if param.annotation is not discord.Message:
                 raise Exception("Second command parameter must be of type discord.Message")
 
@@ -283,11 +282,11 @@ def on_message(message: discord.Message):
             command = utils.get_command(plugin, cmd)
 
             if command:
-                command, args, kwargs = yield from parse_command(command, cmd, cmd_args, message)
+                parsed_command, args, kwargs = yield from parse_command(command, cmd, cmd_args, message)
 
-                if command:
+                if parsed_command:
                     log_message(message)  # Log the command
-                    client.loop.create_task(command.function(client, message, *args, **kwargs))  # Run command
+                    client.loop.create_task(parsed_command.function(client, message, *args, **kwargs))  # Run command
 
                     # Log time spent parsing the command
                     stop_time = time()

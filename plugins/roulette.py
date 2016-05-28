@@ -227,5 +227,5 @@ def roulette(client: discord.Client, message: discord.Message, num: int=6):
 
 @plugins.command(usage="[participants]", description=desc_template.format(game=HotPotato.name))
 def hotpotato(client: discord.Client, message: discord.Message, num: int=4):
-    """ The roulette command. Description is defined using a template. """
+    """ The hotpotato command. Description is defined using a template. """
     yield from init_game(client, message, HotPotato, num)

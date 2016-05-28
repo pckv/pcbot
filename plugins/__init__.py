@@ -66,8 +66,19 @@ def command(**options):
             usage = None
 
         # Properly format description when using docstrings
+        # Kinda like markdown; new line = (blank line) or (two spaces + / at end of line)
         if description == func.__doc__:
-            description = "\n".join(s.strip() for s in description.split("\n"))
+            new_desc = ""
+
+            for line in description.split("\n"):
+                if line.endswith("  /"):
+                    new_desc += line[:-1].strip() + "\n"
+                elif line.strip() == "":
+                    new_desc += "\n\n"
+                else:
+                    new_desc += line.strip() + " "
+
+            description = new_desc
 
         # Load the plugin the function is from, so that we can modify the __commands attribute
         plugin = inspect.getmodule(func)
@@ -108,9 +119,9 @@ def command(**options):
     return decorator
 
 
-def load_plugin(name: str, package: str = "plugins"):
-    """ Load a plugin with the name name. This plugin has to be
-    situated under plugins/
+def load_plugin(name: str, package: str="plugins"):
+    """ Load a plugin with the name name. If package isn't specified, this
+    looks for plugin with specified name in /plugins/
 
     Any loaded plugin is imported and stored in the self.plugins dictionary. """
     if not name.startswith("__") or not name.endswith("__"):
@@ -129,7 +140,7 @@ def load_plugin(name: str, package: str = "plugins"):
 
 def reload_plugin(name: str):
     """ Reload a plugin. """
-    if plugins.get(name):
+    if name in plugins:
         if hasattr(plugins[name], "__commands"):  # Remove all registered commands
             delattr(plugins[name], "__commands")
         plugins[name] = importlib.reload(plugins[name])
@@ -138,8 +149,8 @@ def reload_plugin(name: str):
 
 def unload_plugin(name: str):
     """ Unload a plugin by removing it from the plugin dictionary. """
-    if plugins.get(name):
-        plugins.pop(name)
+    if name in plugins:
+        del plugins[name]
         logging.debug("UNLOADED PLUGIN " + name)
 
 
@@ -151,7 +162,7 @@ def load_plugins():
     for plugin in os.listdir("plugins/"):
         name = os.path.splitext(plugin)[0]
 
-        if not name.endswith("lib"):  # Skip libraries
+        if not name.endswith("lib"):  # Exclude libraries
             load_plugin(name)
 
 
@@ -164,6 +175,8 @@ def save_plugin(name):
         if getattr(plugin, "save", False):
             try:
                 yield from plugin.save(plugins)
+            except TypeError:
+                pass
             except Exception as e:
                 logging.error("An error occurred when saving plugin " + name + "\n" +
                               utils.format_exception(e))
