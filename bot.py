@@ -278,7 +278,9 @@ def on_message(message: discord.Message):
 
     # Handle commands
     for plugin in plugins.all_values():
-        if cmd:
+        # If there was a command and the bot can send messages in the channel, parse the command
+        # We don't care about channels we can't write in as the bot usually sends feedback
+        if cmd and message.server.me.permissions_in(message.channel).send_messages:
             command = utils.get_command(plugin, cmd)
 
             if command:

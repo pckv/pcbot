@@ -69,50 +69,50 @@ def owner(f):
 
     @wraps(f)
     @asyncio.coroutine
-    def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
+    def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
         if is_owner(message.author):
             yield from f(client, message, *args, **kwargs)
 
-    setattr(decorator, "__owner__", True)
-    return decorator
+    setattr(wrapped, "__owner__", True)
+    return wrapped
 
 
 def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
     perms must be a string matching any property of discord.Permissions"""
-    def wrapped(f):
+    def decorator(f):
         if not asyncio.iscoroutine(f):
             f = asyncio.coroutine(f)
 
         @wraps(f)
         @asyncio.coroutine
-        def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
+        def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
             member_perms = message.author.permissions_in(message.channel)
 
             if all(getattr(member_perms, perm, False) for perm in perms):
                 yield from f(client, message, *args, **kwargs)
 
-        return decorator
-    return wrapped
+        return wrapped
+    return decorator
 
 
 def role(*roles: str):
     """ Decorator that runs the command only if the author has the specified Roles.
     roles must be a string representing a role's name. """
-    def wrapped(f):
+    def decorator(f):
         if not asyncio.iscoroutine(f):
             f = asyncio.coroutine(f)
 
         @wraps(f)
         @asyncio.coroutine
-        def decorator(client: discord.Client, message: discord.Message, *args, **kwargs):
+        def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
             member_roles = [r.name for r in message.author.roles[1:]]
 
             if any(r in member_roles for r in roles):
                 yield from f(client, message, *args, **kwargs)
 
-        return decorator
-    return wrapped
+        return wrapped
+    return decorator
 
 
 @asyncio.coroutine
