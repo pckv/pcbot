@@ -21,7 +21,7 @@ lambda_blacklist = []
 @plugins.command(name="help", usage="[command]")
 def help_(client: discord.Client, message: discord.Message, name: str.lower=None):
     """ Display commands or their usage and description. """
-    if name:  # Display this section when a command is passed
+    if name:  # Display the specific command
         usage, desc = "", ""
 
         for plugin in plugins.all_values():
@@ -41,21 +41,21 @@ def help_(client: discord.Client, message: discord.Message, name: str.lower=None
             yield from client.say(message, "**Usage**: ```{}```**Description**: {}".format(usage, desc))
         else:
             yield from client.say(message, "Command `{}` does not exist.".format(name))
-    else:  # Display this section when no arguments are passed
+    else:  # Display every command
         commands = []
 
         for plugin in plugins.all_values():
             if getattr(plugin, "__commands", False):  # Massive pile of shit that works (so sorry)
                 commands.extend(
-                    cmd.usage for cmd in plugin.__commands
+                    cmd.usage.split()[0] for cmd in plugin.__commands
                     if not cmd.hidden and
                     (not getattr(getattr(cmd, "function"), "__owner__", False) or
                      utils.is_owner(message.author))
                 )
 
-        commands = "\n".join(sorted(commands))
+        commands = ", ".join(sorted(commands))
 
-        m = "**Commands:**```{}```\nUse `!help <command>` for command specific help.".format(commands)
+        m = "**Commands:**```{}```Use `!help <command>` for command specific help.".format(commands)
         yield from client.say(message, m)
 
 
