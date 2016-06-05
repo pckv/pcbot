@@ -189,13 +189,19 @@ def notify_pp(client: discord.Client):
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
-            m = "**{}** `{}` ".format(member.display_name, new["username"])
+            m = "**{}** " + "`{}` ".format(new["username"])
 
+        # Always add the difference in pp along with the ranks
         m += format_user_diff(pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
 
+        # Send the message to all servers
         for server in client.servers:
             if member in server.members:
                 channel = get_notify_channel(server)
+
+                # Add the display name in this server when we don't mention
+                if not score:
+                    m = m.format(member.display_name)
 
                 yield from client.send_message(channel, m)
 
