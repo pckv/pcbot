@@ -12,10 +12,13 @@ from pcbot import utils
 import plugins
 
 
+__version__ = "PCBOT V3"
+
+
 # Add all command-line arguments
 parser = ArgumentParser(description="Run PCBOT.")
-parser.add_argument("--version", help="Return the current version (placebo command; only tells you to git status).",
-                    action="version", version="Try: git status")
+parser.add_argument("--version", help="Return the current version..",
+                    action="version", version=__version__)
 parser.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
 parser.add_argument("--email", "-e", help="The email to login to. Token prompt is default.")
 parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
