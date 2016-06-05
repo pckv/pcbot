@@ -22,7 +22,7 @@ osu_tracking = {}  # Saves the requested data or deletes whenever the user stops
 update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
 
-pp_threshold = 0
+pp_threshold = 0.05
 score_request_limit = 100
 
 api.api_key = osu_config.data.get("key")
@@ -136,6 +136,7 @@ def get_new_score(member_id: str):
         if score not in osu_tracking[member_id]["scores"]:
             new_score = score
 
+    osu_tracking[member_id]["scores"] = scores
     return new_score
 
 
