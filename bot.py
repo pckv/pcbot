@@ -238,9 +238,8 @@ def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: d
 def on_ready():
     """ Create any tasks for plugins' on_ready() coroutine and create task
     for autosaving. """
-    logging.info("\nLogged in as\n"
-                 "{0.user.name}\n"
-                 "{0.user.id}\n".format(client) +
+    logging.info("Logged in as\n"
+                 "{0.user} ({0.user.id})\n".format(client) +
                  "-" * len(client.user.id))
 
     # Call any on_ready function in plugins

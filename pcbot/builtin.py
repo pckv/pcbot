@@ -270,7 +270,7 @@ def ping(client: discord.Client, message: discord.Message):
     """ Tracks the time spent parsing the command and sending a message. """
     # Track the time it took to receive a message and send it.
     start_time = time()
-    first_message = yield from client.say(message, "Ping")
+    first_message = yield from client.say(message, "Pong!")
     stop_time = time()
 
     # Edit our message with the tracked time (in ms)

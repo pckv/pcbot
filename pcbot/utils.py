@@ -103,7 +103,7 @@ def role(*roles: str):
         if not asyncio.iscoroutine(f):
             f = asyncio.coroutine(f)
 
-        @wraps(f)
+        @wraps(f)   
         @asyncio.coroutine
         def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
             member_roles = [r.name for r in message.author.roles[1:]]
@@ -123,7 +123,7 @@ def download_file(url, **params):
     :param params: any additional url parameters. """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
-        file = yield from response.read() if response.status == 200 else []
+        file = yield from response.read() if response.status == 200 else None
 
     return file
 
@@ -136,7 +136,7 @@ def download_json(url, **params):
     :param params: any additional url parameters. """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
-        json = yield from response.json() if response.status == 200 else []
+        json = yield from response.json() if response.status == 200 else None
 
     return json
 
