@@ -18,7 +18,7 @@ pastas = Config("pastas", data={})
 @plugins.command(usage="<copypasta | add <name> <pasta ...> | remove <pasta>>")
 def pasta(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
-        pasta action. You also need quotes around a `pastaname` if it has any spaces. """
+        pasta action. You also need quotes around `<name>` if it has any spaces. """
     if name == ".":  # Display a random pasta
         yield from client.say(message, choice(list(pastas.data.values())))
         return

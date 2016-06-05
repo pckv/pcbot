@@ -40,11 +40,11 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
     formatted = ":information_source:`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
-    formatted += ("  :earth_africa:`#{}{}`".format(data["pp_rank"],
+    formatted += (" :earth_africa:`#{}{}`".format(data["pp_rank"],
                                                    "" if int(rank) == 0 else " {:+,}".format(int(rank))))
-    formatted += ("  :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
+    formatted += (" :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
                                               "" if int(country_rank) == 0 else " {:+,}".format(int(country_rank))))
-    formatted += ("  {}`{:+.3f}%`".format(":chart_with_upwards_trend:"
+    formatted += (" {}`{:+.3f}%`".format(":chart_with_upwards_trend:"
                                           if accuracy > 0 else ":chart_with_downwards_trend:", accuracy))
 
     return formatted
