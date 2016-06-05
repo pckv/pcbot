@@ -67,6 +67,10 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
 
     # Try giving members the Muted role
     for member in members:
+        if member is message.server.me:
+            yield from client.say(message, "I refuse to mute myself!")
+            continue
+
         while True:
             try:
                 yield from function(member, muted_role)

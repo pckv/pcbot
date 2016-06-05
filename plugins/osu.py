@@ -39,7 +39,7 @@ def calculate_acc(c50, c100, c300, miss):
 def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = ":information_source:`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
+    formatted = " :information_source:`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
     formatted += ("  :earth_africa:`#{}{}`".format(data["pp_rank"],
                                                    "" if int(rank) == 0 else " {:+,}".format(int(rank))))
     formatted += ("  :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
@@ -169,7 +169,7 @@ def notify_pp(client: discord.Client):
             continue
 
         # If the difference is too small, move on
-        if pp_diff < pp_threshold:
+        if pp_threshold > pp_diff > pp_threshold * -1:
             continue
 
         rank_diff = get_diff(old, new, "pp_rank") * -1
@@ -185,11 +185,11 @@ def notify_pp(client: discord.Client):
         if score:
             beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
             beatmap = api.get_beatmap(beatmap_search)
-            m = "{} `{}`  ".format(member.mention, new["username"]) + format_new_score(score, beatmap) + "\n"
+            m = "{} `{}` ".format(member.mention, new["username"]) + format_new_score(score, beatmap) + "\n"
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
-            m = "**{}** `{}`  ".format(member.display_name, new["username"])
+            m = "**{}** `{}` ".format(member.display_name, new["username"])
 
         m += format_user_diff(pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
 
@@ -302,15 +302,3 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     del osu_config.data["profiles"][member.id]
     osu_config.save()
     yield from client.say(message, "**{}'s** osu! profile unlinked.".format(member.name))
-
-
-@osu.command()
-@utils.owner
-def test(client: discord.Client, message: discord.Message, username: str.lower):
-    """ Testing. """
-    user = yield from api.get_user(u=username)
-    scores = yield from api.get_user_best(u=username, limit=1)
-
-    yield from client.say(message,
-                          "**{user[username]}** ({user[pp_raw]}pp): *top score {score[pp]}pp*\n"
-                          "Total requests sent: {sent}".format(user=user, score=scores[0], sent=api.requests_sent))
