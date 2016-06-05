@@ -276,7 +276,7 @@ def ping(client: discord.Client, message: discord.Message):
     # Edit our message with the tracked time (in ms)
     time_elapsed = (stop_time - start_time) * 1000
     yield from client.edit_message(first_message,
-                                   "Ping `{elapsed:.4f}ms`".format(elapsed=time_elapsed))
+                                   "Pong! `{elapsed:.4f}ms`".format(elapsed=time_elapsed))
 
 
 @asyncio.coroutine
