@@ -189,7 +189,7 @@ def notify_pp(client: discord.Client):
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
-            m = "**{}** " + "(`{}`)  ".format(new["username"])
+            m = "**{}** " + "(`{}`) ".format(new["username"])
 
         # Always add the difference in pp along with the ranks
         m += format_user_diff(pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
@@ -314,7 +314,7 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
 @utils.owner
 def debug(client: discord.Client, message: discord.Message):
     """ Display some debug info. """
-    yield from client.say(message, "Sent `{}` requests since the server started (`{}`).".format(
+    yield from client.say(message, "Sent `{}` requests since the bot started (`{}`).".format(
         api.requests_sent,
         client.time_started.ctime()
     ))
