@@ -39,9 +39,11 @@ def calculate_acc(c50, c100, c300, miss):
 def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = ":information_source:`{}pp {:+.2f}`".format(data["pp_raw"], pp)
-    formatted += ("  :earth_africa:`#{} {:+,}`".format(data["pp_rank"], int(rank)))
-    formatted += ("  :flag_{}:`#{} {:+,}`".format(iso.lower(), data["pp_country_rank"], int(country_rank)))
+    formatted = ":information_source:`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
+    formatted += ("  :earth_africa:`#{}{}`".format(data["pp_rank"],
+                                                   "" if int(rank) == 0 else " {:+,}".format(int(rank))))
+    formatted += ("  :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
+                                              "" if int(country_rank) == 0 else " {:+,}".format(int(country_rank))))
     formatted += ("  {}`{:+.3f}%`".format(":chart_with_upwards_trend:"
                                           if accuracy > 0 else ":chart_with_downwards_trend:", accuracy))
 
@@ -143,9 +145,9 @@ def get_diff(old, new, value):
 
 
 def get_notify_channel(server: discord.Server):
-    """ Find the notifying channel or return False. """
-    # TODO: return the actual notify channel set through a command
-    return server
+    """ Find the notifying channel or return the server. """
+    channel = discord.utils.find(lambda c: "osu" in c.name, server.channels)
+    return channel or server
 
 
 @asyncio.coroutine
@@ -178,13 +180,15 @@ def notify_pp(client: discord.Client):
         score = yield from get_new_score(member_id)
         member = data["member"]
 
-        # If the a
+        # If a new score was found, format the score
         if score:
             beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
             beatmap = api.get_beatmap(beatmap_search)
-            m = member.mention + format_new_score(score, beatmap) + "\n"
+            m = "{} `{}`  ".format(member.mention, new["username"]) + format_new_score(score, beatmap) + "\n"
+
+        # There was not enough pp to get a top score, so add the name without mention
         else:
-            m = "**{}**".format(member.name)
+            m = "**{}** `{}`  ".format(member.display_name, new["username"])
 
         m += format_user_diff(pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
 
@@ -251,7 +255,7 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
                                                colour=color, uname=user_id, pp=True, countryrank=True, xpbar=True)
     yield from client.send_file(message.channel, signature, filename="sig.png")
 
-    yield from client.say(message, "https://osu.ppy.sh/u/{}".format(user_id))
+    yield from client.say(message, "<https://osu.ppy.sh/u/{}>".format(user_id))
 
 
 @osu.command()
