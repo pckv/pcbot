@@ -39,7 +39,7 @@ def calculate_acc(c50, c100, c300, miss):
 def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = " :information_source:`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
+    formatted = ":information_source:`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
     formatted += ("  :earth_africa:`#{}{}`".format(data["pp_rank"],
                                                    "" if int(rank) == 0 else " {:+,}".format(int(rank))))
     formatted += ("  :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
@@ -53,7 +53,7 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
 def format_new_score(score: dict, beatmap: dict):
     """ Format any osu!Standard score. There should be a member name/mention in front of this string. """
     return (
-        " set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
+        "set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
         "**{pp}pp, {rank} +{mods}**"
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
@@ -185,11 +185,11 @@ def notify_pp(client: discord.Client):
         if score:
             beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
             beatmap = api.get_beatmap(beatmap_search)
-            m = "{} `{}` ".format(member.mention, new["username"]) + format_new_score(score, beatmap) + "\n"
+            m = "{} (`{}`) ".format(member.mention, new["username"]) + format_new_score(score, beatmap) + "\n"
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
-            m = "**{}** " + "`{}` ".format(new["username"])
+            m = "**{}** " + "(`{}`)  ".format(new["username"])
 
         # Always add the difference in pp along with the ranks
         m += format_user_diff(pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
@@ -308,3 +308,13 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     del osu_config.data["profiles"][member.id]
     osu_config.save()
     yield from client.say(message, "**{}'s** osu! profile unlinked.".format(member.name))
+
+
+@osu.command()
+@utils.owner
+def debug(client: discord.Client, message: discord.Message):
+    """ Display some debug info. """
+    yield from client.say(message, "Sent `{}` requests since the server started (`{}`).".format(
+        api.requests_sent,
+        client.time_started.ctime()
+    ))

@@ -1,7 +1,7 @@
 import logging
 import inspect
 import os
-from time import time
+from datetime import datetime
 from getpass import getpass
 from argparse import ArgumentParser
 
@@ -46,6 +46,7 @@ def say(message: discord.Message, content: str):
 
 
 setattr(client, "say", say)
+setattr(client, "time_started", datetime.now())
 
 
 @asyncio.coroutine
@@ -258,7 +259,7 @@ def on_message(message: discord.Message):
     """ What to do on any message received.
 
     The bot will handle all commands in plugins and send on_message to plugins using it. """
-    start_time = time()
+    start_time = datetime.now()
 
     if message.author == client.user:
         return
@@ -293,9 +294,9 @@ def on_message(message: discord.Message):
                     client.loop.create_task(parsed_command.function(client, message, *args, **kwargs))  # Run command
 
                     # Log time spent parsing the command
-                    stop_time = time()
-                    time_elapsed = (stop_time - start_time) * 1000
-                    logging.debug("Time spent parsing comand: {elapsed:.6f}".format(elapsed=time_elapsed))
+                    stop_time = datetime.now()
+                    time_elapsed = (stop_time - start_time).total_seconds() / 1000
+                    logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
 
         # Always run the on_message function if it exists
         if getattr(plugin, "on_message", False):
