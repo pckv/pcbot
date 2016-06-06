@@ -44,8 +44,9 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
                                                    "" if int(rank) == 0 else " {:+,}".format(int(rank))))
     formatted += (" :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
                                               "" if int(country_rank) == 0 else " {:+,}".format(int(country_rank))))
-    formatted += (" {}`{:+.3f}%`".format(":chart_with_upwards_trend:"
-                                          if accuracy > 0 else ":chart_with_downwards_trend:", accuracy))
+    if not round(accuracy, 3) == 0:
+        formatted += (" {}`{:+.3f}%`".format(":chart_with_upwards_trend:"
+                                             if accuracy > 0 else ":chart_with_downwards_trend:", accuracy))
 
     return formatted
 
@@ -223,7 +224,11 @@ def on_ready(client: discord.Client):
             # Next, check for any differences in pp between the "old" and the "new" subsections
             # and notify any servers
             yield from notify_pp(client)
-
+        # We don't want to stop updating scores even if something breaks
+        except:
+            print_exc()
+        finally:
+            pass
             # TODO: setup logging
             # # Send info on how many requests were sent the last 30 minutes (60 loops)
             # updated += 1
@@ -231,10 +236,6 @@ def on_ready(client: discord.Client):
             # if updated % updates_per_log() == 0:
             #     logging.info("Requested osu! scores {} times in {} minutes.".format(sent_requests, logging_interval))
             #     sent_requests = 0
-
-        # We don't want to stop updating scores even if something breaks
-        except:
-            print_exc()
 
 
 @plugins.command(usage="[username | link <user> | unlink [user]]")
@@ -255,11 +256,13 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
     user_id = osu_config.data["profiles"][member.id]
 
     # Set the signature color to that of the role color
-    color = "pink" if member.color is discord.Color.default() else member.color
+    color = "pink" if member.color == discord.Color.default() \
+        else "#{0:02x}{1:02x}{2:02x}".format(*member.color.to_tuple())
 
     # Download and upload the signature
     signature = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
-                                               colour=color, uname=user_id, pp=True, countryrank=True, xpbar=True)
+                                               colour=color, uname=user_id, pp=True,
+                                               countryrank=True, xpbar=True)
     yield from client.send_file(message.channel, signature, filename="sig.png")
 
     yield from client.say(message, "<https://osu.ppy.sh/u/{}>".format(user_id))
@@ -307,7 +310,7 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
 
     del osu_config.data["profiles"][member.id]
     osu_config.save()
-    yield from client.say(message, "**{}'s** osu! profile unlinked.".format(member.name))
+    yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
 @osu.command()
