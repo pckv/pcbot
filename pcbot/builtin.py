@@ -341,12 +341,12 @@ def on_ready(client: discord.Client):
     for module, attr in lambda_config.data["imports"]:
         import_module(module, attr)
 
-    code_locals = dict(
-        client=client,
+    code_locals["client"] = client
+    code_globals.update(dict(
         utils=utils,
         datetime=datetime,
         random=random
-    )
+    ))
 
 
 @asyncio.coroutine
