@@ -26,6 +26,9 @@ code_locals = {}
 def help_(client: discord.Client, message: discord.Message, name: str.lower=None):
     """ Display commands or their usage and description. """
     if name:  # Display the specific command
+        if name.startswith(utils.command_prefix):
+            name = name[1:]
+
         usage, desc = "", ""
 
         for plugin in plugins.all_values():
@@ -359,7 +362,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             else:
                 return default
 
-        code_locals.update(dict(arg=arg, say=say))
+        code_locals.update(dict(arg=arg, say=say, args=args))
 
         try:
             exec(lambdas.data[args[0]], code_globals, code_locals)
