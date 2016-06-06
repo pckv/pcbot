@@ -211,7 +211,7 @@ def lambda_(client: discord.Client, message: discord.Message):
         where the default argument is what to return when the argument does not exist.
         **Owner command unless no argument is specified.**"""
     yield from client.say(message,
-                          "**Lambdas:** ```\n" "{}```".format(", ".join(lambdas.data.keys())))
+                          "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
 
 
 @lambda_.command()
