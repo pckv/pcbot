@@ -120,7 +120,7 @@ def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
     def say(msg, m=message):
         asyncio.async(client.say(m, msg))
 
-    code_locals.update(dict(say=say, message=message, client=client))
+    code_globals.update(dict(say=say, message=message, client=client))
 
     try:
         exec(script, code_globals, code_locals)
@@ -133,7 +133,7 @@ def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
 def eval_(client: discord.Client, message: discord.Message,
              script: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one line that returns something. """
-    code_locals.update(dict(message=message, client=client))
+    code_globals.update(dict(message=message, client=client))
 
     try:
         result = eval(script, code_globals, code_locals)
@@ -336,8 +336,6 @@ def uptime(client: discord.Client, message: discord.Message):
 @asyncio.coroutine
 def on_ready(client: discord.Client):
     """ Import any imports for lambdas. """
-    global code_locals
-
     for module, attr in lambda_config.data["imports"]:
         import_module(module, attr)
 
@@ -361,7 +359,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             else:
                 return default
 
-        code_locals.update(dict(arg=arg, say=say, args=args, message=message, client=client))
+        code_globals.update(dict(arg=arg, say=say, args=args, message=message, client=client))
 
         try:
             exec(lambdas.data[args[0]], code_globals, code_locals)
