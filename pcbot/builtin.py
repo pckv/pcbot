@@ -5,7 +5,8 @@ This script works just like any of the plugins in plugins/
 
 import random
 import logging
-from time import time
+from datetime import datetime
+import importlib
 
 import discord
 import asyncio
@@ -14,7 +15,7 @@ from pcbot import utils, Config, Annotate
 import plugins
 
 
-lambdas = Config("lambdas", data={})
+lambdas = Config("lambdas", data=dict(imports=[]))
 lambda_blacklist = []
 
 
@@ -191,7 +192,8 @@ def unload(client: discord.Client, message: discord.Message, name: str.lower):
         yield from client.say(message, "`{}` is not a plugin. See `!plugin`.".format(name))
 
 
-@plugins.command(name="lambda", usage="[add <trigger> <python code> | [remove | enable | disable | source] <trigger>]")
+@plugins.command(name="lambda", usage="[add <trigger> <python code> | [remove | enable | disable | source | "
+                                      "import <module> [attribute]] <trigger>]")
 def lambda_(client: discord.Client, message: discord.Message):
     """ Create commands. See `!help do` for information on how the code works.
 
@@ -256,6 +258,41 @@ def disable(client: discord.Client, message: discord.Message, trigger: str.lower
             yield from client.say(message, "Command `{}` does not exist.".format(trigger))
 
 
+def import_module(module: str, attr: str=None):
+    """ Remotely import a module or attribute from module. """
+    try:
+        imported = importlib.import_module(module)
+    except ImportError:
+        e = "Unable to import module {}.".format(module)
+        logging.error(e)
+        raise ImportError(e)
+    else:
+        if attr:
+            if hasattr(imported, attr):
+                globals()[attr] = getattr(imported, attr)
+            else:
+                e = "Module {} has no attribute {}.".format(module, attr)
+                logging.error(e)
+                raise KeyError(e)
+        else:
+            globals()[module] = imported
+
+
+@lambda_.command(name="import")
+@utils.owner
+def import_(client: discord.Client, message: discord.Message, module: str, attr: str=None):
+    """ Things to import. """
+    try:
+        import_module(module, attr)
+    except ImportError:
+        yield from client.say(message, "Unable to import `{}`.".format(module))
+    except KeyError:
+        yield from client.say(message, "Unable to import `{}` from `{}`.".format(attr, module))
+    else:
+        lambdas.data["imports"].append((module, attr))
+        yield from client.say(message, "Imported and setup `{}` for import.".format(attr or module))
+
+
 @lambda_.command()
 def source(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Disable source of a command """
@@ -269,18 +306,29 @@ def source(client: discord.Client, message: discord.Message, trigger: str.lower)
 def ping(client: discord.Client, message: discord.Message):
     """ Tracks the time spent parsing the command and sending a message. """
     # Track the time it took to receive a message and send it.
-    start_time = time()
+    start_time = datetime.now()
     first_message = yield from client.say(message, "Pong!")
-    stop_time = time()
+    stop_time = datetime.now()
 
     # Edit our message with the tracked time (in ms)
-    time_elapsed = (stop_time - start_time) * 1000
+    time_elapsed = (stop_time - start_time).total_seconds() / 1000
     yield from client.edit_message(first_message,
                                    "Pong! `{elapsed:.4f}ms`".format(elapsed=time_elapsed))
 
 
 @asyncio.coroutine
+def on_ready(client: discord.Client):
+    """ Import any imports for lambdas. """
+    if "imports" not in lambdas.data:
+            lambdas.data["imports"] = []
+
+    for module, attr in lambdas.data["imports"]:
+        import_module(module, attr)
+
+
+@asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message, args: list):
+    """ Perform lambda commands. """
     if args[0] in lambdas.data and args[0] not in lambda_blacklist:
         def say(msg, m=message):
             asyncio.async(client.say(m, msg))
