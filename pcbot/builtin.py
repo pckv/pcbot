@@ -15,8 +15,11 @@ from pcbot import utils, Config, Annotate
 import plugins
 
 
-lambdas = Config("lambdas", data=dict(imports=[]))
-lambda_blacklist = []
+lambdas = Config("lambdas", data={})
+lambda_config = Config("lambda-config", data=dict(imports=[], blacklist=[]))
+
+code_globals = {}
+code_locals = {}
 
 
 @plugins.command(name="help", usage="[command]")
@@ -114,8 +117,10 @@ def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
     def say(msg, m=message):
         asyncio.async(client.say(m, msg))
 
+    code_locals.update(dict(say=say, message=message))
+
     try:
-        exec(script, locals(), globals())
+        exec(script, code_globals, code_locals)
     except Exception as e:
         say("```" + utils.format_exception(e) + "```")
 
@@ -125,8 +130,10 @@ def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
 def eval_(client: discord.Client, message: discord.Message,
              script: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one line that returns something. """
+    code_locals["message"] = message
+
     try:
-        result = eval(script, globals(), locals())
+        result = eval(script, code_globals, code_locals)
     except Exception as e:
         result = utils.format_exception(e)
 
@@ -232,9 +239,9 @@ def remove(client: discord.Client, message: discord.Message, trigger: str.lower)
 @utils.owner
 def enable(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Enable a command. """
-    if trigger in lambda_blacklist:
-        lambda_blacklist.remove(trigger)
-        lambdas.save()
+    if trigger in lambda_config.data["blacklist"]:
+        del lambda_config.data["blacklist"][trigger]
+        lambda_config.save()
         yield from client.say(message, "Command `{}` enabled.".format(trigger))
     else:
         if trigger in lambdas.data:
@@ -247,9 +254,9 @@ def enable(client: discord.Client, message: discord.Message, trigger: str.lower)
 @utils.owner
 def disable(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Disable a command. """
-    if trigger not in lambda_blacklist:
-        lambda_blacklist.append(trigger)
-        lambdas.save()
+    if trigger in lambda_config.data["blacklist"]:
+        lambda_config.data["blacklist"].append(trigger)
+        lambda_config.save()
         yield from client.say(message, "Command `{}` disabled.".format(trigger))
     else:
         if trigger in lambdas.data:
@@ -259,7 +266,7 @@ def disable(client: discord.Client, message: discord.Message, trigger: str.lower
 
 
 def import_module(module: str, attr: str=None):
-    """ Remotely import a module or attribute from module. """
+    """ Remotely import a module or attribute from module into code_globals. """
     try:
         imported = importlib.import_module(module)
     except ImportError:
@@ -269,13 +276,13 @@ def import_module(module: str, attr: str=None):
     else:
         if attr:
             if hasattr(imported, attr):
-                globals()[attr] = getattr(imported, attr)
+                code_globals[attr] = getattr(imported, attr)
             else:
                 e = "Module {} has no attribute {}.".format(module, attr)
                 logging.error(e)
                 raise KeyError(e)
         else:
-            globals()[module] = imported
+            code_globals[module] = imported
 
 
 @lambda_.command(name="import")
@@ -289,7 +296,8 @@ def import_(client: discord.Client, message: discord.Message, module: str, attr:
     except KeyError:
         yield from client.say(message, "Unable to import `{}` from `{}`.".format(attr, module))
     else:
-        lambdas.data["imports"].append((module, attr))
+        lambda_config.data["imports"].append((module, attr))
+        lambda_config.save()
         yield from client.say(message, "Imported and setup `{}` for import.".format(attr or module))
 
 
@@ -319,17 +327,23 @@ def ping(client: discord.Client, message: discord.Message):
 @asyncio.coroutine
 def on_ready(client: discord.Client):
     """ Import any imports for lambdas. """
-    if "imports" not in lambdas.data:
-            lambdas.data["imports"] = []
+    global code_locals
 
-    for module, attr in lambdas.data["imports"]:
+    for module, attr in lambda_config.data["imports"]:
         import_module(module, attr)
+
+    code_locals = dict(
+        client=client,
+        utils=utils,
+        datetime=datetime,
+        random=random
+    )
 
 
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message, args: list):
     """ Perform lambda commands. """
-    if args[0] in lambdas.data and args[0] not in lambda_blacklist:
+    if args[0] in lambdas.data and args[0] not in lambda_config.data["blacklist"]:
         def say(msg, m=message):
             asyncio.async(client.say(m, msg))
 
@@ -339,8 +353,10 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
             else:
                 return default
 
+        code_locals.update(dict(arg=arg, say=say))
+
         try:
-            exec(lambdas.data[args[0]], locals(), globals())
+            exec(lambdas.data[args[0]], code_globals, code_locals)
         except Exception as e:
             if utils.is_owner(message.author):
                 say("```" + utils.format_exception(e) + "```")

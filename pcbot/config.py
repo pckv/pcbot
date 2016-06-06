@@ -25,7 +25,18 @@ class Config:
         if data is not None and not loaded_data:
             self.data = data
         elif loaded_data:
+            # If the default data is a dict, compare and add missing keys
+            updated = False
+            if type(loaded_data) is dict:
+                for k, v in data.items():
+                    if k not in loaded_data:
+                        loaded_data[k] = v
+                        updated = True
+
             self.data = loaded_data
+
+            if updated:
+                self.save()
         else:
             self.data = None
 
@@ -43,6 +54,9 @@ class Config:
         :return: config parsed from json or None"""
         if exists(self.filepath):
             with open(self.filepath, "r") as f:
-                return json.load(f)
+                try:
+                    return json.load(f)
+                except ValueError:
+                    pass
 
         return None

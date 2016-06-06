@@ -47,6 +47,8 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
     if not round(accuracy, 3) == 0:
         formatted += (" {}`{:+.3f}%`".format(":chart_with_upwards_trend:"
                                              if accuracy > 0 else ":chart_with_downwards_trend:", accuracy))
+    else:
+        formatted += " :dart:"
 
     return formatted
 
