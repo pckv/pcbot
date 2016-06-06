@@ -22,7 +22,7 @@ osu_tracking = {}  # Saves the requested data or deletes whenever the user stops
 update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
 
-pp_threshold = 0.05
+pp_threshold = 0.1
 score_request_limit = 100
 
 api.api_key = osu_config.data.get("key")
@@ -53,6 +53,7 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
 
 def format_new_score(score: dict, beatmap: dict):
     """ Format any osu!Standard score. There should be a member name/mention in front of this string. """
+    acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"])
     return (
         "set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
         "**{pp}pp, {rank} +{mods}**"
@@ -62,9 +63,9 @@ def format_new_score(score: dict, beatmap: dict):
         "**Profile**: <https://osu.ppy.sh/u/{user_id}>.\n"
         "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>."
     ).format(
-        sign="+" if score["perfect"] == "1" else "-",
+        sign=("!" if acc == 1 else "+") if score["perfect"] == "1" else "-",
         mods=Mods.format_mods(int(score["enabled_mods"])),
-        acc=calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"]),
+        acc=acc,
         artist=beatmap["artist"],
         title=beatmap["title"],
         version=beatmap["version"],
