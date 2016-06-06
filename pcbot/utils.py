@@ -162,7 +162,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     member = None
 
     # Return a member from mention
-    found_mention = re.search(r"<@([0-9]+)>", name)
+    found_mention = re.search(r"<@!?([0-9]+)>", name)
     if found_mention and mention:
         member = server.get_member(found_mention.group(1))
 
