@@ -68,7 +68,7 @@ def list_(client: discord.Client, message: discord.Message):
     """ List all user's aliases. """
     # List aliases if user has any
     if message.author.id in aliases.data:
-        format_aliases = "\n".join(aliases.data[message.author.id].keys())
+        format_aliases = ", ".join(aliases.data[message.author.id].keys())
         yield from client.say(message, "**Aliases for {0.name}:**```{1}```\n".format(message.author, format_aliases))
         return
 
@@ -120,7 +120,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
                 mention = " =>(" + ", ".join(mentions) + ")"
 
             if execute:
-                if command.get("delete-message", False):
+                if command.get("delete_message", False):
                     if message.server.me.permissions_in(message.channel).manage_messages:
                         asyncio.async(client.delete_message(message))
 
