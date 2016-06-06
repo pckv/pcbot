@@ -322,7 +322,7 @@ def ping(client: discord.Client, message: discord.Message):
     stop_time = datetime.now()
 
     # Edit our message with the tracked time (in ms)
-    time_elapsed = (stop_time - start_time).total_seconds() / 1000
+    time_elapsed = (stop_time - start_time).microseconds() * 1000
     yield from client.edit_message(first_message,
                                    "Pong! `{elapsed:.4f}ms`".format(elapsed=time_elapsed))
 
