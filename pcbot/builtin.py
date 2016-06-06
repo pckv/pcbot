@@ -324,6 +324,12 @@ def ping(client: discord.Client, message: discord.Message):
                                    "Pong! `{elapsed:.4f}ms`".format(elapsed=time_elapsed))
 
 
+@plugins.command()
+def uptime(client: discord.Client, message: discord.Message):
+    """ Return the time this bot started. """
+    yield from client.say(message, "I've been running since `{}`.".format(client.time_started.ctime()))
+
+
 @asyncio.coroutine
 def on_ready(client: discord.Client):
     """ Import any imports for lambdas. """
