@@ -60,7 +60,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
     """ Use shorthand |<pasta ...> for displaying pastas and remove the user's message. """
     if args[0].startswith("|"):
         asyncio.async(client.delete_message(message))
-        yield from pasta(client, message, message.content[1:])
+        yield from pasta(client, message, message.content[1:].lower())
 
         return True
 

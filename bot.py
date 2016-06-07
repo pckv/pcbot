@@ -82,13 +82,13 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
 
         # Valid enum checks
         if anno is utils.Annotate.Content:  # Split and get raw content from this point
-            return utils.split(message.content, maxsplit=index)[-1].strip()
+            return utils.split(message.content, maxsplit=index)[-1].strip("\" ")
         elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
-            return utils.split(message.content, maxsplit=index)[-1].lower().strip()
+            return utils.split(message.content, maxsplit=index)[-1].lower().strip("\" ")
         elif anno is utils.Annotate.CleanContent:  # Split and get clean raw content from this point
-            return utils.split(message.clean_content, maxsplit=index)[-1].strip()
+            return utils.split(message.clean_content, maxsplit=index)[-1].strip("\" ")
         elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
-            return utils.split(message.clean_content, maxsplit=index)[-1].lower().strip()
+            return utils.split(message.clean_content, maxsplit=index)[-1].lower().strip("\" ")
         elif anno is utils.Annotate.Member:  # Checks member names or mentions
             return utils.find_member(message.server, arg)
         elif anno is utils.Annotate.Channel:  # Checks channel names or mentions

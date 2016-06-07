@@ -66,11 +66,11 @@ def plugin_in_req(plugin: str):
 
 
 @plugins.command(usage="[num | phrase]")
-def roll(client: discord.Client, message: discord.Message, max_roll: int=100):
+def roll(client: discord.Client, message: discord.Message, max_roll: utils.int_range(f=1)=100):
     """ Roll a number from 1-100 if no second argument or second argument is not a number.
-        Alternatively rolls `num` times. """
+        Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, max_roll)
-    yield from client.say(message, "{0.mention} rolls {1}".format(message.author, rolled))
+    yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
 
 
 @plugins.command(usage="<plugin [#feature_id]>"

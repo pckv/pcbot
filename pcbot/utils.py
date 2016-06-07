@@ -25,12 +25,28 @@ class Annotate(Enum):
     Code = 7  # Get formatted code (like Content but extracts any code)
 
 
-def placeholder(_: str):
-    """ This function always returns False in order to invalidate any args.
+def int_range(f: int=None, t: int=None):
+    """ Return a helper function for checking if a str converted to int is in the
+    specified range, f (from) - t (to).
 
-    This means you can use it as a command annotation and the command will
-    execute only if a sub command is passed. """
-    return False
+    If either f or t is None, they will be treated as -inf +inf respectively. """
+    def wrapped(arg: str):
+        # Convert to int and return None if unsuccessful
+        try:
+            num = int(arg)
+        except ValueError:
+            return None
+
+        # Compare the lowest and highest numbers
+        if f and num < f:
+            return None
+        if t and num > t:
+            return None
+
+        # The string given is converted to a number and fits the criteria
+        return num
+
+    return wrapped
 
 
 def get_command(plugin, command: str):
