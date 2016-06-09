@@ -33,7 +33,7 @@ score_request_limit = 100
 api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
 oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
-last_calc_beatmap = dict(beatmap_id=0)  # The last calculated beatmap info
+last_calc_beatmap = dict(beatmap_id="0")  # The last calculated beatmap info
 
 
 def calculate_acc(c50, c100, c300, miss):
