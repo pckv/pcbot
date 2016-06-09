@@ -33,6 +33,7 @@ score_request_limit = 100
 api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
 oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
+last_calc_beatmap = 0  # The last calculated beatmap info
 
 
 def calculate_acc(c50, c100, c300, miss):
@@ -336,6 +337,8 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
 @osu.command()
 def pp(client: discord.Client, message: discord.Message, beatmap_url: str.lower, *options):
     """ Calculate and return the would be pp using oppai. """
+    global last_calc_beatmap
+
     if not platform.system() == "Linux":
         yield from client.say(message, "This service is unsupported since the bot is not hosted using Linux.")
         return
@@ -343,17 +346,21 @@ def pp(client: discord.Client, message: discord.Message, beatmap_url: str.lower,
     if not os.path.exists(os.path.join(oppai_path, "oppai")):
         yield from client.say(message, "This service is not available before the owner sets up the `oppai` lib.")
 
-    # Parse beatmap URL and download the beatmap .osu
-    try:
-        beatmap = yield from api.get_beatmap_id(beatmap_url)
-    except Exception as e:
-        yield from client.say(message, e)
-        return
+    # Only download and request when the id is different from the last check
+    if last_calc_beatmap["id"] not in beatmap_url:
+        # Parse beatmap URL and download the beatmap .osu
+        try:
+            beatmap = yield from api.get_beatmap_id(beatmap_url)
+        except Exception as e:
+            yield from client.say(message, e)
+            return
 
-    # Download and save the beatmap pp_map.osu
-    beatmap_file = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
-    with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
-        f.write(beatmap_file)
+        # Download and save the beatmap pp_map.osu
+        beatmap_file = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+        with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
+            f.write(beatmap_file)
+    else:
+        beatmap = last_calc_beatmap
 
     command_args = [os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu")]
 
@@ -374,6 +381,8 @@ def pp(client: discord.Client, message: discord.Message, beatmap_url: str.lower,
     # We're done! Tell the user how much this score is worth.
     yield from client.say(message, "Such score on *{artist} - {title}* **[{version}]** would be worth `{0}pp`.".format(
         match.group("pp"), **beatmap))
+
+    last_calc_beatmap = beatmap
 
 
 @osu.command()
