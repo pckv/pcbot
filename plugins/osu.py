@@ -347,7 +347,7 @@ def pp(client: discord.Client, message: discord.Message, beatmap_url: str.lower,
         yield from client.say(message, "This service is not available before the owner sets up the `oppai` lib.")
 
     # Only download and request when the id is different from the last check
-    if last_calc_beatmap["id"] not in beatmap_url:
+    if last_calc_beatmap["beatmap_id"] not in beatmap_url:
         # Parse beatmap URL and download the beatmap .osu
         try:
             beatmap = yield from api.get_beatmap_id(beatmap_url)
