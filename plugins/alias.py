@@ -37,15 +37,12 @@ aliases = Config("user_alias", data=defaultdict(str))
 @plugins.command(usage=alias_usage, description=alias_desc, error="BrokeBack", pos_check=lambda s: s.startswith("-"))
 def alias(client: discord.Client, message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
     """ Assign an alias. Description is defined in alias_desc. """
-    # Set options
     anywhere = "-anywhere" in options
     case_sensitive = "-case-sensitive" in options
     delete_message = not anywhere and "-delete-message" in options
 
-    if not case_sensitive:
-        trigger = trigger.lower()
-
-    aliases.data[message.author.id][trigger] = dict(
+    # Set options
+    aliases.data[message.author.id][trigger if case_sensitive else trigger.lower()] = dict(
         text=text,
         anywhere=anywhere,
         case_sensitive=case_sensitive,
@@ -53,14 +50,7 @@ def alias(client: discord.Client, message: discord.Message, *options: str.lower,
     )
     aliases.save()
 
-    m = "Alias `{0}` set for **{1.name}**.".format(trigger, message.author)
-
-    # Inform the user when delete message might not work. Basically check if the bot has permissions.
-    if not message.server.me.permissions_in(message.channel).manage_messages and delete_message:
-        m += "\n**Note:** *`-delete-message` does not work in this channel. The bot requires " \
-             "`Manage Messages` permission to delete messages.*"
-
-    yield from client.say(message, m)
+    yield from client.say(message, "Alias `{0}` set for **{1.name}**.".format(trigger, message.author))
 
 
 @alias.command(name="list")

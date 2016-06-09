@@ -4,6 +4,7 @@
     request functions. """
 
 from enum import IntEnum
+import re
 
 import asyncio
 
@@ -13,6 +14,14 @@ from pcbot import utils
 api_url = "https://osu.ppy.sh/api/"
 api_key = ""  # This variable can be changed to exclude the "k" parameter
 requests_sent = 0
+
+
+class GameMode(IntEnum):
+    """ Enum for gamemodes. """
+    Standard = 0
+    Taiko = 1
+    CTB = 2
+    Mania = 3
 
 
 class Mods(IntEnum):
@@ -124,6 +133,36 @@ get_user_best = def_section("get_user_best")
 get_user_recent = def_section("get_user_recent")
 get_match = def_section("get_match", first_element=True)
 get_replay = def_section("get_replay")
+
+
+@asyncio.coroutine
+def get_beatmap_id(url: str, mode: GameMode=GameMode.Standard):
+    """ Takes a url and returns the beatmap in the specified gamemode.
+    If a url for a submission is given, it will find the most difficult map. """
+    match = re.match(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)", url)
+
+    # If there was no match, the operation was unsuccessful
+    if not match:
+        raise SyntaxError("The given URL is invalid.")
+
+    # Get the beatmap specified
+    if match.group("type") == "b":
+        difficulties = yield from get_beatmaps(b=match.group("id"), m=mode.value, limit=1)
+    else:
+        difficulties = yield from get_beatmaps(s=match.group("id"), m=mode.value)
+
+    # If the beatmap doesn't exist, the operation was unsuccessful
+    if not difficulties:
+        raise LookupError("The beatmap with the given URL was not found.")
+
+    # Find the most difficult beatmap
+    beatmap, highest = 0, 0
+    for beatmap in difficulties:
+        diff = float(beatmap["difficultyrating"])
+        if diff > highest:
+            beatmap, highest = beatmap, diff
+
+    return beatmap
 
 
 def get_beatmap(beatmaps: list, **lookup):

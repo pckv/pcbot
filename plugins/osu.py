@@ -10,6 +10,10 @@ Commands:
 
 import logging
 from traceback import print_exc
+import os
+import platform
+import re
+from subprocess import Popen, PIPE
 
 import discord
 import asyncio
@@ -27,6 +31,8 @@ pp_threshold = 0.1
 score_request_limit = 100
 
 api.api_key = osu_config.data.get("key")
+host = "https://osu.ppy.sh/"
+oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
 
 
 def calculate_acc(c50, c100, c300, miss):
@@ -325,6 +331,44 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     del osu_config.data["profiles"][member.id]
     osu_config.save()
     yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
+
+
+@osu.command()
+def pp(client: discord.Client, message: discord.Message, beatmap_url: str.lower, *options):
+    """ Calculate and return the would be pp using oppai. """
+    if not platform.system() == "Linux":
+        yield from client.say(message, "This service is unsupported since the bot is not hosted using Linux.")
+        return
+
+    if not os.path.exists(os.path.join(oppai_path, "oppai")):
+        yield from client.say(message, "This service is not available before the owner sets up the `oppai` lib.")
+
+    # Parse beatmap URL and download the beatmap .osu
+    try:
+        beatmap = yield from api.get_beatmap_id(beatmap_url)
+    except Exception as e:
+        yield from client.say(message, e)
+        return
+
+    # Download and save the beatmap pp_map.osu
+    beatmap_file = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+    with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
+        f.write(beatmap_file)
+
+    command_stream = Popen(os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu"), *options,
+                           universal_newlines=True, stdout=PIPE)
+    output = command_stream.stdout.read()
+    match = re.search(r"(?P<pp>[0-9.]+)pp", output)
+
+    # Something went wrong with our service
+    if not match:
+        yield from client.say(message, "A problem occurred when parsing the beatmap.")
+        logging.warn("Error parsing beatmap:\n" + output)
+        return
+
+    # We're done! Tell the user how much this score is worth.
+    yield from client.say(message, "Such score on *{artist} - {title}* **[{version}]** would be worth `{0}pp`.".format(
+        match.group("pp"), **beatmap))
 
 
 @osu.command()

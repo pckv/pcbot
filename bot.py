@@ -270,6 +270,10 @@ def on_message(message: discord.Message):
     if not message.content:
         return
 
+    # We don't care about channels we can't write in as the bot usually sends feedback
+    if not message.server.me.permissions_in(message.channel).send_messages:
+        return
+
     # Split content into arguments by space (surround with quotes for spaces)
     cmd_args = utils.split(message.content)
 
@@ -282,8 +286,7 @@ def on_message(message: discord.Message):
     # Handle commands
     for plugin in plugins.all_values():
         # If there was a command and the bot can send messages in the channel, parse the command
-        # We don't care about channels we can't write in as the bot usually sends feedback
-        if cmd and message.server.me.permissions_in(message.channel).send_messages:
+        if cmd:
             command = utils.get_command(plugin, cmd)
 
             if command:
