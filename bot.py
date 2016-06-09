@@ -144,7 +144,6 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
 
                 continue  # Move onwards once we find a default
             else:
-                index -= 1  # Decrement index since there was no argument
                 break  # We're done when there is no default argument and none passed
 
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument

@@ -334,8 +334,8 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
-@osu.command()
-def pp(client: discord.Client, message: discord.Message, beatmap_url: str.lower, *options):
+@osu.command(name="pp")
+def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower, *options):
     """ Calculate and return the would be pp using oppai. """
     global last_calc_beatmap
 
