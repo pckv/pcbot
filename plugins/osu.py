@@ -259,7 +259,7 @@ def on_ready(client: discord.Client):
             #     sent_requests = 0
 
 
-@plugins.command(usage="[username | link <user> | unlink [user]]")
+@plugins.command(usage="[username | link <user> | unlink [user] | pp <map link> [extras]]")
 def osu(client: discord.Client, message: discord.Message, member: Annotate.Member = None):
     """ Handle osu! commands.
 
