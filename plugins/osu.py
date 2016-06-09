@@ -379,8 +379,8 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
         return
 
     # We're done! Tell the user how much this score is worth.
-    yield from client.say(message, "Such score on *{artist} - {title}* **[{version}]** would be worth `{0:,}pp`.".format(
-        float(match.group("pp")), **beatmap))
+    yield from client.say(message, "*{artist} - {title}* **[{version}] {1}** would be worth `{0:,}pp`.".format(
+        float(match.group("pp")), " ".join(options), **beatmap))
 
     last_calc_beatmap = beatmap
 
