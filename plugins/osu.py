@@ -355,7 +355,7 @@ def pp(client: discord.Client, message: discord.Message, beatmap_url: str.lower,
     with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
         f.write(beatmap_file)
 
-    command_stream = Popen(os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu"), *options,
+    command_stream = Popen([os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu")].extend(options),
                            universal_newlines=True, stdout=PIPE)
     output = command_stream.stdout.read()
     match = re.search(r"(?P<pp>[0-9.]+)pp", output)
