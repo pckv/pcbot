@@ -1,7 +1,8 @@
 """ osu! commands
 
-This plugin currently only assigns osu! profiles and notifies the server whenever they set a new top score (pp best).
-The notifying is a near identical copy of plugins/twitch.py
+This plugin will notify any registered user's pp difference and if they
+set a new best also post that. Keep in mind this plugin might send a lot
+of requests, so keep up to date with the `!osu debug` command.
 
 Commands:
 !osu
@@ -39,16 +40,22 @@ def calculate_acc(c50, c100, c300, miss):
 def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = ":information_source:`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
-    formatted += (" :earth_africa:`#{}{}`".format(data["pp_rank"],
-                                                   "" if int(rank) == 0 else " {:+,}".format(int(rank))))
+    formatted = "\u2139`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
+    formatted += (" \U0001f30d`#{}{}`".format(data["pp_rank"],
+                                                   "" if int(rank) == 0 else " {:+}".format(int(rank))))
     formatted += (" :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
-                                              "" if int(country_rank) == 0 else " {:+,}".format(int(country_rank))))
-    if not round(accuracy, 3) == 0:
-        formatted += (" {}`{:+.3f}%`".format(":chart_with_upwards_trend:"
-                                             if accuracy > 0 else ":chart_with_downwards_trend:", accuracy))
+                                              "" if int(country_rank) == 0 else " {:+}".format(int(country_rank))))
+    rounded_acc = round(accuracy, 3)
+
+    if rounded_acc > 0:
+        formatted += " \U0001f4c8"  # Char with upwards trend
+    elif rounded_acc < 0:
+        formatted += " \U0001f4c9"  # Char with downwards trend
     else:
-        formatted += " :dart:"
+        formatted += " \U0001f3af"  # Dart
+
+    if not rounded_acc == 0:
+        formatted += ("`{:.3f}% {:+}%`".format(float(data["accuracy"]), rounded_acc))
 
     return formatted
 

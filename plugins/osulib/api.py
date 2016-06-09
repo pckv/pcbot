@@ -17,37 +17,43 @@ requests_sent = 0
 
 class Mods(IntEnum):
     """ Enum for displaying mods. """
-    NF = 1
-    EZ = 2
-    NV = 4
-    HD = 8
-    HR = 16
-    SD = 32
-    DT = 64
-    RX = 128
-    HT = 256
-    NC = 512
-    FL = 1024
-    Auto = 2048
-    SO = 4096
-    AP = 8192
-    PF = 16384
-    Key4 = 32768
-    Key5 = 65536
-    Key6 = 131072
-    Key7 = 262144
-    Key8 = 524288
+    NF = 0
+    EZ = 1
+    NV = 2
+    HD = 3
+    HR = 4
+    SD = 5
+    DT = 6
+    RX = 7
+    HT = 8
+    NC = 9
+    FL = 10
+    Auto = 11
+    SO = 12
+    AP = 13
+    PF = 14
+    Key4 = 15
+    Key5 = 16
+    Key6 = 17
+    Key7 = 18
+    Key8 = 19
     keyMod = Key4 | Key5 | Key6 | Key7 | Key8         # ¯\_(ツ)_/¯
-    FI = 1048576
-    RD = 2097152
-    LastMod = 4194304
+    FI = 20
+    RD = 21
+    LastMod = 22
     FreeModAllowed = NF | EZ | HD | HR | SD | FL | \
                      FI | RX | AP | SO | keyMod       # ¯\_(ツ)_/¯
-    Key9 = 16777216
-    Key10 = 33554432
-    Key1 = 67108864
-    Key3 = 134217728
-    Key2 = 268435456
+    Key9 = 24
+    Key10 = 25
+    Key1 = 26
+    Key3 = 27
+    Key2 = 28
+
+    def __new__(cls, num):
+        """ Convert the given value to 2^num. """
+        obj = int.__new__(cls)
+        obj._value_ = 2 ** num
+        return obj
 
     @classmethod
     def list_mods(cls, bitwise: int):

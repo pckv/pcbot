@@ -19,7 +19,6 @@ lambdas = Config("lambdas", data={})
 lambda_config = Config("lambda-config", data=dict(imports=[], blacklist=[]))
 
 code_globals = {}
-code_locals = {}
 
 
 @plugins.command(name="help", usage="[command]")
@@ -123,7 +122,7 @@ def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
     code_globals.update(dict(say=say, message=message, client=client))
 
     try:
-        exec(script, code_globals, code_locals)
+        exec(script, code_globals)
     except Exception as e:
         say("```" + utils.format_exception(e) + "```")
 
@@ -136,7 +135,7 @@ def eval_(client: discord.Client, message: discord.Message,
     code_globals.update(dict(message=message, client=client))
 
     try:
-        result = eval(script, code_globals, code_locals)
+        result = eval(script, code_globals)
     except Exception as e:
         result = utils.format_exception(e)
 
@@ -362,7 +361,7 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         code_globals.update(dict(arg=arg, say=say, args=args, message=message, client=client))
 
         try:
-            exec(lambdas.data[args[0]], code_globals, code_locals)
+            exec(lambdas.data[args[0]], code_globals)
         except Exception as e:
             if utils.is_owner(message.author):
                 say("```" + utils.format_exception(e) + "```")
