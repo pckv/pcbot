@@ -54,8 +54,12 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
     else:
         formatted += " \U0001f3af"  # Dart
 
+    formatted += "`{:.3f}%".format(float(data["accuracy"]))
+
     if not rounded_acc == 0:
-        formatted += ("`{:.3f}% {:+}%`".format(float(data["accuracy"]), rounded_acc))
+        formatted += " {:+}%`".format(rounded_acc)
+    else:
+        formatted += "`"
 
     return formatted
 
