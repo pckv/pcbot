@@ -157,10 +157,10 @@ def get_beatmap_id(url: str, mode: GameMode=GameMode.Standard):
 
     # Find the most difficult beatmap
     beatmap, highest = 0, 0
-    for beatmap in difficulties:
-        diff = float(beatmap["difficultyrating"])
-        if diff > highest:
-            beatmap, highest = beatmap, diff
+    for diff in difficulties:
+        stars = float(diff["difficultyrating"])
+        if stars > highest:
+            beatmap, highest = diff, stars
 
     return beatmap
 
