@@ -79,7 +79,7 @@ def is_owner(user):
 
 
 def owner(f):
-    """ Decorator that runs the command only if the author is an owner. """
+    """ Decorator that runs the command only if the author is the owner. """
     if not asyncio.iscoroutine(f):
         f = asyncio.coroutine(f)
 
@@ -95,7 +95,7 @@ def owner(f):
 
 def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
-    perms must be a string matching any property of discord.Permissions"""
+    perms must be a string matching any property of discord.Permissions. """
     def decorator(f):
         if not asyncio.iscoroutine(f):
             f = asyncio.coroutine(f)

@@ -99,16 +99,24 @@ def stop(client: discord.Client, message: discord.Message):
     yield from client.logout()
 
 
-@plugins.command(usage="[name ...]")
+@plugins.command(usage="[<name ...> | stream <url> <title ...>]")
 @utils.owner
-def game(client: discord.Client, message: discord.Message, name: Annotate.Content=""):
+def game(client: discord.Client, message: discord.Message, name: Annotate.Content=None):
     """ Stop playing or set game to `game`. """
-    yield from client.change_status(discord.Game(name=name))
+    yield from client.change_status(discord.Game(name=name, type=0))
 
     if name:
         yield from client.say(message, "*Set the game to* **{}**.".format(name))
     else:
         yield from client.say(message, "*No longer playing.*")
+
+
+@game.command()
+@utils.owner
+def stream(client: discord.Client, message: discord.Message, url: str, title: Annotate.Content):
+    """ Start streaming a game. """
+    yield from client.change_status(discord.Game(name=title, url=url, type=1))
+    yield from client.say(message, "Started streaming **{}**.".format(title))
 
 
 @plugins.command(usage="<python code ...>")
