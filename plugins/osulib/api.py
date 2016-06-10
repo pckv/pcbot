@@ -37,7 +37,7 @@ class Mods(IntEnum):
     HT = 8
     NC = 9
     FL = 10
-    Auto = 11
+    AU = 11
     SO = 12
     AP = 13
     PF = 14
@@ -46,12 +46,12 @@ class Mods(IntEnum):
     Key6 = 17
     Key7 = 18
     Key8 = 19
-    keyMod = Key4 | Key5 | Key6 | Key7 | Key8         # ¯\_(ツ)_/¯
+    KeyMod = Key4 | Key5 | Key6 | Key7 | Key8         # ¯\_(ツ)_/¯
     FI = 20
     RD = 21
     LastMod = 22
     FreeModAllowed = NF | EZ | HD | HR | SD | FL | \
-                     FI | RX | AP | SO | keyMod       # ¯\_(ツ)_/¯
+                     FI | RX | AP | SO | KeyMod       # ¯\_(ツ)_/¯
     Key9 = 24
     Key10 = 25
     Key1 = 26
@@ -136,7 +136,7 @@ get_replay = def_section("get_replay")
 
 
 @asyncio.coroutine
-def get_beatmap_id(url: str, mode: GameMode=GameMode.Standard):
+def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
     """ Takes a url and returns the beatmap in the specified gamemode.
     If a url for a submission is given, it will find the most difficult map. """
     match = re.match(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)", url)
@@ -165,12 +165,11 @@ def get_beatmap_id(url: str, mode: GameMode=GameMode.Standard):
     return beatmap
 
 
-def get_beatmap(beatmaps: list, **lookup):
+def lookup_beatmap(beatmaps: list, **lookup):
     """ Finds and returns the first beatmap with the lookup specified.
 
     Beatmaps is a list of beatmaps and could be used with get_beatmaps()
-    Lookup is any key stored in a beatmap from get_beatmaps()
-    """
+    Lookup is any key stored in a beatmap from get_beatmaps() """
     if not beatmaps:
         return None
 

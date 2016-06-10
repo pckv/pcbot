@@ -26,7 +26,7 @@ def define(client: discord.Client, message: discord.Message, term: Annotate.Lowe
 
     for definition in definitions:
         # Format example in code if there is one
-        if "example" in definition:
+        if "example" in definition and definition["example"]:
             definition["example"] = "```{0}```".format(definition["example"])
 
         # Format definition

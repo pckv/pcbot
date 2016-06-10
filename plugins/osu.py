@@ -22,7 +22,7 @@ from pcbot import Config, utils, Annotate
 import plugins
 from plugins.osulib import api, Mods
 
-osu_config = Config("osu", data={"key": "change to your api key", "profiles": {}})
+osu_config = Config("osu", data=dict(key="change to your api key", profiles={}))
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
 update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
@@ -55,9 +55,9 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
     rounded_acc = round(accuracy, 3)
 
     if rounded_acc > 0:
-        formatted += " \U0001f4c8"  # Char with upwards trend
+        formatted += " \U0001f4c8"  # Graph with upwards trend
     elif rounded_acc < 0:
-        formatted += " \U0001f4c9"  # Char with downwards trend
+        formatted += " \U0001f4c9"  # Graph with downwards trend
     else:
         formatted += " \U0001f3af"  # Dart
 
@@ -206,7 +206,7 @@ def notify_pp(client: discord.Client):
         # If a new score was found, format the score
         if score:
             beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
-            beatmap = api.get_beatmap(beatmap_search)
+            beatmap = api.lookup_beatmap(beatmap_search)
             m = "{} (`{}`) ".format(member.mention, new["username"]) + format_new_score(score, beatmap) + "\n"
 
         # There was not enough pp to get a top score, so add the name without mention
@@ -350,7 +350,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     if last_calc_beatmap["beatmap_id"] not in beatmap_url and last_calc_beatmap["beatmapset_id"] not in beatmap_url:
         # Parse beatmap URL and download the beatmap .osu
         try:
-            beatmap = yield from api.get_beatmap_id(beatmap_url)
+            beatmap = yield from api.beatmap_from_url(beatmap_url)
         except Exception as e:
             yield from client.say(message, e)
             return
@@ -370,7 +370,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
 
     command_stream = Popen(command_args, universal_newlines=True, stdout=PIPE)
     output = command_stream.stdout.read()
-    match = re.search(r"(?P<pp>[0-9.]+)pp", output)
+    match = re.search(r"(?P<pp>[0-9.e+]+)pp", output)
 
     # Something went wrong with our service
     if not match:
