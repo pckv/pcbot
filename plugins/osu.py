@@ -362,6 +362,8 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     else:
         beatmap = last_calc_beatmap
 
+    last_calc_beatmap = beatmap
+
     command_args = [os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu")]
 
     # Add additional options
@@ -381,8 +383,6 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     # We're done! Tell the user how much this score is worth.
     yield from client.say(message, "*{artist} - {title}* **[{version}] {1}** would be worth `{0:,}pp`.".format(
         float(match.group("pp")), " ".join(options), **beatmap))
-
-    last_calc_beatmap = beatmap
 
 
 @osu.command()
