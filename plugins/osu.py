@@ -259,8 +259,8 @@ def on_ready(client: discord.Client):
             #     sent_requests = 0
 
 
-@plugins.command(usage="[username | link <user> | unlink [user] | pp <map link> [extras]]")
-def osu(client: discord.Client, message: discord.Message, member: Annotate.Member = None):
+@plugins.command(usage="[username | link <user> | unlink [user] | url [user] | pp <map link> [extras]]")
+def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
     """ Handle osu! commands.
 
     When your user is linked, this plugin will check if you are playing osu!
@@ -311,7 +311,7 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
 
 
 @osu.command()
-def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member = None):
+def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
     """ Unlink your osu! account or the member specified. """
     # The message author wants to unlink someone and must be owner
     if member and not utils.is_owner(message.author):
@@ -332,6 +332,21 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     del osu_config.data["profiles"][member.id]
     osu_config.save()
     yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
+
+
+@osu.command()
+def url(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
+    """ Display the member's URL only. """
+    if not member:
+        member = message.author
+
+    # Member is not registered in osu! data.
+    if member.id not in osu_config.data["profiles"]:
+        yield from client.say(message, "No osu! profile assigned to **{}**!".format(member.name))
+        return
+
+    yield from client.say(message, "**{0.display_name}'s profile:** <https://osu.ppy.sh/u/{1}>".format(
+        member, osu_config.data["profiles"][member.id]))
 
 
 @osu.command(name="pp")
