@@ -245,13 +245,6 @@ def on_ready():
                  "{0.user} ({0.user.id})\n".format(client) +
                  "-" * len(client.user.id))
 
-    # Call any on_ready function in plugins
-    for plugin in plugins.all_values():
-        if getattr(plugin, "on_ready", False):
-            client.loop.create_task(plugin.on_ready(client))
-
-    client.loop.create_task(autosave())
-
 
 @client.async_event
 def on_message(message: discord.Message):
@@ -305,6 +298,19 @@ def on_message(message: discord.Message):
             client.loop.create_task(on_plugin_message(plugin.on_message, message, cmd_args))
 
 
+@asyncio.coroutine
+def add_tasks():
+    """ Setup any tasks when the server is ready. """
+    yield from client.wait_until_ready()
+
+    # Call any on_ready function in plugins
+    for plugin in plugins.all_values():
+        if hasattr(plugin, "on_ready"):
+            client.loop.create_task(plugin.on_ready(client))
+
+    client.loop.create_task(autosave())
+
+
 def main():
     if not start_args.email:
         # Login with the specified token if specified
@@ -331,10 +337,12 @@ def main():
 
         login = [email, password]
 
+    client.loop.create_task(add_tasks())
+
     try:
         client.run(*login)
     except discord.errors.LoginFailure as e:
-        logging.error(e)
+        logging.error(utils.format_exception(e))
 
 
 if __name__ == "__main__":
