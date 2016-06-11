@@ -302,7 +302,7 @@ def on_message(message: discord.Message):
 def add_tasks():
     """ Setup any tasks when the server is ready. """
     yield from client.wait_until_ready()
-    logging.INFO("Setting up background tasks.")
+    logging.info("Setting up background tasks.")
 
     # Call any on_ready function in plugins
     for plugin in plugins.all_values():
