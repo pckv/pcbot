@@ -261,7 +261,7 @@ def on_message(message: discord.Message):
         return
 
     # We don't care about channels we can't write in as the bot usually sends feedback
-    if not message.server.me.permissions_in(message.channel).send_messages:
+    if not message.private_channel and not message.server.me.permissions_in(message.channel).send_messages:
         return
 
     # Split content into arguments by space (surround with quotes for spaces)
