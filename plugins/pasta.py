@@ -43,7 +43,7 @@ def add(client: discord.Client, message: discord.Message, name: str.lower, copyp
 
 
 @pasta.command()
-def remove(client: discord.Client, message: discord.Message, name: str.lower):
+def remove(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Remove a pasta. """
     if name not in pastas.data:
         yield from client.say(message, "No pasta with name `{0}`.".format(name))
@@ -51,7 +51,7 @@ def remove(client: discord.Client, message: discord.Message, name: str.lower):
 
     copypasta = pastas.data.pop(name)
     pastas.save()
-    yield from client.say(message, "Pasta `{0}` set. In case this was a mistake, "
+    yield from client.say(message, "Pasta `{0}` removed. In case this was a mistake, "
                                    "here's the pasta: ```{1}```".format(name, copypasta))
 
 

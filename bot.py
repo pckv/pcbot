@@ -239,8 +239,6 @@ def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: d
 
 @client.async_event
 def on_ready():
-    """ Create any tasks for plugins' on_ready() coroutine and create task
-    for autosaving. """
     logging.info("Logged in as\n"
                  "{0.user} ({0.user.id})\n".format(client) +
                  "-" * len(client.user.id))
@@ -300,7 +298,8 @@ def on_message(message: discord.Message):
 
 @asyncio.coroutine
 def add_tasks():
-    """ Setup any tasks when the server is ready. """
+    """ Create any tasks for plugins' on_ready() coroutine and create task
+    for autosaving. """
     yield from client.wait_until_ready()
     logging.info("Setting up background tasks.")
 
@@ -313,6 +312,8 @@ def add_tasks():
 
 
 def main():
+    """ The main function. Gets the user's login info, sets up
+    any background task and starts the bot. """
     if not start_args.email:
         # Login with the specified token if specified
         token = start_args.token or input("Token: ")
@@ -325,19 +326,20 @@ def main():
         password = ""
         cached_path = client._get_cache_filename(email)  # Get the name of the would-be cached email
 
-        # If the --new-pass command-line argument is specified, remove the cached password.
-        # Useful for when you have changed the password.
+        # If the --new-pass command-line argument is specified, remove the cached password
+        # Useful for when you have changed the password
         if start_args.new_pass:
             if os.path.exists(cached_path):
                 os.remove(cached_path)
 
         # Prompt for password if the cached file does not exist (the user has not logged in before or
-        # they they entered the --new-pass argument.
+        # they they entered the --new-pass argument)
         if not os.path.exists(cached_path):
             password = getpass()
 
         login = [email, password]
 
+    # Setup background tasks
     client.loop.create_task(add_tasks())
 
     try:

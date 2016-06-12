@@ -63,7 +63,7 @@ def get_command(plugin, command: str):
     if command not in names:
         return None
 
-    # Return the found command or None if plugin doesn't have one
+    # Return the found command
     return commands[names.index(command)]
 
 
@@ -136,7 +136,7 @@ def download_file(url, **params):
     """ Download and return a byte-like object of a file.
 
     :param url: download url as str
-    :param params: any additional url parameters. """
+    :param params: any additional url parameters """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
         file = yield from response.read() if response.status == 200 else None
@@ -149,7 +149,7 @@ def download_json(url, **params):
     """ Download and return a json file.
 
     :param url: download url as str
-    :param params: any additional url parameters. """
+    :param params: any additional url parameters """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
         json = yield from response.json() if response.status == 200 else None
@@ -242,7 +242,7 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
 
 
 def format_exception(e):
-    """ Returns a formatted string of Exception: str """
+    """ Returns a formatted string of Exception: e """
     return type(e).__name__ + ": " + str(e)
 
 
@@ -271,11 +271,16 @@ def split(string, maxsplit=-1):
     """ Split a string with shlex when possible, and add support for maxsplit. """
     if maxsplit == -1:
         try:
-            return shlex.split(string)
+            split_object = shlex.shlex(string, posix=True)
+            split_object.quotes = '"'
+            split_object.whitespace_split = True
+            split_object.commenters = ""
+            return list(split_object)
         except ValueError:
             return string.split()
 
     split_object = shlex.shlex(string, posix=True)
+    split_object.quotes = '"'
     split_object.whitespace_split = True
     split_object.commenters = ""
     maxsplit_object = []
