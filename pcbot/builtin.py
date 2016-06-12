@@ -78,16 +78,16 @@ def setowner(client: discord.Client, message: discord.Message):
     owner_code = str(random.randint(100, 999))
     logging.critical("Owner code for assignment: {}".format(owner_code))
 
-    yield from client.client.say(message,
+    yield from client.say(message,
                                  "A code has been printed in the console for you to repeat within 60 seconds.")
     user_code = yield from client.wait_for_message(timeout=60, channel=message.channel, content=owner_code)
 
     if user_code:
-        yield from client.client.say(message, "You have been assigned bot owner.")
+        yield from client.say(message, "You have been assigned bot owner.")
         utils.owner_cfg.data = message.author.id
         utils.owner_cfg.save()
     else:
-        yield from client.client.say(message, "You failed to send the desired code.")
+        yield from client.say(message, "You failed to send the desired code.")
 
 
 @plugins.command()
