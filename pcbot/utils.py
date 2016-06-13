@@ -11,6 +11,7 @@ from pcbot import Config
 
 owner_cfg = Config("owner")
 command_prefix = "!"
+help_arg = "?"
 
 
 class Annotate(Enum):

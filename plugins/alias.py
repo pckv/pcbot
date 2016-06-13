@@ -24,17 +24,13 @@ alias_desc = \
     "`!alias remove <trigger>` removes the specified alias. Keep in mind that specifying trigger here **is** case " \
     "sensitive. Use `!alias list` to find the correct case."
 
-alias_usage = \
-    "<[options] <trigger> <text> | list | remove <trigger>>\n" \
-    "Options:\n" \
-    "    -anywhere <...>\n" \
-    "    -case-sensitive <...>\n" \
-    "    -delete-message <...>\n"
+alias_usage = "<[-anywhere] [-case-sensitive] [-delete-message] <trigger> <text> | list | remove <trigger>>\n"
 
 aliases = Config("user_alias", data=defaultdict(str))
 
 
-@plugins.command(usage=alias_usage, description=alias_desc, error="BrokeBack", pos_check=lambda s: s.startswith("-"))
+@plugins.command(usage=alias_usage, description=alias_desc, error="See `!help alias` (the help file is kinda long).",
+                 pos_check=lambda s: s.startswith("-"))
 def alias(client: discord.Client, message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
     """ Assign an alias. Description is defined in alias_desc. """
     anywhere = "-anywhere" in options

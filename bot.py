@@ -144,6 +144,8 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
 
                 continue  # Move onwards once we find a default
             else:
+                if num_pos_args == 0:
+                    index -= 1
                 break  # We're done when there is no default argument and none passed
 
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
@@ -220,8 +222,13 @@ def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: d
     """ Try finding a command """
     command, cmd_args, start_index = get_sub_command(command, cmd_args)
 
-    # Parse the command and return the parsed arguments
-    args, kwargs, complete = parse_command_args(command, cmd_args, start_index, message)
+    # If the last argument ends with the help argument, skip parsing and display help
+    if cmd_args[-1] == utils.help_arg:
+        complete = False
+        args, kwargs = [], {}
+    else:
+        # Parse the command and return the parsed arguments
+        args, kwargs, complete = parse_command_args(command, cmd_args, start_index, message)
 
     # If command parsing failed, display help for the command or the error message
     if not complete:
