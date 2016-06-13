@@ -61,7 +61,8 @@ def help_(client: discord.Client, message: discord.Message, name: str.lower=None
 
         commands = ", ".join(sorted(commands))
 
-        m = "**Commands:**```{}```Use `!help <command>` for command specific help.".format(commands)
+        m = "**Commands:**```{0}```Use `{1}help <command>` or `{1}<command> {2}` for command specific help.".format(
+            commands, utils.command_prefix, utils.help_arg)
         yield from client.say(message, m)
 
 
