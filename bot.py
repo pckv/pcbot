@@ -114,7 +114,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
     args, kwargs = [], {}
     index = -1
     num_kwargs = sum(1 for param in signature.parameters.values() if param.kind is param.KEYWORD_ONLY)
-    has_pos = False
+    has_pos = any(param.kind is param.VAR_POSITIONAL for param in signature.parameters.values())
     num_pos_args = 0
 
     # Parse all arguments
@@ -169,8 +169,6 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
                 else:
                     return args, kwargs, False  # Force quit
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
-            has_pos = True
-
             for cmd_arg in cmd_args[index - 1:-num_kwargs or len(cmd_args) + 1]:
                 # Do not register the positional argument if it does not meet the optional criteria
                 if not command.pos_check(cmd_arg):
@@ -197,6 +195,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
         num_given -= (num_pos_args - 1) if not num_pos_args == 0 else 0
 
     complete = (num_given == num_args)
+    print(num_given, num_args)
     return args, kwargs, complete
 
 
