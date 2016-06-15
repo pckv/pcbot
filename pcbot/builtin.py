@@ -5,12 +5,13 @@ This script works just like any of the plugins in plugins/
 
 import random
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import importlib
 
 import discord
 import asyncio
 
+from bot import __version__
 from pcbot import utils, Config, Annotate
 import plugins
 
@@ -335,10 +336,61 @@ def ping(client: discord.Client, message: discord.Message):
                                    "Pong! `{elapsed:.4f}ms`".format(elapsed=time_elapsed))
 
 
-@plugins.command()
-def uptime(client: discord.Client, message: discord.Message):
-    """ Return the time this bot started. """
-    yield from client.say(message, "I've been running since `{}`.".format(client.time_started.ctime()))
+@asyncio.coroutine
+def get_changelog(num: int=5):
+    """ Get the latest commit messages from pcbot. """
+    since = datetime.utcnow() - timedelta(days=7)
+    commits = yield from utils.download_json("https://api.github.com/repos/{}commits".format(utils.github_repo),
+                                             since=since.strftime("%Y-%m-%dT00:00:00"))
+    changelog = []
+
+    # Go through every commit and add "- " in front of the first line and "  " for all other lines
+    # Also add dates after each commit
+    for commit in commits[:num]:
+        commit_message = commit["commit"]["message"]
+        commit_date = commit["commit"]["committer"]["date"]
+
+        formatted_commit = []
+
+        for i, line in enumerate(commit_message.split("\n")):
+            if not line == "":
+                line = ("- " if i == 0 else "  ") + line
+
+            formatted_commit.append(line)
+
+        # Add the date as well as the
+        changelog.append("\n".join(formatted_commit) + "\n  " + commit_date.replace("T", " ").replace("Z", ""))
+
+    # Return formatted changelog
+    return "```\n{}```".format("\n\n".join(changelog))
+
+
+@plugins.command(usage="[changelog [num]]")
+def pcbot(client: discord.Client, message: discord.Message):
+    """ Display basic information and changelog. """
+    # Grab 5 commits since last week
+    changelog = yield from get_changelog()
+
+    yield from client.say(message, "**{ver}**\n"
+                                   "__Github repo:__ <{repo}>\n"
+                                   "__Owner (host):__ `{host}`\n"
+                                   "__Up since:__ `{up}`\n"
+                                   "__Messages since up date:__ `{mes}`\n"
+                                   "__Servers connected to:__ `{servers}`\n"
+                                   "{changelog}".format(
+        ver=__version__, up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"), mes=len(client.messages),
+        host=getattr(utils.get_member(client, utils.owner_cfg.data), "name", None) or "Not in this server.",
+        servers=len(client.servers),
+        repo="https://github.com/{}".format(utils.github_repo),
+        changelog=changelog
+    ))
+
+
+@pcbot.command(name="changelog")
+def changelog_(client: discord.Client, message: discord.Message, num: int=5):
+    """ Get however many requests from the changelog. """
+    changelog = yield from get_changelog(num)
+    yield from client.say(message, changelog)
 
 
 @asyncio.coroutine

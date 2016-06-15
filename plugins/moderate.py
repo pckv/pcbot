@@ -163,6 +163,7 @@ def timeout(client: discord.Client, message: discord.Message, *members: Annotate
     yield from manage_mute(client, message, client.remove_roles, *muted_members)
 
 
+@asyncio.coroutine
 def check_nsfw(client: discord.Client, message: discord.Message):
     """ Check if the message is NSFW (very rough check). """
     # Check if this server has nsfwfilter enabled
@@ -187,6 +188,8 @@ def check_nsfw(client: discord.Client, message: discord.Message):
 
         return True
 
+    return False
+
 
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message):
@@ -197,7 +200,8 @@ def on_message(client: discord.Client, message: discord.Message):
 
     setup_default_config(message.server)
 
-    if check_nsfw(client, message):
+    nsfw_success = yield from check_nsfw(client, message)
+    if nsfw_success:
         return True
 
     return False

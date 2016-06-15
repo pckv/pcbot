@@ -9,6 +9,7 @@ import aiohttp
 
 from pcbot import Config
 
+github_repo = "PcBoy111/PCBOT/"
 owner_cfg = Config("owner")
 command_prefix = "!"
 help_arg = "?"
@@ -253,6 +254,15 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
 
     # Return the found channel or None
     return channel
+
+
+def get_member(client: discord.Client, member_id: str):
+    """ Get a member from the specified ID. """
+    for member in client.get_all_members():
+        if member.id == member_id:
+            return member
+
+    return None
 
 
 def format_exception(e):

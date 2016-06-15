@@ -3,6 +3,7 @@
 Commands:
     roll
     feature
+    pcbot
 """
 
 import random
