@@ -1,7 +1,7 @@
 """ Script for web commands
 
 Commands:
-!define
+    define
 """
 
 import discord

@@ -3,7 +3,7 @@
 This plugin returns an image, pranking a user.
 
 Commands:
-!prank
+    prank
 """
 from io import BytesIO
 

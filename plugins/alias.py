@@ -1,7 +1,7 @@
 """ Script for creating user based alias commands
 
 Commands:
-!alias
+alias
 """
 
 from collections import defaultdict
@@ -78,7 +78,7 @@ def remove(client: discord.Client, message: discord.Message, trigger: str):
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_message(client: discord.Client, message: discord.Message):
     # User alias check
     if message.author.id in aliases.data:
         success = False

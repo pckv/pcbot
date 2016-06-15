@@ -1,7 +1,7 @@
 """ Script for copypastas
 
 Commands:
-!pasta
+    pasta
 """
 
 from random import choice
@@ -56,9 +56,9 @@ def remove(client: discord.Client, message: discord.Message, name: Annotate.Lowe
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_message(client: discord.Client, message: discord.Message):
     """ Use shorthand |<pasta ...> for displaying pastas and remove the user's message. """
-    if args[0].startswith("|"):
+    if message.content.startswith("|"):
         asyncio.async(client.delete_message(message))
         yield from pasta(client, message, message.content[1:].lower())
 

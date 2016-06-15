@@ -29,6 +29,10 @@ start_args = parser.parse_args()
 # Setup logger with level specified in start_args or logging.INFO
 logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
 
+# Always keep discord.py logger at INFO as a minimum
+discord_logger = logging.getLogger("discord")
+discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
+
 
 # Setup our client
 client = discord.Client()
@@ -81,26 +85,28 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
         anno = param.annotation
 
         # Valid enum checks
-        if anno is utils.Annotate.Content:  # Split and get raw content from this point
-            return utils.split(message.content, maxsplit=index)[-1].strip("\" ")
-        elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
-            return utils.split(message.content, maxsplit=index)[-1].lower().strip("\" ")
-        elif anno is utils.Annotate.CleanContent:  # Split and get clean raw content from this point
-            return utils.split(message.clean_content, maxsplit=index)[-1].strip("\" ")
-        elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
-            return utils.split(message.clean_content, maxsplit=index)[-1].lower().strip("\" ")
-        elif anno is utils.Annotate.Member:  # Checks member names or mentions
-            return utils.find_member(message.server, arg)
-        elif anno is utils.Annotate.Channel:  # Checks channel names or mentions
-            return utils.find_channel(message.server, arg)
-        elif anno is utils.Annotate.Code:  # Works like Content but extracts code
-            code = utils.split(message.content, maxsplit=index)[-1]
-            return utils.get_formatted_code(code)
+        if isinstance(anno, utils.Annotate):
+            content = lambda s: utils.split(s, maxsplit=index)[-1].strip("\" ")
+
+            if anno is utils.Annotate.Content:  # Split and get raw content from this point
+                return content(message.content)
+            elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
+                return content(message.content).lower()
+            elif anno is utils.Annotate.CleanContent:  # Split and get clean raw content from this point
+                return content(message.clean_content)
+            elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
+                return content(message.clean_content).lower()
+            elif anno is utils.Annotate.Member:  # Checks member names or mentions
+                return utils.find_member(message.server, arg)
+            elif anno is utils.Annotate.Channel:  # Checks channel names or mentions
+                return utils.find_channel(message.server, arg)
+            elif anno is utils.Annotate.Code:  # Works like Content but extracts code
+                return utils.get_formatted_code(content(message.content))
 
         try:  # Try running as a method
             return anno(arg)
         except TypeError:
-            raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a function")
+            raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a callable")
         except:  # On error, eg when annotation is int and given argument is str
             return None
         
@@ -123,12 +129,12 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
 
         if index == 0:  # Param should have a Client annotation
             if param.annotation is not discord.Client:
-                raise Exception("First command parameter must be of type discord.Client")
+                raise SyntaxError("First command parameter must be of type discord.Client")
 
             continue
         elif index == 1:  # Param should have a Message annotation
             if param.annotation is not discord.Message:
-                raise Exception("Second command parameter must be of type discord.Message")
+                raise SyntaxError("Second command parameter must be of type discord.Message")
 
             continue
 
@@ -195,7 +201,6 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
         num_given -= (num_pos_args - 1) if not num_pos_args == 0 else 0
 
     complete = (num_given == num_args)
-    print(num_given, num_args)
     return args, kwargs, complete
 
 
@@ -299,7 +304,7 @@ def on_message(message: discord.Message):
 
         # Always run the on_message function if it exists
         if getattr(plugin, "on_message", False):
-            client.loop.create_task(on_plugin_message(plugin.on_message, message, cmd_args))
+            client.loop.create_task(on_plugin_message(plugin.on_message, message))
 
 
 @asyncio.coroutine

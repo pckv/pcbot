@@ -1,9 +1,7 @@
 """ Script for wordsearch
 
-THIS SCRIPT IS INCOMPLETE.
-
 Commands:
-!wordsearch
+    wordsearch
 """
 
 from re import match
@@ -19,13 +17,13 @@ import plugins
 wordsearch = []
 wordsearch_words = []
 
-TUTORIAL = "Write any word ending with `!` to guess the word!"
-CHARACTER_MATCH = "[a-z0-9æøå]+"
+tutorial = "Write any word ending with `!` to guess the word!"
+character_match = "[a-z0-9æøå]+"
 
 
 def valid_word(message: discord.Message):
     """ Check if the word only contains norwegian style letters or numbers. """
-    if match("^" + CHARACTER_MATCH + "$", message.content.lower()):
+    if match("^" + character_match + "$", message.content.lower()):
         if len(message.content) < 32:
             return True
 
@@ -34,7 +32,7 @@ def valid_word(message: discord.Message):
 
 def valid_guess(message: discord.Message):
     """ Check if a message in this channel is a word guess. """
-    if match("^" + CHARACTER_MATCH + "!$", message.content.lower()):
+    if match("^" + character_match + "!$", message.content.lower()):
         return True
 
     return False
@@ -102,9 +100,9 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
         # Start the wordsearch
         word = reply.content.lower()
         yield from client.send_message(host, "Set the word to `{}`.".format(word))
-        yield from client.send_message(channel, "{0.mention} has entered a word! {1}".format(host, TUTORIAL))
+        yield from client.send_message(channel, "{0.mention} has entered a word! {1}".format(host, tutorial))
     else:
-        yield from client.send_message(channel, "{0.mention} made me set a word! {1}".format(host, TUTORIAL))
+        yield from client.send_message(channel, "{0.mention} made me set a word! {1}".format(host, tutorial))
 
     tries = 0
     hint = ""
@@ -168,4 +166,3 @@ def auto(client: discord.Client, message: discord.Message, word_count: int=1):
     """ Start an automatic wordsearch. """
     word = yield from auto_word(word_count)
     client.loop.create_task(start_wordsearch(client, message.channel, message.author, word))
-

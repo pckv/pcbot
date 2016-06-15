@@ -342,7 +342,7 @@ def uptime(client: discord.Client, message: discord.Message):
 
 
 @asyncio.coroutine
-def on_ready(client: discord.Client):
+def on_ready(_):
     """ Import any imports for lambdas. """
     for module, attr in lambda_config.data["imports"]:
         import_module(module, attr)
@@ -355,8 +355,10 @@ def on_ready(client: discord.Client):
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, args: list):
+def on_message(client: discord.Client, message: discord.Message):
     """ Perform lambda commands. """
+    args = utils.split(message.content)
+
     if args[0] in lambdas.data and args[0] not in lambda_config.data["blacklist"]:
         def say(msg, m=message):
             asyncio.async(client.say(m, msg))
@@ -374,6 +376,9 @@ def on_message(client: discord.Client, message: discord.Message, args: list):
         except Exception as e:
             if utils.is_owner(message.author):
                 say("```" + utils.format_exception(e) + "```")
+            else:
+                logging.warn("An exception occurred when parsing lambda command:"
+                             "\n{}".format(utils.format_exception(e)))
 
         return True
 

@@ -5,7 +5,7 @@ set a new best also post that. Keep in mind this plugin might send a lot
 of requests, so keep up to date with the `!osu debug` command.
 
 Commands:
-!osu
+    osu
 """
 
 import logging

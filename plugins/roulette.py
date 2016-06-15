@@ -1,8 +1,8 @@
 """ Script for Russian Roulette
 
 Commands:
-!roulette
-!hotpotato
+    roulette
+    hotpotato
 """
 
 from random import randint, choice

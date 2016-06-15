@@ -57,26 +57,26 @@ def command(**options):
         error = options.get("error", None)
         pos_check = options.get("pos_check", lambda s: s)
         description = options.get("description") or func.__doc__ or "Undocumented."
+        usage = None
 
         if not parent:
-            usage = "{prefix}{name} {usage}".format(prefix=utils.command_prefix,
-                                                    name=name,
-                                                    usage=options.get("usage", ""))
-        else:
-            usage = None
+            usage = "{pre}{name} {usage}".format(
+                pre=utils.command_prefix, name=name, usage=options.get("usage", ""))
 
         # Properly format description when using docstrings
-        # Kinda like markdown; new line = (blank line) or (two spaces + / at end of line)
+        # Kinda like markdown; new line = (blank line) or (/ at end of line)
         if description == func.__doc__:
             new_desc = ""
 
             for line in description.split("\n"):
-                if line.endswith("  /"):
-                    new_desc += line[:-1].strip() + "\n"
-                elif line.strip() == "":
+                line = line.strip()
+
+                if line.endswith("/"):
+                    new_desc += line[:-1] + "\n"
+                elif line == "":
                     new_desc += "\n\n"
                 else:
-                    new_desc += line.strip() + " "
+                    new_desc += line + " "
 
             description = new_desc
 
@@ -86,23 +86,17 @@ def command(**options):
 
         # Assert that __commands is usable and that this command doesn't already exist
         if type(commands) is not list:
-            raise Exception("__commands is reserved for the plugin's commands, and must be of type list")
+            raise NameError("__commands is reserved for the plugin's commands, and must be of type list")
 
         # Assert that there are no commands already defined with the given name
         if any(cmd.name == name for cmd in commands):
-            raise Exception("You can't assign two commands with the same name")
+            raise KeyError("You can't assign two commands with the same name")
 
         # Create our command
-        cmd = Command(name=name,
-                      usage=usage,
-                      description=description,
-                      function=func,
-                      sub_commands=[],
-                      parent=parent,
-                      hidden=hidden,
-                      error=error,
-                      pos_check=pos_check)
+        cmd = Command(name=name, usage=usage, description=description, function=func,
+                      sub_commands=[], parent=parent, hidden=hidden, error=error, pos_check=pos_check)
 
+        # If the command has a parent (is a subcommand)
         if parent:
             parent.sub_commands.append(cmd)
         else:
@@ -111,7 +105,9 @@ def command(**options):
         # Update the plugin's __commands attribute
         setattr(plugin, "__commands", commands)
 
+        # Create a command attribute for the command function that automatically assigns the parent
         setattr(func, "command", partial(command, parent=cmd))
+
         logging.debug("Registered {} {} from plugin {}".format("subcommand" if parent else "command",
                                                                name, plugin.__name__))
         return func
@@ -172,11 +168,9 @@ def save_plugin(name):
     if name in all_keys():
         plugin = get_plugin(name)
 
-        if getattr(plugin, "save", False):
+        if callable(getattr(plugin, "save", False)):
             try:
                 yield from plugin.save(plugins)
-            except TypeError:
-                pass
             except Exception as e:
                 logging.error("An error occurred when saving plugin " + name + "\n" +
                               utils.format_exception(e))

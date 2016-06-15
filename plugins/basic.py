@@ -1,8 +1,8 @@
 """ Script for basic commands
 
 Commands:
-!roll
-!feature
+    roll
+    feature
 """
 
 import random
@@ -169,7 +169,7 @@ def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_r
 
 
 @asyncio.coroutine
-def on_message(client: discord.Client, message: discord.Message, _):
+def on_message(client: discord.Client, message: discord.Message):
     # Have the bot reply confused whenever someone mentions it
     if not message.content.startswith("!") and client.user.id in [m.id for m in message.mentions]:
         phrases = ["what", "huh", "sorry", "pardon", "...", "!", "", "EH!", "wat", "excuse me", "really"]

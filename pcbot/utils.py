@@ -50,6 +50,19 @@ def int_range(f: int=None, t: int=None):
     return wrapped
 
 
+def choice(*options, ignore_case=True):
+    """ Return a helper function for checking if the argument is either of the given
+    options. """
+    def wrapped(arg: str):
+        # Compare lowercased version
+        if ignore_case:
+            return arg if arg.lower() in [s.lower() for s in options] else None
+
+        return arg if arg in options else None
+
+    return wrapped
+
+
 def get_command(plugin, command: str):
     """ Find and return a command function from a plugin. """
     commands = getattr(plugin, "__commands", None)
