@@ -68,10 +68,10 @@ def log_message(message: discord.Message, prefix: str=""):
 
 
 @asyncio.coroutine
-def on_plugin_message(function, message: discord.Message, args: list):
+def on_plugin_message(function, message: discord.Message):
     """ Run the given plugin function.
     If the function returns True, log the sent message. """
-    success = yield from function(client, message, args)
+    success = yield from function(client, message)
 
     if success:
         log_message(message, prefix="... ")
