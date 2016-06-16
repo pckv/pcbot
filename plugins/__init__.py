@@ -92,8 +92,8 @@ def command(**options):
             raise KeyError("You can't assign two commands with the same name")
 
         # Create our command
-        cmd = Command(name=name, usage=usage, description=description, function=func,
-                      sub_commands=[], parent=parent, hidden=hidden, error=error, pos_check=pos_check)
+        cmd = Command(name=name, usage=usage, description=description, function=func, parent=parent,
+                      sub_commands=[], hidden=hidden, error=error, pos_check=pos_check)
 
         # If the command has a parent (is a subcommand)
         if parent:

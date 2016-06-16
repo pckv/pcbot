@@ -47,6 +47,12 @@ def log_message(message: discord.Message, prefix: str=""):
 
 
 @asyncio.coroutine
+def send_command_help(message: discord.Message, command: plugins.Command):
+    """ Send command help to the specified channel. """
+    yield from plugins.get_plugin("builtin").help_(client, message, command.name)
+
+
+@asyncio.coroutine
 def on_plugin_message(function, message: discord.Message):
     """ Run the given plugin function.
     If the function returns True, log the sent message. """
@@ -54,6 +60,18 @@ def on_plugin_message(function, message: discord.Message):
 
     if success:
         log_message(message, prefix="... ")
+
+
+@asyncio.coroutine
+def execute_command(command: plugins.Command, message: discord.Message, *args, **kwargs):
+    """ Execute a command and send any AttributeError exceptions. """
+    try:
+        yield from command.function(client, message, *args, **kwargs)
+    except AssertionError as e:
+        if str(e) or command.error:
+            yield from client.say(message, str(e) or command.error)
+        else:
+            yield from send_command_help(message, command)
 
 
 def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: discord.Message):
@@ -187,7 +205,7 @@ def get_sub_command(command: plugins.Command, cmd_args: list):
     """ Go through all arguments and return any group command function.
 
     This function returns the found command and all arguments starting from
-    any specified sub command. """
+    any specified subcommand. """
     new_index = 0
 
     for arg in cmd_args[1:]:
@@ -201,7 +219,7 @@ def get_sub_command(command: plugins.Command, cmd_args: list):
 
 
 @asyncio.coroutine
-def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: discord.Message):
+def parse_command(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Try finding a command """
     command, cmd_args, start_index = get_sub_command(command, cmd_args)
 
@@ -220,7 +238,7 @@ def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: d
         if command.error:
             yield from client.send_message(message.channel, command.error)
         else:
-            yield from plugins.get_plugin("builtin").help_(client, message, cmd)
+            yield from send_command_help(message, command)
 
         command = None
 
@@ -270,11 +288,11 @@ def on_message(message: discord.Message):
             command = utils.get_command(plugin, cmd)
 
             if command:
-                parsed_command, args, kwargs = yield from parse_command(command, cmd, cmd_args, message)
+                parsed_command, args, kwargs = yield from parse_command(command, cmd_args, message)
 
                 if parsed_command:
                     log_message(message)  # Log the command
-                    client.loop.create_task(parsed_command.function(client, message, *args, **kwargs))  # Run command
+                    client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))  # Run command
 
                     # Log time spent parsing the command
                     stop_time = datetime.now()

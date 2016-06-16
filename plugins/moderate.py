@@ -43,11 +43,11 @@ def moderate_(client: discord.Client, message: discord.Message, setting: str.low
 
 
 def add_setting(setting: str, default=True, name=None, permissions=None):
-    """ Create a set of sub commands for the given setting (True or False).
+    """ Create a set of subcommands for the given setting (True or False).
 
     :param setting: display name for the setting.
     :param default: The default value for this setting.
-    :param name: optionally set the name of the sub command.
+    :param name: optionally set the name of the subcommand.
     :param permissions: what permissions are required to change this setting (list of str). """
     if not name:
         name = setting.lower().replace("\n", "").replace(" ", "")
