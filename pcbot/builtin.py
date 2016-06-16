@@ -72,9 +72,7 @@ def setowner(client: discord.Client, message: discord.Message):
     if not message.channel.is_private:
         return
 
-    if utils.owner_cfg.data:
-        yield from client.say(message, "An owner is already set.")
-        return
+    assert not utils.owner_cfg.data, "An owner is already set."
 
     owner_code = str(random.randint(100, 999))
     logging.critical("Owner code for assignment: {}".format(owner_code))
@@ -83,12 +81,12 @@ def setowner(client: discord.Client, message: discord.Message):
                                  "A code has been printed in the console for you to repeat within 60 seconds.")
     user_code = yield from client.wait_for_message(timeout=60, channel=message.channel, content=owner_code)
 
+    assert user_code, "You failed to send the desired code."
+
     if user_code:
         yield from client.say(message, "You have been assigned bot owner.")
         utils.owner_cfg.data = message.author.id
         utils.owner_cfg.save()
-    else:
-        yield from client.say(message, "You failed to send the desired code.")
 
 
 @plugins.command()
@@ -164,14 +162,12 @@ def plugin_(client: discord.Client, message: discord.Message):
 def reload(client: discord.Client, message: discord.Message, name: str.lower=None):
     """ Reloads a plugin. """
     if name:
-        if plugins.get_plugin(name):
-            yield from plugins.save_plugin(name)
-            plugins.reload_plugin(name)
+        assert plugins.get_plugin(name), "`{}` is not a plugin. See `!plugin`.".format(name)
 
-            yield from client.say(message, "Reloaded plugin `{}`.".format(name))
-        else:
-            # No such plugin
-            yield from client.say(message, "`{}` is not a plugin. See `!plugin`.".format(name))
+        # The plugin entered is valid so we reload it
+        yield from plugins.save_plugin(name)
+        plugins.reload_plugin(name)
+        yield from client.say(message, "Reloaded plugin `{}`.".format(name))
     else:
         # Reload all plugins
         yield from plugins.save_plugins()
@@ -186,28 +182,25 @@ def reload(client: discord.Client, message: discord.Message, name: str.lower=Non
 @utils.owner
 def load(client: discord.Client, message: discord.Message, name: str.lower):
     """ Loads a plugin. """
-    if not plugins.get_plugin(name):
-        loaded = plugins.load_plugin(name)
+    assert not plugins.get_plugin(name), "Plugin `{}` is already loaded.".format(name)
 
-        if loaded:
-            yield from client.say(message, "Plugin `{}` loaded.".format(name))
-        else:
-            yield from client.say(message, "Plugin `{}` could not be loaded.".format(name))
-    else:
-        yield from client.say(message, "Plugin `{}` is already loaded.".format(name))
+    # The plugin isn't loaded so we'll try to load it
+    assert plugins.load_plugin(name), "Plugin `{}` could not be loaded.".format(name)
+
+    # The plugin was loaded successfully
+    yield from client.say(message, "Plugin `{}` loaded.".format(name))
 
 
 @plugin_.command(error="You need to specify the name of the plugin to unload.")
 @utils.owner
 def unload(client: discord.Client, message: discord.Message, name: str.lower):
     """ Unloads a plugin. """
-    if plugins.get_plugin(name):
-        yield from plugins.save_plugin(name)
-        plugins.unload_plugin(name)
+    assert plugins.get_plugin(name), "`{}` is not a loaded plugin. See `!plugin`.".format(name)
 
-        yield from client.say(message, "Plugin `{}` unloaded.".format(name))
-    else:
-        yield from client.say(message, "`{}` is not a plugin. See `!plugin`.".format(name))
+    # The plugin is loaded so we unload it
+    yield from plugins.save_plugin(name)
+    plugins.unload_plugin(name)
+    yield from client.say(message, "Plugin `{}` unloaded.".format(name))
 
 
 @plugins.command(name="lambda", usage="[add <trigger> <python code> | [remove | enable | disable | source | "
@@ -226,54 +219,56 @@ def lambda_(client: discord.Client, message: discord.Message):
 @utils.owner
 def add(client: discord.Client, message: discord.Message, trigger: str.lower, script: Annotate.Code):
     """ Add a command that runs the specified script. """
-    if trigger not in lambdas.data:
-        lambdas.data[trigger] = script
-        lambdas.save()
-        yield from client.say(message, "Command `{}` set.".format(trigger))
-    else:
-        yield from client.say(message, "Command `{}` already exists.".format(trigger))
+    assert trigger not in lambdas.data, "Command `{}` already exists.".format(trigger)
+
+    # The command does not exist so we create it
+    lambdas.data[trigger] = script
+    lambdas.save()
+    yield from client.say(message, "Command `{}` set.".format(trigger))
 
 
 @lambda_.command()
 @utils.owner
 def remove(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Remove a command. """
-    if trigger in lambdas.data:
-        lambdas.data.pop(trigger)
-        lambdas.save()
-        yield from client.say(message, "Command `{}` removed.".format(trigger))
-    else:
-        yield from client.say(message, "Command `{}` does not exist.".format(trigger))
+    assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
+
+    # The command specified exists and we remove it
+    del lambdas.data[trigger]
+    lambdas.save()
+    yield from client.say(message, "Command `{}` removed.".format(trigger))
 
 
 @lambda_.command()
 @utils.owner
 def enable(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Enable a command. """
+    # If the specified trigger is in the blacklist, we remove it
     if trigger in lambda_config.data["blacklist"]:
-        del lambda_config.data["blacklist"][trigger]
+        lambda_config.data["blacklist"].remove(trigger)
         lambda_config.save()
         yield from client.say(message, "Command `{}` enabled.".format(trigger))
     else:
-        if trigger in lambdas.data:
-            yield from client.say(message, "Command `{}` is already enabled.".format(trigger))
-        else:
-            yield from client.say(message, "Command `{}` does not exist.".format(trigger))
+        assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
+
+        # The command exists so surely it must be disabled
+        yield from client.say(message, "Command `{}` is already enabled.".format(trigger))
 
 
 @lambda_.command()
 @utils.owner
 def disable(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Disable a command. """
-    if trigger in lambda_config.data["blacklist"]:
+    # If the specified trigger is not in the blacklist, we add it
+    if trigger not in lambda_config.data["blacklist"]:
         lambda_config.data["blacklist"].append(trigger)
         lambda_config.save()
         yield from client.say(message, "Command `{}` disabled.".format(trigger))
     else:
-        if trigger in lambdas.data:
-            yield from client.say(message, "Command `{}` is already disabled..".format(trigger))
-        else:
-            yield from client.say(message, "Command `{}` does not exist.".format(trigger))
+        assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
+
+        # The command exists so surely it must be disabled
+        yield from client.say(message, "Command `{}` is already disabled.".format(trigger))
 
 
 def import_module(module: str, attr: str=None):
@@ -307,6 +302,7 @@ def import_(client: discord.Client, message: discord.Message, module: str, attr:
     except KeyError:
         yield from client.say(message, "Unable to import `{}` from `{}`.".format(attr, module))
     else:
+        # There were no errors when importing, so we add the name to our startup imports
         lambda_config.data["imports"].append((module, attr))
         lambda_config.save()
         yield from client.say(message, "Imported and setup `{}` for import.".format(attr or module))
@@ -315,10 +311,10 @@ def import_(client: discord.Client, message: discord.Message, module: str, attr:
 @lambda_.command()
 def source(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Disable source of a command """
-    if trigger in lambdas.data:
-        yield from client.say(message, "Source for `{}`:\n{}".format(trigger, lambdas.data[trigger]))
-    else:
-        yield from client.say(message, "Command `{}` does not exist.".format(trigger))
+    assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
+
+    # The command exists so we display the source
+    yield from client.say(message, "Source for `{}`:\n{}".format(trigger, lambdas.data[trigger]))
 
 
 @plugins.command()
@@ -386,7 +382,7 @@ def pcbot(client: discord.Client, message: discord.Message):
 
 
 @pcbot.command(name="changelog")
-def changelog_(client: discord.Client, message: discord.Message, num: int=5):
+def changelog_(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=5):
     """ Get however many requests from the changelog. """
     changelog = yield from get_changelog(num)
     yield from client.say(message, changelog)
@@ -401,7 +397,8 @@ def on_ready(_):
     code_globals.update(dict(
         utils=utils,
         datetime=datetime,
-        random=random
+        random=random,
+        asyncio=asyncio,
     ))
 
 

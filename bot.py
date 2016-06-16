@@ -49,7 +49,8 @@ def log_message(message: discord.Message, prefix: str=""):
 @asyncio.coroutine
 def send_command_help(message: discord.Message, command: plugins.Command):
     """ Send command help to the specified channel. """
-    yield from plugins.get_plugin("builtin").help_(client, message, command.name)
+    yield from plugins.get_plugin("builtin").help_(client, message,
+                                                   command.parent.name if command.parent else command.name)
 
 
 @asyncio.coroutine
