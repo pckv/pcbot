@@ -180,8 +180,9 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
             for cmd_arg in cmd_args[index - 1:-num_kwargs or len(cmd_args) + 1]:
                 # Do not register the positional argument if it does not meet the optional criteria
-                if not command.pos_check(cmd_arg):
-                    continue
+                if type(command.pos_check) is not bool:
+                    if not command.pos_check(cmd_arg):
+                        continue
 
                 tmp_arg = parse_annotation(param, cmd_arg, index + start_index, message)
 
@@ -203,8 +204,12 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
     if has_pos:
         num_given -= (num_pos_args - 1) if not num_pos_args == 0 else 0
 
-    # TODO: fix positional arguments
     complete = (num_given == num_args)
+
+    # The command is incomplete if positional arguments are forced
+    if complete and command.pos_check is True and num_pos_args == 0:
+        complete = False
+
     return args, kwargs, complete
 
 

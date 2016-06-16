@@ -38,12 +38,13 @@ def command(**options):
     in the module itself.
 
     Command attributes are:
-        name        : str   : The commands name. Will use the function name by default.
-        usage       : str   : The command usage following the command trigger, e.g the `[cmd]` in `!help [cmd]`.
-        description : str   : The commands description. By default this uses the docstring of the function.
-        hidden      : bool  : Whether or not to show this function in the builtin help command.
-        error       : str   : An optional message to send when argument requirements are not met.
-        pos_check   : func  : An optional check function for positional arguments, eg: pos_check=lambda s: s
+        name        : str         : The commands name. Will use the function name by default.
+        usage       : str         : The command usage following the command trigger, e.g the `[cmd]` in `!help [cmd]`.
+        description : str         : The commands description. By default this uses the docstring of the function.
+        hidden      : bool        : Whether or not to show this function in the builtin help command.
+        error       : str         : An optional message to send when argument requirements are not met.
+        pos_check   : func / bool : An optional check function for positional arguments, eg: pos_check=lambda s: s
+                                    When this attribute is a bool and True, force positional arguments.
     """
     def decorator(func):
         if not asyncio.iscoroutine(func):
@@ -54,7 +55,7 @@ def command(**options):
         hidden = options.get("hidden", False)
         parent = options.get("parent", None)
         error = options.get("error", None)
-        pos_check = options.get("pos_check", lambda s: s)
+        pos_check = options.get("pos_check", False)
         description = options.get("description") or func.__doc__ or "Undocumented."
         usage = None
 

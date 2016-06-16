@@ -119,10 +119,12 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
     return muted_members or None
 
 
-@plugins.command(usage="<users ...>")
+@plugins.command(usage="<users ...>", pos_check=True)
 @utils.permission("manage_messages")
 def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Mute users. """
+    # Since PCBOT handles positional arguments as optional, we have to check them manually
+    assert members
     muted_members = yield from manage_mute(client, message, client.add_roles, *members)
 
     # Some members were muted, success!
@@ -130,10 +132,11 @@ def mute(client: discord.Client, message: discord.Message, *members: Annotate.Me
         yield from client.say(message, "Muted {}".format(utils.format_members(*muted_members)))
 
 
-@plugins.command(usage="<users ...>")
+@plugins.command(usage="<users ...>", pos_check=True)
 @utils.permission("manage_messages")
 def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Unmute users. """
+    assert members
     muted_members = yield from manage_mute(client, message, client.remove_roles, *members)
 
     # Some members were unmuted, success!
@@ -141,7 +144,7 @@ def unmute(client: discord.Client, message: discord.Message, *members: Annotate.
         yield from client.say(message, "Unmuted {}".format(utils.format_members(*muted_members)))
 
 
-@plugins.command(usage="<users ...> <minutes>")
+@plugins.command(usage="<users ...> <minutes>", pos_check=True)
 @utils.permission("manage_messages")
 def timeout(client: discord.Client, message: discord.Message, *members: Annotate.Member, minutes: int):
     """ Timeout users for given minutes. """

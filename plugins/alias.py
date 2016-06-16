@@ -29,8 +29,7 @@ alias_usage = "<[-anywhere] [-case-sensitive] [-delete-message] <trigger> <text>
 aliases = Config("user_alias", data=defaultdict(str))
 
 
-@plugins.command(usage=alias_usage, description=alias_desc, error="See `!help alias` (the help file is kinda long).",
-                 pos_check=lambda s: s.startswith("-"))
+@plugins.command(usage=alias_usage, description=alias_desc, pos_check=lambda s: s.startswith("-"))
 def alias(client: discord.Client, message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
     """ Assign an alias. Description is defined in alias_desc. """
     anywhere = "-anywhere" in options
@@ -74,9 +73,10 @@ def remove(client: discord.Client, message: discord.Message, trigger: Annotate.C
 
 @asyncio.coroutine
 def on_message(client: discord.Client, message: discord.Message):
+    success = False
+
     # User alias check
     if message.author.id in aliases.data:
-        success = False
         user_aliases = aliases.data[message.author.id]
 
         # Check any aliases
@@ -110,13 +110,11 @@ def on_message(client: discord.Client, message: discord.Message):
 
                 success = True
 
-        return success
-
     # See if the user spelled definitely wrong
     for spelling in ["definately", "definatly", "definantly", "definetly", "definently", "defiantly"]:
         if spelling in message.clean_content:
             yield from client.send_message(message.channel,
                                            "{} http://www.d-e-f-i-n-i-t-e-l-y.com/".format(message.author.mention))
-            return True
+            success = True
 
-    return False
+    return success

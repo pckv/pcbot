@@ -363,8 +363,8 @@ def get_changelog(num: int):
 @plugins.command(usage="[changelog [num]]")
 def pcbot(client: discord.Client, message: discord.Message):
     """ Display basic information and changelog. """
-    # Grab 3 commits since last week
-    changelog = yield from get_changelog(3)
+    # Grab the latest commit
+    changelog = yield from get_changelog(1)
 
     yield from client.say(message, "**{ver}**\n"
                                    "__Github repo:__ <{repo}>\n"
@@ -382,8 +382,8 @@ def pcbot(client: discord.Client, message: discord.Message):
 
 
 @pcbot.command(name="changelog")
-def changelog_(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=5):
-    """ Get however many requests from the changelog. """
+def changelog_(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=3):
+    """ Get however many requests from the changelog. Defaults to 3. """
     changelog = yield from get_changelog(num)
     yield from client.say(message, changelog)
 
@@ -394,6 +394,7 @@ def on_ready(_):
     for module, attr in lambda_config.data["imports"]:
         import_module(module, attr)
 
+    # Add essential globals for !do, !eval and !lambda
     code_globals.update(dict(
         utils=utils,
         datetime=datetime,
@@ -407,6 +408,7 @@ def on_message(client: discord.Client, message: discord.Message):
     """ Perform lambda commands. """
     args = utils.split(message.content)
 
+    # Check if the command is a lambda command and is not disabled (in the blacklist)
     if args[0] in lambdas.data and args[0] not in lambda_config.data["blacklist"]:
         def say(msg, m=message):
             asyncio.async(client.say(m, msg))
@@ -419,6 +421,7 @@ def on_message(client: discord.Client, message: discord.Message):
 
         code_globals.update(dict(arg=arg, say=say, args=args, message=message, client=client))
 
+        # Execute the command
         try:
             exec(lambdas.data[args[0]], code_globals)
         except Exception as e:
