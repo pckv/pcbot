@@ -11,8 +11,7 @@ import importlib
 import discord
 import asyncio
 
-from bot import __version__
-from pcbot import utils, Config, Annotate
+from pcbot import utils, Config, Annotate, config
 import plugins
 
 
@@ -26,7 +25,7 @@ code_globals = {}
 def help_(client: discord.Client, message: discord.Message, name: str.lower=None):
     """ Display commands or their usage and description. """
     if name:  # Display the specific command
-        if name.startswith(utils.command_prefix):
+        if name.startswith(config.command_prefix):
             name = name[1:]
 
         usage, desc = "", ""
@@ -63,7 +62,7 @@ def help_(client: discord.Client, message: discord.Message, name: str.lower=None
         commands = ", ".join(sorted(commands))
 
         m = "**Commands:**```{0}```Use `{1}help <command>` or `{1}<command> {2}` for command specific help.".format(
-            commands, utils.command_prefix, utils.help_arg)
+            commands, config.command_prefix, config.help_arg)
         yield from client.say(message, m)
 
 
@@ -337,10 +336,10 @@ def ping(client: discord.Client, message: discord.Message):
 
 
 @asyncio.coroutine
-def get_changelog(num: int=5):
+def get_changelog(num: int):
     """ Get the latest commit messages from pcbot. """
     since = datetime.utcnow() - timedelta(days=7)
-    commits = yield from utils.download_json("https://api.github.com/repos/{}commits".format(utils.github_repo),
+    commits = yield from utils.download_json("https://api.github.com/repos/{}commits".format(config.github_repo),
                                              since=since.strftime("%Y-%m-%dT00:00:00"))
     changelog = []
 
@@ -368,8 +367,8 @@ def get_changelog(num: int=5):
 @plugins.command(usage="[changelog [num]]")
 def pcbot(client: discord.Client, message: discord.Message):
     """ Display basic information and changelog. """
-    # Grab 5 commits since last week
-    changelog = yield from get_changelog()
+    # Grab 3 commits since last week
+    changelog = yield from get_changelog(3)
 
     yield from client.say(message, "**{ver}**\n"
                                    "__Github repo:__ <{repo}>\n"
@@ -378,10 +377,10 @@ def pcbot(client: discord.Client, message: discord.Message):
                                    "__Messages since up date:__ `{mes}`\n"
                                    "__Servers connected to:__ `{servers}`\n"
                                    "{changelog}".format(
-        ver=__version__, up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"), mes=len(client.messages),
+        ver=config.version, up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"), mes=len(client.messages),
         host=getattr(utils.get_member(client, utils.owner_cfg.data), "name", None) or "Not in this server.",
         servers=len(client.servers),
-        repo="https://github.com/{}".format(utils.github_repo),
+        repo="https://github.com/{}".format(config.github_repo),
         changelog=changelog
     ))
 

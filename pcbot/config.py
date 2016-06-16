@@ -3,6 +3,12 @@ from os.path import exists
 from os import mkdir
 
 
+github_repo = "PcBoy111/PCBOT/"
+command_prefix = "!"
+help_arg = "?"
+version = ""  # Defined in /bot.py
+
+
 class Config:
     config_path = "config/"
 

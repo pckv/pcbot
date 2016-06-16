@@ -8,38 +8,17 @@ from argparse import ArgumentParser
 import discord
 import asyncio
 
-from pcbot import utils
+from pcbot import utils, command_prefix, help_arg
+import pcbot.config  # For manually changing the version
 import plugins
 
 
-__version__ = "PCBOT V3"
-
-
-# Add all command-line arguments
-parser = ArgumentParser(description="Run PCBOT.")
-parser.add_argument("--version", "-V", help="Return the current version.",
-                    action="version", version=__version__)
-parser.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
-parser.add_argument("--email", "-e", help="The email to login to. Token prompt is default.")
-parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
-parser.add_argument("--log-level", "-l", help="Use the specified logging level (see the docs on logging for values).",
-                    type=lambda s: getattr(logging, s.upper()), default=logging.INFO, metavar="LEVEL")
-start_args = parser.parse_args()
-
-# Setup logger with level specified in start_args or logging.INFO
-logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
-
-# Always keep discord.py logger at INFO as a minimum
-discord_logger = logging.getLogger("discord")
-discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
+pcbot.config.version = __version__ = "PCBOT V3"
 
 
 # Setup our client
 client = discord.Client()
 autosave_interval = 60 * 30
-
-plugins.load_plugin("builtin", "pcbot")  # Load plugin for builtin commands
-plugins.load_plugins()  # Load all plugins in plugins/
 
 
 @asyncio.coroutine
@@ -109,7 +88,7 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
             raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a callable")
         except:  # On error, eg when annotation is int and given argument is str
             return None
-        
+
     return str(arg)  # Return str of arg if there was no annotation
 
 
@@ -227,7 +206,7 @@ def parse_command(command: plugins.Command, cmd: str, cmd_args: list, message: d
     command, cmd_args, start_index = get_sub_command(command, cmd_args)
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if cmd_args[-1] == utils.help_arg:
+    if cmd_args[-1] == help_arg:
         complete = False
         args, kwargs = [], {}
     else:
@@ -281,7 +260,7 @@ def on_message(message: discord.Message):
     # Get command name
     cmd = ""
 
-    if cmd_args[0].startswith(utils.command_prefix) and len(cmd_args[0]) > 1:
+    if cmd_args[0].startswith(command_prefix) and len(cmd_args[0]) > 1:
         cmd = cmd_args[0][1:]
 
     # Handle commands
@@ -323,8 +302,31 @@ def add_tasks():
 
 
 def main():
-    """ The main function. Gets the user's login info, sets up
-    any background task and starts the bot. """
+    """ The main function. Parses command line arguments, sets up logging,
+    gets the user's login info, sets up any background task and starts the bot. """
+    # Add all command-line arguments
+    parser = ArgumentParser(description="Run PCBOT.")
+    parser.add_argument("--version", "-V", help="Return the current version.",
+                        action="version", version=__version__)
+    parser.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
+    parser.add_argument("--email", "-e", help="The email to login to. Token prompt is default.")
+    parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
+    parser.add_argument("--log-level", "-l",
+                        help="Use the specified logging level (see the docs on logging for values).",
+                        type=lambda s: getattr(logging, s.upper()), default=logging.INFO, metavar="LEVEL")
+    start_args = parser.parse_args()
+
+    # Setup logger with level specified in start_args or logging.INFO
+    logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
+
+    # Always keep discord.py logger at INFO as a minimum
+    discord_logger = logging.getLogger("discord")
+    discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
+
+    plugins.load_plugin("builtin", "pcbot")  # Load plugin for builtin commands
+    plugins.load_plugins()  # Load all plugins in plugins/
+
+    # Handle login
     if not start_args.email:
         # Login with the specified token if specified
         token = start_args.token or input("Token: ")

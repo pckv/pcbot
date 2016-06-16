@@ -7,7 +7,7 @@ from functools import partial
 
 import asyncio
 
-from pcbot import utils
+from pcbot import utils, command_prefix
 
 plugins = {}
 Command = namedtuple("Command", "name usage description function sub_commands parent hidden error pos_check")
@@ -45,7 +45,6 @@ def command(**options):
         error       : str   : An optional message to send when argument requirements are not met.
         pos_check   : func  : An optional check function for positional arguments, eg: pos_check=lambda s: s
     """
-
     def decorator(func):
         if not asyncio.iscoroutine(func):
             func = asyncio.coroutine(func)
@@ -61,7 +60,7 @@ def command(**options):
 
         if not parent:
             usage = "{pre}{name} {usage}".format(
-                pre=utils.command_prefix, name=name, usage=options.get("usage", ""))
+                pre=command_prefix, name=name, usage=options.get("usage", ""))
 
         # Properly format description when using docstrings
         # Kinda like markdown; new line = (blank line) or (/ at end of line)

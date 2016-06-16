@@ -9,10 +9,7 @@ import aiohttp
 
 from pcbot import Config
 
-github_repo = "PcBoy111/PCBOT/"
 owner_cfg = Config("owner")
-command_prefix = "!"
-help_arg = "?"
 
 
 class Annotate(Enum):
