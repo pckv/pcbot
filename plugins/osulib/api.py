@@ -12,8 +12,15 @@ from pcbot import utils
 
 
 api_url = "https://osu.ppy.sh/api/"
-api_key = ""  # This variable can be changed to exclude the "k" parameter
+api_key = ""
 requests_sent = 0
+
+
+def set_api_key(s: str):
+    """ Set the osu! API key. This simplifies every API function as they
+    can exclude the "k" parameter. """
+    global api_key
+    api_key = s
 
 
 class GameMode(IntEnum):

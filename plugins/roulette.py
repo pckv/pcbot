@@ -196,7 +196,7 @@ class HotPotato(Roulette):
         started.pop(started.index(self.message.channel.id))
 
 
-desc_template = "Starts a game of {game}. To participate, say `I` in the chat.\n" \
+desc_template = "Starts a game of {game.name}. To participate, say `I` in the chat.\n" \
                 "The optional `participants` argument sets a custom number of participants.\n" \
                 "*Please beware that you may or may not die using this command.*"
 
@@ -211,21 +211,21 @@ def init_game(client: discord.Client, message: discord.Message, game, num: int):
     if num > message.server.member_count:
         num = message.server.member_count
 
-    if message.channel.id not in started:
-        started.append(message.channel.id)
-        asyncio.async(game(client, message, num).start())
-        return
+    # The channel should not be playing two games at once
+    assert message.channel.id not in started, "**This channel is already playing.**"
 
-    yield from client.say(message, "**This channel is already playing.**")
+    # Start the game
+    started.append(message.channel.id)
+    asyncio.async(game(client, message, num).start())
 
 
-@plugins.command(usage="[participants]", description=desc_template.format(game=Roulette.name))
+@plugins.command(usage="[participants]", description=desc_template.format(game=Roulette))
 def roulette(client: discord.Client, message: discord.Message, num: int=6):
     """ The roulette command. Description is defined using a template. """
-    yield from init_game(client, message, Roulette, num)
+    init_game(client, message, Roulette, num)
 
 
-@plugins.command(usage="[participants]", description=desc_template.format(game=HotPotato.name))
+@plugins.command(usage="[participants]", description=desc_template.format(game=HotPotato))
 def hotpotato(client: discord.Client, message: discord.Message, num: int=4):
     """ The hotpotato command. Description is defined using a template. """
-    yield from init_game(client, message, HotPotato, num)
+    init_game(client, message, HotPotato, num)

@@ -6,7 +6,14 @@ from os import mkdir
 github_repo = "PcBoy111/PCBOT/"
 command_prefix = "!"
 help_arg = "?"
-version = ""  # Defined in /bot.py
+version = ""
+
+
+def set_version(s: str):
+    """ Set the version of the API. This function should really only
+    be used in bot.py. """
+    global version
+    version = s
 
 
 class Config:

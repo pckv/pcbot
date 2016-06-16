@@ -88,16 +88,13 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
     :param function: either client.add_roles or client.remove_roles
     :return: list of muted/unmuted members or None """
     # Manage Roles is required to add or remove the Muted role
-    if not message.server.me.permissions_in(message.channel).manage_roles:
-        yield from client.say(message, "I need `Manage Roles` permission to use this command.")
-        return None
+    assert message.server.me.permissions_in(message.channel).manage_roles, \
+        "I need `Manage Roles` permission to use this command."
 
     muted_role = discord.utils.get(message.server.roles, name="Muted")
 
     # The server needs to properly manage the Muted role
-    if not muted_role:
-        yield from client.say(message, "No role assigned for muting. Please create a `Muted` role.")
-        return None
+    assert muted_role, "No role assigned for muting. Please create a `Muted` role."
 
     muted_members = []
 
@@ -150,7 +147,7 @@ def timeout(client: discord.Client, message: discord.Message, *members: Annotate
     """ Timeout users for given minutes. """
     muted_members = yield from manage_mute(client, message, client.add_roles, *members)
 
-    # Do not progress if the member was not successfully muted
+    # Do not progress if the members were not successfully muted
     # At this point, manage_mute will have reported any errors
     if not muted_members:
         return

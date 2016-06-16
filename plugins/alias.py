@@ -52,29 +52,24 @@ def alias(client: discord.Client, message: discord.Message, *options: str.lower,
 @alias.command(name="list")
 def list_(client: discord.Client, message: discord.Message):
     """ List all user's aliases. """
-    # List aliases if user has any
-    if message.author.id in aliases.data:
-        format_aliases = ", ".join(aliases.data[message.author.id].keys())
-        yield from client.say(message, "**Aliases for {0.name}:**```{1}```\n".format(message.author, format_aliases))
-        return
+    assert aliases.data.get(message.author.id, False), "No aliases registered for **{0.name}**.".format(message.author)
 
-    # User has no aliases
-    yield from client.say(message, "No aliases registered for **{0.name}**.".format(message.author))
+    # The user is registered so they must have aliases and we display them
+    format_aliases = ", ".join(aliases.data[message.author.id].keys())
+    yield from client.say(message, "**Aliases for {0.name}:**```{1}```\n".format(message.author, format_aliases))
 
 
 @alias.command()
-def remove(client: discord.Client, message: discord.Message, trigger: str):
+def remove(client: discord.Client, message: discord.Message, trigger: Annotate.Content):
     """ Remove user's alias. """
+    # Check if the trigger is in the would be list (basically checks if trigger is in [] if user is not registered)
+    assert trigger in aliases.data.get(message.author.id, []), \
+        "No alias `{0}` registered for **{1.name}**.".format(trigger, message.author)
+
     # Trigger is an assigned alias, remove it
-    if trigger in aliases.data.get(message.author.id, []):
-        aliases.data[message.author.id].pop(trigger)
-        aliases.save()
-
-        yield from client.say(message, "Removed alias `{0}` for **{1.name}**.".format(trigger, message.author))
-        return
-
-    # User has no such alias
-    yield from client.say(message, "No alias `{0}` registered for **{1.name}**.".format(trigger, message.author))
+    aliases.data[message.author.id].pop(trigger)
+    aliases.save()
+    yield from client.say(message, "Removed alias `{0}` for **{1.name}**.".format(trigger, message.author))
 
 
 @asyncio.coroutine
@@ -110,7 +105,8 @@ def on_message(client: discord.Client, message: discord.Message):
                     if message.server.me.permissions_in(message.channel).manage_messages:
                         asyncio.async(client.delete_message(message))
 
-                yield from client.say(message, "{0.mention}{1}: {2}".format(message.author, mention, command["text"]))
+                yield from client.say(message, "**{0.display_name}**{1}: {2}".format(
+                    message.author, mention, command["text"]))
 
                 success = True
 

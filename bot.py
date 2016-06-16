@@ -8,12 +8,12 @@ from argparse import ArgumentParser
 import discord
 import asyncio
 
-from pcbot import utils, command_prefix, help_arg
-import pcbot.config  # For manually changing the version
+from pcbot import utils, command_prefix, help_arg, set_version
 import plugins
 
 
-pcbot.config.version = __version__ = "PCBOT V3"
+__version__ = "PCBOT V3"
+set_version(__version__)  # Sets the version to enable accessibility for other modules
 
 
 # Setup our client
@@ -50,17 +50,25 @@ def log_message(message: discord.Message, prefix: str=""):
 def send_command_help(message: discord.Message, command: plugins.Command):
     """ Send command help to the specified channel. """
     yield from plugins.get_plugin("builtin").help_(client, message,
-                                                   command.parent.name if command.parent else command.name)
+                                                   plugins.parent_attr(command, "name"))
+
+
+def format_usage(command: plugins.Command):
+    """ Formats the command's usage for sending. """
+    return "**Usage**:```{}```".format(plugins.parent_attr(command, "usage"))
 
 
 @asyncio.coroutine
 def on_plugin_message(function, message: discord.Message):
-    """ Run the given plugin function.
-    If the function returns True, log the sent message. """
-    success = yield from function(client, message)
-
-    if success:
-        log_message(message, prefix="... ")
+    """ Run the given plugin function. If the function returns True, log the
+    sent message. Send any AttributeError exceptions. """
+    try:
+        success = yield from function(client, message)
+    except AssertionError as e:
+        yield from client.say(message, str(e))
+    else:
+        if success:
+            log_message(message, prefix="... ")
 
 
 @asyncio.coroutine
@@ -69,10 +77,7 @@ def execute_command(command: plugins.Command, message: discord.Message, *args, *
     try:
         yield from command.function(client, message, *args, **kwargs)
     except AssertionError as e:
-        if str(e) or command.error:
-            yield from client.say(message, str(e) or command.error)
-        else:
-            yield from send_command_help(message, command)
+        yield from client.say(message, str(e) or command.error or format_usage(command))
 
 
 def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: discord.Message):
@@ -198,6 +203,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
     if has_pos:
         num_given -= (num_pos_args - 1) if not num_pos_args == 0 else 0
 
+    # TODO: fix positional arguments
     complete = (num_given == num_args)
     return args, kwargs, complete
 
@@ -223,10 +229,11 @@ def get_sub_command(command: plugins.Command, cmd_args: list):
 def parse_command(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Try finding a command """
     command, cmd_args, start_index = get_sub_command(command, cmd_args)
+    send_usage = True
 
     # If the last argument ends with the help argument, skip parsing and display help
     if cmd_args[-1] == help_arg:
-        complete = False
+        complete = send_usage = False
         args, kwargs = [], {}
     else:
         # Parse the command and return the parsed arguments
@@ -237,9 +244,12 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
         log_message(message)  # Log the command
 
         if command.error:
-            yield from client.send_message(message.channel, command.error)
+            yield from client.say(message, command.error)
         else:
-            yield from send_command_help(message, command)
+            if send_usage:
+                yield from client.say(message, format_usage(command))
+            else:
+                yield from send_command_help(message, command)
 
         command = None
 

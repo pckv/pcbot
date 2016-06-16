@@ -19,6 +19,14 @@ import plugins
 feature_reqs = Config(filename="feature_requests", data={})
 
 
+@plugins.command(usage="[num | phrase]")
+def roll(client: discord.Client, message: discord.Message, max_roll: utils.int_range(f=1)=100):
+    """ Roll a number from 1-100 if no second argument or second argument is not a number.
+        Alternatively rolls `num` times (minimum 1). """
+    rolled = random.randint(1, max_roll)
+    yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
+
+
 def get_req_id(feature_id: str):
     """ Return the id matched in an id string.
     Format should be similar to #24 """
@@ -66,14 +74,6 @@ def plugin_in_req(plugin: str):
     return plugin
 
 
-@plugins.command(usage="[num | phrase]")
-def roll(client: discord.Client, message: discord.Message, max_roll: utils.int_range(f=1)=100):
-    """ Roll a number from 1-100 if no second argument or second argument is not a number.
-        Alternatively rolls `num` times (minimum 1). """
-    rolled = random.randint(1, max_roll)
-    yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
-
-
 @plugins.command(usage="<plugin [#feature_id]>"
                        " | new <plugin> <feature>"
                        " | mark <plugin> <#feature_id>"
@@ -86,33 +86,18 @@ def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_
         `mark <#feature_id>` marks a feature as complete. **Owner command.**  /
         `remove <#feature_id>` removes a requested feature from the list entirely. **Owner command.**"""
 
-    if req_id:
-        if not feature_exists(plugin, req_id):
-            yield from client.say(message, "There is no such feature. Try `!feature {0}`.".format(plugin))
-            return
+    if req_id is not None:
+        assert feature_exists(plugin, req_id), "There is no such feature."
 
-        # Format and send the feature request of the specified id
+        # The feature request the specified id exists, and we format and send the feature request
         yield from client.say(message, "```diff\n" + format_req(plugin, req_id) + "```")
     else:
         format_list = "\n".join(format_req(plugin, req_id)
                                 for req_id in range(len(feature_reqs.data[plugin])))
+        assert format_list, "This plugin has no feature requests!"
 
-        if not format_list:
-            yield from client.say(message, "This plugin has no feature requests!")
-        else:  # Format and display the feature requests of this plugin
-            yield from client.say(message, "```diff\n{list}```".format(list=format_list))
-
-
-@feature.command(name="id")
-def id_(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
-    """ Display feature request of id req_id of a plugin. """
-    # Test and reply if feature by requested id doesn't exist
-    if not feature_exists(plugin, req_id):
-        yield from client.say(message, "There is no such feature. Try `!feature {0}`.".format(plugin))
-        return
-
-    # Format and send the feature request of the specified id
-    yield from client.say(message, "```diff\n" + format_req(plugin, req_id) + "```")
+        # Format a list of all requests for the specified plugin when there are any
+        yield from client.say(message, "```diff\n{list}```".format(list=format_list))
 
 
 @feature.command()
@@ -121,13 +106,12 @@ def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req,
     req_list = feature_reqs.data[plugin]
     content = content.replace("\n", " ")
 
-    if content in req_list:
-        yield from client.say(message, "This feature has already been requested!")
-    else:  # Add the feature request if an identical request does not exist
-        feature_reqs.data[plugin].append(content)
-        feature_reqs.save()
+    assert content not in req_list, "This feature has already been requested!"
 
-        yield from client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
+    # Add the feature request if an identical request does not exist
+    feature_reqs.data[plugin].append(content)
+    feature_reqs.save()
+    yield from client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
 
 
 @feature.command()
@@ -135,9 +119,7 @@ def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req,
 def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Toggles marking a feature request as complete. """
     # Test and reply if feature by requested id doesn't exist
-    if not feature_exists(plugin, req_id):
-        yield from client.say(message, "There is no such feature. Try `!feature {0}`.".format(plugin))
-        return
+    assert feature_exists(plugin, req_id), "There is no such feature."
 
     req = feature_reqs.data[plugin][req_id]
 
@@ -145,12 +127,10 @@ def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req
     if not req.endswith("+++"):
         feature_reqs.data[plugin][req_id] += "+++"
         feature_reqs.save()
-
         yield from client.say(message, "Marked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
     else:
         feature_reqs.data[plugin][req_id] = req[:-3]
         feature_reqs.save()
-
         yield from client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
@@ -159,13 +139,11 @@ def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req
 def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Removes a feature request. """
     # Test and reply if feature by requested id doesn't exist
-    if not feature_exists(plugin, req_id):
-        yield from client.say(message, "There is no such feature. Try `!feature {0}`.".format(plugin))
-        return
+    assert feature_exists(plugin, req_id), "There is no such feature."
 
-    feature_reqs.data[plugin].pop(req_id)
+    # Remove the feature
+    del feature_reqs.data[plugin][req_id]
     feature_reqs.save()
-
     yield from client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 

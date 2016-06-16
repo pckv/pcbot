@@ -19,24 +19,22 @@ pastas = Config("pastas", data={})
 def pasta(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
         pasta action. You also need quotes around `<name>` if it has any spaces. """
-    if name == ".":  # Display a random pasta
-        yield from client.say(message, choice(list(pastas.data.values())))
-        return
+    # Display a random pasta
+    assert not name == ".", choice(list(pastas.data.values()))
 
-    if name not in pastas.data:  # Pasta is not set
-        yield from client.say(message, "Pasta `{0}` is undefined.".format(name))
-        return
+    # Pasta might not be in the set
+    assert name in pastas.data, "Pasta `{0}` is undefined.".format(name)
 
+    # Display the specified pasta
     yield from client.say(message, pastas.data[name])
 
 
 @pasta.command()
 def add(client: discord.Client, message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
     """ Add a pasta. """
-    if name in pastas.data:
-        yield from client.say(message, "Pasta `{0}` already exists. ".format(name))
-        return
+    assert name not in pastas.data, "Pasta `{0}` already exists. ".format(name)
 
+    # If the pasta doesn't exist, set it
     pastas.data[name] = copypasta
     pastas.save()
     yield from client.say(message, "Pasta `{0}` set.".format(name))
@@ -45,9 +43,7 @@ def add(client: discord.Client, message: discord.Message, name: str.lower, copyp
 @pasta.command()
 def remove(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Remove a pasta. """
-    if name not in pastas.data:
-        yield from client.say(message, "No pasta with name `{0}`.".format(name))
-        return
+    assert name in pastas.data, "No pasta with name `{0}`.".format(name)
 
     copypasta = pastas.data.pop(name)
     pastas.save()

@@ -114,6 +114,11 @@ def command(**options):
     return decorator
 
 
+def parent_attr(cmd: Command, attr: str):
+    """ Return the attribute from the parent if there is one. """
+    return getattr(cmd.parent, attr, False) or getattr(cmd, attr)
+
+
 def load_plugin(name: str, package: str="plugins"):
     """ Load a plugin with the name name. If package isn't specified, this
     looks for plugin with specified name in /plugins/

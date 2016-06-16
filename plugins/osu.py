@@ -269,10 +269,8 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
     if not member:
         member = message.author
 
-    # Member is not registered in osu! data.
-    if member.id not in osu_config.data["profiles"]:
-        yield from client.say(message, "No osu! profile assigned to **{}**!".format(member.name))
-        return
+    # Make sure the member is assigned
+    assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
     user_id = osu_config.data["profiles"][member.id]
 
@@ -294,10 +292,8 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
     """ Tell the bot who you are on osu!. """
     osu_user = yield from api.get_user(u=name)
 
-    # Could not find a user by the specified name
-    if not osu_user:
-        yield from client.say(message, "osu! user `{}` does not exist.".format(name))
-        return
+    # Check if the osu! user exists
+    assert osu_user, "osu! user `{}` does not exist.".format(name)
 
     # Clear the scores when changing user
     if message.author.id in osu_tracking:
@@ -306,29 +302,21 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
     # Assign the user using their unique user_id
     osu_config.data["profiles"][message.author.id] = osu_user["user_id"]
     osu_config.save()
-
     yield from client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
 
 
 @osu.command()
 def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
     """ Unlink your osu! account or the member specified. """
-    # The message author wants to unlink someone and must be owner
-    if member and not utils.is_owner(message.author):
-        yield from client.say(message, "You must be owner to unlink other users.")
-        return
-
-    # The message author is allowed to unlink himself, and if a member is specified
-    # the author would be the owner at this point
-    if not member:
+    # The message author is allowed to unlink himself
+    # If a member is specified and the member is not the owner, set member to the author
+    if not member or (member and not utils.is_owner(message.author)):
         member = message.author
 
-    # The member is not linked
-    if member.id not in osu_config.data["profiles"]:
-        yield from client.say(message, "**{}** is not linked to an osu! profile.".format(member.name))
+    # The member might not be linked to any profile
+    assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
     # Unlink the given member (usually the message author)
-
     del osu_config.data["profiles"][member.id]
     osu_config.save()
     yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
@@ -340,11 +328,10 @@ def url(client: discord.Client, message: discord.Message, member: Annotate.Membe
     if not member:
         member = message.author
 
-    # Member is not registered in osu! data.
-    if member.id not in osu_config.data["profiles"]:
-        yield from client.say(message, "No osu! profile assigned to **{}**!".format(member.name))
-        return
+    # Member might not be registered
+    assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
+    # Send the URL since the member is registered
     yield from client.say(message, "**{0.display_name}'s profile:** <https://osu.ppy.sh/u/{1}>".format(
         member, osu_config.data["profiles"][member.id]))
 
@@ -354,12 +341,12 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     """ Calculate and return the would be pp using oppai. """
     global last_calc_beatmap
 
-    if not platform.system() == "Linux":
-        yield from client.say(message, "This service is unsupported since the bot is not hosted using Linux.")
-        return
+    # This service is only supported on Linux as of yet
+    assert platform.system() == "Linux", "This service is unsupported since the bot is not hosted using Linux."
 
-    if not os.path.exists(os.path.join(oppai_path, "oppai")):
-        yield from client.say(message, "This service is not available before the owner sets up the `oppai` lib.")
+    # Make sure the bot has access to "oppai" lib
+    assert os.path.exists(os.path.join(oppai_path, "oppai"),
+                          "This service is unavailable until the owner sets up the `oppai` lib.")
 
     # Only download and request when the id is different from the last check
     if last_calc_beatmap["beatmap_id"] not in beatmap_url and last_calc_beatmap["beatmapset_id"] not in beatmap_url:
@@ -390,10 +377,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     match = re.search(r"(?P<pp>[0-9.e+]+)pp", output)
 
     # Something went wrong with our service
-    if not match:
-        yield from client.say(message, "A problem occurred when parsing the beatmap.")
-        logging.warn("Error parsing beatmap:\n" + output)
-        return
+    assert match, "A problem occurred when parsing the beatmap."
 
     # We're done! Tell the user how much this score is worth.
     yield from client.say(message, "*{artist} - {title}* **[{version}] {1}** would be worth `{0:,}pp`.".format(
