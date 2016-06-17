@@ -351,8 +351,8 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     assert platform.system() == "Linux", "This service is unsupported since the bot is not hosted using Linux."
 
     # Make sure the bot has access to "oppai" lib
-    assert os.path.exists(os.path.join(oppai_path, "oppai"),
-                          "This service is unavailable until the owner sets up the `oppai` lib.")
+    assert os.path.exists(os.path.join(oppai_path, "oppai")), \
+        "This service is unavailable until the owner sets up the `oppai` lib."
 
     # Only download and request when the id is different from the last check
     if last_calc_beatmap["beatmap_id"] not in beatmap_url and last_calc_beatmap["beatmapset_id"] not in beatmap_url:

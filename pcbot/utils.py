@@ -54,7 +54,7 @@ def int_range(f: int=None, t: int=None):
     return wrapped
 
 
-def choice(*options, ignore_case=True):
+def choice(*options, ignore_case: bool=True):
     """ Return a helper function for checking if the argument is either of the given
     options. """
     def wrapped(arg: str):
