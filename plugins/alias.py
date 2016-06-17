@@ -1,4 +1,4 @@
-""" Script for creating user based alias commands
+""" Plugin for creating user based alias commands
 
 Commands:
 alias

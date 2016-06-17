@@ -1,3 +1,9 @@
+""" PCBOT.
+
+The main module which contains the Client. This is the module
+that would be executed.
+"""
+
 import logging
 import inspect
 import os
@@ -12,8 +18,8 @@ from pcbot import utils, command_prefix, help_arg, set_version
 import plugins
 
 
-__version__ = "PCBOT V3"
-set_version(__version__)  # Sets the version to enable accessibility for other modules
+# Sets the version to enable accessibility for other modules
+__version__ = set_version("PCBOT V3")
 
 
 # Setup our client
@@ -342,8 +348,12 @@ def main():
     parser = ArgumentParser(description="Run PCBOT.")
     parser.add_argument("--version", "-V", help="Return the current version.",
                         action="version", version=__version__)
-    parser.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
-    parser.add_argument("--email", "-e", help="The email to login to. Token prompt is default.")
+
+    # Setup a login group for handling only token or email, but not both
+    login_group = parser.add_mutually_exclusive_group()
+    login_group.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
+    login_group.add_argument("--email", "-e", help="The email to login to. Token prompt is default.")
+
     parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
     parser.add_argument("--log-level", "-l",
                         help="Use the specified logging level (see the docs on logging for values).",

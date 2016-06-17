@@ -1,3 +1,9 @@
+""" Handle any bot specific configs.
+
+This module includes the command syntax, github repo path,
+setting the bot's version and a class for creating configs.
+"""
+
 import json
 from os.path import exists
 from os import mkdir
@@ -14,6 +20,7 @@ def set_version(s: str):
     be used in bot.py. """
     global version
     version = s
+    return version
 
 
 class Config:

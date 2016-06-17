@@ -1,3 +1,9 @@
+""" Any utility functions.
+
+This module holds the owner data along with a handful of
+command specific functions and helpers.
+"""
+
 from enum import Enum
 from functools import wraps
 import shlex

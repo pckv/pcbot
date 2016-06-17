@@ -1,7 +1,10 @@
-""" Script for server moderation
+""" Plugin for server moderation
 
-If enabled on the server, spots any text containing the keyword nsfw and a link.
-Then tries to delete their message, and post a link to the dedicated nsfw channel.
+The bot will perform different tasks when some settings are enabled in a server:
+
+_____________________________________NSFW Filter_____________________________________
+    If enabled on the server, spots any text containing the keyword nsfw and a link.
+    Then tries to delete their message, and post a link to the dedicated nsfw channel.
 
 Commands:
     moderate

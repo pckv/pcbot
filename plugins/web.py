@@ -1,4 +1,4 @@
-""" Script for web commands
+""" Plugin for web commands
 
 Commands:
     define

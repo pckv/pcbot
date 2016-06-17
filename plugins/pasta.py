@@ -1,4 +1,4 @@
-""" Script for copypastas
+""" Plugin for copypastas
 
 Commands:
     pasta

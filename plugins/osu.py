@@ -1,8 +1,14 @@
-""" osu! commands
+""" Plugin for osu! commands
 
 This plugin will notify any registered user's pp difference and if they
 set a new best also post that. Keep in mind this plugin might send a lot
-of requests, so keep up to date with the `!osu debug` command.
+of requests, so keep up to date with the "osu debug" command.
+
+The "osu pp" command requires that you setup the "oppai" lib:
+https://github.com/Francesco149/oppai
+
+The directory would be "/plugins/osulib/oppai/". It should be setup so that
+the bot can run "/plugins/osulib/oppai/oppai" as an executable.
 
 Commands:
     osu

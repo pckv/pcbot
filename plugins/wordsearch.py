@@ -1,4 +1,4 @@
-""" Script for wordsearch
+""" Plugin for wordsearch
 
 Commands:
     wordsearch

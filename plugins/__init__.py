@@ -1,3 +1,6 @@
+""" PCBOT's plugin handler.
+"""
+
 import importlib
 import os
 import logging
@@ -14,6 +17,7 @@ Command = namedtuple("Command", "name usage description function sub_commands pa
 
 
 def get_plugin(name):
+    """ Return the loaded plugin by name or None. """
     if name in plugins:
         return plugins[name]
 
@@ -21,14 +25,17 @@ def get_plugin(name):
 
 
 def all_items():
+    """ Return a view object of every loaded plugin by key, value. """
     return plugins.items()
 
 
 def all_keys():
+    """ Return a view object of every loaded plugin by key. """
     return plugins.keys()
 
 
 def all_values():
+    """ Return a view object of every loaded plugin by value. """
     return plugins.values()
 
 

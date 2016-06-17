@@ -1,4 +1,4 @@
-""" Script for basic commands
+""" Plugin for basic commands
 
 Commands:
     roll

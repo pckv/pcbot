@@ -1,4 +1,4 @@
-""" Script for Russian Roulette
+""" Plugin for Russian Roulette
 
 Commands:
     roulette
