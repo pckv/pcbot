@@ -37,10 +37,7 @@ class Config:
         if not exists(self.config_path):
             mkdir(self.config_path)
 
-        loaded_data = None
-
-        if load:
-            loaded_data = self.load()
+        loaded_data = self.load() if load else None
 
         if data is not None and not loaded_data:
             self.data = data

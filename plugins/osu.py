@@ -35,6 +35,7 @@ logging_interval = 30  # Minutes
 
 pp_threshold = 0.1
 score_request_limit = 100
+member_timeout = 2  # How long to wait before removing a member from the register (update_interval * value seconds)
 
 api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
@@ -116,9 +117,18 @@ def update_user_data(client: discord.Client):
     for member_id, profile in osu_config.data["profiles"].items():
         def check_playing(m):
             """ Check if a member has "osu!" in their Game name. """
-            if m.id == member_id and m.game:
-                if "osu!" in m.game.name:
-                    return True
+            # The member doesn't even match
+            if not m.id == member_id:
+                return False
+
+            # See if the member is playing
+            if m.game and "osu!" in m.game.name:
+                return True
+
+            # If the member stopped playing, we want a timeout before removing them
+            if member_id in osu_tracking and osu_tracking[member_id]["timeout"] > 0:
+                osu_tracking[member_id]["timeout"] -= 1
+                return True
 
             return False
 
@@ -146,6 +156,10 @@ def update_user_data(client: discord.Client):
         # Update the "new" data
         user_data = yield from api.get_user(u=profile, type="id")
         osu_tracking[member_id]["new"] = user_data
+
+        # Update the member timeout
+        if "timeout" not in osu_tracking[member_id] or osu_tracking[member_id]["timeout"] < 1:
+            osu_tracking[member_id]["timeout"] = member_timeout
 
 
 @asyncio.coroutine
@@ -394,7 +408,9 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
 @utils.owner
 def debug(client: discord.Client, message: discord.Message):
     """ Display some debug info. """
-    yield from client.say(message, "Sent `{}` requests since the bot started (`{}`).".format(
+    yield from client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
+                                   "Members registered for update: {}".format(
         api.requests_sent,
-        client.time_started.ctime()
+        client.time_started.ctime(),
+        utils.format_members(*[])
     ))
