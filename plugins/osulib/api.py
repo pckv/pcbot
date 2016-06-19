@@ -163,13 +163,12 @@ def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
         raise LookupError("The beatmap with the given URL was not found.")
 
     # Find the most difficult beatmap
+    beatmap = None
     highest = -1
     for diff in difficulties:
         stars = float(diff["difficultyrating"])
         if stars > highest:
             beatmap, highest = diff, stars
-    else:
-        beatmap = None
 
     return beatmap
 
