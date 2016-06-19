@@ -145,13 +145,10 @@ def update_user_data(client: discord.Client):
         if member_id in osu_tracking:
             # Move the "new" data into the "old" data of this user
             osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
-
-        # If this is the first time, update the user's list of scores for later
         else:
+            # If this is the first time, update the user's list of scores for later
             scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit)
-
-            osu_tracking[member_id] = dict(member=member)
-            osu_tracking[member_id]["scores"] = scores
+            osu_tracking[member_id] = dict(member=member, scores=scores)
 
         # Update the "new" data
         user_data = yield from api.get_user(u=profile, type="id")
@@ -412,5 +409,5 @@ def debug(client: discord.Client, message: discord.Message):
                                    "Members registered for update: {}".format(
         api.requests_sent,
         client.time_started.ctime(),
-        utils.format_members(*[])
+        utils.format_members(*[d["member"] for d in osu_tracking.values()])
     ))

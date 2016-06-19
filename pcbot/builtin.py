@@ -391,16 +391,24 @@ def changelog_(client: discord.Client, message: discord.Message, num: utils.int_
 @asyncio.coroutine
 def on_ready(_):
     """ Import any imports for lambdas. """
-    for module, attr in lambda_config.data["imports"]:
-        import_module(module, attr)
-
     # Add essential globals for !do, !eval and !lambda
     code_globals.update(dict(
         utils=utils,
         datetime=datetime,
         random=random,
         asyncio=asyncio,
+        plugins=plugins
     ))
+
+    # Import modules for !do, !eval and !lambda
+    for module, attr in lambda_config.data["imports"]:
+        # Remove any already imported modules
+        if (attr or module) in code_globals:
+            lambda_config.data["imports"].remove([module, attr])
+            lambda_config.save()
+            continue
+
+        import_module(module, attr)
 
 
 @asyncio.coroutine

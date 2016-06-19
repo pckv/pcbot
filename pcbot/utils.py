@@ -291,7 +291,7 @@ def get_formatted_code(code):
 def format_members(*members: discord.Member, dec: str="`", sep: str=", "):
     """ Return a formatted string of members (or member) using the given
     decorator and the given separator. """
-    return sep.join(dec + (m.nick or m.name) + dec for m in members)
+    return sep.join(dec + m.display_name + dec for m in members)
 
 
 def split(string, maxsplit=-1):
