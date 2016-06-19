@@ -388,8 +388,7 @@ def changelog_(client: discord.Client, message: discord.Message, num: utils.int_
     yield from client.say(message, changelog)
 
 
-@asyncio.coroutine
-def on_ready(_):
+def init():
     """ Import any imports for lambdas. """
     # Add essential globals for !do, !eval and !lambda
     code_globals.update(dict(
@@ -442,3 +441,7 @@ def on_message(client: discord.Client, message: discord.Message):
         return True
 
     return False
+
+
+# Initialize the plugin's modules
+init()
