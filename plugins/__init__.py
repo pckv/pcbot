@@ -46,7 +46,7 @@ def command(**options):
 
     Command attributes are:
         name        : str         : The commands name. Will use the function name by default.
-        usage       : str         : The command usage following the command trigger, e.g the `[cmd]` in `!help [cmd]`.
+        usage       : str         : The command usage following the command trigger, e.g the "[cmd]" in "help [cmd]".
         description : str         : The commands description. By default this uses the docstring of the function.
         hidden      : bool        : Whether or not to show this function in the builtin help command.
         error       : str         : An optional message to send when argument requirements are not met.
@@ -86,6 +86,9 @@ def command(**options):
                     new_desc += line + " "
 
             description = new_desc
+
+        # Format the description for any optional keys
+        description = description.format(pre=command_prefix)
 
         # Load the plugin the function is from, so that we can modify the __commands attribute
         plugin = inspect.getmodule(func)

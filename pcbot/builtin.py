@@ -162,7 +162,7 @@ def plugin_(client: discord.Client, message: discord.Message):
 def reload(client: discord.Client, message: discord.Message, name: str.lower=None):
     """ Reloads a plugin. """
     if name:
-        assert plugins.get_plugin(name), "`{}` is not a plugin. See `!plugin`.".format(name)
+        assert plugins.get_plugin(name), "`{}` is not a plugin".format(name)
 
         # The plugin entered is valid so we reload it
         yield from plugins.save_plugin(name)
@@ -195,7 +195,7 @@ def load(client: discord.Client, message: discord.Message, name: str.lower):
 @utils.owner
 def unload(client: discord.Client, message: discord.Message, name: str.lower):
     """ Unloads a plugin. """
-    assert plugins.get_plugin(name), "`{}` is not a loaded plugin. See `!plugin`.".format(name)
+    assert plugins.get_plugin(name), "`{}` is not a loaded plugin.".format(name)
 
     # The plugin is loaded so we unload it
     yield from plugins.save_plugin(name)
@@ -206,7 +206,7 @@ def unload(client: discord.Client, message: discord.Message, name: str.lower):
 @plugins.command(name="lambda", usage="[add <trigger> <python code> | [remove | enable | disable | source | "
                                       "import <module> [attribute]] <trigger>]")
 def lambda_(client: discord.Client, message: discord.Message):
-    """ Create commands. See `!help do` for information on how the code works.
+    """ Create commands. See `{pre}help do` for information on how the code works.
 
         **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
         where the default argument is what to return when the argument does not exist.
@@ -390,7 +390,7 @@ def changelog_(client: discord.Client, message: discord.Message, num: utils.int_
 
 def init():
     """ Import any imports for lambdas. """
-    # Add essential globals for !do, !eval and !lambda
+    # Add essential globals for "do", "eval" and "lambda" commands
     code_globals.update(dict(
         utils=utils,
         datetime=datetime,
@@ -399,7 +399,7 @@ def init():
         plugins=plugins
     ))
 
-    # Import modules for !do, !eval and !lambda
+    # Import modules for "do", "eval" and "lambda" commands
     for module, attr in lambda_config.data["imports"]:
         # Remove any already imported modules
         if (attr or module) in code_globals:

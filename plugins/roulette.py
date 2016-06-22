@@ -14,7 +14,7 @@ import asyncio
 import plugins
 
 
-# List containing all channels running !roulette
+# List containing all channels playing a game
 started = []
 
 

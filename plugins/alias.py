@@ -13,16 +13,16 @@ from pcbot import Config, Annotate
 import plugins
 
 alias_desc = \
-    "Assign an alias command, where trigger is the command in it's entirety: `!cmd` or `>cmd` or `cmd`.\n" \
-    "Feel free to use spaces in a **trigger** by *enclosing it with quotes*, like so: `\"!my cmd\"`.\n" \
+    "Assign an alias command, where trigger is the command in it's entirety: `{pre}cmd` or `>cmd` or `cmd`.\n" \
+    "Feel free to use spaces in a **trigger** by *enclosing it with quotes*, like so: `\"{pre}my cmd\"`.\n" \
     "The **text** parameter can be anything, from a link to a paragraph. *Multiple spaces " \
     "requires quotes:* `\"this is my alias command\"`.\n" \
     "`-anywhere`: alias triggers anywhere in text you write.\n" \
     "`-case-sensitive` ensures that you *need* to follow the same casing.\n" \
     "`-delete-message` removes the original message. This option can not be mixed with the `-anywhere` option.\n" \
-    "`!alias list` lists all of the users set aliases. This only shows their trigger.\n" \
-    "`!alias remove <trigger>` removes the specified alias. Keep in mind that specifying trigger here **is** case " \
-    "sensitive. Use `!alias list` to find the correct case."
+    "`{pre}alias list` lists all of the users set aliases. This only shows their trigger.\n" \
+    "`{pre}alias remove <trigger>` removes the specified alias. Keep in mind that specifying trigger here **is** " \
+    "case sensitive. Use `{pre}alias list` to find the correct case."
 
 alias_usage = "<[-anywhere] [-case-sensitive] [-delete-message] <trigger> <text> | list | remove <trigger>>\n"
 

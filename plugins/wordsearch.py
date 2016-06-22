@@ -157,7 +157,7 @@ def wordsearch_(client: discord.Client, message: discord.Message):
     """ Start a wordsearch! Enter *any word* ending with `!` to guess the word!
 
         `auto` automatically sets a word for you. Default is one word, or enter up to 5 with `count`.  /
-        **Example**: `!wordsearch auto 4`"""
+        **Example**: `{pre}wordsearch auto 4`"""
     client.loop.create_task(start_wordsearch(client, message.channel, message.author))
 
 
