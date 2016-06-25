@@ -22,20 +22,55 @@ import plugins
 __version__ = set_version("PCBOT V3")
 
 
+class Client(discord.Client):
+    """ Custom Client class to hold the event dispatch override and
+    some helper functions. """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.time_started = datetime.now()
+
+    @asyncio.coroutine
+    def _handle_event(self, func, event, *args, **kwargs):
+        """ Handle the event dispatched. """
+        result = None
+
+        try:
+            result = yield from func(self, *args, **kwargs)
+        except:
+            yield from self.on_error(event, *args, **kwargs)
+        finally:
+            if result is True and event == "message":
+                log_message(args[0], prefix="... ")
+
+    def dispatch(self, event, *args, **kwargs):
+        # Exclude some messages
+        if event == "message":
+            message = args[0]
+            if message.author == client.user:
+                return
+            if not message.content:
+                return
+            if message.author.bot:
+                return
+
+        super().dispatch(event, *args, **kwargs)
+
+        # We get the method name and look through our plugins' event listeners
+        method = "on_" + event
+        if method in plugins.events:
+            for func in plugins.events[method]:
+                client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
+
+    @asyncio.coroutine
+    def say(self, message: discord.Message, content: str):
+        """ Equivalent to client.send_message(message.channel, content) """
+        msg = yield from client.send_message(message.channel, content)
+        return msg
+
+
 # Setup our client
-client = discord.Client()
+client = Client()
 autosave_interval = 60 * 30
-
-
-@asyncio.coroutine
-def say(message: discord.Message, content: str):
-    """ Equivalent to client.send_message(message.channel, content) """
-    msg = yield from client.send_message(message.channel, content)
-    return msg
-
-
-setattr(client, "say", say)
-setattr(client, "time_started", datetime.now())
 
 
 @asyncio.coroutine
@@ -281,15 +316,6 @@ def on_message(message: discord.Message):
     The bot will handle all commands in plugins and send on_message to plugins using it. """
     start_time = datetime.now()
 
-    if message.author == client.user:
-        return
-
-    if message.author.bot:
-        return
-
-    if not message.content:
-        return
-
     # We don't care about channels we can't write in as the bot usually sends feedback
     if not message.channel.is_private and not message.server.me.permissions_in(message.channel).send_messages:
         return
@@ -320,10 +346,6 @@ def on_message(message: discord.Message):
                     stop_time = datetime.now()
                     time_elapsed = (stop_time - start_time).total_seconds() / 1000
                     logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
-
-        # Always run the on_message function if it exists
-        if getattr(plugin, "on_message", False):
-            client.loop.create_task(on_plugin_message(plugin.on_message, message))
 
 
 @asyncio.coroutine

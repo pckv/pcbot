@@ -51,7 +51,7 @@ def remove(client: discord.Client, message: discord.Message, name: Annotate.Lowe
                                    "here's the pasta: ```{1}```".format(name, copypasta))
 
 
-@asyncio.coroutine
+@plugins.event
 def on_message(client: discord.Client, message: discord.Message):
     """ Use shorthand |<pasta ...> for displaying pastas and remove the user's message. """
     if message.content.startswith("|"):
@@ -59,5 +59,3 @@ def on_message(client: discord.Client, message: discord.Message):
         yield from pasta(client, message, message.content[1:].lower())
 
         return True
-
-    return False

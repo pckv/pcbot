@@ -5,7 +5,7 @@ import importlib
 import os
 import logging
 import inspect
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from functools import partial
 
 import asyncio
@@ -13,6 +13,7 @@ import asyncio
 from pcbot import utils, command_prefix
 
 plugins = {}
+events = defaultdict(list)
 Command = namedtuple("Command", "name usage description function sub_commands parent hidden error pos_check")
 
 
@@ -120,6 +121,24 @@ def command(**options):
 
         logging.debug("Registered {} {} from plugin {}".format("subcommand" if parent else "command",
                                                                name, plugin.__name__))
+        return func
+
+    return decorator
+
+
+def event(name=None):
+    """ Decorator to add event listeners in plugins. """
+    def decorator(func):
+        if name == "on_ready":
+            raise NameError("on_ready in plugins is reserved for bot initialization only (use it without the"
+                            "event listener call).")
+
+        if not asyncio.iscoroutine(func):
+            func = asyncio.coroutine(func)
+
+        # Register our event
+        event_name = name or func.__name__
+        events[event_name].append(func)
         return func
 
     return decorator

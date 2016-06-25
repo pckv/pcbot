@@ -71,7 +71,7 @@ def remove(client: discord.Client, message: discord.Message, trigger: Annotate.C
     yield from client.say(message, "Removed alias `{0}` for **{1.name}**.".format(trigger, message.author))
 
 
-@asyncio.coroutine
+@plugins.event
 def on_message(client: discord.Client, message: discord.Message):
     success = False
 

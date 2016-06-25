@@ -194,7 +194,7 @@ def check_nsfw(client: discord.Client, message: discord.Message):
     return False
 
 
-@asyncio.coroutine
+@plugins.event
 def on_message(client: discord.Client, message: discord.Message):
     """ Check plugin settings. """
     # Do not check in private messages
@@ -206,5 +206,3 @@ def on_message(client: discord.Client, message: discord.Message):
     nsfw_success = yield from check_nsfw(client, message)
     if nsfw_success:
         return True
-
-    return False

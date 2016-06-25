@@ -410,7 +410,7 @@ def init():
         import_module(module, attr)
 
 
-@asyncio.coroutine
+@plugins.event()
 def on_message(client: discord.Client, message: discord.Message):
     """ Perform lambda commands. """
     args = utils.split(message.content)
@@ -439,8 +439,6 @@ def on_message(client: discord.Client, message: discord.Message):
                              "\n{}".format(utils.format_exception(e)))
 
         return True
-
-    return False
 
 
 # Initialize the plugin's modules
