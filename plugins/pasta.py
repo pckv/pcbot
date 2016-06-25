@@ -51,7 +51,7 @@ def remove(client: discord.Client, message: discord.Message, name: Annotate.Lowe
                                    "here's the pasta: ```{1}```".format(name, copypasta))
 
 
-@plugins.event
+@plugins.event()
 def on_message(client: discord.Client, message: discord.Message):
     """ Use shorthand |<pasta ...> for displaying pastas and remove the user's message. """
     if message.content.startswith("|"):

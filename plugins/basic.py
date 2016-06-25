@@ -147,7 +147,7 @@ def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_r
     yield from client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
-@plugins.event
+@plugins.event()
 def on_message(client: discord.Client, message: discord.Message):
     # Have the bot reply confused whenever someone mentions it
     if not message.content.startswith("!") and client.user.id in [m.id for m in message.mentions]:

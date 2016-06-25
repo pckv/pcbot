@@ -96,16 +96,16 @@ def is_owner(user):
     return False
 
 
-def owner(f):
+def owner(func):
     """ Decorator that runs the command only if the author is the owner. """
-    if not asyncio.iscoroutine(f):
-        f = asyncio.coroutine(f)
+    if not asyncio.iscoroutine(func):
+        func = asyncio.coroutine(func)
 
-    @wraps(f)
+    @wraps(func)
     @asyncio.coroutine
     def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
         if is_owner(message.author):
-            yield from f(client, message, *args, **kwargs)
+            yield from func(client, message, *args, **kwargs)
 
     setattr(wrapped, "__owner__", True)
     return wrapped
@@ -114,17 +114,17 @@ def owner(f):
 def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
     perms must be a string matching any property of discord.Permissions. """
-    def decorator(f):
-        if not asyncio.iscoroutine(f):
-            f = asyncio.coroutine(f)
+    def decorator(func):
+        if not asyncio.iscoroutine(func):
+            func = asyncio.coroutine(func)
 
-        @wraps(f)
+        @wraps(func)
         @asyncio.coroutine
         def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
             member_perms = message.author.permissions_in(message.channel)
 
             if all(getattr(member_perms, perm, False) for perm in perms):
-                yield from f(client, message, *args, **kwargs)
+                yield from func(client, message, *args, **kwargs)
 
         return wrapped
     return decorator
@@ -133,17 +133,17 @@ def permission(*perms: str):
 def role(*roles: str):
     """ Decorator that runs the command only if the author has the specified Roles.
     roles must be a string representing a role's name. """
-    def decorator(f):
-        if not asyncio.iscoroutine(f):
-            f = asyncio.coroutine(f)
+    def decorator(func):
+        if not asyncio.iscoroutine(func):
+            func = asyncio.coroutine(func)
 
-        @wraps(f)   
+        @wraps(func)
         @asyncio.coroutine
         def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
             member_roles = [r.name for r in message.author.roles[1:]]
 
             if any(r in member_roles for r in roles):
-                yield from f(client, message, *args, **kwargs)
+                yield from func(client, message, *args, **kwargs)
 
         return wrapped
     return decorator

@@ -34,12 +34,12 @@ def setup_default_config(server: discord.Server):
         return
 
     # Set to defaults if server's config is missing values
-    if not all(k in default_config for k in moderate.data[server.id].keys()):
+    if not all(k in moderate.data[server.id].keys() for k in default_config):
         moderate.data[server.id] = default_config
         moderate.save()
 
 
-@plugins.command(name="moderate", usage="<nsfwfilter <on | off>>")
+@plugins.command(name="moderate", usage="<nsfwfilter [on | off] | changelog [on | off]>")
 def moderate_(client: discord.Client, message: discord.Message, setting: str.lower):
     """ Change moderation settings. """
     yield from client.say(message, "No setting `{}`.".format(setting))
@@ -82,6 +82,7 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
 
 
 add_setting("NSFW filter", permissions=["manage_server"])
+add_setting("Changelog", permissions=["manage_server"])
 
 
 @asyncio.coroutine
@@ -191,10 +192,8 @@ def check_nsfw(client: discord.Client, message: discord.Message):
 
         return True
 
-    return False
 
-
-@plugins.event
+@plugins.event()
 def on_message(client: discord.Client, message: discord.Message):
     """ Check plugin settings. """
     # Do not check in private messages
@@ -204,5 +203,126 @@ def on_message(client: discord.Client, message: discord.Message):
     setup_default_config(message.server)
 
     nsfw_success = yield from check_nsfw(client, message)
-    if nsfw_success:
+    if nsfw_success is True:
         return True
+
+
+def get_changelog_channel(server: discord.Server):
+    """ Return the changelog for a server"""
+    setup_default_config(server)
+    if not moderate.data[server.id]["changelog"]:
+        return
+
+    channel = discord.utils.get(server.channels, name="changelog")
+    if not channel.permissions_for(channel.server.me).send_messages:
+        return
+
+    return channel
+
+
+@plugins.event()
+def on_message_delete(client: discord.Client, message: discord.Message):
+    """ Update the changelog with deleted messages. """
+    changelog_channel = get_changelog_channel(message.server)
+    if not changelog_channel:
+        return
+
+    if message.channel == changelog_channel:
+        return
+
+    yield from client.send_message(
+        changelog_channel,
+        "{0.author.mention}'s message was deleted in {0.channel.mention}:\n{0.clean_content}".format(message)
+    )
+
+
+@plugins.event()
+def on_channel_create(client: discord.Client, channel: discord.Channel):
+    """ Update the changelog with created channels. """
+    if channel.is_private:
+        return
+
+    changelog_channel = get_changelog_channel(channel.server)
+    if not changelog_channel:
+        return
+
+    yield from client.send_message(changelog_channel, "Channel {0.mention} was created.".format(channel))
+
+
+@plugins.event()
+def on_channel_delete(client: discord.Client, channel: discord.Channel):
+    """ Update the changelog with deleted channels. """
+    if channel.is_private:
+        return
+
+    changelog_channel = get_changelog_channel(channel.server)
+    if not changelog_channel:
+        return
+
+    yield from client.send_message(changelog_channel, "Channel #{0.name} was deleted.".format(channel))
+
+
+@plugins.event()
+def on_member_join(client: discord.Client, member: discord.Member):
+    """ Update the changelog with members joined. """
+    changelog_channel = get_changelog_channel(member.server)
+    if not changelog_channel:
+        return
+
+    yield from client.send_message(changelog_channel, "{0.mention} joined the server.".format(member))
+
+
+@plugins.event()
+def on_member_remove(client: discord.Client, member: discord.Member):
+    """ Update the changelog with deleted channels. """
+    changelog_channel = get_changelog_channel(member.server)
+    if not changelog_channel:
+        return
+
+    yield from client.send_message(changelog_channel, "{0.mention} left the server.".format(member))
+
+
+@plugins.event()
+def on_member_update(client: discord.Client, before: discord.Member, after: discord.Member):
+    """ Update the changelog with any changed names. """
+    name_change = not before.name == after.name
+    nick_change = not before.nick == after.nick
+
+    if not name_change and not nick_change:
+        return
+
+    changelog_channel = get_changelog_channel(after.server)
+    if not changelog_channel:
+        return
+
+    if name_change:
+        m = "{0.mention} (previously {0.name}) changed their username to **{1.name}**."
+    else:
+        if not before.nick:
+            m = "{0.mention} got the nickname **{1.nick}**."
+        elif not after.nick:
+            m = "{0.mention} (previously `{0.nick}`) no longer has a nickname."
+        else:
+            m = "{0.mention} (previously `{0.nick}`) got the nickname **{1.nick}**."
+
+    yield from client.send_message(changelog_channel, m.format(before, after))
+
+
+@plugins.event()
+def on_member_ban(client: discord.Client, member: discord.Member):
+    """ Update the changelog with banned members. """
+    changelog_channel = get_changelog_channel(member.server)
+    if not changelog_channel:
+        return
+
+    yield from client.send_message(changelog_channel, "{0.mention} was banned from the server.".format(member))
+
+
+@plugins.event()
+def on_member_unban(client: discord.Client, member: discord.Member):
+    """ Update the changelog with unbanned members. """
+    changelog_channel = get_changelog_channel(member.server)
+    if not changelog_channel:
+        return
+
+    yield from client.send_message(changelog_channel, "{0.mention} was unbanned from the server.".format(member))
