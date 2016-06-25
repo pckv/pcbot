@@ -171,8 +171,16 @@ def load_plugin(name: str, package: str="plugins"):
 def reload_plugin(name: str):
     """ Reload a plugin. """
     if name in plugins:
-        if hasattr(plugins[name], "__commands"):  # Remove all registered commands
+        # Remove all registered commands
+        if hasattr(plugins[name], "__commands"):
             delattr(plugins[name], "__commands")
+
+        # Remove all registered events from the given plugin
+        for event_name, funcs in events.items():
+            for func in funcs:
+                if func.__module__ == "plugins." + name:
+                    events[event_name].remove(func)
+
         plugins[name] = importlib.reload(plugins[name])
         logging.debug("RELOADED PLUGIN " + name)
 

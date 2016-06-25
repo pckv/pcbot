@@ -147,6 +147,11 @@ def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_r
     yield from client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
+@asyncio.coroutine
+def on_ready(_):
+    print(on_message.__module__)
+
+
 @plugins.event()
 def on_message(client: discord.Client, message: discord.Message):
     # Have the bot reply confused whenever someone mentions it
