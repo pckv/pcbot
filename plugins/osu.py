@@ -125,11 +125,6 @@ def update_user_data(client: discord.Client):
             if m.game and "osu!" in m.game.name:
                 return True
 
-            # If the member stopped playing, we want a timeout before removing them
-            if member_id in osu_tracking and osu_tracking[member_id]["timeout"] > 0:
-                osu_tracking[member_id]["timeout"] -= 1
-                return True
-
             return False
 
         member = discord.utils.find(check_playing, client.get_all_members())
@@ -153,10 +148,6 @@ def update_user_data(client: discord.Client):
         # Update the "new" data
         user_data = yield from api.get_user(u=profile, type="id")
         osu_tracking[member_id]["new"] = user_data
-
-        # Update the member timeout
-        if "timeout" not in osu_tracking[member_id] or osu_tracking[member_id]["timeout"] < 1:
-            osu_tracking[member_id]["timeout"] = member_timeout
 
 
 @asyncio.coroutine
