@@ -230,6 +230,9 @@ def on_message_delete(client: discord.Client, message: discord.Message):
     if message.channel == changelog_channel:
         return
 
+    if message.content.startswith("|"):  # Custom check for pastas
+        return
+
     yield from client.send_message(
         changelog_channel,
         "{0.author.mention}'s message was deleted in {0.channel.mention}:\n{0.clean_content}".format(message)
