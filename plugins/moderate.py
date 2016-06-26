@@ -208,12 +208,15 @@ def on_message(client: discord.Client, message: discord.Message):
 
 
 def get_changelog_channel(server: discord.Server):
-    """ Return the changelog for a server"""
+    """ Return the changelog channel for a server. """
     setup_default_config(server)
     if not moderate.data[server.id]["changelog"]:
         return
 
     channel = discord.utils.get(server.channels, name="changelog")
+    if not channel:
+        return
+
     if not channel.permissions_for(channel.server.me).send_messages:
         return
 
@@ -282,7 +285,7 @@ def on_member_remove(client: discord.Client, member: discord.Member):
     if not changelog_channel:
         return
 
-    yield from client.send_message(changelog_channel, "{0.mention} left the server.".format(member))
+    yield from client.send_message(changelog_channel, "{0.mention} ({0.name}) left the server.".format(member))
 
 
 @plugins.event()
@@ -318,7 +321,8 @@ def on_member_ban(client: discord.Client, member: discord.Member):
     if not changelog_channel:
         return
 
-    yield from client.send_message(changelog_channel, "{0.mention} was banned from the server.".format(member))
+    yield from client.send_message(changelog_channel,
+                                   "{0.mention} ({0.name}) was banned from the server.".format(member))
 
 
 @plugins.event()
