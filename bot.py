@@ -32,13 +32,18 @@ class Client(discord.Client):
     @asyncio.coroutine
     def _handle_event(self, func, event, *args, **kwargs):
         """ Handle the event dispatched. """
-        result = None
-
         try:
             result = yield from func(self, *args, **kwargs)
+        except AssertionError as e:
+            if not event == "message":
+                yield from self.on_error(event, *args, **kwargs)
+
+            # Find the message and log it properly
+            message = args[0]
+            yield from self.send_message(message.channel, str(e))
         except:
             yield from self.on_error(event, *args, **kwargs)
-        finally:
+        else:
             if result is True and event == "message":
                 log_message(args[0], prefix="... ")
 
