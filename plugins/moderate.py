@@ -214,7 +214,7 @@ def get_changelog_channel(server: discord.Server):
     if not channel:
         return
 
-    permissions = channel.permissions_for(channel.server.me)
+    permissions = channel.permissions_for(server.me)
     if not permissions.send_messages or not permissions.read_messages:
         return
 
@@ -229,6 +229,9 @@ def on_message_delete(client: discord.Client, message: discord.Message):
         return
 
     if message.channel == changelog_channel:
+        return
+
+    if message.author == client.user:
         return
 
     if message.content.startswith("|"):  # Custom check for pastas
@@ -299,15 +302,16 @@ def on_member_update(client: discord.Client, before: discord.Member, after: disc
     if not changelog_channel:
         return
 
+    # Format the nickname or username changed
     if name_change:
-        m = "{0.mention} (previously {0.name}) changed their username to **{1.name}**."
+        m = "{0.mention} (previously **{0.name}**) changed their username to **{1.name}**."
     else:
         if not before.nick:
             m = "{0.mention} got the nickname **{1.nick}**."
         elif not after.nick:
-            m = "{0.mention} (previously `{0.nick}`) no longer has a nickname."
+            m = "{0.mention} (previously **{0.nick}**), no longer has a nickname."
         else:
-            m = "{0.mention} (previously `{0.nick}`) got the nickname **{1.nick}**."
+            m = "{0.mention} (previously **{0.nick}**) got the nickname **{1.nick}**."
 
     yield from client.send_message(changelog_channel, m.format(before, after))
 
