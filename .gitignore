@@ -1,7 +1,16 @@
 *.log
+
+# Pycharm specific
 .idea
-config/*
-_plugins/prank/pranked.png
+
+# Python specific
+__pycache__
+
+# PCBOT specific
+config
+plugins/osulib/oppai
+
+# Additional executable files
 *.bat
 *.sh
-__pycache__
+*.xsh
