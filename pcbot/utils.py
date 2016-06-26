@@ -16,6 +16,9 @@ import aiohttp
 from pcbot import Config
 
 owner_cfg = Config("owner")
+member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
+channel_mention_regex = re.compile(r"<#(?P<id>\d+)>")
+markdown_code_regex = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
 
 
 class Annotate(Enum):
@@ -196,9 +199,9 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     member = None
 
     # Return a member from mention
-    found_mention = re.search(r"<@!?([0-9]+)>", name)
+    found_mention = member_mention_regex.search(name)
     if found_mention and mention:
-        member = server.get_member(found_mention.group(1))
+        member = server.get_member(found_mention.group("id"))
 
     name = name.lower()
 
@@ -239,9 +242,9 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
     channel = None
 
     # Return a member from mention
-    found_mention = re.search(r"<#([0-9]+)>", name)
+    found_mention = channel_mention_regex.search(name)
     if found_mention and mention:
-        channel = server.get_channel(found_mention.group(1))
+        channel = server.get_channel(found_mention.group("id"))
 
     if not channel:
         # Steps to check, higher values equal more fuzzy checks
@@ -277,7 +280,7 @@ def get_formatted_code(code):
     """ Format code from markdown format. This will filter out markdown code
     and give the executable python code, or return a string that would raise
     an error when it's executed by exec() or eval(). """
-    match = re.match(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", code, re.DOTALL)
+    match = markdown_code_regex.match(code)
 
     if match:
         code = match.group("code")

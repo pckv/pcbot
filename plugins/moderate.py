@@ -127,8 +127,6 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
 @utils.permission("manage_messages")
 def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Mute users. """
-    # Since PCBOT handles positional arguments as optional, we have to check them manually
-    assert members
     muted_members = yield from manage_mute(client, message, client.add_roles, *members)
 
     # Some members were muted, success!
@@ -140,7 +138,6 @@ def mute(client: discord.Client, message: discord.Message, *members: Annotate.Me
 @utils.permission("manage_messages")
 def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Unmute users. """
-    assert members
     muted_members = yield from manage_mute(client, message, client.remove_roles, *members)
 
     # Some members were unmuted, success!
@@ -217,7 +214,8 @@ def get_changelog_channel(server: discord.Server):
     if not channel:
         return
 
-    if not channel.permissions_for(channel.server.me).send_messages:
+    permissions = channel.permissions_for(channel.server.me)
+    if not permissions.send_messages or not permissions.read_messages:
         return
 
     return channel

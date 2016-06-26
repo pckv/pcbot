@@ -164,6 +164,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
     args, kwargs = [], {}
     index = -1
     num_kwargs = sum(1 for param in signature.parameters.values() if param.kind is param.KEYWORD_ONLY)
+    num_given_kwargs = 0
     has_pos = any(param.kind is param.VAR_POSITIONAL for param in signature.parameters.values())
     num_pos_args = 0
 
@@ -192,6 +193,9 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
                 elif param.kind is param.KEYWORD_ONLY:
                     kwargs[arg] = param.default
 
+                if type(command.pos_check) is not bool:
+                    index -= 1
+
                 continue  # Move onwards once we find a default
             else:
                 if num_pos_args == 0:
@@ -213,17 +217,20 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
 
             if tmp_arg is not None:
                 kwargs[arg] = tmp_arg
+                num_given_kwargs += 1
             else:
                 if param.default is not param.empty:
                     kwargs[arg] = param.default
                 else:
                     return args, kwargs, False  # Force quit
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
-            for cmd_arg in cmd_args[index - 1:-num_kwargs or len(cmd_args) + 1]:
+            end_search = None if type(command.pos_check) is not bool else (-num_kwargs or len(cmd_args) + 1)
+
+            for cmd_arg in cmd_args[index - 1:end_search]:
                 # Do not register the positional argument if it does not meet the optional criteria
                 if type(command.pos_check) is not bool:
                     if not command.pos_check(cmd_arg):
-                        continue
+                        break
 
                 tmp_arg = parse_annotation(param, cmd_arg, index + start_index, message)
 
@@ -233,11 +240,14 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
                     args.append(tmp_arg)
                     num_pos_args += 1
 
-            index += (num_pos_args - 1) if num_pos_args else -1  # Update the new index
+            # Update the new index
+            index += (num_pos_args - 1) if num_pos_args else -1
 
     # Number of required arguments are: signature variables - client and message
     # If there are no positional arguments, subtract one from the required arguments
     num_args = len(signature.parameters.items()) - 2
+    if type(command.pos_check) is not bool:
+        num_args -= (num_kwargs - num_given_kwargs)
     if has_pos:
         num_args -= int(not bool(num_pos_args))
 
@@ -251,6 +261,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
     if complete and command.pos_check is True and num_pos_args == 0:
         complete = False
 
+    print(num_given, num_args)
     return args, kwargs, complete
 
 
