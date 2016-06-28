@@ -253,7 +253,11 @@ def on_channel_create(client: discord.Client, channel: discord.Channel):
     if not changelog_channel:
         return
 
-    yield from client.send_message(changelog_channel, "Channel {0.mention} was created.".format(channel))
+    # Differ between voice channels and text channels
+    if channel.type == discord.ChannelType.text:
+        yield from client.send_message(changelog_channel, "Channel {0.mention} was created.".format(channel))
+    else:
+        yield from client.send_message(changelog_channel, "Voice channel **{0.name}** was created.".format(channel))
 
 
 @plugins.event()
@@ -266,7 +270,11 @@ def on_channel_delete(client: discord.Client, channel: discord.Channel):
     if not changelog_channel:
         return
 
-    yield from client.send_message(changelog_channel, "Channel #{0.name} was deleted.".format(channel))
+    # Differ between voice channels and text channels
+    if channel.type == discord.ChannelType.text:
+        yield from client.send_message(changelog_channel, "Channel #{0.name} was deleted.".format(channel))
+    else:
+        yield from client.send_message(changelog_channel, "Voice channel **{0.name}** was deleted.".format(channel))
 
 
 @plugins.event()

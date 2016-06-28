@@ -38,7 +38,7 @@ class Client(discord.Client):
             if not event == "message":
                 yield from self.on_error(event, *args, **kwargs)
 
-            # Find the message and log it properly
+            # Find the message object and send the proper feedback
             message = args[0]
             yield from self.send_message(message.channel, str(e))
         except:
@@ -150,7 +150,7 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
             elif anno is utils.Annotate.Channel:  # Checks channel names or mentions
                 return utils.find_channel(message.server, arg)
             elif anno is utils.Annotate.Code:  # Works like Content but extracts code
-                return utils.get_formatted_code(content(message.content))
+                return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1])
 
         try:  # Try running as a method
             return anno(arg)
@@ -330,6 +330,9 @@ def on_message(message: discord.Message):
     """ What to do on any message received.
 
     The bot will handle all commands in plugins and send on_message to plugins using it. """
+    # Make sure the client is ready before processing commands
+    yield from client.wait_until_ready()
+
     start_time = datetime.now()
 
     # We don't care about channels we can't write in as the bot usually sends feedback

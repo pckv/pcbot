@@ -70,6 +70,12 @@ def choice(*options, ignore_case: bool=True):
     return wrapped
 
 
+def placeholder(_: str):
+    """ Return False. Using this as a command argument annotation will always fail
+    the command. Useful for groups. """
+    return False
+
+
 def get_command(plugin, command: str):
     """ Find and return a command function from a plugin. """
     commands = getattr(plugin, "__commands", None)
