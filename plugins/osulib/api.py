@@ -194,3 +194,16 @@ def lookup_beatmap(beatmaps: list, **lookup):
             return beatmap
     else:
         return None
+
+
+def rank_from_events(events: list, beatmap_id: str):
+    """ Return the rank of the first score of given beatmap_id from a
+    list of events gathered via get_user() or None. """
+    for event in events:
+        if event["beatmap_id"] == beatmap_id:
+            match = re.search(r"rank\s#(?P<rank>\d+)(?:<|\s)", event["display_html"])
+
+            if match:
+                return int(match.group("rank"))
+    else:
+        return None

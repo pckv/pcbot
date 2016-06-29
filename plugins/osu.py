@@ -78,12 +78,12 @@ def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, i
     return formatted
 
 
-def format_new_score(score: dict, beatmap: dict):
+def format_new_score(score: dict, beatmap: dict, rank: int):
     """ Format any osu!Standard score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"])
     return (
         "set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
-        "**{pp}pp, {rank} +{mods}**"
+        "**{pp}pp, {rank} {scoreboard_rank}+{mods}**"
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
         "{sign} {acc:<8.2%}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}/{max_combo}```"
@@ -98,6 +98,7 @@ def format_new_score(score: dict, beatmap: dict):
         version=beatmap["version"],
         stars=float(beatmap["difficultyrating"]),
         max_combo=beatmap["max_combo"],
+        scoreboard_rank="#{} ".format(rank) if rank else "",
         **score
     )
 
@@ -215,7 +216,9 @@ def notify_pp(client: discord.Client):
         if score:
             beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
             beatmap = api.lookup_beatmap(beatmap_search)
-            m = "{} (`{}`) ".format(member.mention, new["username"]) + format_new_score(score, beatmap) + "\n"
+            scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
+            m = "{} (`{}`) ".format(member.mention, new["username"]) + \
+                format_new_score(score, beatmap, scoreboard_rank) + "\n"
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
