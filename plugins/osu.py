@@ -51,10 +51,10 @@ def calculate_acc(c50, c100, c300, miss):
     return total_points_of_hits / (total_number_of_hits * 300)
 
 
-def format_user_diff(mode: str, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
+def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = "\u2139`{} {}pp {:+.2f}pp`".format(mode, data["pp_raw"], pp)
+    formatted = "\u2139`{} {}pp {:+.2f}pp`".format(mode.name, data["pp_raw"], pp)
     formatted += (" \U0001f30d`#{}{}`".format(data["pp_rank"],
                                                    "" if int(rank) == 0 else " {:+}".format(int(rank))))
     formatted += (" :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
@@ -78,7 +78,7 @@ def format_user_diff(mode: str, pp: float, rank: int, country_rank: int, accurac
     return formatted
 
 
-def format_new_score(score: dict, beatmap: dict, rank: int):
+def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int):
     """ Format any osu!Standard score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(score["count50"], score["count100"], score["count300"], score["countmiss"])
     return (
@@ -86,7 +86,7 @@ def format_new_score(score: dict, beatmap: dict, rank: int):
         "**{pp}pp, {rank} {scoreboard_rank}+{mods}**"
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
-        "{sign} {acc:<8.2%}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}/{max_combo}```"
+        "{sign} {acc:<8.2%}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}{max_combo}```"
         "**Profile**: <https://osu.ppy.sh/u/{user_id}>.\n"
         "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>."
     ).format(
@@ -97,7 +97,7 @@ def format_new_score(score: dict, beatmap: dict, rank: int):
         title=beatmap["title"],
         version=beatmap["version"],
         stars=float(beatmap["difficultyrating"]),
-        max_combo=beatmap["max_combo"],
+        max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.CTB) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
         **score
     )
@@ -226,18 +226,18 @@ def notify_pp(client: discord.Client):
 
         # If a new score was found, format the score
         if score:
-            beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value)
+            beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
             beatmap = api.lookup_beatmap(beatmap_search)
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
             m = "{} (`{}`) ".format(member.mention, new["username"]) + \
-                format_new_score(score, beatmap, scoreboard_rank) + "\n"
+                format_new_score(mode, score, beatmap, scoreboard_rank) + "\n"
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
             m = "**{}** " + "(`{}`) ".format(new["username"])
 
         # Always add the difference in pp along with the ranks
-        m += format_user_diff(mode.name, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
+        m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
 
         # Send the message to all servers
         for server in client.servers:
@@ -282,8 +282,8 @@ def on_ready(client: discord.Client):
             #     sent_requests = 0
 
 
-@plugins.command(usage="[username | link <user> | unlink [user] | gamemode [mode] | url [user]"
-                       " | pp <map link> [extras]]")
+@plugins.command(usage="[username | link <user> | unlink [user] | gamemode <mode> | url [user]"
+                       " | pp <map link> [additions]]")
 def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
     """ Handle osu! commands.
 
