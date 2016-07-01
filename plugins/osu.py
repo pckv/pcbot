@@ -28,7 +28,7 @@ from pcbot import Config, utils, Annotate
 import plugins
 from plugins.osulib import api, Mods
 
-osu_config = Config("osu", data=dict(key="change to your api key", profiles={}))
+osu_config = Config("osu", data=dict(key="change to your api key", profiles={}, mode={}))
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
 update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
@@ -51,10 +51,10 @@ def calculate_acc(c50, c100, c300, miss):
     return total_points_of_hits / (total_number_of_hits * 300)
 
 
-def format_user_diff(pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
+def format_user_diff(mode: str, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = "\u2139`{}pp {:+.2f}pp`".format(data["pp_raw"], pp)
+    formatted = "\u2139`{} {}pp {:+.2f}pp`".format(mode, data["pp_raw"], pp)
     formatted += (" \U0001f30d`#{}{}`".format(data["pp_rank"],
                                                    "" if int(rank) == 0 else " {:+}".format(int(rank))))
     formatted += (" :flag_{}:`#{}{}`".format(iso.lower(), data["pp_country_rank"],
@@ -108,6 +108,15 @@ def updates_per_log():
     return logging_interval // (update_interval / 60)
 
 
+def get_mode(member_id: str):
+    """ Return the api.GameMode for the member with this id. """
+    if member_id not in osu_config.data["mode"]:
+        return api.GameMode.Standard
+
+    value = int(osu_config.data["mode"][member_id])
+    return api.GameMode(value)
+
+
 @asyncio.coroutine
 def update_user_data(client: discord.Client):
     """ Go through all registered members playing osu!, and update their data. """
@@ -137,17 +146,19 @@ def update_user_data(client: discord.Client):
 
             continue
 
+        mode = get_mode(member_id).value
+
         # User is already tracked
         if member_id in osu_tracking:
             # Move the "new" data into the "old" data of this user
             osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
         else:
             # If this is the first time, update the user's list of scores for later
-            scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit)
+            scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit, m=mode)
             osu_tracking[member_id] = dict(member=member, scores=scores)
 
         # Update the "new" data
-        user_data = yield from api.get_user(u=profile, type="id")
+        user_data = yield from api.get_user(u=profile, type="id", m=mode)
         osu_tracking[member_id]["new"] = user_data
 
 
@@ -158,7 +169,7 @@ def get_new_score(member_id: str):
 
     # Download a list of the user's scores
     profile = osu_config.data["profiles"][member_id]
-    scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit)
+    scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value)
 
     # Compare the scores from top to bottom and try to find a new one
     new_score = None
@@ -211,10 +222,11 @@ def notify_pp(client: discord.Client):
         # If there is a score, there is also a beatmap
         score = yield from get_new_score(member_id)
         member = data["member"]
+        mode = get_mode(member_id)
 
         # If a new score was found, format the score
         if score:
-            beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
+            beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value)
             beatmap = api.lookup_beatmap(beatmap_search)
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
             m = "{} (`{}`) ".format(member.mention, new["username"]) + \
@@ -225,7 +237,7 @@ def notify_pp(client: discord.Client):
             m = "**{}** " + "(`{}`) ".format(new["username"])
 
         # Always add the difference in pp along with the ranks
-        m += format_user_diff(pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
+        m += format_user_diff(mode.name, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
 
         # Send the message to all servers
         for server in client.servers:
@@ -270,7 +282,8 @@ def on_ready(client: discord.Client):
             #     sent_requests = 0
 
 
-@plugins.command(usage="[username | link <user> | unlink [user] | url [user] | pp <map link> [extras]]")
+@plugins.command(usage="[username | link <user> | unlink [user] | gamemode [mode] | url [user]"
+                       " | pp <map link> [extras]]")
 def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
     """ Handle osu! commands.
 
@@ -292,7 +305,7 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
     # Download and upload the signature
     signature = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
                                                colour=color, uname=user_id, pp=True,
-                                               countryrank=True, xpbar=True)
+                                               countryrank=True, xpbar=True, mode=get_mode(member.id).value)
     yield from client.send_file(message.channel, signature, filename="sig.png")
 
     yield from client.say(message, "<https://osu.ppy.sh/u/{}>".format(user_id))
@@ -312,6 +325,7 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
 
     # Assign the user using their unique user_id
     osu_config.data["profiles"][message.author.id] = osu_user["user_id"]
+    osu_config.data["mode"][message.author.id] = api.GameMode.Standard.value
     osu_config.save()
     yield from client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
 
@@ -331,6 +345,19 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     del osu_config.data["profiles"][member.id]
     osu_config.save()
     yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
+
+
+@osu.command(error="The specified gamemode does not exist.")
+def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
+    """ Set the GameMode for the specified member. """
+    osu_config.data["mode"][message.author.id] = mode.value
+    osu_config.save()
+
+    # Clear the scores when changing mode
+    if message.author.id in osu_tracking:
+        del osu_tracking[message.author.id]
+
+    yield from client.say(message, "Set your gamemode to **{}**.".format(mode.name))
 
 
 @osu.command()

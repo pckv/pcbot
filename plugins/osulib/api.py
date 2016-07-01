@@ -30,6 +30,15 @@ class GameMode(IntEnum):
     CTB = 2
     Mania = 3
 
+    @classmethod
+    def get_mode(cls, mode: str):
+        """ Return the mode with the specified lowered string. """
+        values = {e.name.lower(): e.value for e in list(cls)}
+        if mode.lower() not in values:
+            return None
+
+        return cls(values[mode.lower()])
+
 
 class Mods(IntEnum):
     """ Enum for displaying mods. """
