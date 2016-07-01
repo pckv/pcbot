@@ -7,10 +7,11 @@ import logging
 import inspect
 from collections import namedtuple, defaultdict
 from functools import partial
+from traceback import print_exc
 
 import asyncio
 
-from pcbot import utils, command_prefix
+from pcbot import command_prefix
 
 plugins = {}
 events = defaultdict(list)
@@ -157,8 +158,9 @@ def load_plugin(name: str, package: str="plugins"):
     if not name.startswith("__") or not name.endswith("__"):
         try:
             plugin = importlib.import_module("{package}.{plugin}".format(plugin=name, package=package))
-        except ImportError as e:
-            logging.warn("COULD NOT LOAD PLUGIN {name}\n{e}".format(name=name, e=utils.format_exception(e)))
+        except:
+            logging.warn("An error occurred when loading plugin {name}".format(name=name))
+            print_exc()
             return False
 
         plugins[name] = plugin
@@ -182,14 +184,14 @@ def reload_plugin(name: str):
                     events[event_name].remove(func)
 
         plugins[name] = importlib.reload(plugins[name])
-        logging.debug("RELOADED PLUGIN " + name)
+        logging.debug("Reloaded plugin " + name)
 
 
 def unload_plugin(name: str):
     """ Unload a plugin by removing it from the plugin dictionary. """
     if name in plugins:
         del plugins[name]
-        logging.debug("UNLOADED PLUGIN " + name)
+        logging.debug("Unloaded plugin " + name)
 
 
 def load_plugins():
@@ -213,9 +215,8 @@ def save_plugin(name):
         if callable(getattr(plugin, "save", False)):
             try:
                 yield from plugin.save(plugins)
-            except Exception as e:
-                logging.error("An error occurred when saving plugin " + name + "\n" +
-                              utils.format_exception(e))
+            except:
+                logging.error("An error occurred when saving plugin {}".format(name))
 
 
 @asyncio.coroutine
