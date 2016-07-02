@@ -283,15 +283,12 @@ def on_ready(client: discord.Client):
 
 
 @plugins.command()
-def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
+def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Handle osu! commands.
 
     When your user is linked, this plugin will check if you are playing osu!
     (your profile would have `playing osu!`), and send updates whenever you set a
     new top score. """
-    if not member:
-        member = message.author
-
     # Make sure the member is assigned
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
@@ -330,11 +327,11 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
 
 
 @osu.command()
-def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
+def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Unlink your osu! account or unlink the member specified (**Owner only**). """
     # The message author is allowed to unlink himself
     # If a member is specified and the member is not the owner, set member to the author
-    if not member or (member and not utils.is_owner(message.author)):
+    if not utils.is_owner(message.author):
         member = message.author
 
     # The member might not be linked to any profile
@@ -362,11 +359,8 @@ def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMod
 
 
 @osu.command()
-def url(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
+def url(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Display the member's osu! profile URL. """
-    if not member:
-        member = message.author
-
     # Member might not be registered
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 

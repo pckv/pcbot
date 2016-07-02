@@ -30,7 +30,8 @@ class Annotate(Enum):
     LowerCleanContent = 4  # Same as above but returns the contents in lowercase
     User = Member = 5  # Return a member (uses utils.find_member with steps=3)
     Channel = 6  # Return a channel (uses utils.find_channel with steps=3)
-    Code = 7  # Get formatted code (like Content but extracts any code)
+    Self = 7  # Used as a default for Member/Channel annotations and returns the message.author/message.channel
+    Code = 8  # Get formatted code (like Content but extracts any code)
 
 
 def int_range(f: int=None, t: int=None):

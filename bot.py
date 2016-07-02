@@ -108,10 +108,24 @@ def execute_command(command: plugins.Command, message: discord.Message, *args, *
         yield from client.say(message, str(e) or command.error or format_usage_message(command))
 
 
-def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: discord.Message):
+def default_self(anno, default, message: discord.Message):
+    """ A silly function to make Annotate.Self work."""
+    if default is utils.Annotate.Self:
+        if anno is utils.Annotate.Member:
+            return message.author
+        elif anno is utils.Annotate.Channel:
+            return message.channel
+
+    return default
+
+
+def parse_annotation(param: inspect.Parameter, default, arg: str, index: int, message: discord.Message):
     """ Parse annotations and return the command to use.
 
     index is basically the arg's index in shelx.split(message.content) """
+    if default is param.empty:
+        default = None
+
     if param.annotation is not param.empty:  # Any annotation is a function or Annotation enum
         anno = param.annotation
 
@@ -120,28 +134,28 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
             content = lambda s: utils.split(s, maxsplit=index)[-1].strip("\" ")
 
             if anno is utils.Annotate.Content:  # Split and get raw content from this point
-                return content(message.content)
+                return content(message.content) or default
             elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
-                return content(message.content).lower()
+                return content(message.content).lower() or default
             elif anno is utils.Annotate.CleanContent:  # Split and get clean raw content from this point
-                return content(message.clean_content)
+                return content(message.clean_content) or default
             elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
-                return content(message.clean_content).lower()
+                return content(message.clean_content).lower() or default
             elif anno is utils.Annotate.Member:  # Checks member names or mentions
-                return utils.find_member(message.server, arg)
+                return utils.find_member(message.server, arg) or default_self(anno, default, message)
             elif anno is utils.Annotate.Channel:  # Checks channel names or mentions
-                return utils.find_channel(message.server, arg)
+                return utils.find_channel(message.server, arg) or default_self(anno, default, message)
             elif anno is utils.Annotate.Code:  # Works like Content but extracts code
-                return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1])
+                return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
 
         try:  # Try running as a method
-            return anno(arg)
+            return anno(arg) or default
         except TypeError:
             raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a callable")
         except:  # On error, eg when annotation is int and given argument is str
             return None
 
-    return str(arg)  # Return str of arg if there was no annotation
+    return str(arg) or default  # Return str of arg if there was no annotation
 
 
 def parse_command_args(command: plugins.Command, cmd_args: list, message: discord.Message):
@@ -180,9 +194,9 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
         else:
             if param.default is not param.empty:
                 if param.kind is param.POSITIONAL_OR_KEYWORD:
-                    args.append(param.default)
+                    args.append(default_self(param.annotation, param.default, message))
                 elif param.kind is param.KEYWORD_ONLY:
-                    kwargs[param.name] = param.default
+                    kwargs[param.name] = default_self(param.annotation, param.default, message)
 
                 if type(command.pos_check) is not bool:
                     index -= 1
@@ -194,27 +208,22 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
                 break  # We're done when there is no default argument and none passed
 
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
-            tmp_arg = parse_annotation(param, cmd_arg, (index - 1) + start_index, message)
+            tmp_arg = parse_annotation(param, param.default, cmd_arg, (index - 1) + start_index, message)
 
             if tmp_arg is not None:
                 args.append(tmp_arg)
             else:
-                if param.default is not param.empty:
-                    args.append(param.default)
-                else:
-                    return args, kwargs, False  # Force quit
+                return args, kwargs, False  # Force quit
         elif param.kind is param.KEYWORD_ONLY:  # Parse a regular arg as a kwarg
-            tmp_arg = parse_annotation(param, cmd_arg, (index - 1) + start_index, message)
+            tmp_arg = parse_annotation(param, param.default, cmd_arg, (index - 1) + start_index, message)
 
             if tmp_arg is not None:
                 kwargs[param.name] = tmp_arg
+
                 if param.default is not param.empty:
                     num_given_required_kwargs += 1
             else:
-                if param.default is not param.empty:
-                    kwargs[param.name] = param.default
-                else:
-                    return args, kwargs, False  # Force quit
+                return args, kwargs, False  # Force quit
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
             end_search = None if type(command.pos_check) is not bool else (-num_required_kwargs or len(cmd_args) + 1)
 
@@ -224,7 +233,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
                     if not command.pos_check(cmd_arg):
                         break
 
-                tmp_arg = parse_annotation(param, cmd_arg, index + start_index, message)
+                tmp_arg = parse_annotation(param, None, cmd_arg, index + start_index, message)
 
                 # Add an option if it's not None. Since positional arguments are optional,
                 # it will not matter that we don't pass it.
