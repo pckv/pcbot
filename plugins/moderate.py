@@ -57,32 +57,34 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
 
     default_config[name] = default
 
-    @moderate_.command(name=name, description="Display current {} setting.".format(setting), usage="[on | off]")
-    def display(client: discord.Client, message: discord.Message):
+    @moderate_.command(name=name,
+                       description="Display current {} setting or enable/disable it.".format(setting),
+                       usage="[on | off]")
+    def display_setting(client: discord.Client, message: discord.Message):
         """ The command to display the current setting. """
         setup_default_config(message.server)
         current = moderate.data[message.server.id][name]
-        yield from client.say(message, "{} is `{}`.".format(setting, "ON" if current else "OFF"))
+        yield from client.say(message, "{} is **{}**.".format(setting, "enabled" if current else "disabled"))
 
-    @display.command(name="on", hidden=True)
+    @display_setting.command(hidden=True)
     @utils.permission(*permissions)
-    def enable_setting(client: discord.Client, message: discord.Message):
+    def on(client: discord.Client, message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[message.server.id][name] = True
         moderate.save()
-        yield from client.say(message, "{} enabled.".format(setting))
+        yield from client.say(message, "{} **enabled**.".format(setting))
 
-    @display.command(name="off", hidden=True)
+    @display_setting.command(hidden=True)
     @utils.permission(*permissions)
-    def enable_setting(client: discord.Client, message: discord.Message):
+    def off(client: discord.Client, message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[message.server.id][name] = False
         moderate.save()
-        yield from client.say(message, "{} disabled.".format(setting))
+        yield from client.say(message, "{} **disabled**.".format(setting))
 
 
 add_setting("NSFW filter", permissions=["manage_server"])
-add_setting("Changelog", permissions=["manage_server"])
+add_setting("Changelog", permissions=["manage_server"], default=False)
 
 
 @asyncio.coroutine
