@@ -20,16 +20,11 @@ alias_desc = \
     "`-anywhere`: alias triggers anywhere in text you write.\n" \
     "`-case-sensitive` ensures that you *need* to follow the same casing.\n" \
     "`-delete-message` removes the original message. This option can not be mixed with the `-anywhere` option.\n" \
-    "`{pre}alias list` lists all of the users set aliases. This only shows their trigger.\n" \
-    "`{pre}alias remove <trigger>` removes the specified alias. Keep in mind that specifying trigger here **is** " \
-    "case sensitive. Use `{pre}alias list` to find the correct case."
-
-alias_usage = "<[-anywhere] [-case-sensitive] [-delete-message] <trigger> <text> | list | remove <trigger>>\n"
 
 aliases = Config("user_alias", data=defaultdict(str))
 
 
-@plugins.command(usage=alias_usage, description=alias_desc, pos_check=lambda s: s.startswith("-"))
+@plugins.command(description=alias_desc, pos_check=lambda s: s.startswith("-"))
 def alias(client: discord.Client, message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
     """ Assign an alias. Description is defined in alias_desc. """
     anywhere = "-anywhere" in options
@@ -60,7 +55,7 @@ def list_(client: discord.Client, message: discord.Message):
 
 @alias.command()
 def remove(client: discord.Client, message: discord.Message, trigger: Annotate.Content):
-    """ Remove user's alias. """
+    """ Remove user alias with the specified trigger. """
     # Check if the trigger is in the would be list (basically checks if trigger is in [] if user is not registered)
     assert trigger in aliases.data.get(message.author.id, []), \
         "No alias `{0}` registered for **{1.name}**.".format(trigger, message.author)

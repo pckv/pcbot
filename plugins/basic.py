@@ -19,11 +19,11 @@ import plugins
 feature_reqs = Config(filename="feature_requests", data={})
 
 
-@plugins.command(usage="[num | phrase]")
-def roll(client: discord.Client, message: discord.Message, max_roll: utils.int_range(f=1)=100):
+@plugins.command()
+def roll(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=100):
     """ Roll a number from 1-100 if no second argument or second argument is not a number.
         Alternatively rolls `num` times (minimum 1). """
-    rolled = random.randint(1, max_roll)
+    rolled = random.randint(1, num)
     yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
 
 
@@ -74,10 +74,7 @@ def plugin_in_req(plugin: str):
     return plugin
 
 
-@plugins.command(usage="<plugin [#feature_id]>"
-                       " | new <plugin> <feature>"
-                       " | mark <plugin> <#feature_id>"
-                       " | remove <plugin> <#feature_id>]")
+@plugins.command(usage="<plugin> [#feature_id]")
 def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id=None):
     """ Handle plugin feature requests where plugin is a plugin name. See `!plugin` for a list of plugins.
 
@@ -114,7 +111,7 @@ def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req,
     yield from client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
 
 
-@feature.command()
+@feature.command(usage="<plugin> <#feature_id>")
 @utils.owner
 def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Toggles marking a feature request as complete. """
@@ -134,7 +131,7 @@ def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req
         yield from client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
-@feature.command()
+@feature.command(usage="<plugin> <#feature_id>")
 @utils.owner
 def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Removes a feature request. """

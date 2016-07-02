@@ -282,8 +282,7 @@ def on_ready(client: discord.Client):
             #     sent_requests = 0
 
 
-@plugins.command(usage="[username | link <user> | unlink [user] | gamemode <mode> | url [user]"
-                       " | pp <map link> [additions]]")
+@plugins.command()
 def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
     """ Handle osu! commands.
 
@@ -332,7 +331,7 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
 
 @osu.command()
 def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
-    """ Unlink your osu! account or the member specified. """
+    """ Unlink your osu! account or unlink the member specified (**Owner only**). """
     # The message author is allowed to unlink himself
     # If a member is specified and the member is not the owner, set member to the author
     if not member or (member and not utils.is_owner(message.author)):
@@ -349,7 +348,9 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
 
 @osu.command(error="The specified gamemode does not exist.")
 def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
-    """ Set the GameMode for the specified member. """
+    """ Set the gamemode for the specified member.
+
+    Gamemodes are `Standard`, `Taiko`, `CTB` and `Mania`. """
     osu_config.data["mode"][message.author.id] = mode.value
     osu_config.save()
 
@@ -362,7 +363,7 @@ def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMod
 
 @osu.command()
 def url(client: discord.Client, message: discord.Message, member: Annotate.Member=None):
-    """ Display the member's URL only. """
+    """ Display the member's osu! profile URL. """
     if not member:
         member = message.author
 
@@ -376,7 +377,10 @@ def url(client: discord.Client, message: discord.Message, member: Annotate.Membe
 
 @osu.command(name="pp")
 def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower, *options):
-    """ Calculate and return the would be pp using oppai. """
+    """ Calculate and return the would be pp using `oppai`.
+
+    Options are a parsed set of command-line arguments:  /
+    `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`"""
     global last_calc_beatmap
 
     # This service is only supported on Linux as of yet

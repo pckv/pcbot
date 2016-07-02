@@ -76,30 +76,47 @@ def placeholder(_: str):
     return False
 
 
-def get_command(plugin, command: str):
-    """ Find and return a command function from a plugin. """
-    commands = getattr(plugin, "__commands", None)
+def format_usage(command):
+    """ Format the usage string of the given command. Places any usage
+    of a sub command on a newline.
 
-    # Return None if the bot doesn't have any commands
-    if not commands:
-        return None
+    :param command: type plugins.Command """
+    if command.hidden:
+        return
 
-    names = [cmd.name for cmd in plugin.__commands]
+    usage = [command.usage]
+    for sub_command in command.sub_commands:
+        # Recursively format the usage of the next sub commands
+        formatted = format_usage(sub_command)
 
-    # Return None if the specified plugin doesn't have the specified command
-    if command not in names:
-        return None
+        if formatted:
+            usage.append(formatted)
 
-    # Return the found command
-    return commands[names.index(command)]
+    return "\n".join(s for s in usage if s is not None) if usage else None
 
 
-def is_owner(user):
-    """ Return true if user/member is the assigned bot owner. """
-    if type(user) is not str:
-        user = user.id
+def format_help(command):
+    """ Format the help string of the given command as a message to be sent.
 
-    if user == owner_cfg.data:
+    :param command: type plugins.Command """
+    usage = format_usage(command)
+    desc = command.description
+
+    # Notify the user when a command is owner specific
+    if getattr(command.function, "__owner__", False):
+        desc += "\n:information_source:`Only the bot owner can execute this command.`"
+
+    return "**Usage**: ```{}```**Description**: {}".format(usage, desc)
+
+
+def is_owner(member):
+    """ Return true if user/member is the assigned bot owner.
+
+    :param member: discord.User, discord.Member or a str representing the member's ID. """
+    if type(member) is not str:
+        member = member.id
+
+    if member == owner_cfg.data:
         return True
 
     return False

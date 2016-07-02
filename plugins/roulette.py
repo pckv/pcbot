@@ -219,13 +219,13 @@ def init_game(client: discord.Client, message: discord.Message, game, num: int):
     asyncio.async(game(client, message, num).start())
 
 
-@plugins.command(usage="[participants]", description=desc_template.format(game=Roulette))
-def roulette(client: discord.Client, message: discord.Message, num: int=6):
+@plugins.command(description=desc_template.format(game=Roulette))
+def roulette(client: discord.Client, message: discord.Message, participants: int=6):
     """ The roulette command. Description is defined using a template. """
-    init_game(client, message, Roulette, num)
+    init_game(client, message, Roulette, participants)
 
 
-@plugins.command(usage="[participants]", description=desc_template.format(game=HotPotato))
-def hotpotato(client: discord.Client, message: discord.Message, num: int=4):
+@plugins.command(description=desc_template.format(game=HotPotato))
+def hotpotato(client: discord.Client, message: discord.Message, participants: int=4):
     """ The hotpotato command. Description is defined using a template. """
-    init_game(client, message, HotPotato, num)
+    init_game(client, message, HotPotato, participants)

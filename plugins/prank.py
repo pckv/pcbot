@@ -20,7 +20,7 @@ image_base = Image.open(prank_path + "discord_prank.png").convert("RGBA")
 image_width, image_height = image_base.size
 
 
-@plugins.command(usage="[phrase]")
+@plugins.command()
 def prank(client: discord.Client, message: discord.Message, phrase: Annotate.CleanContent="IT'S A"):
     """ Prank! """
     phrase = phrase.upper()

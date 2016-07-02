@@ -92,29 +92,11 @@ def log_message(message: discord.Message, prefix: str=""):
     logging.info("{prefix}@{0.author} -> {0.content}".format(message, prefix=prefix))
 
 
-@asyncio.coroutine
-def send_command_help(message: discord.Message, command: plugins.Command):
-    """ Send command help to the specified channel. """
-    yield from plugins.get_plugin("builtin").help_(client, message,
-                                                   plugins.parent_attr(command, "name"))
-
-
-def format_usage(command: plugins.Command):
+def format_usage_message(command: plugins.Command):
     """ Formats the command's usage for sending. """
-    return "**Usage**:```{}```".format(plugins.parent_attr(command, "usage"))
-
-
-@asyncio.coroutine
-def on_plugin_message(function, message: discord.Message):
-    """ Run the given plugin function. If the function returns True, log the
-    sent message. Send any AttributeError exceptions. """
-    try:
-        success = yield from function(client, message)
-    except AssertionError as e:
-        yield from client.say(message, str(e))
-    else:
-        if success:
-            log_message(message, prefix="... ")
+    # Format the usage and if there is none, try formatting with the utils function
+    # This comes in handy for group functions which use placeholders
+    return "**Usage**:```{}```".format(command.usage or utils.format_usage(command))
 
 
 @asyncio.coroutine
@@ -123,7 +105,7 @@ def execute_command(command: plugins.Command, message: discord.Message, *args, *
     try:
         yield from command.function(client, message, *args, **kwargs)
     except AssertionError as e:
-        yield from client.say(message, str(e) or command.error or format_usage(command))
+        yield from client.say(message, str(e) or command.error or format_usage_message(command))
 
 
 def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: discord.Message):
@@ -162,19 +144,20 @@ def parse_annotation(param: inspect.Parameter, arg: str, index: int, message: di
     return str(arg)  # Return str of arg if there was no annotation
 
 
-def parse_command_args(command: plugins.Command, cmd_args: list, start_index: int, message: discord.Message):
+def parse_command_args(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Parse commands from chat and return args and kwargs to pass into the
     command's function. """
     signature = inspect.signature(command.function)
     args, kwargs = [], {}
     index = -1
+    start_index = command.depth  # The index would be the position in the group
     num_kwargs = sum(1 for param in signature.parameters.values() if param.kind is param.KEYWORD_ONLY)
     num_given_kwargs = 0
     has_pos = any(param.kind is param.VAR_POSITIONAL for param in signature.parameters.values())
     num_pos_args = 0
 
     # Parse all arguments
-    for arg, param in signature.parameters.items():
+    for param in signature.parameters.values():
         index += 1
 
         if index == 0:  # Param #1 should be the client
@@ -198,7 +181,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
                 if param.kind is param.POSITIONAL_OR_KEYWORD:
                     args.append(param.default)
                 elif param.kind is param.KEYWORD_ONLY:
-                    kwargs[arg] = param.default
+                    kwargs[param.name] = param.default
 
                 if type(command.pos_check) is not bool:
                     index -= 1
@@ -223,11 +206,11 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
             tmp_arg = parse_annotation(param, cmd_arg, (index - 1) + start_index, message)
 
             if tmp_arg is not None:
-                kwargs[arg] = tmp_arg
+                kwargs[param.name] = tmp_arg
                 num_given_kwargs += 1
             else:
                 if param.default is not param.empty:
-                    kwargs[arg] = param.default
+                    kwargs[param.name] = param.default
                 else:
                     return args, kwargs, False  # Force quit
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
@@ -272,27 +255,11 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
     return args, kwargs, complete
 
 
-def get_sub_command(command: plugins.Command, cmd_args: list):
-    """ Go through all arguments and return any group command function.
-
-    This function returns the found command and all arguments starting from
-    any specified subcommand. """
-    new_index = 0
-
-    for arg in cmd_args[1:]:
-        names = [cmd.name for cmd in command.sub_commands]
-
-        if arg in names:
-            command = command.sub_commands[names.index(arg)]
-            new_index += 1
-
-    return command, cmd_args[new_index:], new_index
-
-
 @asyncio.coroutine
 def parse_command(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Try finding a command """
-    command, cmd_args, start_index = get_sub_command(command, cmd_args)
+    command = plugins.get_sub_command(command, cmd_args[1:])
+    cmd_args = cmd_args[command.depth:]
     send_usage = True
 
     # If the last argument ends with the help argument, skip parsing and display help
@@ -301,7 +268,7 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
         args, kwargs = [], {}
     else:
         # Parse the command and return the parsed arguments
-        args, kwargs, complete = parse_command_args(command, cmd_args, start_index, message)
+        args, kwargs, complete = parse_command_args(command, cmd_args, message)
 
     # If command parsing failed, display help for the command or the error message
     if not complete:
@@ -311,9 +278,9 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
             yield from client.say(message, command.error)
         else:
             if send_usage:
-                yield from client.say(message, format_usage(command))
+                yield from client.say(message, format_usage_message(command))
             else:
-                yield from send_command_help(message, command)
+                yield from client.say(message, utils.format_help(command))
 
         command = None
 
@@ -354,7 +321,7 @@ def on_message(message: discord.Message):
     for plugin in plugins.all_values():
         # If there was a command and the bot can send messages in the channel, parse the command
         if cmd:
-            command = utils.get_command(plugin, cmd)
+            command = plugins.get_command(plugin, cmd)
 
             if command:
                 parsed_command, args, kwargs = yield from parse_command(command, cmd_args, message)

@@ -10,7 +10,7 @@ from pcbot import Annotate, utils
 import plugins
 
 
-@plugins.command(usage="<query ...>")
+@plugins.command()
 def define(client: discord.Client, message: discord.Message, term: Annotate.LowerCleanContent):
     """ Defines a term using Urban Dictionary. """
 

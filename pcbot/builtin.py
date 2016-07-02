@@ -21,39 +21,34 @@ lambda_config = Config("lambda-config", data=dict(imports=[], blacklist=[]))
 code_globals = {}
 
 
-@plugins.command(name="help", usage="[command]")
-def help_(client: discord.Client, message: discord.Message, name: str.lower=None):
+@plugins.command(name="help")
+def help_(client: discord.Client, message: discord.Message, command: str.lower=None, *args):
     """ Display commands or their usage and description. """
-    if name:  # Display the specific command
-        if name.startswith(config.command_prefix):
-            name = name[1:]
-
-        usage, desc = "", ""
+    # Display the specific command
+    if command:
+        if command.startswith(config.command_prefix):
+            command = command[1:]
 
         for plugin in plugins.all_values():
-            command = utils.get_command(plugin, name)
-
-            if not command:
+            cmd = plugins.get_command(plugin, command)
+            if not cmd:
                 continue
 
-            usage = command.usage
-            desc = command.description
-
-            # Notify the user when a command is owner specific
-            if getattr(command.function, "__owner__", False):
-                desc += "\n:information_source:`Only the bot owner can execute this command.`"
-
-        if usage:
-            yield from client.say(message, "**Usage**: ```{}```**Description**: {}".format(usage, desc))
+            # Get the specific command with arguments and send the help
+            cmd = plugins.get_sub_command(cmd, args)
+            yield from client.say(message, utils.format_help(cmd))
+            return
         else:
-            yield from client.say(message, "Command `{}` does not exist.".format(name))
-    else:  # Display every command
+            yield from client.say(message, "Command `{}` does not exist.".format(command))
+
+    # Display every command
+    else:
         commands = []
 
         for plugin in plugins.all_values():
             if getattr(plugin, "__commands", False):  # Massive pile of shit that works (so sorry)
                 commands.extend(
-                    cmd.usage.split()[0] for cmd in plugin.__commands
+                    cmd.name_prefix.split()[0] for cmd in plugin.__commands
                     if not cmd.hidden and
                     (not getattr(getattr(cmd, "function"), "__owner__", False) or
                      utils.is_owner(message.author))
@@ -98,10 +93,10 @@ def stop(client: discord.Client, message: discord.Message):
     yield from client.logout()
 
 
-@plugins.command(usage="[<name ...> | stream <url> <title ...>]")
+@plugins.command()
 @utils.owner
 def game(client: discord.Client, message: discord.Message, name: Annotate.Content=None):
-    """ Stop playing or set game to `game`. """
+    """ Stop playing or set game to `name`. """
     yield from client.change_status(discord.Game(name=name, type=0))
 
     if name:
@@ -118,9 +113,9 @@ def stream(client: discord.Client, message: discord.Message, url: str, title: An
     yield from client.say(message, "Started streaming **{}**.".format(title))
 
 
-@plugins.command(usage="<python code ...>")
+@plugins.command()
 @utils.owner
-def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
+def do(client: discord.Client, message: discord.Message, python_code: Annotate.Code):
     """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
         to send a message, optionally to a channel. Eg: `say("Hello!")`. """
     def say(msg, m=message):
@@ -129,27 +124,26 @@ def do(client: discord.Client, message: discord.Message, script: Annotate.Code):
     code_globals.update(dict(say=say, message=message, client=client))
 
     try:
-        exec(script, code_globals)
+        exec(python_code, code_globals)
     except Exception as e:
         say("```" + utils.format_exception(e) + "```")
 
 
-@plugins.command(name="eval", usage="<python code ...>")
+@plugins.command(name="eval")
 @utils.owner
-def eval_(client: discord.Client, message: discord.Message,
-             script: Annotate.Code):
+def eval_(client: discord.Client, message: discord.Message, python_code: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one line that returns something. """
     code_globals.update(dict(message=message, client=client))
 
     try:
-        result = eval(script, code_globals)
+        result = eval(python_code, code_globals)
     except Exception as e:
         result = utils.format_exception(e)
 
     yield from client.say(message, "**Result:** \n```{}\n```".format(result))
 
 
-@plugins.command(name="plugin", usage="[reload | load | unload] [plugin]")
+@plugins.command(name="plugin")
 def plugin_(client: discord.Client, message: discord.Message):
     """ Manage plugins.
         **Owner command unless no argument is specified.** """
@@ -160,7 +154,7 @@ def plugin_(client: discord.Client, message: discord.Message):
 @plugin_.command()
 @utils.owner
 def reload(client: discord.Client, message: discord.Message, name: str.lower=None):
-    """ Reloads a plugin. """
+    """ Reloads all plugins or the specified plugin. """
     if name:
         assert plugins.get_plugin(name), "`{}` is not a plugin".format(name)
 
@@ -203,8 +197,7 @@ def unload(client: discord.Client, message: discord.Message, name: str.lower):
     yield from client.say(message, "Plugin `{}` unloaded.".format(name))
 
 
-@plugins.command(name="lambda", usage="[add <trigger> <python code> | [remove | enable | disable | source | "
-                                      "import <module> [attribute]] <trigger>]")
+@plugins.command(name="lambda")
 def lambda_(client: discord.Client, message: discord.Message):
     """ Create commands. See `{pre}help do` for information on how the code works.
 
@@ -217,12 +210,12 @@ def lambda_(client: discord.Client, message: discord.Message):
 
 @lambda_.command()
 @utils.owner
-def add(client: discord.Client, message: discord.Message, trigger: str.lower, script: Annotate.Code):
-    """ Add a command that runs the specified script. """
+def add(client: discord.Client, message: discord.Message, trigger: str.lower, python_code: Annotate.Code):
+    """ Add a command that runs the specified python code. """
     assert trigger not in lambdas.data, "Command `{}` already exists.".format(trigger)
 
     # The command does not exist so we create it
-    lambdas.data[trigger] = script
+    lambdas.data[trigger] = python_code
     lambdas.save()
     yield from client.say(message, "Command `{}` set.".format(trigger))
 
@@ -294,7 +287,7 @@ def import_module(module: str, attr: str=None):
 @lambda_.command(name="import")
 @utils.owner
 def import_(client: discord.Client, message: discord.Message, module: str, attr: str=None):
-    """ Things to import. """
+    """ Import the specified module. Specifying `attr` will act like `from attr import module`. """
     try:
         import_module(module, attr)
     except ImportError:
@@ -360,7 +353,7 @@ def get_changelog(num: int):
     return "```\n{}```".format("\n\n".join(changelog))
 
 
-@plugins.command(usage="[changelog [num]]")
+@plugins.command()
 def pcbot(client: discord.Client, message: discord.Message):
     """ Display basic information and changelog. """
     # Grab the latest commit
@@ -383,7 +376,7 @@ def pcbot(client: discord.Client, message: discord.Message):
 
 @pcbot.command(name="changelog")
 def changelog_(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=3):
-    """ Get however many requests from the changelog. Defaults to 3. """
+    """ Get `num` requests from the changelog. Defaults to 3. """
     changelog = yield from get_changelog(num)
     yield from client.say(message, changelog)
 

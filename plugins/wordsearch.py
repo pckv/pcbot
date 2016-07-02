@@ -152,17 +152,15 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
         asyncio.async(client.send_message(channel, m))
 
 
-@plugins.command(name="wordsearch", usage="[auto <count>]")
+@plugins.command(name="wordsearch")
 def wordsearch_(client: discord.Client, message: discord.Message):
-    """ Start a wordsearch! Enter *any word* ending with `!` to guess the word!
-
-        `auto` automatically sets a word for you. Default is one word, or enter up to 5 with `count`.  /
-        **Example**: `{pre}wordsearch auto 4`"""
+    """ Start a wordsearch! Enter *any word* ending with `!` to guess the word! """
     client.loop.create_task(start_wordsearch(client, message.channel, message.author))
 
 
 @wordsearch_.command()
-def auto(client: discord.Client, message: discord.Message, word_count: int=1):
-    """ Start an automatic wordsearch. """
-    word = yield from auto_word(word_count)
+def auto(client: discord.Client, message: discord.Message, count: int=1):
+    """ Start an automatic wordsearch which sets a word for you. Default is one word,
+    or enter up to 5 with `count`."""
+    word = yield from auto_word(count)
     client.loop.create_task(start_wordsearch(client, message.channel, message.author, word))

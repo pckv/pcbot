@@ -39,10 +39,10 @@ def setup_default_config(server: discord.Server):
         moderate.save()
 
 
-@plugins.command(name="moderate", usage="<nsfwfilter [on | off] | changelog [on | off]>")
-def moderate_(client: discord.Client, message: discord.Message, setting: str.lower):
+@plugins.command(name="moderate")
+def moderate_(client, message, _: utils.placeholder):
     """ Change moderation settings. """
-    yield from client.say(message, "No setting `{}`.".format(setting))
+    pass
 
 
 def add_setting(setting: str, default=True, name=None, permissions=None):
@@ -57,14 +57,14 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
 
     default_config[name] = default
 
-    @moderate_.command(name=name, description="Display current {} setting.".format(setting))
+    @moderate_.command(name=name, description="Display current {} setting.".format(setting), usage="[on | off]")
     def display(client: discord.Client, message: discord.Message):
         """ The command to display the current setting. """
         setup_default_config(message.server)
         current = moderate.data[message.server.id][name]
         yield from client.say(message, "{} is `{}`.".format(setting, "ON" if current else "OFF"))
 
-    @display.command(name="on")
+    @display.command(name="on", hidden=True)
     @utils.permission(*permissions)
     def enable_setting(client: discord.Client, message: discord.Message):
         """ The command to enable this setting. """
@@ -72,7 +72,7 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
         moderate.save()
         yield from client.say(message, "{} enabled.".format(setting))
 
-    @display.command(name="off")
+    @display.command(name="off", hidden=True)
     @utils.permission(*permissions)
     def enable_setting(client: discord.Client, message: discord.Message):
         """ The command to enable this setting. """
@@ -123,10 +123,10 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
     return muted_members or None
 
 
-@plugins.command(usage="<users ...>", pos_check=True)
+@plugins.command(pos_check=True)
 @utils.permission("manage_messages")
 def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
-    """ Mute users. """
+    """ Mute the specified members. """
     muted_members = yield from manage_mute(client, message, client.add_roles, *members)
 
     # Some members were muted, success!
@@ -134,10 +134,10 @@ def mute(client: discord.Client, message: discord.Message, *members: Annotate.Me
         yield from client.say(message, "Muted {}".format(utils.format_members(*muted_members)))
 
 
-@plugins.command(usage="<users ...>", pos_check=True)
+@plugins.command(pos_check=True)
 @utils.permission("manage_messages")
 def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
-    """ Unmute users. """
+    """ Unmute the specified members. """
     muted_members = yield from manage_mute(client, message, client.remove_roles, *members)
 
     # Some members were unmuted, success!
@@ -145,10 +145,10 @@ def unmute(client: discord.Client, message: discord.Message, *members: Annotate.
         yield from client.say(message, "Unmuted {}".format(utils.format_members(*muted_members)))
 
 
-@plugins.command(usage="<users ...> <minutes>", pos_check=True)
+@plugins.command(pos_check=True)
 @utils.permission("manage_messages")
 def timeout(client: discord.Client, message: discord.Message, *members: Annotate.Member, minutes: int):
-    """ Timeout users for given minutes. """
+    """ Timeout the specified members for given minutes. """
     muted_members = yield from manage_mute(client, message, client.add_roles, *members)
 
     # Do not progress if the members were not successfully muted

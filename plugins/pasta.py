@@ -15,7 +15,7 @@ import plugins
 pastas = Config("pastas", data={})
 
 
-@plugins.command(usage="<copypasta | add <name> <pasta ...> | remove <pasta>>")
+@plugins.command()
 def pasta(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
         pasta action. You also need quotes around `<name>` if it has any spaces. """
@@ -31,7 +31,7 @@ def pasta(client: discord.Client, message: discord.Message, name: Annotate.Lower
 
 @pasta.command()
 def add(client: discord.Client, message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
-    """ Add a pasta. """
+    """ Add a pasta with the specified content. """
     assert name not in pastas.data, "Pasta `{0}` already exists. ".format(name)
 
     # If the pasta doesn't exist, set it
@@ -42,7 +42,7 @@ def add(client: discord.Client, message: discord.Message, name: str.lower, copyp
 
 @pasta.command()
 def remove(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
-    """ Remove a pasta. """
+    """ Remove a pasta with the specified name. """
     assert name in pastas.data, "No pasta with name `{0}`.".format(name)
 
     copypasta = pastas.data.pop(name)

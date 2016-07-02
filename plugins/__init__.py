@@ -12,10 +12,12 @@ from traceback import format_exc
 import asyncio
 
 from pcbot import command_prefix
+from pcbot.utils import Annotate
 
 plugins = {}
 events = defaultdict(list)
-Command = namedtuple("Command", "name usage description function sub_commands parent hidden error pos_check")
+Command = namedtuple("Command", "name name_prefix usage description function parent sub_commands depth hidden error "
+                                "pos_check")
 
 
 def get_plugin(name):
@@ -41,6 +43,35 @@ def all_values():
     return plugins.values()
 
 
+def _format_usage(func, pos_check):
+    """ Parse and format the usage of a command. """
+    signature = inspect.signature(func)
+    usage = []
+    lengthy_annos = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
+                     Annotate.LowerCleanContent, Annotate.Code)
+
+    for i, param in enumerate(signature.parameters.values()):
+        if i in (0, 1):
+            continue
+
+        # If there is a placeholder annotation, this command is a group and should not have a formatted usage
+        if getattr(param.annotation, "__name__", "") == "placeholder":
+            return
+
+        param_format = "[{}{}]"
+        suffix = ""
+
+        if param.default is param.empty and (param.kind is not param.VAR_POSITIONAL or pos_check is True):
+            param_format = "<{}{}>"
+
+        if param.kind is param.VAR_POSITIONAL or param.annotation in lengthy_annos:
+            suffix = " ..."
+
+        usage.append(param_format.format(param.name, suffix))
+    else:
+        return " ".join(usage)
+
+
 def command(**options):
     """ Decorator function that adds a command to the module's __commands dict.
     This allows the user to dynamically create commands without the use of a dictionary
@@ -63,14 +94,17 @@ def command(**options):
         name = options.get("name", func.__name__)
         hidden = options.get("hidden", False)
         parent = options.get("parent", None)
+        depth = parent.depth + 1 if parent is not None else 0
+        name_prefix = parent.name_prefix + " " + name if parent is not None else command_prefix + name
         error = options.get("error", None)
         pos_check = options.get("pos_check", False)
         description = options.get("description") or func.__doc__ or "Undocumented."
-        usage = None
 
-        if not parent:
-            usage = "{pre}{name} {usage}".format(
-                pre=command_prefix, name=name, usage=options.get("usage", ""))
+        formatted_usage = options.get("usage", _format_usage(func, pos_check))
+        if formatted_usage is not None:
+            usage = "{pre} {usage}".format(pre=name_prefix, usage=formatted_usage)
+        else:
+            usage = None
 
         # Properly format description when using docstrings
         # Kinda like markdown; new line = (blank line) or (/ at end of line)
@@ -105,8 +139,8 @@ def command(**options):
             raise KeyError("You can't assign two commands with the same name")
 
         # Create our command
-        cmd = Command(name=name, usage=usage, description=description, function=func, parent=parent,
-                      sub_commands=[], hidden=hidden, error=error, pos_check=pos_check)
+        cmd = Command(name=name, usage=usage, name_prefix=name_prefix, description=description, function=func,
+                      parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error, pos_check=pos_check)
 
         # If the command has a parent (is a subcommand)
         if parent:
@@ -148,6 +182,44 @@ def event(name=None):
 def parent_attr(cmd: Command, attr: str):
     """ Return the attribute from the parent if there is one. """
     return getattr(cmd.parent, attr, False) or getattr(cmd, attr)
+
+
+def get_command(plugin, cmd: str):
+    """ Find and return a command function from a plugin.
+
+    :param plugin: plugin module to look through.
+    :param cmd: a str representing the command name. """
+    commands = getattr(plugin, "__commands", None)
+
+    # Return None if the bot doesn't have any commands
+    if not commands:
+        return None
+
+    names = [cmd.name for cmd in plugin.__commands]
+
+    # Return None if the specified plugin doesn't have the specified command
+    if cmd not in names:
+        return None
+
+    # Return the found command
+    return commands[names.index(cmd)]
+
+
+def get_sub_command(cmd, args: list):
+    """ Go through all arguments and return any group command function.
+
+    :param cmd: type plugins.Command
+    :param args: a list of arguments *following* the command trigger. """
+    for arg in args:
+        names = [cmd.name for cmd in cmd.sub_commands]
+
+        if not names:
+            break
+
+        if arg in names:
+            cmd = cmd.sub_commands[names.index(arg)]
+
+    return cmd
 
 
 def load_plugin(name: str, package: str="plugins"):
