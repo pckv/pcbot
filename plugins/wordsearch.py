@@ -17,8 +17,9 @@ import plugins
 wordsearch = []
 wordsearch_words = []
 
-tutorial = "Write any word ending with `!` to guess the word!"
+tutorial = "Enter any word ending with `!` to guess the word!"
 character_match = "[a-z0-9æøå]+"
+word_list_url = "http://www.mieliestronk.com/corncob_lowercase.txt"
 
 
 def valid_word(message: discord.Message):
@@ -56,7 +57,7 @@ def auto_word(count=1):
     # Download a list of words if not stored in memory
     if not wordsearch_words:
         with aiohttp.ClientSession() as session:
-            response = yield from session.get("http://www.mieliestronk.com/corncob_lowercase.txt")
+            response = yield from session.get(word_list_url)
 
             wordsearch_words = yield from response.text() if response.status == 200 else ""
 
@@ -134,11 +135,11 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
 
         # Compare the words
         if guessed_word > word:
-            m = "{0.mention} `{1}` is *after* in the dictionary.".format(reply.author, guessed_word) + \
-                format_hint(hint)
+            m = "{0.mention} `{1}` is *after* in the dictionary. {}".format(reply.author, guessed_word,
+                                                                            format_hint(hint))
         elif guessed_word < word:
-            m = "{0.mention} `{1}` is *before* in the dictionary.".format(reply.author, guessed_word) + \
-                format_hint(hint)
+            m = "{0.mention} `{1}` is *before* in the dictionary. {}".format(reply.author, guessed_word,
+                                                                             format_hint(hint))
         else:
             m = ""
 

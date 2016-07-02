@@ -148,7 +148,7 @@ def plugin_(client: discord.Client, message: discord.Message):
     """ Manage plugins.
         **Owner command unless no argument is specified.** """
     yield from client.say(message,
-                          "**Plugins:** ```\n" "{}```".format(",\n".join(plugins.all_keys())))
+                          "**Plugins:** ```{}```".format(", ".join(plugins.all_keys())))
 
 
 @plugin_.command()
