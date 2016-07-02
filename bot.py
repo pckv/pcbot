@@ -149,7 +149,8 @@ def parse_annotation(param: inspect.Parameter, default, arg: str, index: int, me
                 return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
 
         try:  # Try running as a method
-            return anno(arg) or default
+            result = anno(arg)
+            return result if result is not None else default
         except TypeError:
             raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a callable")
         except:  # On error, eg when annotation is int and given argument is str
@@ -262,7 +263,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
     if complete and command.pos_check is True and num_pos_args == 0:
         complete = False
 
-    # print(num_given, num_args)
+    print(num_given, num_args)
     return args, kwargs, complete
 
 
