@@ -74,7 +74,7 @@ def plugin_in_req(plugin: str):
     return plugin
 
 
-@plugins.command(usage="<plugin> [#feature_id]")
+@plugins.command(usage="<plugin> #[feature_id]")
 def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id=None):
     """ Handle plugin feature requests where plugin is a plugin name. See `!plugin` for a list of plugins.
 
@@ -111,7 +111,7 @@ def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req,
     yield from client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
 
 
-@feature.command(usage="<plugin> <#feature_id>")
+@feature.command(usage="<plugin> #<feature_id>")
 @utils.owner
 def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Toggles marking a feature request as complete. """
@@ -131,7 +131,7 @@ def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req
         yield from client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
-@feature.command(usage="<plugin> <#feature_id>")
+@feature.command(usage="<plugin> #<feature_id>")
 @utils.owner
 def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Removes a feature request. """

@@ -100,6 +100,12 @@ def format_help(command):
 
     :param command: type plugins.Command """
     usage = format_usage(command)
+
+    # If there is no usage, the command isn't supposed to be displayed as such
+    # Therefore, we switch to using the parent command instead
+    if usage is None:
+        return format_help(command.parent)
+
     desc = command.description
 
     # Notify the user when a command is owner specific
