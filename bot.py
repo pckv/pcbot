@@ -177,14 +177,16 @@ def parse_command_args(command: plugins.Command, cmd_args: list, start_index: in
     for arg, param in signature.parameters.items():
         index += 1
 
-        if index == 0:  # Param should have a Client annotation
-            if param.annotation is not discord.Client:
-                raise SyntaxError("First command parameter must be of type discord.Client")
+        if index == 0:  # Param #1 should be the client
+            if not param.name == "client":
+                if param.annotation is not discord.Client:
+                    raise SyntaxError("First command parameter must be named client or be of type discord.Client")
 
             continue
-        elif index == 1:  # Param should have a Message annotation
-            if param.annotation is not discord.Message:
-                raise SyntaxError("Second command parameter must be of type discord.Message")
+        elif index == 1:  # Param #1 should be the message
+            if not param.name == "message":
+                if param.annotation is not discord.Message:
+                    raise SyntaxError("Second command parameter must be named client or be of type discord.Message")
 
             continue
 

@@ -7,7 +7,7 @@ import logging
 import inspect
 from collections import namedtuple, defaultdict
 from functools import partial
-from traceback import print_exc
+from traceback import format_exc
 
 import asyncio
 
@@ -159,8 +159,7 @@ def load_plugin(name: str, package: str="plugins"):
         try:
             plugin = importlib.import_module("{package}.{plugin}".format(plugin=name, package=package))
         except:
-            logging.warn("An error occurred when loading plugin {name}".format(name=name))
-            print_exc()
+            logging.error("An error occurred when loading plugin {}:\n{}".format(name, format_exc()))
             return False
 
         plugins[name] = plugin
@@ -184,14 +183,14 @@ def reload_plugin(name: str):
                     events[event_name].remove(func)
 
         plugins[name] = importlib.reload(plugins[name])
-        logging.debug("Reloaded plugin " + name)
+        logging.debug("Reloaded plugin {}".format(name))
 
 
 def unload_plugin(name: str):
     """ Unload a plugin by removing it from the plugin dictionary. """
     if name in plugins:
         del plugins[name]
-        logging.debug("Unloaded plugin " + name)
+        logging.debug("Unloaded plugin {}".format(name))
 
 
 def load_plugins():
@@ -216,7 +215,7 @@ def save_plugin(name):
             try:
                 yield from plugin.save(plugins)
             except:
-                logging.error("An error occurred when saving plugin {}".format(name))
+                logging.error("An error occurred when saving plugin {}:\n{}".format(name, format_exc()))
 
 
 @asyncio.coroutine
