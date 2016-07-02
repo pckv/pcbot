@@ -274,13 +274,10 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     if not complete:
         log_message(message)  # Log the command
 
-        if len(cmd_args) == 1:
-            send_usage = False
-
         if not send_usage:
             yield from client.say(message, utils.format_help(command))
         else:
-            if command.error:
+            if command.error and len(cmd_args) > 1:
                 yield from client.say(message, command.error)
             else:
                 yield from client.say(message, format_usage_message(command))
