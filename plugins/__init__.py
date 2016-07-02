@@ -12,7 +12,7 @@ from traceback import format_exc
 import asyncio
 
 from pcbot import command_prefix
-from pcbot.utils import Annotate
+from pcbot.utils import Annotate, format_exception
 
 plugins = {}
 events = defaultdict(list)
@@ -230,6 +230,9 @@ def load_plugin(name: str, package: str="plugins"):
     if not name.startswith("__") or not name.endswith("__"):
         try:
             plugin = importlib.import_module("{package}.{plugin}".format(plugin=name, package=package))
+        except ImportError as e:
+            logging.error("An error occurred when loading plugin {}:\n{}".format(name, format_exception(e)))
+            return False
         except:
             logging.error("An error occurred when loading plugin {}:\n{}".format(name, format_exc()))
             return False

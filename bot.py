@@ -263,7 +263,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
     if complete and command.pos_check is True and num_pos_args == 0:
         complete = False
 
-    print(num_given, num_args)
+    # print(num_given, num_args)
     return args, kwargs, complete
 
 
