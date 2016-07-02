@@ -263,7 +263,7 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     send_usage = True
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if cmd_args[-1] == help_arg or len(cmd_args) == 1:
+    if cmd_args[-1] == help_arg:
         complete = send_usage = False
         args, kwargs = [], {}
     else:
@@ -273,6 +273,9 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     # If command parsing failed, display help for the command or the error message
     if not complete:
         log_message(message)  # Log the command
+
+        if len(cmd_args) == 1:
+            send_usage = False
 
         if not send_usage:
             yield from client.say(message, utils.format_help(command))
