@@ -151,8 +151,9 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
     args, kwargs = [], {}
     index = -1
     start_index = command.depth  # The index would be the position in the group
-    num_kwargs = sum(1 for param in signature.parameters.values() if param.kind is param.KEYWORD_ONLY)
-    num_given_kwargs = 0
+    num_required_kwargs = sum(1 for param in signature.parameters.values()
+                              if param.kind is param.KEYWORD_ONLY and param.default is not param.empty)
+    num_given_required_kwargs = 0
     has_pos = any(param.kind is param.VAR_POSITIONAL for param in signature.parameters.values())
     num_pos_args = 0
 
@@ -207,14 +208,15 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
 
             if tmp_arg is not None:
                 kwargs[param.name] = tmp_arg
-                num_given_kwargs += 1
+                if param.default is not param.empty:
+                    num_given_required_kwargs += 1
             else:
                 if param.default is not param.empty:
                     kwargs[param.name] = param.default
                 else:
                     return args, kwargs, False  # Force quit
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
-            end_search = None if type(command.pos_check) is not bool else (-num_kwargs or len(cmd_args) + 1)
+            end_search = None if type(command.pos_check) is not bool else (-num_required_kwargs or len(cmd_args) + 1)
 
             for cmd_arg in cmd_args[index - 1:end_search]:
                 # Do not register the positional argument if it does not meet the optional criteria
@@ -236,8 +238,8 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
     # Number of required arguments are: signature variables - client and message
     # If there are no positional arguments, subtract one from the required arguments
     num_args = len(signature.parameters.items()) - 2
-    if type(command.pos_check) is not bool:
-        num_args -= (num_kwargs - num_given_kwargs)
+    if command.pos_check is False:
+        num_args -= (num_required_kwargs - num_given_required_kwargs)
     if has_pos:
         num_args -= int(not bool(num_pos_args))
 
