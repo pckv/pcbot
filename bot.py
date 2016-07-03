@@ -338,7 +338,6 @@ def on_message(message: discord.Message):
 
     # Get command name
     cmd = ""
-
     if cmd_args[0].startswith(command_prefix) and len(cmd_args[0]) > 1:
         cmd = cmd_args[0][1:]
 
