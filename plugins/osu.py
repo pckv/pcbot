@@ -195,8 +195,7 @@ def get_new_score(member_id: str):
     for i, score in enumerate(scores):
         if score not in osu_tracking[member_id]["scores"]:
             osu_tracking[member_id]["scores"] = scores
-            score = dict(score, pos=i + 1)
-            return score
+            return dict(score, pos=i + 1)
     else:
         return None
 

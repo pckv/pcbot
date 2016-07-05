@@ -11,7 +11,7 @@ from os import mkdir
 
 github_repo = "PcBoy111/PCBOT/"
 command_prefix = "!"
-help_arg = "?"
+help_arg = ("?", "help")
 version = ""
 
 

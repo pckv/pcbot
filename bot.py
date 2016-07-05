@@ -288,7 +288,7 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     send_usage = True
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if cmd_args[-1] == help_arg:
+    if cmd_args[-1] in help_arg:
         complete = send_usage = False
         args, kwargs = [], {}
     else:

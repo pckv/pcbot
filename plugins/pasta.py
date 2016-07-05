@@ -22,20 +22,26 @@ def pasta(client: discord.Client, message: discord.Message, name: Annotate.Lower
     # Display a random pasta
     assert not name == ".", choice(list(pastas.data.values()))
 
+    # We don't use spaces in pastas at all
+    parsed_name = name.replace(" ", "")
+
     # Pasta might not be in the set
-    assert name in pastas.data, "Pasta `{0}` is undefined.".format(name)
+    assert parsed_name in pastas.data, "Pasta `{0}` is undefined.".format(name)
 
     # Display the specified pasta
-    yield from client.say(message, pastas.data[name])
+    yield from client.say(message, pastas.data[parsed_name])
 
 
 @pasta.command()
 def add(client: discord.Client, message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
     """ Add a pasta with the specified content. """
-    assert name not in pastas.data, "Pasta `{0}` already exists. ".format(name)
+    # When creating pastas we don't use spaces either!
+    parsed_name = name.replace(" ", "")
+
+    assert parsed_name not in pastas.data, "Pasta `{0}` already exists. ".format(name)
 
     # If the pasta doesn't exist, set it
-    pastas.data[name] = copypasta
+    pastas.data[parsed_name] = copypasta
     pastas.save()
     yield from client.say(message, "Pasta `{0}` set.".format(name))
 
@@ -43,9 +49,12 @@ def add(client: discord.Client, message: discord.Message, name: str.lower, copyp
 @pasta.command()
 def remove(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Remove a pasta with the specified name. """
-    assert name in pastas.data, "No pasta with name `{0}`.".format(name)
+    # We don't even use spaces when removing pastas!
+    parsed_name = name.replace(" ", "")
 
-    copypasta = pastas.data.pop(name)
+    assert parsed_name in pastas.data, "No pasta with name `{0}`.".format(name)
+
+    copypasta = pastas.data.pop(parsed_name)
     pastas.save()
     yield from client.say(message, "Pasta `{0}` removed. In case this was a mistake, "
                                    "here's the pasta: ```{1}```".format(name, copypasta))
