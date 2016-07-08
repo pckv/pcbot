@@ -28,7 +28,7 @@ def parse_resolution(res: str):
     except ValueError:
         return None
 
-    if x < 1 or y < 1:
+    if not (1 <= x <= 3000 and 1 <= y <= 3000):
         return None
 
     return x, y
