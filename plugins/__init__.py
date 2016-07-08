@@ -6,7 +6,7 @@ import os
 import logging
 import inspect
 from collections import namedtuple, defaultdict
-from functools import partial
+from functools import partial, wraps
 from traceback import format_exc
 
 import asyncio
@@ -18,6 +18,8 @@ plugins = {}
 events = defaultdict(list)
 Command = namedtuple("Command", "name name_prefix usage description function parent sub_commands depth hidden error "
                                 "pos_check")
+lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
+                       Annotate.LowerCleanContent, Annotate.Code)
 
 
 def get_plugin(name):
@@ -47,8 +49,6 @@ def _format_usage(func, pos_check):
     """ Parse and format the usage of a command. """
     signature = inspect.signature(func)
     usage = []
-    lengthy_annos = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
-                     Annotate.LowerCleanContent, Annotate.Code)
 
     for i, param in enumerate(signature.parameters.values()):
         if i in (0, 1):
@@ -58,16 +58,17 @@ def _format_usage(func, pos_check):
         if getattr(param.annotation, "__name__", "") == "placeholder":
             return
 
-        param_format = "[{}{}]"
-        suffix = ""
+        param_format = getattr(param.annotation, "argument", "{open}{name}{suffix}{close}")
+        name = param.name
+        open, close, suffix = "[", "]", ""
 
         if param.default is param.empty and (param.kind is not param.VAR_POSITIONAL or pos_check is True):
-            param_format = "<{}{}>"
+            open, close = "<", ">"
 
-        if param.kind is param.VAR_POSITIONAL or param.annotation in lengthy_annos:
+        if param.kind is param.VAR_POSITIONAL or param.annotation in lengthy_annotations:
             suffix = " ..."
 
-        usage.append(param_format.format(param.name, suffix))
+        usage.append(param_format.format(open=open, close=close, name=name, suffix=suffix))
     else:
         return " ".join(usage)
 
@@ -174,6 +175,15 @@ def event(name=None):
         # Register our event
         event_name = name or func.__name__
         events[event_name].append(func)
+        return func
+
+    return decorator
+
+
+def argument(format):
+    """ Decorator for easily setting custom argument usage formats. """
+    def decorator(func):
+        func.argument = format
         return func
 
     return decorator

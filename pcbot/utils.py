@@ -192,7 +192,7 @@ def download_file(url, **params):
         response = yield from session.get(url, params=params)
         file = yield from response.read() if response.status == 200 else None
 
-    return file
+    return file, response.headers
 
 
 @asyncio.coroutine

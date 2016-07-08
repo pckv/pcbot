@@ -317,9 +317,9 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
         else "#{0:02x}{1:02x}{2:02x}".format(*member.color.to_tuple())
 
     # Download and upload the signature
-    signature = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
-                                               colour=color, uname=user_id, pp=True,
-                                               countryrank=True, xpbar=True, mode=get_mode(member.id).value)
+    signature, _ = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
+                                                  colour=color, uname=user_id, pp=True,
+                                                  countryrank=True, xpbar=True, mode=get_mode(member.id).value)
     yield from client.send_file(message.channel, signature, filename="sig.png")
 
     yield from client.say(message, "<https://osu.ppy.sh/u/{}>".format(user_id))
@@ -415,7 +415,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
             return
 
         # Download and save the beatmap pp_map.osu
-        beatmap_file = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+        beatmap_file, _ = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
         with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
             f.write(beatmap_file)
     else:
