@@ -34,9 +34,9 @@ def parse_resolution(res: str):
     return x, y
 
 
-@plugins.command()
+@plugins.command(pos_check=lambda s: s.startswith("-"))
 def resize(client: discord.Client, message: discord.Message,
-           url: str, resolution: parse_resolution, extension: str=None):
+           url: str, resolution: parse_resolution, *options, extension: str=None):
     """ Resize an image with the given resolution formatted as `<width>x<height>`
     with an optional extension. """
     # Make sure the URL is valid
@@ -63,7 +63,7 @@ def resize(client: discord.Client, message: discord.Message,
 
     # Open the image in Pillow
     image = Image.open(BytesIO(image_bytes))
-    image = image.resize(resolution, Image.ANTIALIAS)
+    image = image.resize(resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS)
 
     # Upload the image
     buffer = BytesIO()
