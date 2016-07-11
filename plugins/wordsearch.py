@@ -135,10 +135,10 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
 
         # Compare the words
         if guessed_word > word:
-            m = "{0.mention} `{1}` is *after* in the dictionary. {}".format(reply.author, guessed_word,
+            m = "{0.mention} `{1}` is *after* in the dictionary. {2}".format(reply.author, guessed_word,
                                                                             format_hint(hint))
         elif guessed_word < word:
-            m = "{0.mention} `{1}` is *before* in the dictionary. {}".format(reply.author, guessed_word,
+            m = "{0.mention} `{1}` is *before* in the dictionary. {2}".format(reply.author, guessed_word,
                                                                              format_hint(hint))
         else:
             m = ""
