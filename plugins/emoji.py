@@ -57,6 +57,7 @@ def greater(client: discord.Client, message: discord.Message, text: Annotate.Cle
             combined = False
             continue
 
+        # Some emojies use two unicode characters, so we try to parse these first
         if len(unicode) > (i + 1):
             name = "{}-{}".format(char, unicode[i + 1])
 
@@ -71,6 +72,8 @@ def greater(client: discord.Client, message: discord.Message, text: Annotate.Cle
                 combined = True
                 continue
 
+        # At this point we only need one character, and we pretty much do the entire process over again
+        # (I know, this code is pretty lame)
         if char in emoji:
             if char not in emoji_cache:
                 converted = cairosvg.svg2png(emoji[char])
@@ -78,7 +81,7 @@ def greater(client: discord.Client, message: discord.Message, text: Annotate.Cle
             else:
                 converted = emoji_cache[char]
 
-        parsed_emoji.append(converted)
+            parsed_emoji.append(converted)
 
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
