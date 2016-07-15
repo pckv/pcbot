@@ -13,7 +13,7 @@ import plugins
 from pcbot import Annotate
 
 
-emoji_path = "plugins/twemoji2.1lib/"
+emoji_path = "plugins/twemoji21lib/"
 size = 512
 
 
