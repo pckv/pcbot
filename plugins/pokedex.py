@@ -6,12 +6,20 @@ Commands:
 
 from io import BytesIO
 import os
+import logging
 
 import discord
 import json
-from PIL import Image
 
 import plugins
+
+try:
+    from PIL import Image
+except:
+    upscale = False
+    logging.warn("PIL could not be loaded. The pokedex works like usual, however with lower resolution sprites.")
+else:
+    upscale = True
 
 
 api_path = "plugins/pokedexlib//pokedex.json"
@@ -74,7 +82,9 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.l
         sprite_bytes = f.read()
 
     # Upscale and upload the image
-    sprite_bytes = upscale_sprite(sprite_bytes)
+    if upscale:
+        sprite_bytes = upscale_sprite(sprite_bytes)
+
     yield from client.send_file(message.channel, sprite_bytes, filename="{}.png".format(name))
 
     # Format the message
