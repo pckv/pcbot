@@ -64,10 +64,10 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.l
     try:
         pokemon_id = int(name_or_id)
     except ValueError:
-        assert name in pokedex, "There is no pokémon with that name in my pokédex!"
+        assert name in pokedex, "There is no pokémon called **{}** in my pokédex!".format(name)
     else:
         name = id_to_name(pokemon_id)
-        assert name is not None, "There is no pokémon of that ID in my pokédex!"
+        assert name is not None, "There is no pokémon with ID **#{}** in my pokédex!".format(pokemon_id)
 
     # Assign our pokemon
     pokemon = pokedex[name]
