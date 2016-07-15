@@ -43,7 +43,7 @@ def resize(client: discord.Client, message: discord.Message,
     try:
         image_bytes, headers = yield from utils.download_file(url)
     except ValueError:
-        yield from client.say(message, "The given url is invalid.")
+        yield from client.say(message, "The given URL is invalid.")
         return
 
     match = extension_regex.search(headers["CONTENT-TYPE"])
