@@ -190,7 +190,7 @@ def download_file(url, **params):
     :param params: any additional url parameters """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
-        file = yield from response.read() if response.status == 200 else None
+        file = yield from response.read()
 
     return file, response.headers
 
@@ -203,7 +203,7 @@ def download_json(url, **params):
     :param params: any additional url parameters """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
-        json = yield from response.json() if response.status == 200 else None
+        json = yield from response.json()
 
     return json
 

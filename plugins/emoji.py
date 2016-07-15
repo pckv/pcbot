@@ -1,7 +1,11 @@
 """ This plugin has some emoji to PNG utilities!
 
-    Keep in mind that this library requires pycario, which I've found to be quite
-    difficult to install for windows. """
+Keep in mind that this library requires pycario, which I've found to be quite
+difficult to install for windows.
+
+Commands:
+    greater
+"""
 
 import os
 from io import BytesIO
