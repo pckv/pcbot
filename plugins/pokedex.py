@@ -78,7 +78,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     """ Display some information of the given pokémon. """
     # Do some quick replacements
     if name_or_id.startswith("#"):
-        name_or_id.replace("#", "")
+        name_or_id = name_or_id.replace("#", "")
     name_or_id = name_or_id.replace("♂", "-m").replace("♀", "-f")
     name_or_id = name_or_id.replace(" ", "-").replace("♂", "m").replace("♀", "f")
 
