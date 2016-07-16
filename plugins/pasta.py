@@ -5,6 +5,7 @@ Commands:
 """
 
 from random import choice
+from difflib import get_close_matches
 
 import discord
 import asyncio
@@ -26,7 +27,8 @@ def pasta(client: discord.Client, message: discord.Message, name: Annotate.Lower
     parsed_name = name.replace(" ", "")
 
     # Pasta might not be in the set
-    assert parsed_name in pastas.data, "Pasta `{0}` is undefined.".format(name)
+    assert parsed_name in pastas.data, "Pasta `{}` is undefined.\nPerhaps you meant: `{}`".format(
+        name, ", ".join(get_close_matches(parsed_name, pastas.data.keys(), cutoff=0.5)))
 
     # Display the specified pasta
     yield from client.say(message, pastas.data[parsed_name])
@@ -38,12 +40,12 @@ def add(client: discord.Client, message: discord.Message, name: str.lower, copyp
     # When creating pastas we don't use spaces either!
     parsed_name = name.replace(" ", "")
 
-    assert parsed_name not in pastas.data, "Pasta `{0}` already exists. ".format(name)
+    assert parsed_name not in pastas.data, "Pasta `{}` already exists. ".format(name)
 
     # If the pasta doesn't exist, set it
     pastas.data[parsed_name] = copypasta
     pastas.save()
-    yield from client.say(message, "Pasta `{0}` set.".format(name))
+    yield from client.say(message, "Pasta `{}` set.".format(name))
 
 
 @pasta.command()
@@ -52,12 +54,12 @@ def remove(client: discord.Client, message: discord.Message, name: Annotate.Lowe
     # We don't even use spaces when removing pastas!
     parsed_name = name.replace(" ", "")
 
-    assert parsed_name in pastas.data, "No pasta with name `{0}`.".format(name)
+    assert parsed_name in pastas.data, "No pasta with name `{}`.".format(name)
 
     copypasta = pastas.data.pop(parsed_name)
     pastas.save()
-    yield from client.say(message, "Pasta `{0}` removed. In case this was a mistake, "
-                                   "here's the pasta: ```{1}```".format(name, copypasta))
+    yield from client.say(message, "Pasta `{}` removed. In case this was a mistake, "
+                                   "here's the pasta: ```{}```".format(name, copypasta))
 
 
 @plugins.event()
