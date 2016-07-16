@@ -9,7 +9,7 @@ PCBOT should be supported by all python versions above 3.4.2. It is however only
 ## MongoBot
 **For those who have arrived from MongoBot and wish to contribute/have a look/access the resources**, the libraries used are found in `plugins/pokedex.py` and `plugins/pokedexlib/`!
 
-Currently, I only host MongoBot for public use. **If you wish to add the bot to your server, you may use [this link!][mongobot]
+Currently, I only host MongoBot for public use. **If you wish to add the bot to your server, you may use [this link!][mongobot]**
 
 [mongobot]: https://discordapp.com/oauth2/authorize?client_id=203868685557956608&scope=bot&permissions=0
 
