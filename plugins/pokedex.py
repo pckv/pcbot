@@ -93,7 +93,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
 
     # Get the server's scale factor
-    if "scale-factor" in pokedex_config.data[message.server.id]:
+    if message.server.id in pokedex_config.data and "scale-factor" in pokedex_config.data[message.server.id]:
         scale_factor = pokedex_config.data[message.server.id]["scale-factor"]
     else:
         scale_factor = default_scale_factor
@@ -134,7 +134,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     ).format(
         upper_name=replace_sex_suffix(pokemon["name"]).upper(),
         type=" | ".join(t.capitalize() for t in pokemon["types"]),
-        formatted_evolution=" **->** ".join(" **/** ".join(name.upper() for name in names)
+        formatted_evolution=" **->** ".join(" **/** ".join(replace_sex_suffix(name).upper() for name in names)
                                             for names in pokemon["evolution"]),
         pokemon_go=pokemon_go_info,
         **pokemon
