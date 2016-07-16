@@ -113,7 +113,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
             replace_sex_suffix(pokemon["evolution"][0][0]).capitalize()  # Name of the first pokemon in its chain
         )
     if "hatches_from" in pokemon:
-        pokemon_go_info += "Hatches from: `{}km egg`\n".format(pokemon["hatches_from"])
+        pokemon_go_info += "Hatches from: `{}km Egg`\n".format(pokemon["hatches_from"])
 
     # Format the message
     formatted_message = (
