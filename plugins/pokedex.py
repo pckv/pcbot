@@ -4,14 +4,16 @@ Commands:
     pokedex
 """
 
-from io import BytesIO
 import os
 import logging
+from io import BytesIO
+from collections import defaultdict
 
 import discord
 import json
 
 import plugins
+from pcbot import Config, permission
 
 try:
     from PIL import Image
@@ -24,6 +26,9 @@ else:
 
 api_path = "plugins/pokedexlib//pokedex.json"
 sprites_path = "plugins/pokedexlib/sprites/{id}.png"
+pokedex_config = Config("pokedex", data=defaultdict(dict))
+default_upscale_factor = 2.2
+min_upscale_factor, max_upscale_factor = 0.25, 4
 
 
 with open(api_path) as f:
@@ -39,7 +44,7 @@ def id_to_name(pokemon_id: int):
     return None
 
 
-def upscale_sprite(sprite, factor: float=2.2):
+def upscale_sprite(sprite, factor: float):
     """ Upscales a sprite (string of bytes / rb). """
     image = Image.open(BytesIO(sprite))
 
@@ -69,6 +74,12 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.l
         name = id_to_name(pokemon_id)
         assert name is not None, "There is no pokémon with ID **#{}** in my pokédex!".format(pokemon_id)
 
+    # Get the server's upscale factor
+    if "upscale-factor" in pokedex_config.data[message.server.id]:
+        upscale_factor = pokedex_config.data[message.server.id]["upscale-factor"]
+    else:
+        upscale_factor = default_upscale_factor
+
     # Assign our pokemon
     pokemon = pokedex[name]
 
@@ -83,7 +94,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.l
 
     # Upscale and upload the image
     if upscale:
-        sprite_bytes = upscale_sprite(sprite_bytes)
+        sprite_bytes = upscale_sprite(sprite_bytes, upscale_factor)
 
     yield from client.send_file(message.channel, sprite_bytes, filename="{}.png".format(name))
 
@@ -104,3 +115,28 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.l
     )
 
     yield from client.say(message, formatted_message)
+
+
+@permission("manage_server")
+@pokedex_.command()
+def setupscale(client: discord.Client, message: discord.Message, factor: float=default_upscale_factor):
+    """ Set the upscale factor for your server. If no factor is given, the default is set. /
+    **This command requires the `Manage Server` permission.**"""
+    assert factor <= max_upscale_factor, "The factor **{}** is too high **(max={})**.".format(
+        factor, max_upscale_factor)
+    assert min_upscale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(
+        factor, min_upscale_factor)
+
+    # Handle specific scenarios
+    if factor == default_upscale_factor:
+        if "upscale-factor" in pokedex_config.data[message.server.id]:
+            del pokedex_config.data[message.server.id]["upscale-factor"]
+            reply = "Pokédex image upscale factor reset to **{factor}**."
+        else:
+            reply = "Pokédex image upscale factor is **{factor}**."
+    else:
+        pokedex_config.data[message.server.id]["upscale-factor"] = factor
+        reply = "Pokédex image upscale factor set to **{factor}**."
+
+    pokedex_config.save()
+    yield from client.say(message, reply.format(factor=factor))
