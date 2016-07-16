@@ -6,6 +6,13 @@ PCBOT should be supported by all python versions above 3.4.2. It is however only
 
 [discord.py]: https://github.com/Rapptz/discord.py
 
+## MongoBot
+**For those who have arrived from MongoBot and wish to contribute/have a look/access the resources**, the libraries used are found in `plugins/pokedex.py` and `plugins/pokedexlib/`!
+
+Currently, I only host MongoBot for public use. **If you wish to add the bot to your server, you may use [this link!][mongobot]
+
+[mongobot]: https://discordapp.com/oauth2/authorize?client_id=203868685557956608&scope=bot&permissions=0
+
 ## Installing
 The bot itself requires no extra python modules, although `prank` plugin needs Pillow. To install the bot, 
 one can clone the repo:
@@ -56,11 +63,11 @@ bot owner.
 Execute `python bot.py -h` to see a list of supported command-line arguments.
 
 ## Plugins
-PCBOT has a folder based plugin system. **The documentation for creating these plugins might come along soon**, although a good example if you wish to make one is found in `pcbot/builtin.py`.
+PCBOT has a folder based plugin system. **The documentation for creating these plugins might come along soon**, although if you wish to make one, a good example is found in `pcbot/builtin.py`.
 
 **To remove an unwanted plugin from the bot**, simply remove it from the `plugins/` folder. You are also free to remove any accompanying library folder.
 
-Currently, the owner can reload, unload and load plugins with the `plugin` command.
+Currently, the owner can reload, unload and load plugins with the `!plugin` command.
 
 When building plugins, make sure you're using syntax supported by your version of python. Considering the bot is
 built for version 3.4.2+, the best would be to follow this syntax. 
