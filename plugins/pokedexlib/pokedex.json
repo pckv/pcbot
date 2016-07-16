@@ -14,6 +14,7 @@
         "genus": "Frost Tree",
         "height": 2.2,
         "id": 460,
+        "locale_name": "Abomasnow",
         "name": "abomasnow",
         "types": [
             "grass",
@@ -41,6 +42,7 @@
         "hatches_from": 5,
         "height": 0.9,
         "id": 63,
+        "locale_name": "Abra",
         "name": "abra",
         "types": [
             "psychic"
@@ -59,6 +61,7 @@
         "genus": "Disaster",
         "height": 1.2,
         "id": 359,
+        "locale_name": "Absol",
         "name": "absol",
         "types": [
             "dark"
@@ -80,6 +83,7 @@
         "genus": "Shell Out",
         "height": 0.8,
         "id": 617,
+        "locale_name": "Accelgor",
         "name": "accelgor",
         "types": [
             "bug"
@@ -104,6 +108,7 @@
         "genus": "Royal Sword",
         "height": 1.7,
         "id": 681,
+        "locale_name": "Aegislash",
         "name": "aegislash",
         "types": [
             "steel",
@@ -124,6 +129,7 @@
         "hatches_from": 10,
         "height": 1.8,
         "id": 142,
+        "locale_name": "Aerodactyl",
         "name": "aerodactyl",
         "types": [
             "rock",
@@ -149,6 +155,7 @@
         "genus": "Iron Armor",
         "height": 2.1,
         "id": 306,
+        "locale_name": "Aggron",
         "name": "aggron",
         "types": [
             "steel",
@@ -171,6 +178,7 @@
         "genus": "Long Tail",
         "height": 0.8,
         "id": 190,
+        "locale_name": "Aipom",
         "name": "aipom",
         "types": [
             "normal"
@@ -195,6 +203,7 @@
         "genus": "Psi",
         "height": 1.5,
         "id": 65,
+        "locale_name": "Alakazam",
         "name": "alakazam",
         "types": [
             "psychic"
@@ -213,6 +222,7 @@
         "genus": "Caring",
         "height": 1.2,
         "id": 594,
+        "locale_name": "Alomomola",
         "name": "alomomola",
         "types": [
             "water"
@@ -234,6 +244,7 @@
         "genus": "Humming",
         "height": 1.1,
         "id": 334,
+        "locale_name": "Altaria",
         "name": "altaria",
         "types": [
             "dragon",
@@ -256,6 +267,7 @@
         "genus": "Tundra",
         "height": 1.3,
         "id": 698,
+        "locale_name": "Amaura",
         "name": "amaura",
         "types": [
             "rock",
@@ -278,6 +290,7 @@
         "genus": "Long Tail",
         "height": 1.2,
         "id": 424,
+        "locale_name": "Ambipom",
         "name": "ambipom",
         "types": [
             "normal"
@@ -299,6 +312,7 @@
         "genus": "Mushroom",
         "height": 0.6,
         "id": 591,
+        "locale_name": "Amoonguss",
         "name": "amoonguss",
         "types": [
             "grass",
@@ -324,6 +338,7 @@
         "genus": "Light",
         "height": 1.4,
         "id": 181,
+        "locale_name": "Ampharos",
         "name": "ampharos",
         "types": [
             "electric"
@@ -345,6 +360,7 @@
         "genus": "Old Shrimp",
         "height": 0.7,
         "id": 347,
+        "locale_name": "Anorith",
         "name": "anorith",
         "types": [
             "rock",
@@ -367,6 +383,7 @@
         "genus": "Cobra",
         "height": 3.5,
         "id": 24,
+        "locale_name": "Arbok",
         "name": "arbok",
         "types": [
             "poison"
@@ -388,6 +405,7 @@
         "genus": "Legendary",
         "height": 1.9,
         "id": 59,
+        "locale_name": "Arcanine",
         "name": "arcanine",
         "types": [
             "fire"
@@ -406,6 +424,7 @@
         "genus": "Alpha",
         "height": 3.2,
         "id": 493,
+        "locale_name": "Arceus",
         "name": "arceus",
         "types": [
             "normal"
@@ -427,6 +446,7 @@
         "genus": "First Bird",
         "height": 0.5,
         "id": 566,
+        "locale_name": "Archen",
         "name": "archen",
         "types": [
             "rock",
@@ -449,6 +469,7 @@
         "genus": "First Bird",
         "height": 1.4,
         "id": 567,
+        "locale_name": "Archeops",
         "name": "archeops",
         "types": [
             "rock",
@@ -471,6 +492,7 @@
         "genus": "Long Leg",
         "height": 1.1,
         "id": 168,
+        "locale_name": "Ariados",
         "name": "ariados",
         "types": [
             "bug",
@@ -493,6 +515,7 @@
         "genus": "Plate",
         "height": 1.5,
         "id": 348,
+        "locale_name": "Armaldo",
         "name": "armaldo",
         "types": [
             "rock",
@@ -515,6 +538,7 @@
         "genus": "Fragrance",
         "height": 0.8,
         "id": 683,
+        "locale_name": "Aromatisse",
         "name": "aromatisse",
         "types": [
             "fairy"
@@ -539,6 +563,7 @@
         "genus": "Iron Armor",
         "height": 0.4,
         "id": 304,
+        "locale_name": "Aron",
         "name": "aron",
         "types": [
             "steel",
@@ -558,6 +583,7 @@
         "genus": "Freeze",
         "height": 1.7,
         "id": 144,
+        "locale_name": "Articuno",
         "name": "articuno",
         "types": [
             "ice",
@@ -577,6 +603,7 @@
         "genus": "Hearing",
         "height": 1.1,
         "id": 531,
+        "locale_name": "Audino",
         "name": "audino",
         "types": [
             "normal"
@@ -598,6 +625,7 @@
         "genus": "Tundra",
         "height": 2.7,
         "id": 699,
+        "locale_name": "Aurorus",
         "name": "aurorus",
         "types": [
             "rock",
@@ -620,6 +648,7 @@
         "genus": "Iceberg",
         "height": 2.0,
         "id": 713,
+        "locale_name": "Avalugg",
         "name": "avalugg",
         "types": [
             "ice"
@@ -644,6 +673,7 @@
         "genus": "Tusk",
         "height": 0.6,
         "id": 610,
+        "locale_name": "Axew",
         "name": "axew",
         "types": [
             "dragon"
@@ -662,6 +692,7 @@
         "genus": "Willpower",
         "height": 0.3,
         "id": 482,
+        "locale_name": "Azelf",
         "name": "azelf",
         "types": [
             "psychic"
@@ -686,6 +717,7 @@
         "genus": "Aqua Rabbit",
         "height": 0.8,
         "id": 184,
+        "locale_name": "Azumarill",
         "name": "azumarill",
         "types": [
             "water",
@@ -711,6 +743,7 @@
         "genus": "Polka Dot",
         "height": 0.2,
         "id": 298,
+        "locale_name": "Azurill",
         "name": "azurill",
         "types": [
             "normal",
@@ -736,6 +769,7 @@
         "genus": "Rock Head",
         "height": 0.6,
         "id": 371,
+        "locale_name": "Bagon",
         "name": "bagon",
         "types": [
             "dragon"
@@ -757,6 +791,7 @@
         "genus": "Clay Doll",
         "height": 0.5,
         "id": 343,
+        "locale_name": "Baltoy",
         "name": "baltoy",
         "types": [
             "ground",
@@ -779,6 +814,7 @@
         "genus": "Marionette",
         "height": 1.1,
         "id": 354,
+        "locale_name": "Banette",
         "name": "banette",
         "types": [
             "ghost"
@@ -800,6 +836,7 @@
         "genus": "Collective",
         "height": 1.3,
         "id": 689,
+        "locale_name": "Barbaracle",
         "name": "barbaracle",
         "types": [
             "rock",
@@ -822,6 +859,7 @@
         "genus": "Whiskers",
         "height": 0.4,
         "id": 339,
+        "locale_name": "Barboach",
         "name": "barboach",
         "types": [
             "water",
@@ -841,6 +879,7 @@
         "genus": "Hostile",
         "height": 1.0,
         "id": 550,
+        "locale_name": "Basculin",
         "name": "basculin",
         "types": [
             "water"
@@ -862,6 +901,7 @@
         "genus": "Shield",
         "height": 1.3,
         "id": 411,
+        "locale_name": "Bastiodon",
         "name": "bastiodon",
         "types": [
             "rock",
@@ -887,6 +927,7 @@
         "genus": "Leaf",
         "height": 1.2,
         "id": 153,
+        "locale_name": "Bayleef",
         "name": "bayleef",
         "types": [
             "grass"
@@ -908,6 +949,7 @@
         "genus": "Freezing",
         "height": 2.6,
         "id": 614,
+        "locale_name": "Beartic",
         "name": "beartic",
         "types": [
             "ice"
@@ -934,6 +976,7 @@
         "genus": "Butterfly",
         "height": 1.0,
         "id": 267,
+        "locale_name": "Beautifly",
         "name": "beautifly",
         "types": [
             "bug",
@@ -959,6 +1002,7 @@
         "genus": "Poison Bee",
         "height": 1.0,
         "id": 15,
+        "locale_name": "Beedrill",
         "name": "beedrill",
         "types": [
             "bug",
@@ -981,6 +1025,7 @@
         "genus": "Cerebral",
         "height": 1.0,
         "id": 606,
+        "locale_name": "Beheeyem",
         "name": "beheeyem",
         "types": [
             "psychic"
@@ -1005,6 +1050,7 @@
         "genus": "Iron Ball",
         "height": 0.6,
         "id": 374,
+        "locale_name": "Beldum",
         "name": "beldum",
         "types": [
             "steel",
@@ -1031,6 +1077,7 @@
         "genus": "Flower",
         "height": 0.4,
         "id": 182,
+        "locale_name": "Bellossom",
         "name": "bellossom",
         "types": [
             "grass"
@@ -1057,6 +1104,7 @@
         "hatches_from": 5,
         "height": 0.7,
         "id": 69,
+        "locale_name": "Bellsprout",
         "name": "bellsprout",
         "types": [
             "grass",
@@ -1079,6 +1127,7 @@
         "genus": "Ice Chunk",
         "height": 1.0,
         "id": 712,
+        "locale_name": "Bergmite",
         "name": "bergmite",
         "types": [
             "ice"
@@ -1100,6 +1149,7 @@
         "genus": "Beaver",
         "height": 1.0,
         "id": 400,
+        "locale_name": "Bibarel",
         "name": "bibarel",
         "types": [
             "normal",
@@ -1122,6 +1172,7 @@
         "genus": "Plump Mouse",
         "height": 0.5,
         "id": 399,
+        "locale_name": "Bidoof",
         "name": "bidoof",
         "types": [
             "normal"
@@ -1143,6 +1194,7 @@
         "genus": "Two-Handed",
         "height": 0.5,
         "id": 688,
+        "locale_name": "Binacle",
         "name": "binacle",
         "types": [
             "rock",
@@ -1165,6 +1217,7 @@
         "genus": "Sword Blade",
         "height": 1.6,
         "id": 625,
+        "locale_name": "Bisharp",
         "name": "bisharp",
         "types": [
             "dark",
@@ -1190,6 +1243,7 @@
         "genus": "Shellfish",
         "height": 1.6,
         "id": 9,
+        "locale_name": "Blastoise",
         "name": "blastoise",
         "types": [
             "water"
@@ -1214,6 +1268,7 @@
         "genus": "Blaze",
         "height": 1.9,
         "id": 257,
+        "locale_name": "Blaziken",
         "name": "blaziken",
         "types": [
             "fire",
@@ -1239,6 +1294,7 @@
         "genus": "Happiness",
         "height": 1.5,
         "id": 242,
+        "locale_name": "Blissey",
         "name": "blissey",
         "types": [
             "normal"
@@ -1260,6 +1316,7 @@
         "genus": "Electrified",
         "height": 0.8,
         "id": 522,
+        "locale_name": "Blitzle",
         "name": "blitzle",
         "types": [
             "electric"
@@ -1284,6 +1341,7 @@
         "genus": "Ore",
         "height": 0.9,
         "id": 525,
+        "locale_name": "Boldore",
         "name": "boldore",
         "types": [
             "rock"
@@ -1305,6 +1363,7 @@
         "genus": "Bonsai",
         "height": 0.5,
         "id": 438,
+        "locale_name": "Bonsly",
         "name": "bonsly",
         "types": [
             "rock"
@@ -1323,6 +1382,7 @@
         "genus": "Bash Buffalo",
         "height": 1.6,
         "id": 626,
+        "locale_name": "Bouffalant",
         "name": "bouffalant",
         "types": [
             "normal"
@@ -1347,6 +1407,7 @@
         "genus": "Fox",
         "height": 1.0,
         "id": 654,
+        "locale_name": "Braixen",
         "name": "braixen",
         "types": [
             "fire"
@@ -1368,6 +1429,7 @@
         "genus": "Valiant",
         "height": 1.5,
         "id": 628,
+        "locale_name": "Braviary",
         "name": "braviary",
         "types": [
             "normal",
@@ -1390,6 +1452,7 @@
         "genus": "Mushroom",
         "height": 1.2,
         "id": 286,
+        "locale_name": "Breloom",
         "name": "breloom",
         "types": [
             "grass",
@@ -1412,6 +1475,7 @@
         "genus": "Bronze Bell",
         "height": 1.3,
         "id": 437,
+        "locale_name": "Bronzong",
         "name": "bronzong",
         "types": [
             "steel",
@@ -1434,6 +1498,7 @@
         "genus": "Bronze",
         "height": 0.5,
         "id": 436,
+        "locale_name": "Bronzor",
         "name": "bronzor",
         "types": [
             "steel",
@@ -1459,6 +1524,7 @@
         "genus": "Bud",
         "height": 0.2,
         "id": 406,
+        "locale_name": "Budew",
         "name": "budew",
         "types": [
             "grass",
@@ -1481,6 +1547,7 @@
         "genus": "Sea Weasel",
         "height": 0.7,
         "id": 418,
+        "locale_name": "Buizel",
         "name": "buizel",
         "types": [
             "water"
@@ -1507,6 +1574,7 @@
         "hatches_from": 2,
         "height": 0.7,
         "id": 1,
+        "locale_name": "Bulbasaur",
         "name": "bulbasaur",
         "types": [
             "grass",
@@ -1529,6 +1597,7 @@
         "genus": "Rabbit",
         "height": 0.4,
         "id": 427,
+        "locale_name": "Buneary",
         "name": "buneary",
         "types": [
             "normal"
@@ -1550,6 +1619,7 @@
         "genus": "Digging",
         "height": 0.4,
         "id": 659,
+        "locale_name": "Bunnelby",
         "name": "bunnelby",
         "types": [
             "normal"
@@ -1572,6 +1642,7 @@
         "genus": "Bagworm",
         "height": 0.2,
         "id": 412,
+        "locale_name": "Burmy",
         "name": "burmy",
         "types": [
             "bug"
@@ -1596,6 +1667,7 @@
         "genus": "Butterfly",
         "height": 1.1,
         "id": 12,
+        "locale_name": "Butterfree",
         "name": "butterfree",
         "types": [
             "bug",
@@ -1618,6 +1690,7 @@
         "genus": "Cactus",
         "height": 0.4,
         "id": 331,
+        "locale_name": "Cacnea",
         "name": "cacnea",
         "types": [
             "grass"
@@ -1639,6 +1712,7 @@
         "genus": "Scarecrow",
         "height": 1.3,
         "id": 332,
+        "locale_name": "Cacturne",
         "name": "cacturne",
         "types": [
             "grass",
@@ -1661,6 +1735,7 @@
         "genus": "Eruption",
         "height": 1.9,
         "id": 323,
+        "locale_name": "Camerupt",
         "name": "camerupt",
         "types": [
             "fire",
@@ -1680,6 +1755,7 @@
         "genus": "Jewel",
         "height": 0.3,
         "id": 703,
+        "locale_name": "Carbink",
         "name": "carbink",
         "types": [
             "rock",
@@ -1699,6 +1775,7 @@
         "genus": "Bug Catcher",
         "height": 1.4,
         "id": 455,
+        "locale_name": "Carnivine",
         "name": "carnivine",
         "types": [
             "grass"
@@ -1720,6 +1797,7 @@
         "genus": "Prototurtle",
         "height": 1.2,
         "id": 565,
+        "locale_name": "Carracosta",
         "name": "carracosta",
         "types": [
             "water",
@@ -1742,6 +1820,7 @@
         "genus": "Savage",
         "height": 0.8,
         "id": 318,
+        "locale_name": "Carvanha",
         "name": "carvanha",
         "types": [
             "water",
@@ -1769,6 +1848,7 @@
         "genus": "Cocoon",
         "height": 0.7,
         "id": 268,
+        "locale_name": "Cascoon",
         "name": "cascoon",
         "types": [
             "bug"
@@ -1787,6 +1867,7 @@
         "genus": "Weather",
         "height": 0.3,
         "id": 351,
+        "locale_name": "Castform",
         "name": "castform",
         "types": [
             "normal"
@@ -1813,6 +1894,7 @@
         "hatches_from": 2,
         "height": 0.3,
         "id": 10,
+        "locale_name": "Caterpie",
         "name": "caterpie",
         "types": [
             "bug"
@@ -1831,6 +1913,7 @@
         "genus": "Time Travel",
         "height": 0.6,
         "id": 251,
+        "locale_name": "Celebi",
         "name": "celebi",
         "types": [
             "psychic",
@@ -1856,6 +1939,7 @@
         "genus": "Luring",
         "height": 1.0,
         "id": 609,
+        "locale_name": "Chandelure",
         "name": "chandelure",
         "types": [
             "ghost",
@@ -1882,6 +1966,7 @@
         "hatches_from": 10,
         "height": 1.1,
         "id": 113,
+        "locale_name": "Chansey",
         "name": "chansey",
         "types": [
             "normal"
@@ -1906,6 +1991,7 @@
         "genus": "Flame",
         "height": 1.7,
         "id": 6,
+        "locale_name": "Charizard",
         "name": "charizard",
         "types": [
             "fire",
@@ -1933,6 +2019,7 @@
         "hatches_from": 2,
         "height": 0.6,
         "id": 4,
+        "locale_name": "Charmander",
         "name": "charmander",
         "types": [
             "fire"
@@ -1958,6 +2045,7 @@
         "genus": "Flame",
         "height": 1.1,
         "id": 5,
+        "locale_name": "Charmeleon",
         "name": "charmeleon",
         "types": [
             "fire"
@@ -1976,6 +2064,7 @@
         "genus": "Music Note",
         "height": 0.5,
         "id": 441,
+        "locale_name": "Chatot",
         "name": "chatot",
         "types": [
             "normal",
@@ -1998,6 +2087,7 @@
         "genus": "Blossom",
         "height": 0.5,
         "id": 421,
+        "locale_name": "Cherrim",
         "name": "cherrim",
         "types": [
             "grass"
@@ -2019,6 +2109,7 @@
         "genus": "Cherry",
         "height": 0.4,
         "id": 420,
+        "locale_name": "Cherubi",
         "name": "cherubi",
         "types": [
             "grass"
@@ -2043,6 +2134,7 @@
         "genus": "Spiny Armor",
         "height": 1.6,
         "id": 652,
+        "locale_name": "Chesnaught",
         "name": "chesnaught",
         "types": [
             "grass",
@@ -2068,6 +2160,7 @@
         "genus": "Spiny Nut",
         "height": 0.4,
         "id": 650,
+        "locale_name": "Chespin",
         "name": "chespin",
         "types": [
             "grass"
@@ -2092,6 +2185,7 @@
         "genus": "Leaf",
         "height": 0.9,
         "id": 152,
+        "locale_name": "Chikorita",
         "name": "chikorita",
         "types": [
             "grass"
@@ -2116,6 +2210,7 @@
         "genus": "Chimp",
         "height": 0.5,
         "id": 390,
+        "locale_name": "Chimchar",
         "name": "chimchar",
         "types": [
             "fire"
@@ -2137,6 +2232,7 @@
         "genus": "Wind Chime",
         "height": 0.6,
         "id": 358,
+        "locale_name": "Chimecho",
         "name": "chimecho",
         "types": [
             "psychic"
@@ -2158,6 +2254,7 @@
         "genus": "Angler",
         "height": 0.5,
         "id": 170,
+        "locale_name": "Chinchou",
         "name": "chinchou",
         "types": [
             "water",
@@ -2180,6 +2277,7 @@
         "genus": "Bell",
         "height": 0.2,
         "id": 433,
+        "locale_name": "Chingling",
         "name": "chingling",
         "types": [
             "psychic"
@@ -2201,6 +2299,7 @@
         "genus": "Scarf",
         "height": 0.5,
         "id": 573,
+        "locale_name": "Cinccino",
         "name": "cinccino",
         "types": [
             "normal"
@@ -2223,6 +2322,7 @@
         "genus": "Bivalve",
         "height": 0.4,
         "id": 366,
+        "locale_name": "Clamperl",
         "name": "clamperl",
         "types": [
             "water"
@@ -2244,6 +2344,7 @@
         "genus": "Water Gun",
         "height": 0.5,
         "id": 692,
+        "locale_name": "Clauncher",
         "name": "clauncher",
         "types": [
             "water"
@@ -2265,6 +2366,7 @@
         "genus": "Howitzer",
         "height": 1.3,
         "id": 693,
+        "locale_name": "Clawitzer",
         "name": "clawitzer",
         "types": [
             "water"
@@ -2286,6 +2388,7 @@
         "genus": "Clay Doll",
         "height": 1.5,
         "id": 344,
+        "locale_name": "Claydol",
         "name": "claydol",
         "types": [
             "ground",
@@ -2311,6 +2414,7 @@
         "genus": "Fairy",
         "height": 1.3,
         "id": 36,
+        "locale_name": "Clefable",
         "name": "clefable",
         "types": [
             "fairy"
@@ -2337,6 +2441,7 @@
         "hatches_from": 2,
         "height": 0.6,
         "id": 35,
+        "locale_name": "Clefairy",
         "name": "clefairy",
         "types": [
             "fairy"
@@ -2361,6 +2466,7 @@
         "genus": "Star Shape",
         "height": 0.3,
         "id": 173,
+        "locale_name": "Cleffa",
         "name": "cleffa",
         "types": [
             "fairy"
@@ -2382,6 +2488,7 @@
         "genus": "Bivalve",
         "height": 1.5,
         "id": 91,
+        "locale_name": "Cloyster",
         "name": "cloyster",
         "types": [
             "water",
@@ -2401,6 +2508,7 @@
         "genus": "Iron Will",
         "height": 2.1,
         "id": 638,
+        "locale_name": "Cobalion",
         "name": "cobalion",
         "types": [
             "steel",
@@ -2423,6 +2531,7 @@
         "genus": "Coffin",
         "height": 1.7,
         "id": 563,
+        "locale_name": "Cofagrigus",
         "name": "cofagrigus",
         "types": [
             "ghost"
@@ -2444,6 +2553,7 @@
         "genus": "Tiny Bee",
         "height": 0.3,
         "id": 415,
+        "locale_name": "Combee",
         "name": "combee",
         "types": [
             "bug",
@@ -2469,6 +2579,7 @@
         "genus": "Young Fowl",
         "height": 0.9,
         "id": 256,
+        "locale_name": "Combusken",
         "name": "combusken",
         "types": [
             "fire",
@@ -2494,6 +2605,7 @@
         "genus": "Muscular",
         "height": 1.4,
         "id": 534,
+        "locale_name": "Conkeldurr",
         "name": "conkeldurr",
         "types": [
             "fighting"
@@ -2515,6 +2627,7 @@
         "genus": "Ruffian",
         "height": 0.6,
         "id": 341,
+        "locale_name": "Corphish",
         "name": "corphish",
         "types": [
             "water"
@@ -2533,6 +2646,7 @@
         "genus": "Coral",
         "height": 0.6,
         "id": 222,
+        "locale_name": "Corsola",
         "name": "corsola",
         "types": [
             "water",
@@ -2555,6 +2669,7 @@
         "genus": "Cotton Puff",
         "height": 0.3,
         "id": 546,
+        "locale_name": "Cottonee",
         "name": "cottonee",
         "types": [
             "grass",
@@ -2577,6 +2692,7 @@
         "genus": "Barnacle",
         "height": 1.5,
         "id": 346,
+        "locale_name": "Cradily",
         "name": "cradily",
         "types": [
             "rock",
@@ -2599,6 +2715,7 @@
         "genus": "Head Butt",
         "height": 0.9,
         "id": 408,
+        "locale_name": "Cranidos",
         "name": "cranidos",
         "types": [
             "rock"
@@ -2620,6 +2737,7 @@
         "genus": "Rogue",
         "height": 1.1,
         "id": 342,
+        "locale_name": "Crawdaunt",
         "name": "crawdaunt",
         "types": [
             "water",
@@ -2639,6 +2757,7 @@
         "genus": "Lunar",
         "height": 1.5,
         "id": 488,
+        "locale_name": "Cresselia",
         "name": "cresselia",
         "types": [
             "psychic"
@@ -2660,6 +2779,7 @@
         "genus": "Toxic Mouth",
         "height": 0.7,
         "id": 453,
+        "locale_name": "Croagunk",
         "name": "croagunk",
         "types": [
             "poison",
@@ -2685,6 +2805,7 @@
         "genus": "Bat",
         "height": 1.8,
         "id": 169,
+        "locale_name": "Crobat",
         "name": "crobat",
         "types": [
             "poison",
@@ -2710,6 +2831,7 @@
         "genus": "Big Jaw",
         "height": 1.1,
         "id": 159,
+        "locale_name": "Croconaw",
         "name": "croconaw",
         "types": [
             "water"
@@ -2731,6 +2853,7 @@
         "genus": "Stone Home",
         "height": 1.4,
         "id": 558,
+        "locale_name": "Crustle",
         "name": "crustle",
         "types": [
             "bug",
@@ -2750,6 +2873,7 @@
         "genus": "Crystallizing",
         "height": 1.1,
         "id": 615,
+        "locale_name": "Cryogonal",
         "name": "cryogonal",
         "types": [
             "ice"
@@ -2771,6 +2895,7 @@
         "genus": "Chill",
         "height": 0.5,
         "id": 613,
+        "locale_name": "Cubchoo",
         "name": "cubchoo",
         "types": [
             "ice"
@@ -2794,6 +2919,7 @@
         "hatches_from": 5,
         "height": 0.4,
         "id": 104,
+        "locale_name": "Cubone",
         "name": "cubone",
         "types": [
             "ground"
@@ -2818,6 +2944,7 @@
         "genus": "Fire Mouse",
         "height": 0.5,
         "id": 155,
+        "locale_name": "Cyndaquil",
         "name": "cyndaquil",
         "types": [
             "fire"
@@ -2836,6 +2963,7 @@
         "genus": "Pitch-Black",
         "height": 1.5,
         "id": 491,
+        "locale_name": "Darkrai",
         "name": "darkrai",
         "types": [
             "dark"
@@ -2857,6 +2985,7 @@
         "genus": "Blazing",
         "height": 1.3,
         "id": 555,
+        "locale_name": "Darmanitan",
         "name": "darmanitan",
         "types": [
             "fire"
@@ -2878,6 +3007,7 @@
         "genus": "Zen Charm",
         "height": 0.6,
         "id": 554,
+        "locale_name": "Darumaka",
         "name": "darumaka",
         "types": [
             "fire"
@@ -2896,6 +3026,7 @@
         "genus": "Antenna",
         "height": 0.2,
         "id": 702,
+        "locale_name": "Dedenne",
         "name": "dedenne",
         "types": [
             "electric",
@@ -2918,6 +3049,7 @@
         "genus": "Season",
         "height": 0.6,
         "id": 585,
+        "locale_name": "Deerling",
         "name": "deerling",
         "types": [
             "normal",
@@ -2943,6 +3075,7 @@
         "genus": "Irate",
         "height": 0.8,
         "id": 633,
+        "locale_name": "Deino",
         "name": "deino",
         "types": [
             "dark",
@@ -2965,6 +3098,7 @@
         "genus": "Prim",
         "height": 1.1,
         "id": 301,
+        "locale_name": "Delcatty",
         "name": "delcatty",
         "types": [
             "normal"
@@ -2983,6 +3117,7 @@
         "genus": "Delivery",
         "height": 0.9,
         "id": 225,
+        "locale_name": "Delibird",
         "name": "delibird",
         "types": [
             "ice",
@@ -3008,6 +3143,7 @@
         "genus": "Fox",
         "height": 1.5,
         "id": 655,
+        "locale_name": "Delphox",
         "name": "delphox",
         "types": [
             "fire",
@@ -3027,6 +3163,7 @@
         "genus": "DNA",
         "height": 1.7,
         "id": 386,
+        "locale_name": "Deoxys",
         "name": "deoxys",
         "types": [
             "psychic"
@@ -3048,6 +3185,7 @@
         "genus": "Sea Lion",
         "height": 1.7,
         "id": 87,
+        "locale_name": "Dewgong",
         "name": "dewgong",
         "types": [
             "water",
@@ -3073,6 +3211,7 @@
         "genus": "Discipline",
         "height": 0.8,
         "id": 502,
+        "locale_name": "Dewott",
         "name": "dewott",
         "types": [
             "water"
@@ -3091,6 +3230,7 @@
         "genus": "Temporal",
         "height": 5.4,
         "id": 483,
+        "locale_name": "Dialga",
         "name": "dialga",
         "types": [
             "steel",
@@ -3110,6 +3250,7 @@
         "genus": "Jewel",
         "height": 0.7,
         "id": 719,
+        "locale_name": "Diancie",
         "name": "diancie",
         "types": [
             "rock",
@@ -3132,6 +3273,7 @@
         "genus": "Digging",
         "height": 1.0,
         "id": 660,
+        "locale_name": "Diggersby",
         "name": "diggersby",
         "types": [
             "normal",
@@ -3156,6 +3298,7 @@
         "hatches_from": 5,
         "height": 0.2,
         "id": 50,
+        "locale_name": "Diglett",
         "name": "diglett",
         "types": [
             "ground"
@@ -3174,6 +3317,7 @@
         "genus": "Transform",
         "height": 0.3,
         "id": 132,
+        "locale_name": "Ditto",
         "name": "ditto",
         "types": [
             "normal"
@@ -3195,6 +3339,7 @@
         "genus": "Triple Bird",
         "height": 1.8,
         "id": 85,
+        "locale_name": "Dodrio",
         "name": "dodrio",
         "types": [
             "normal",
@@ -3219,6 +3364,7 @@
         "hatches_from": 5,
         "height": 1.4,
         "id": 84,
+        "locale_name": "Doduo",
         "name": "doduo",
         "types": [
             "normal",
@@ -3241,6 +3387,7 @@
         "genus": "Armor",
         "height": 1.1,
         "id": 232,
+        "locale_name": "Donphan",
         "name": "donphan",
         "types": [
             "ground"
@@ -3265,6 +3412,7 @@
         "genus": "Sword",
         "height": 0.8,
         "id": 680,
+        "locale_name": "Doublade",
         "name": "doublade",
         "types": [
             "steel",
@@ -3287,6 +3435,7 @@
         "genus": "Mock Kelp",
         "height": 1.8,
         "id": 691,
+        "locale_name": "Dragalge",
         "name": "dragalge",
         "types": [
             "poison",
@@ -3313,6 +3462,7 @@
         "genus": "Dragon",
         "height": 4.0,
         "id": 148,
+        "locale_name": "Dragonair",
         "name": "dragonair",
         "types": [
             "dragon"
@@ -3337,6 +3487,7 @@
         "genus": "Dragon",
         "height": 2.2,
         "id": 149,
+        "locale_name": "Dragonite",
         "name": "dragonite",
         "types": [
             "dragon",
@@ -3359,6 +3510,7 @@
         "genus": "Ogre Scorpion",
         "height": 1.3,
         "id": 452,
+        "locale_name": "Drapion",
         "name": "drapion",
         "types": [
             "poison",
@@ -3386,6 +3538,7 @@
         "hatches_from": 10,
         "height": 1.8,
         "id": 147,
+        "locale_name": "Dratini",
         "name": "dratini",
         "types": [
             "dragon"
@@ -3407,6 +3560,7 @@
         "genus": "Blimp",
         "height": 1.2,
         "id": 426,
+        "locale_name": "Drifblim",
         "name": "drifblim",
         "types": [
             "ghost",
@@ -3429,6 +3583,7 @@
         "genus": "Balloon",
         "height": 0.4,
         "id": 425,
+        "locale_name": "Drifloon",
         "name": "drifloon",
         "types": [
             "ghost",
@@ -3451,6 +3606,7 @@
         "genus": "Mole",
         "height": 0.3,
         "id": 529,
+        "locale_name": "Drilbur",
         "name": "drilbur",
         "types": [
             "ground"
@@ -3474,6 +3630,7 @@
         "hatches_from": 5,
         "height": 1.0,
         "id": 96,
+        "locale_name": "Drowzee",
         "name": "drowzee",
         "types": [
             "psychic"
@@ -3492,6 +3649,7 @@
         "genus": "Cave",
         "height": 1.6,
         "id": 621,
+        "locale_name": "Druddigon",
         "name": "druddigon",
         "types": [
             "dragon"
@@ -3513,6 +3671,7 @@
         "genus": "Water Bird",
         "height": 0.5,
         "id": 580,
+        "locale_name": "Ducklett",
         "name": "ducklett",
         "types": [
             "water",
@@ -3535,6 +3694,7 @@
         "genus": "Mole",
         "height": 0.7,
         "id": 51,
+        "locale_name": "Dugtrio",
         "name": "dugtrio",
         "types": [
             "ground"
@@ -3553,6 +3713,7 @@
         "genus": "Land Snake",
         "height": 1.5,
         "id": 206,
+        "locale_name": "Dunsparce",
         "name": "dunsparce",
         "types": [
             "normal"
@@ -3577,6 +3738,7 @@
         "genus": "Mitosis",
         "height": 0.6,
         "id": 578,
+        "locale_name": "Duosion",
         "name": "duosion",
         "types": [
             "psychic"
@@ -3595,6 +3757,7 @@
         "genus": "Iron Ant",
         "height": 0.3,
         "id": 632,
+        "locale_name": "Durant",
         "name": "durant",
         "types": [
             "bug",
@@ -3620,6 +3783,7 @@
         "genus": "Beckon",
         "height": 1.6,
         "id": 356,
+        "locale_name": "Dusclops",
         "name": "dusclops",
         "types": [
             "ghost"
@@ -3644,6 +3808,7 @@
         "genus": "Gripper",
         "height": 2.2,
         "id": 477,
+        "locale_name": "Dusknoir",
         "name": "dusknoir",
         "types": [
             "ghost"
@@ -3668,6 +3833,7 @@
         "genus": "Requiem",
         "height": 0.8,
         "id": 355,
+        "locale_name": "Duskull",
         "name": "duskull",
         "types": [
             "ghost"
@@ -3694,6 +3860,7 @@
         "genus": "Poison Moth",
         "height": 1.2,
         "id": 269,
+        "locale_name": "Dustox",
         "name": "dustox",
         "types": [
             "bug",
@@ -3716,6 +3883,7 @@
         "genus": "Rock Inn",
         "height": 0.3,
         "id": 557,
+        "locale_name": "Dwebble",
         "name": "dwebble",
         "types": [
             "bug",
@@ -3741,6 +3909,7 @@
         "genus": "EleFish",
         "height": 1.2,
         "id": 603,
+        "locale_name": "Eelektrik",
         "name": "eelektrik",
         "types": [
             "electric"
@@ -3765,6 +3934,7 @@
         "genus": "EleFish",
         "height": 2.1,
         "id": 604,
+        "locale_name": "Eelektross",
         "name": "eelektross",
         "types": [
             "electric"
@@ -3795,6 +3965,7 @@
         "hatches_from": 10,
         "height": 0.3,
         "id": 133,
+        "locale_name": "Eevee",
         "name": "eevee",
         "types": [
             "normal"
@@ -3818,6 +3989,7 @@
         "hatches_from": 5,
         "height": 2.0,
         "id": 23,
+        "locale_name": "Ekans",
         "name": "ekans",
         "types": [
             "poison"
@@ -3843,6 +4015,7 @@
         "hatches_from": 10,
         "height": 1.1,
         "id": 125,
+        "locale_name": "Electabuzz",
         "name": "electabuzz",
         "types": [
             "electric"
@@ -3867,6 +4040,7 @@
         "genus": "Thunderbolt",
         "height": 1.8,
         "id": 466,
+        "locale_name": "Electivire",
         "name": "electivire",
         "types": [
             "electric"
@@ -3888,6 +4062,7 @@
         "genus": "Lightning",
         "height": 0.6,
         "id": 309,
+        "locale_name": "Electrike",
         "name": "electrike",
         "types": [
             "electric"
@@ -3909,6 +4084,7 @@
         "genus": "Ball",
         "height": 1.2,
         "id": 101,
+        "locale_name": "Electrode",
         "name": "electrode",
         "types": [
             "electric"
@@ -3933,6 +4109,7 @@
         "genus": "Electric",
         "height": 0.6,
         "id": 239,
+        "locale_name": "Elekid",
         "name": "elekid",
         "types": [
             "electric"
@@ -3954,6 +4131,7 @@
         "genus": "Cerebral",
         "height": 0.5,
         "id": 605,
+        "locale_name": "Elgyem",
         "name": "elgyem",
         "types": [
             "psychic"
@@ -3978,6 +4156,7 @@
         "genus": "Mega Fire Pig",
         "height": 1.6,
         "id": 500,
+        "locale_name": "Emboar",
         "name": "emboar",
         "types": [
             "fire",
@@ -3997,6 +4176,7 @@
         "genus": "Sky Squirrel",
         "height": 0.4,
         "id": 587,
+        "locale_name": "Emolga",
         "name": "emolga",
         "types": [
             "electric",
@@ -4022,6 +4202,7 @@
         "genus": "Emperor",
         "height": 1.7,
         "id": 395,
+        "locale_name": "Empoleon",
         "name": "empoleon",
         "types": [
             "water",
@@ -4041,6 +4222,7 @@
         "genus": "Volcano",
         "height": 2.1,
         "id": 244,
+        "locale_name": "Entei",
         "name": "entei",
         "types": [
             "fire"
@@ -4062,6 +4244,7 @@
         "genus": "Cavalry",
         "height": 1.0,
         "id": 589,
+        "locale_name": "Escavalier",
         "name": "escavalier",
         "types": [
             "bug",
@@ -4091,6 +4274,7 @@
         "genus": "Sun",
         "height": 0.9,
         "id": 196,
+        "locale_name": "Espeon",
         "name": "espeon",
         "types": [
             "psychic"
@@ -4112,6 +4296,7 @@
         "genus": "Restraint",
         "height": 0.3,
         "id": 677,
+        "locale_name": "Espurr",
         "name": "espurr",
         "types": [
             "psychic"
@@ -4133,6 +4318,7 @@
         "genus": "Subterrene",
         "height": 0.7,
         "id": 530,
+        "locale_name": "Excadrill",
         "name": "excadrill",
         "types": [
             "ground",
@@ -4157,6 +4343,7 @@
         "hatches_from": 5,
         "height": 0.4,
         "id": 102,
+        "locale_name": "Exeggcute",
         "name": "exeggcute",
         "types": [
             "grass",
@@ -4179,6 +4366,7 @@
         "genus": "Coconut",
         "height": 2.0,
         "id": 103,
+        "locale_name": "Exeggutor",
         "name": "exeggutor",
         "types": [
             "grass",
@@ -4204,6 +4392,7 @@
         "genus": "Loud Noise",
         "height": 1.5,
         "id": 295,
+        "locale_name": "Exploud",
         "name": "exploud",
         "types": [
             "normal"
@@ -4222,6 +4411,7 @@
         "genus": "Wild Duck",
         "height": 0.8,
         "id": 83,
+        "locale_name": "Farfetch'd",
         "name": "farfetchd",
         "types": [
             "normal",
@@ -4244,6 +4434,7 @@
         "genus": "Beak",
         "height": 1.2,
         "id": 22,
+        "locale_name": "Fearow",
         "name": "fearow",
         "types": [
             "normal",
@@ -4266,6 +4457,7 @@
         "genus": "Fish",
         "height": 0.6,
         "id": 349,
+        "locale_name": "Feebas",
         "name": "feebas",
         "types": [
             "water"
@@ -4290,6 +4482,7 @@
         "genus": "Fox",
         "height": 0.4,
         "id": 653,
+        "locale_name": "Fennekin",
         "name": "fennekin",
         "types": [
             "fire"
@@ -4314,6 +4507,7 @@
         "genus": "Big Jaw",
         "height": 2.3,
         "id": 160,
+        "locale_name": "Feraligatr",
         "name": "feraligatr",
         "types": [
             "water"
@@ -4335,6 +4529,7 @@
         "genus": "Thorn Seed",
         "height": 0.6,
         "id": 597,
+        "locale_name": "Ferroseed",
         "name": "ferroseed",
         "types": [
             "grass",
@@ -4357,6 +4552,7 @@
         "genus": "Thorn Pod",
         "height": 1.0,
         "id": 598,
+        "locale_name": "Ferrothorn",
         "name": "ferrothorn",
         "types": [
             "grass",
@@ -4379,6 +4575,7 @@
         "genus": "Wing Fish",
         "height": 0.4,
         "id": 456,
+        "locale_name": "Finneon",
         "name": "finneon",
         "types": [
             "water"
@@ -4403,6 +4600,7 @@
         "genus": "Wool",
         "height": 0.8,
         "id": 180,
+        "locale_name": "Flaaffy",
         "name": "flaaffy",
         "types": [
             "electric"
@@ -4427,6 +4625,7 @@
         "genus": "Single Bloom",
         "height": 0.1,
         "id": 669,
+        "locale_name": "Flab\u00e9b\u00e9",
         "name": "flabebe",
         "types": [
             "fairy"
@@ -4455,6 +4654,7 @@
         "genus": "Flame",
         "height": 0.9,
         "id": 136,
+        "locale_name": "Flareon",
         "name": "flareon",
         "types": [
             "fire"
@@ -4479,6 +4679,7 @@
         "genus": "Ember",
         "height": 0.7,
         "id": 662,
+        "locale_name": "Fletchinder",
         "name": "fletchinder",
         "types": [
             "fire",
@@ -4504,6 +4705,7 @@
         "genus": "Tiny Robin",
         "height": 0.3,
         "id": 661,
+        "locale_name": "Fletchling",
         "name": "fletchling",
         "types": [
             "normal",
@@ -4526,6 +4728,7 @@
         "genus": "Sea Weasel",
         "height": 1.1,
         "id": 419,
+        "locale_name": "Floatzel",
         "name": "floatzel",
         "types": [
             "water"
@@ -4550,6 +4753,7 @@
         "genus": "Single Bloom",
         "height": 0.2,
         "id": 670,
+        "locale_name": "Floette",
         "name": "floette",
         "types": [
             "fairy"
@@ -4574,6 +4778,7 @@
         "genus": "Garden",
         "height": 1.1,
         "id": 671,
+        "locale_name": "Florges",
         "name": "florges",
         "types": [
             "fairy"
@@ -4598,6 +4803,7 @@
         "genus": "Mystic",
         "height": 2.0,
         "id": 330,
+        "locale_name": "Flygon",
         "name": "flygon",
         "types": [
             "ground",
@@ -4620,6 +4826,7 @@
         "genus": "Mushroom",
         "height": 0.2,
         "id": 590,
+        "locale_name": "Foongus",
         "name": "foongus",
         "types": [
             "grass",
@@ -4642,6 +4849,7 @@
         "genus": "Bagworm",
         "height": 1.2,
         "id": 205,
+        "locale_name": "Forretress",
         "name": "forretress",
         "types": [
             "bug",
@@ -4667,6 +4875,7 @@
         "genus": "Axe Jaw",
         "height": 1.0,
         "id": 611,
+        "locale_name": "Fraxure",
         "name": "fraxure",
         "types": [
             "dragon"
@@ -4688,6 +4897,7 @@
         "genus": "Floating",
         "height": 1.2,
         "id": 592,
+        "locale_name": "Frillish",
         "name": "frillish",
         "types": [
             "water",
@@ -4713,6 +4923,7 @@
         "genus": "Bubble Frog",
         "height": 0.3,
         "id": 656,
+        "locale_name": "Froakie",
         "name": "froakie",
         "types": [
             "water"
@@ -4737,6 +4948,7 @@
         "genus": "Bubble Frog",
         "height": 0.6,
         "id": 657,
+        "locale_name": "Frogadier",
         "name": "frogadier",
         "types": [
             "water"
@@ -4759,6 +4971,7 @@
         "genus": "Snow Land",
         "height": 1.3,
         "id": 478,
+        "locale_name": "Froslass",
         "name": "froslass",
         "types": [
             "ice",
@@ -4778,6 +4991,7 @@
         "genus": "Poodle",
         "height": 1.2,
         "id": 676,
+        "locale_name": "Furfrou",
         "name": "furfrou",
         "types": [
             "normal"
@@ -4799,6 +5013,7 @@
         "genus": "Long Body",
         "height": 1.8,
         "id": 162,
+        "locale_name": "Furret",
         "name": "furret",
         "types": [
             "normal"
@@ -4823,6 +5038,7 @@
         "genus": "Cave",
         "height": 1.4,
         "id": 444,
+        "locale_name": "Gabite",
         "name": "gabite",
         "types": [
             "dragon",
@@ -4849,6 +5065,7 @@
         "genus": "Blade",
         "height": 1.6,
         "id": 475,
+        "locale_name": "Gallade",
         "name": "gallade",
         "types": [
             "psychic",
@@ -4871,6 +5088,7 @@
         "genus": "EleSpider",
         "height": 0.8,
         "id": 596,
+        "locale_name": "Galvantula",
         "name": "galvantula",
         "types": [
             "bug",
@@ -4893,6 +5111,7 @@
         "genus": "Trash Heap",
         "height": 1.9,
         "id": 569,
+        "locale_name": "Garbodor",
         "name": "garbodor",
         "types": [
             "poison"
@@ -4917,6 +5136,7 @@
         "genus": "Mach",
         "height": 1.9,
         "id": 445,
+        "locale_name": "Garchomp",
         "name": "garchomp",
         "types": [
             "dragon",
@@ -4943,6 +5163,7 @@
         "genus": "Embrace",
         "height": 1.6,
         "id": 282,
+        "locale_name": "Gardevoir",
         "name": "gardevoir",
         "types": [
             "psychic",
@@ -4970,6 +5191,7 @@
         "hatches_from": 5,
         "height": 1.3,
         "id": 92,
+        "locale_name": "Gastly",
         "name": "gastly",
         "types": [
             "ghost",
@@ -4992,6 +5214,7 @@
         "genus": "Sea Slug",
         "height": 0.9,
         "id": 423,
+        "locale_name": "Gastrodon",
         "name": "gastrodon",
         "types": [
             "water",
@@ -5011,6 +5234,7 @@
         "genus": "Paleozoic",
         "height": 1.5,
         "id": 649,
+        "locale_name": "Genesect",
         "name": "genesect",
         "types": [
             "bug",
@@ -5036,6 +5260,7 @@
         "genus": "Shadow",
         "height": 1.5,
         "id": 94,
+        "locale_name": "Gengar",
         "name": "gengar",
         "types": [
             "ghost",
@@ -5063,6 +5288,7 @@
         "hatches_from": 2,
         "height": 0.4,
         "id": 74,
+        "locale_name": "Geodude",
         "name": "geodude",
         "types": [
             "rock",
@@ -5088,6 +5314,7 @@
         "genus": "Land Shark",
         "height": 0.7,
         "id": 443,
+        "locale_name": "Gible",
         "name": "gible",
         "types": [
             "dragon",
@@ -5113,6 +5340,7 @@
         "genus": "Compressed",
         "height": 1.7,
         "id": 526,
+        "locale_name": "Gigalith",
         "name": "gigalith",
         "types": [
             "rock"
@@ -5131,6 +5359,7 @@
         "genus": "Long Neck",
         "height": 1.5,
         "id": 203,
+        "locale_name": "Girafarig",
         "name": "girafarig",
         "types": [
             "normal",
@@ -5150,6 +5379,7 @@
         "genus": "Renegade",
         "height": 4.5,
         "id": 487,
+        "locale_name": "Giratina",
         "name": "giratina",
         "types": [
             "ghost",
@@ -5179,6 +5409,7 @@
         "genus": "Fresh Snow",
         "height": 0.8,
         "id": 471,
+        "locale_name": "Glaceon",
         "name": "glaceon",
         "types": [
             "ice"
@@ -5201,6 +5432,7 @@
         "genus": "Face",
         "height": 1.5,
         "id": 362,
+        "locale_name": "Glalie",
         "name": "glalie",
         "types": [
             "ice"
@@ -5222,6 +5454,7 @@
         "genus": "Catty",
         "height": 0.5,
         "id": 431,
+        "locale_name": "Glameow",
         "name": "glameow",
         "types": [
             "normal"
@@ -5243,6 +5476,7 @@
         "genus": "Fly Scorpion",
         "height": 1.1,
         "id": 207,
+        "locale_name": "Gligar",
         "name": "gligar",
         "types": [
             "ground",
@@ -5265,6 +5499,7 @@
         "genus": "Fang Scorpion",
         "height": 2.0,
         "id": 472,
+        "locale_name": "Gliscor",
         "name": "gliscor",
         "types": [
             "ground",
@@ -5292,6 +5527,7 @@
         "genus": "Weed",
         "height": 0.8,
         "id": 44,
+        "locale_name": "Gloom",
         "name": "gloom",
         "types": [
             "grass",
@@ -5314,6 +5550,7 @@
         "genus": "Mount",
         "height": 1.7,
         "id": 673,
+        "locale_name": "Gogoat",
         "name": "gogoat",
         "types": [
             "grass"
@@ -5338,6 +5575,7 @@
         "genus": "Bat",
         "height": 1.6,
         "id": 42,
+        "locale_name": "Golbat",
         "name": "golbat",
         "types": [
             "poison",
@@ -5362,6 +5600,7 @@
         "hatches_from": 5,
         "height": 0.6,
         "id": 118,
+        "locale_name": "Goldeen",
         "name": "goldeen",
         "types": [
             "water"
@@ -5383,6 +5622,7 @@
         "genus": "Duck",
         "height": 1.7,
         "id": 55,
+        "locale_name": "Golduck",
         "name": "golduck",
         "types": [
             "water"
@@ -5407,6 +5647,7 @@
         "genus": "Megaton",
         "height": 1.4,
         "id": 76,
+        "locale_name": "Golem",
         "name": "golem",
         "types": [
             "rock",
@@ -5429,6 +5670,7 @@
         "genus": "Automaton",
         "height": 1.0,
         "id": 622,
+        "locale_name": "Golett",
         "name": "golett",
         "types": [
             "ground",
@@ -5451,6 +5693,7 @@
         "genus": "Automaton",
         "height": 2.8,
         "id": 623,
+        "locale_name": "Golurk",
         "name": "golurk",
         "types": [
             "ground",
@@ -5476,6 +5719,7 @@
         "genus": "Dragon",
         "height": 2.0,
         "id": 706,
+        "locale_name": "Goodra",
         "name": "goodra",
         "types": [
             "dragon"
@@ -5500,6 +5744,7 @@
         "genus": "Soft Tissue",
         "height": 0.3,
         "id": 704,
+        "locale_name": "Goomy",
         "name": "goomy",
         "types": [
             "dragon"
@@ -5522,6 +5767,7 @@
         "genus": "South Sea",
         "height": 1.8,
         "id": 368,
+        "locale_name": "Gorebyss",
         "name": "gorebyss",
         "types": [
             "water"
@@ -5546,6 +5792,7 @@
         "genus": "Fixation",
         "height": 0.4,
         "id": 574,
+        "locale_name": "Gothita",
         "name": "gothita",
         "types": [
             "psychic"
@@ -5570,6 +5817,7 @@
         "genus": "Astral Body",
         "height": 1.5,
         "id": 576,
+        "locale_name": "Gothitelle",
         "name": "gothitelle",
         "types": [
             "psychic"
@@ -5594,6 +5842,7 @@
         "genus": "Manipulate",
         "height": 0.7,
         "id": 575,
+        "locale_name": "Gothorita",
         "name": "gothorita",
         "types": [
             "psychic"
@@ -5615,6 +5864,7 @@
         "genus": "Pumpkin",
         "height": 0.9,
         "id": 711,
+        "locale_name": "Gourgeist",
         "name": "gourgeist",
         "types": [
             "ghost",
@@ -5637,6 +5887,7 @@
         "genus": "Fairy",
         "height": 1.4,
         "id": 210,
+        "locale_name": "Granbull",
         "name": "granbull",
         "types": [
             "fairy"
@@ -5662,6 +5913,7 @@
         "genus": "Rock",
         "height": 1.0,
         "id": 75,
+        "locale_name": "Graveler",
         "name": "graveler",
         "types": [
             "rock",
@@ -5687,6 +5939,7 @@
         "genus": "Ninja",
         "height": 1.5,
         "id": 658,
+        "locale_name": "Greninja",
         "name": "greninja",
         "types": [
             "water",
@@ -5711,6 +5964,7 @@
         "hatches_from": 5,
         "height": 0.9,
         "id": 88,
+        "locale_name": "Grimer",
         "name": "grimer",
         "types": [
             "poison"
@@ -5735,6 +5989,7 @@
         "genus": "Grove",
         "height": 1.1,
         "id": 388,
+        "locale_name": "Grotle",
         "name": "grotle",
         "types": [
             "grass"
@@ -5753,6 +6008,7 @@
         "genus": "Continent",
         "height": 3.5,
         "id": 383,
+        "locale_name": "Groudon",
         "name": "groudon",
         "types": [
             "ground"
@@ -5777,6 +6033,7 @@
         "genus": "Wood Gecko",
         "height": 0.9,
         "id": 253,
+        "locale_name": "Grovyle",
         "name": "grovyle",
         "types": [
             "grass"
@@ -5800,6 +6057,7 @@
         "hatches_from": 5,
         "height": 0.7,
         "id": 58,
+        "locale_name": "Growlithe",
         "name": "growlithe",
         "types": [
             "fire"
@@ -5821,6 +6079,7 @@
         "genus": "Manipulate",
         "height": 0.9,
         "id": 326,
+        "locale_name": "Grumpig",
         "name": "grumpig",
         "types": [
             "psychic"
@@ -5842,6 +6101,7 @@
         "genus": "Stomach",
         "height": 0.4,
         "id": 316,
+        "locale_name": "Gulpin",
         "name": "gulpin",
         "types": [
             "poison"
@@ -5866,6 +6126,7 @@
         "genus": "Muscular",
         "height": 1.2,
         "id": 533,
+        "locale_name": "Gurdurr",
         "name": "gurdurr",
         "types": [
             "fighting"
@@ -5887,6 +6148,7 @@
         "genus": "Atrocious",
         "height": 6.5,
         "id": 130,
+        "locale_name": "Gyarados",
         "name": "gyarados",
         "types": [
             "water",
@@ -5912,6 +6174,7 @@
         "genus": "Playhouse",
         "height": 0.6,
         "id": 440,
+        "locale_name": "Happiny",
         "name": "happiny",
         "types": [
             "normal"
@@ -5933,6 +6196,7 @@
         "genus": "Arm Thrust",
         "height": 2.3,
         "id": 297,
+        "locale_name": "Hariyama",
         "name": "hariyama",
         "types": [
             "fighting"
@@ -5958,6 +6222,7 @@
         "genus": "Gas",
         "height": 1.6,
         "id": 93,
+        "locale_name": "Haunter",
         "name": "haunter",
         "types": [
             "ghost",
@@ -5977,6 +6242,7 @@
         "genus": "Wrestling",
         "height": 0.8,
         "id": 701,
+        "locale_name": "Hawlucha",
         "name": "hawlucha",
         "types": [
             "fighting",
@@ -6002,6 +6268,7 @@
         "genus": "Axe Jaw",
         "height": 1.8,
         "id": 612,
+        "locale_name": "Haxorus",
         "name": "haxorus",
         "types": [
             "dragon"
@@ -6020,6 +6287,7 @@
         "genus": "Anteater",
         "height": 1.4,
         "id": 631,
+        "locale_name": "Heatmor",
         "name": "heatmor",
         "types": [
             "fire"
@@ -6038,6 +6306,7 @@
         "genus": "Lava Dome",
         "height": 1.7,
         "id": 485,
+        "locale_name": "Heatran",
         "name": "heatran",
         "types": [
             "fire",
@@ -6060,6 +6329,7 @@
         "genus": "Generator",
         "height": 1.0,
         "id": 695,
+        "locale_name": "Heliolisk",
         "name": "heliolisk",
         "types": [
             "electric",
@@ -6082,6 +6352,7 @@
         "genus": "Generator",
         "height": 0.5,
         "id": 694,
+        "locale_name": "Helioptile",
         "name": "helioptile",
         "types": [
             "electric",
@@ -6101,6 +6372,7 @@
         "genus": "Single Horn",
         "height": 1.5,
         "id": 214,
+        "locale_name": "Heracross",
         "name": "heracross",
         "types": [
             "bug",
@@ -6126,6 +6398,7 @@
         "genus": "Loyal Dog",
         "height": 0.9,
         "id": 507,
+        "locale_name": "Herdier",
         "name": "herdier",
         "types": [
             "normal"
@@ -6147,6 +6420,7 @@
         "genus": "Hippo",
         "height": 0.8,
         "id": 449,
+        "locale_name": "Hippopotas",
         "name": "hippopotas",
         "types": [
             "ground"
@@ -6168,6 +6442,7 @@
         "genus": "Heavyweight",
         "height": 2.0,
         "id": 450,
+        "locale_name": "Hippowdon",
         "name": "hippowdon",
         "types": [
             "ground"
@@ -6192,6 +6467,7 @@
         "hatches_from": 10,
         "height": 1.4,
         "id": 107,
+        "locale_name": "Hitmonchan",
         "name": "hitmonchan",
         "types": [
             "fighting"
@@ -6216,6 +6492,7 @@
         "hatches_from": 10,
         "height": 1.5,
         "id": 106,
+        "locale_name": "Hitmonlee",
         "name": "hitmonlee",
         "types": [
             "fighting"
@@ -6239,6 +6516,7 @@
         "genus": "Handstand",
         "height": 1.4,
         "id": 237,
+        "locale_name": "Hitmontop",
         "name": "hitmontop",
         "types": [
             "fighting"
@@ -6257,6 +6535,7 @@
         "genus": "Rainbow",
         "height": 3.8,
         "id": 250,
+        "locale_name": "Ho-Oh",
         "name": "ho-oh",
         "types": [
             "fire",
@@ -6279,6 +6558,7 @@
         "genus": "Big Boss",
         "height": 0.9,
         "id": 430,
+        "locale_name": "Honchkrow",
         "name": "honchkrow",
         "types": [
             "dark",
@@ -6304,6 +6584,7 @@
         "genus": "Sword",
         "height": 0.8,
         "id": 679,
+        "locale_name": "Honedge",
         "name": "honedge",
         "types": [
             "steel",
@@ -6323,6 +6604,7 @@
         "genus": "Mischief",
         "height": 0.5,
         "id": 720,
+        "locale_name": "Hoopa",
         "name": "hoopa",
         "types": [
             "psychic",
@@ -6345,6 +6627,7 @@
         "genus": "Owl",
         "height": 0.7,
         "id": 163,
+        "locale_name": "Hoothoot",
         "name": "hoothoot",
         "types": [
             "normal",
@@ -6370,6 +6653,7 @@
         "genus": "Cottonweed",
         "height": 0.4,
         "id": 187,
+        "locale_name": "Hoppip",
         "name": "hoppip",
         "types": [
             "grass",
@@ -6397,6 +6681,7 @@
         "hatches_from": 5,
         "height": 0.4,
         "id": 116,
+        "locale_name": "Horsea",
         "name": "horsea",
         "types": [
             "water"
@@ -6418,6 +6703,7 @@
         "genus": "Dark",
         "height": 1.4,
         "id": 229,
+        "locale_name": "Houndoom",
         "name": "houndoom",
         "types": [
             "dark",
@@ -6440,6 +6726,7 @@
         "genus": "Dark",
         "height": 0.6,
         "id": 228,
+        "locale_name": "Houndour",
         "name": "houndour",
         "types": [
             "dark",
@@ -6463,6 +6750,7 @@
         "genus": "Deep Sea",
         "height": 1.7,
         "id": 367,
+        "locale_name": "Huntail",
         "name": "huntail",
         "types": [
             "water"
@@ -6487,6 +6775,7 @@
         "genus": "Brutal",
         "height": 1.8,
         "id": 635,
+        "locale_name": "Hydreigon",
         "name": "hydreigon",
         "types": [
             "dark",
@@ -6509,6 +6798,7 @@
         "genus": "Hypnosis",
         "height": 1.6,
         "id": 97,
+        "locale_name": "Hypno",
         "name": "hypno",
         "types": [
             "psychic"
@@ -6533,6 +6823,7 @@
         "genus": "Balloon",
         "height": 0.3,
         "id": 174,
+        "locale_name": "Igglybuff",
         "name": "igglybuff",
         "types": [
             "normal",
@@ -6552,6 +6843,7 @@
         "genus": "Firefly",
         "height": 0.6,
         "id": 314,
+        "locale_name": "Illumise",
         "name": "illumise",
         "types": [
             "bug"
@@ -6576,6 +6868,7 @@
         "genus": "Flame",
         "height": 1.2,
         "id": 392,
+        "locale_name": "Infernape",
         "name": "infernape",
         "types": [
             "fire",
@@ -6598,6 +6891,7 @@
         "genus": "Revolving",
         "height": 0.4,
         "id": 686,
+        "locale_name": "Inkay",
         "name": "inkay",
         "types": [
             "dark",
@@ -6624,6 +6918,7 @@
         "genus": "Seed",
         "height": 1.0,
         "id": 2,
+        "locale_name": "Ivysaur",
         "name": "ivysaur",
         "types": [
             "grass",
@@ -6646,6 +6941,7 @@
         "genus": "Floating",
         "height": 2.2,
         "id": 593,
+        "locale_name": "Jellicent",
         "name": "jellicent",
         "types": [
             "water",
@@ -6672,6 +6968,7 @@
         "genus": "Balloon",
         "height": 0.5,
         "id": 39,
+        "locale_name": "Jigglypuff",
         "name": "jigglypuff",
         "types": [
             "normal",
@@ -6691,6 +6988,7 @@
         "genus": "Wish",
         "height": 0.3,
         "id": 385,
+        "locale_name": "Jirachi",
         "name": "jirachi",
         "types": [
             "steel",
@@ -6720,6 +7018,7 @@
         "genus": "Lightning",
         "height": 0.8,
         "id": 135,
+        "locale_name": "Jolteon",
         "name": "jolteon",
         "types": [
             "electric"
@@ -6741,6 +7040,7 @@
         "genus": "Attaching",
         "height": 0.1,
         "id": 595,
+        "locale_name": "Joltik",
         "name": "joltik",
         "types": [
             "bug",
@@ -6766,6 +7066,7 @@
         "genus": "Cottonweed",
         "height": 0.8,
         "id": 189,
+        "locale_name": "Jumpluff",
         "name": "jumpluff",
         "types": [
             "grass",
@@ -6789,6 +7090,7 @@
         "hatches_from": 10,
         "height": 1.4,
         "id": 124,
+        "locale_name": "Jynx",
         "name": "jynx",
         "types": [
             "ice",
@@ -6813,6 +7115,7 @@
         "hatches_from": 10,
         "height": 0.5,
         "id": 140,
+        "locale_name": "Kabuto",
         "name": "kabuto",
         "types": [
             "rock",
@@ -6835,6 +7138,7 @@
         "genus": "Shellfish",
         "height": 1.3,
         "id": 141,
+        "locale_name": "Kabutops",
         "name": "kabutops",
         "types": [
             "rock",
@@ -6861,6 +7165,7 @@
         "genus": "Psi",
         "height": 1.3,
         "id": 64,
+        "locale_name": "Kadabra",
         "name": "kadabra",
         "types": [
             "psychic"
@@ -6886,6 +7191,7 @@
         "genus": "Cocoon",
         "height": 0.6,
         "id": 14,
+        "locale_name": "Kakuna",
         "name": "kakuna",
         "types": [
             "bug",
@@ -6906,6 +7212,7 @@
         "hatches_from": 5,
         "height": 2.2,
         "id": 115,
+        "locale_name": "Kangaskhan",
         "name": "kangaskhan",
         "types": [
             "normal"
@@ -6927,6 +7234,7 @@
         "genus": "Clamping",
         "height": 0.5,
         "id": 588,
+        "locale_name": "Karrablast",
         "name": "karrablast",
         "types": [
             "bug"
@@ -6945,6 +7253,7 @@
         "genus": "Color Swap",
         "height": 1.0,
         "id": 352,
+        "locale_name": "Kecleon",
         "name": "kecleon",
         "types": [
             "normal"
@@ -6963,6 +7272,7 @@
         "genus": "Colt",
         "height": 1.4,
         "id": 647,
+        "locale_name": "Keldeo",
         "name": "keldeo",
         "types": [
             "water",
@@ -6988,6 +7298,7 @@
         "genus": "Dragon",
         "height": 1.8,
         "id": 230,
+        "locale_name": "Kingdra",
         "name": "kingdra",
         "types": [
             "water",
@@ -7010,6 +7321,7 @@
         "genus": "Pincer",
         "height": 1.3,
         "id": 99,
+        "locale_name": "Kingler",
         "name": "kingler",
         "types": [
             "water"
@@ -7035,6 +7347,7 @@
         "genus": "Emotion",
         "height": 0.8,
         "id": 281,
+        "locale_name": "Kirlia",
         "name": "kirlia",
         "types": [
             "psychic",
@@ -7060,6 +7373,7 @@
         "genus": "Gear",
         "height": 0.6,
         "id": 600,
+        "locale_name": "Klang",
         "name": "klang",
         "types": [
             "steel"
@@ -7078,6 +7392,7 @@
         "genus": "Key Ring",
         "height": 0.2,
         "id": 707,
+        "locale_name": "Klefki",
         "name": "klefki",
         "types": [
             "steel",
@@ -7103,6 +7418,7 @@
         "genus": "Gear",
         "height": 0.3,
         "id": 599,
+        "locale_name": "Klink",
         "name": "klink",
         "types": [
             "steel"
@@ -7127,6 +7443,7 @@
         "genus": "Gear",
         "height": 0.6,
         "id": 601,
+        "locale_name": "Klinklang",
         "name": "klinklang",
         "types": [
             "steel"
@@ -7150,6 +7467,7 @@
         "hatches_from": 5,
         "height": 0.6,
         "id": 109,
+        "locale_name": "Koffing",
         "name": "koffing",
         "types": [
             "poison"
@@ -7173,6 +7491,7 @@
         "hatches_from": 5,
         "height": 0.4,
         "id": 98,
+        "locale_name": "Krabby",
         "name": "krabby",
         "types": [
             "water"
@@ -7194,6 +7513,7 @@
         "genus": "Cricket",
         "height": 0.3,
         "id": 401,
+        "locale_name": "Kricketot",
         "name": "kricketot",
         "types": [
             "bug"
@@ -7215,6 +7535,7 @@
         "genus": "Cricket",
         "height": 1.0,
         "id": 402,
+        "locale_name": "Kricketune",
         "name": "kricketune",
         "types": [
             "bug"
@@ -7239,6 +7560,7 @@
         "genus": "Desert Croc",
         "height": 1.0,
         "id": 552,
+        "locale_name": "Krokorok",
         "name": "krokorok",
         "types": [
             "ground",
@@ -7264,6 +7586,7 @@
         "genus": "Intimidation",
         "height": 1.5,
         "id": 553,
+        "locale_name": "Krookodile",
         "name": "krookodile",
         "types": [
             "ground",
@@ -7283,6 +7606,7 @@
         "genus": "Sea Basin",
         "height": 4.5,
         "id": 382,
+        "locale_name": "Kyogre",
         "name": "kyogre",
         "types": [
             "water"
@@ -7301,6 +7625,7 @@
         "genus": "Boundary",
         "height": 3.0,
         "id": 646,
+        "locale_name": "Kyurem",
         "name": "kyurem",
         "types": [
             "dragon",
@@ -7326,6 +7651,7 @@
         "genus": "Iron Armor",
         "height": 0.9,
         "id": 305,
+        "locale_name": "Lairon",
         "name": "lairon",
         "types": [
             "steel",
@@ -7351,6 +7677,7 @@
         "genus": "Lamp",
         "height": 0.6,
         "id": 608,
+        "locale_name": "Lampent",
         "name": "lampent",
         "types": [
             "ghost",
@@ -7370,6 +7697,7 @@
         "genus": "Abundance",
         "height": 1.5,
         "id": 645,
+        "locale_name": "Landorus",
         "name": "landorus",
         "types": [
             "ground",
@@ -7392,6 +7720,7 @@
         "genus": "Light",
         "height": 1.2,
         "id": 171,
+        "locale_name": "Lanturn",
         "name": "lanturn",
         "types": [
             "water",
@@ -7412,6 +7741,7 @@
         "hatches_from": 10,
         "height": 2.5,
         "id": 131,
+        "locale_name": "Lapras",
         "name": "lapras",
         "types": [
             "water",
@@ -7434,6 +7764,7 @@
         "genus": "Torch",
         "height": 1.1,
         "id": 636,
+        "locale_name": "Larvesta",
         "name": "larvesta",
         "types": [
             "bug",
@@ -7459,6 +7790,7 @@
         "genus": "Rock Skin",
         "height": 0.6,
         "id": 246,
+        "locale_name": "Larvitar",
         "name": "larvitar",
         "types": [
             "rock",
@@ -7478,6 +7810,7 @@
         "genus": "Eon",
         "height": 1.4,
         "id": 380,
+        "locale_name": "Latias",
         "name": "latias",
         "types": [
             "dragon",
@@ -7497,6 +7830,7 @@
         "genus": "Eon",
         "height": 2.0,
         "id": 381,
+        "locale_name": "Latios",
         "name": "latios",
         "types": [
             "dragon",
@@ -7526,6 +7860,7 @@
         "genus": "Verdant",
         "height": 1.0,
         "id": 470,
+        "locale_name": "Leafeon",
         "name": "leafeon",
         "types": [
             "grass"
@@ -7550,6 +7885,7 @@
         "genus": "Nurturing",
         "height": 1.2,
         "id": 542,
+        "locale_name": "Leavanny",
         "name": "leavanny",
         "types": [
             "bug",
@@ -7572,6 +7908,7 @@
         "genus": "Five Star",
         "height": 1.4,
         "id": 166,
+        "locale_name": "Ledian",
         "name": "ledian",
         "types": [
             "bug",
@@ -7594,6 +7931,7 @@
         "genus": "Five Star",
         "height": 1.0,
         "id": 165,
+        "locale_name": "Ledyba",
         "name": "ledyba",
         "types": [
             "bug",
@@ -7616,6 +7954,7 @@
         "genus": "Licking",
         "height": 1.7,
         "id": 463,
+        "locale_name": "Lickilicky",
         "name": "lickilicky",
         "types": [
             "normal"
@@ -7638,6 +7977,7 @@
         "hatches_from": 5,
         "height": 1.2,
         "id": 108,
+        "locale_name": "Lickitung",
         "name": "lickitung",
         "types": [
             "normal"
@@ -7659,6 +7999,7 @@
         "genus": "Cruel",
         "height": 1.1,
         "id": 510,
+        "locale_name": "Liepard",
         "name": "liepard",
         "types": [
             "dark"
@@ -7680,6 +8021,7 @@
         "genus": "Sea Lily",
         "height": 1.0,
         "id": 345,
+        "locale_name": "Lileep",
         "name": "lileep",
         "types": [
             "rock",
@@ -7702,6 +8044,7 @@
         "genus": "Flowering",
         "height": 1.1,
         "id": 549,
+        "locale_name": "Lilligant",
         "name": "lilligant",
         "types": [
             "grass"
@@ -7726,6 +8069,7 @@
         "genus": "Puppy",
         "height": 0.4,
         "id": 506,
+        "locale_name": "Lillipup",
         "name": "lillipup",
         "types": [
             "normal"
@@ -7747,6 +8091,7 @@
         "genus": "Rushing",
         "height": 0.5,
         "id": 264,
+        "locale_name": "Linoone",
         "name": "linoone",
         "types": [
             "normal"
@@ -7768,6 +8113,7 @@
         "genus": "Lion Cub",
         "height": 0.6,
         "id": 667,
+        "locale_name": "Litleo",
         "name": "litleo",
         "types": [
             "fire",
@@ -7793,6 +8139,7 @@
         "genus": "Candle",
         "height": 0.3,
         "id": 607,
+        "locale_name": "Litwick",
         "name": "litwick",
         "types": [
             "ghost",
@@ -7818,6 +8165,7 @@
         "genus": "Jolly",
         "height": 1.2,
         "id": 271,
+        "locale_name": "Lombre",
         "name": "lombre",
         "types": [
             "water",
@@ -7840,6 +8188,7 @@
         "genus": "Rabbit",
         "height": 1.2,
         "id": 428,
+        "locale_name": "Lopunny",
         "name": "lopunny",
         "types": [
             "normal"
@@ -7864,6 +8213,7 @@
         "genus": "Water Weed",
         "height": 0.5,
         "id": 270,
+        "locale_name": "Lotad",
         "name": "lotad",
         "types": [
             "water",
@@ -7889,6 +8239,7 @@
         "genus": "Big Voice",
         "height": 1.0,
         "id": 294,
+        "locale_name": "Loudred",
         "name": "loudred",
         "types": [
             "normal"
@@ -7910,6 +8261,7 @@
         "genus": "Aura",
         "height": 1.2,
         "id": 448,
+        "locale_name": "Lucario",
         "name": "lucario",
         "types": [
             "fighting",
@@ -7935,6 +8287,7 @@
         "genus": "Carefree",
         "height": 1.5,
         "id": 272,
+        "locale_name": "Ludicolo",
         "name": "ludicolo",
         "types": [
             "water",
@@ -7954,6 +8307,7 @@
         "genus": "Diving",
         "height": 5.2,
         "id": 249,
+        "locale_name": "Lugia",
         "name": "lugia",
         "types": [
             "psychic",
@@ -7976,6 +8330,7 @@
         "genus": "Neon",
         "height": 1.2,
         "id": 457,
+        "locale_name": "Lumineon",
         "name": "lumineon",
         "types": [
             "water"
@@ -7994,6 +8349,7 @@
         "genus": "Meteorite",
         "height": 1.0,
         "id": 337,
+        "locale_name": "Lunatone",
         "name": "lunatone",
         "types": [
             "rock",
@@ -8013,6 +8369,7 @@
         "genus": "Rendezvous",
         "height": 0.6,
         "id": 370,
+        "locale_name": "Luvdisc",
         "name": "luvdisc",
         "types": [
             "water"
@@ -8037,6 +8394,7 @@
         "genus": "Spark",
         "height": 0.9,
         "id": 404,
+        "locale_name": "Luxio",
         "name": "luxio",
         "types": [
             "electric"
@@ -8061,6 +8419,7 @@
         "genus": "Gleam Eyes",
         "height": 1.4,
         "id": 405,
+        "locale_name": "Luxray",
         "name": "luxray",
         "types": [
             "electric"
@@ -8085,6 +8444,7 @@
         "genus": "Superpower",
         "height": 1.6,
         "id": 68,
+        "locale_name": "Machamp",
         "name": "machamp",
         "types": [
             "fighting"
@@ -8110,6 +8470,7 @@
         "genus": "Superpower",
         "height": 1.5,
         "id": 67,
+        "locale_name": "Machoke",
         "name": "machoke",
         "types": [
             "fighting"
@@ -8136,6 +8497,7 @@
         "hatches_from": 5,
         "height": 0.8,
         "id": 66,
+        "locale_name": "Machop",
         "name": "machop",
         "types": [
             "fighting"
@@ -8160,6 +8522,7 @@
         "genus": "Live Coal",
         "height": 0.7,
         "id": 240,
+        "locale_name": "Magby",
         "name": "magby",
         "types": [
             "fire"
@@ -8181,6 +8544,7 @@
         "genus": "Lava",
         "height": 0.8,
         "id": 219,
+        "locale_name": "Magcargo",
         "name": "magcargo",
         "types": [
             "fire",
@@ -8205,6 +8569,7 @@
         "hatches_from": 2,
         "height": 0.9,
         "id": 129,
+        "locale_name": "Magikarp",
         "name": "magikarp",
         "types": [
             "water"
@@ -8230,6 +8595,7 @@
         "hatches_from": 10,
         "height": 1.3,
         "id": 126,
+        "locale_name": "Magmar",
         "name": "magmar",
         "types": [
             "fire"
@@ -8254,6 +8620,7 @@
         "genus": "Blast",
         "height": 1.6,
         "id": 467,
+        "locale_name": "Magmortar",
         "name": "magmortar",
         "types": [
             "fire"
@@ -8280,6 +8647,7 @@
         "hatches_from": 5,
         "height": 0.3,
         "id": 81,
+        "locale_name": "Magnemite",
         "name": "magnemite",
         "types": [
             "electric",
@@ -8305,6 +8673,7 @@
         "genus": "Magnet",
         "height": 1.0,
         "id": 82,
+        "locale_name": "Magneton",
         "name": "magneton",
         "types": [
             "electric",
@@ -8330,6 +8699,7 @@
         "genus": "Magnet Area",
         "height": 1.2,
         "id": 462,
+        "locale_name": "Magnezone",
         "name": "magnezone",
         "types": [
             "electric",
@@ -8352,6 +8722,7 @@
         "genus": "Guts",
         "height": 1.0,
         "id": 296,
+        "locale_name": "Makuhita",
         "name": "makuhita",
         "types": [
             "fighting"
@@ -8373,6 +8744,7 @@
         "genus": "Overturning",
         "height": 1.5,
         "id": 687,
+        "locale_name": "Malamar",
         "name": "malamar",
         "types": [
             "dark",
@@ -8398,6 +8770,7 @@
         "genus": "Twin Tusk",
         "height": 2.5,
         "id": 473,
+        "locale_name": "Mamoswine",
         "name": "mamoswine",
         "types": [
             "ice",
@@ -8418,6 +8791,7 @@
         "genus": "Seafaring",
         "height": 0.3,
         "id": 490,
+        "locale_name": "Manaphy",
         "name": "manaphy",
         "types": [
             "water"
@@ -8439,6 +8813,7 @@
         "genus": "Bone Vulture",
         "height": 1.2,
         "id": 630,
+        "locale_name": "Mandibuzz",
         "name": "mandibuzz",
         "types": [
             "dark",
@@ -8461,6 +8836,7 @@
         "genus": "Discharge",
         "height": 1.5,
         "id": 310,
+        "locale_name": "Manectric",
         "name": "manectric",
         "types": [
             "electric"
@@ -8484,6 +8860,7 @@
         "hatches_from": 5,
         "height": 0.5,
         "id": 56,
+        "locale_name": "Mankey",
         "name": "mankey",
         "types": [
             "fighting"
@@ -8505,6 +8882,7 @@
         "genus": "Kite",
         "height": 2.1,
         "id": 226,
+        "locale_name": "Mantine",
         "name": "mantine",
         "types": [
             "water",
@@ -8527,6 +8905,7 @@
         "genus": "Kite",
         "height": 1.0,
         "id": 458,
+        "locale_name": "Mantyke",
         "name": "mantyke",
         "types": [
             "water",
@@ -8546,6 +8925,7 @@
         "genus": "Cactus",
         "height": 1.0,
         "id": 556,
+        "locale_name": "Maractus",
         "name": "maractus",
         "types": [
             "grass"
@@ -8570,6 +8950,7 @@
         "genus": "Wool",
         "height": 0.6,
         "id": 179,
+        "locale_name": "Mareep",
         "name": "mareep",
         "types": [
             "electric"
@@ -8594,6 +8975,7 @@
         "genus": "Aqua Mouse",
         "height": 0.4,
         "id": 183,
+        "locale_name": "Marill",
         "name": "marill",
         "types": [
             "water",
@@ -8616,6 +8998,7 @@
         "genus": "Bone Keeper",
         "height": 1.0,
         "id": 105,
+        "locale_name": "Marowak",
         "name": "marowak",
         "types": [
             "ground"
@@ -8640,6 +9023,7 @@
         "genus": "Mud Fish",
         "height": 0.7,
         "id": 259,
+        "locale_name": "Marshtomp",
         "name": "marshtomp",
         "types": [
             "water",
@@ -8662,6 +9046,7 @@
         "genus": "Eyeball",
         "height": 0.8,
         "id": 284,
+        "locale_name": "Masquerain",
         "name": "masquerain",
         "types": [
             "bug",
@@ -8681,6 +9066,7 @@
         "genus": "Deceiver",
         "height": 0.6,
         "id": 303,
+        "locale_name": "Mawile",
         "name": "mawile",
         "types": [
             "steel",
@@ -8703,6 +9089,7 @@
         "genus": "Meditate",
         "height": 1.3,
         "id": 308,
+        "locale_name": "Medicham",
         "name": "medicham",
         "types": [
             "fighting",
@@ -8725,6 +9112,7 @@
         "genus": "Meditate",
         "height": 0.6,
         "id": 307,
+        "locale_name": "Meditite",
         "name": "meditite",
         "types": [
             "fighting",
@@ -8750,6 +9138,7 @@
         "genus": "Herb",
         "height": 1.8,
         "id": 154,
+        "locale_name": "Meganium",
         "name": "meganium",
         "types": [
             "grass"
@@ -8768,6 +9157,7 @@
         "genus": "Melody",
         "height": 0.6,
         "id": 648,
+        "locale_name": "Meloetta",
         "name": "meloetta",
         "types": [
             "normal",
@@ -8790,6 +9180,7 @@
         "genus": "Constraint",
         "height": 0.6,
         "id": 678,
+        "locale_name": "Meowstic",
         "name": "meowstic",
         "types": [
             "psychic"
@@ -8813,6 +9204,7 @@
         "hatches_from": 5,
         "height": 0.4,
         "id": 52,
+        "locale_name": "Meowth",
         "name": "meowth",
         "types": [
             "normal"
@@ -8831,6 +9223,7 @@
         "genus": "Emotion",
         "height": 0.3,
         "id": 481,
+        "locale_name": "Mesprit",
         "name": "mesprit",
         "types": [
             "psychic"
@@ -8855,6 +9248,7 @@
         "genus": "Iron Leg",
         "height": 1.6,
         "id": 376,
+        "locale_name": "Metagross",
         "name": "metagross",
         "types": [
             "steel",
@@ -8880,6 +9274,7 @@
         "genus": "Iron Claw",
         "height": 1.2,
         "id": 375,
+        "locale_name": "Metang",
         "name": "metang",
         "types": [
             "steel",
@@ -8906,6 +9301,7 @@
         "genus": "Cocoon",
         "height": 0.7,
         "id": 11,
+        "locale_name": "Metapod",
         "name": "metapod",
         "types": [
             "bug"
@@ -8924,6 +9320,7 @@
         "genus": "New Species",
         "height": 0.4,
         "id": 151,
+        "locale_name": "Mew",
         "name": "mew",
         "types": [
             "psychic"
@@ -8942,6 +9339,7 @@
         "genus": "Genetic",
         "height": 2.0,
         "id": 150,
+        "locale_name": "Mewtwo",
         "name": "mewtwo",
         "types": [
             "psychic"
@@ -8963,6 +9361,7 @@
         "genus": "Martial Arts",
         "height": 0.9,
         "id": 619,
+        "locale_name": "Mienfoo",
         "name": "mienfoo",
         "types": [
             "fighting"
@@ -8984,6 +9383,7 @@
         "genus": "Martial Arts",
         "height": 1.4,
         "id": 620,
+        "locale_name": "Mienshao",
         "name": "mienshao",
         "types": [
             "fighting"
@@ -9005,6 +9405,7 @@
         "genus": "Bite",
         "height": 1.0,
         "id": 262,
+        "locale_name": "Mightyena",
         "name": "mightyena",
         "types": [
             "dark"
@@ -9026,6 +9427,7 @@
         "genus": "Tender",
         "height": 6.2,
         "id": 350,
+        "locale_name": "Milotic",
         "name": "milotic",
         "types": [
             "water"
@@ -9044,6 +9446,7 @@
         "genus": "Milk Cow",
         "height": 1.2,
         "id": 241,
+        "locale_name": "Miltank",
         "name": "miltank",
         "types": [
             "normal"
@@ -9065,6 +9468,7 @@
         "genus": "Mime",
         "height": 0.6,
         "id": 439,
+        "locale_name": "Mime Jr.",
         "name": "mime-jr",
         "types": [
             "psychic",
@@ -9087,6 +9491,7 @@
         "genus": "Chinchilla",
         "height": 0.4,
         "id": 572,
+        "locale_name": "Minccino",
         "name": "minccino",
         "types": [
             "normal"
@@ -9105,6 +9510,7 @@
         "genus": "Cheering",
         "height": 0.4,
         "id": 312,
+        "locale_name": "Minun",
         "name": "minun",
         "types": [
             "electric"
@@ -9126,6 +9532,7 @@
         "genus": "Screech",
         "height": 0.7,
         "id": 200,
+        "locale_name": "Misdreavus",
         "name": "misdreavus",
         "types": [
             "ghost"
@@ -9147,6 +9554,7 @@
         "genus": "Magical",
         "height": 0.9,
         "id": 429,
+        "locale_name": "Mismagius",
         "name": "mismagius",
         "types": [
             "ghost"
@@ -9165,6 +9573,7 @@
         "genus": "Flame",
         "height": 2.0,
         "id": 146,
+        "locale_name": "Moltres",
         "name": "moltres",
         "types": [
             "fire",
@@ -9190,6 +9599,7 @@
         "genus": "Playful",
         "height": 0.9,
         "id": 391,
+        "locale_name": "Monferno",
         "name": "monferno",
         "types": [
             "fire",
@@ -9213,6 +9623,7 @@
         "genus": "Moth",
         "height": 0.9,
         "id": 414,
+        "locale_name": "Mothim",
         "name": "mothim",
         "types": [
             "bug",
@@ -9235,6 +9646,7 @@
         "genus": "Barrier",
         "height": 1.3,
         "id": 122,
+        "locale_name": "Mr. Mime",
         "name": "mr-mime",
         "types": [
             "psychic",
@@ -9260,6 +9672,7 @@
         "genus": "Mud Fish",
         "height": 0.4,
         "id": 258,
+        "locale_name": "Mudkip",
         "name": "mudkip",
         "types": [
             "water"
@@ -9281,6 +9694,7 @@
         "genus": "Sludge",
         "height": 1.2,
         "id": 89,
+        "locale_name": "Muk",
         "name": "muk",
         "types": [
             "poison"
@@ -9302,6 +9716,7 @@
         "genus": "Big Eater",
         "height": 0.6,
         "id": 446,
+        "locale_name": "Munchlax",
         "name": "munchlax",
         "types": [
             "normal"
@@ -9323,6 +9738,7 @@
         "genus": "Dream Eater",
         "height": 0.6,
         "id": 517,
+        "locale_name": "Munna",
         "name": "munna",
         "types": [
             "psychic"
@@ -9344,6 +9760,7 @@
         "genus": "Darkness",
         "height": 0.5,
         "id": 198,
+        "locale_name": "Murkrow",
         "name": "murkrow",
         "types": [
             "dark",
@@ -9366,6 +9783,7 @@
         "genus": "Drowsing",
         "height": 1.1,
         "id": 518,
+        "locale_name": "Musharna",
         "name": "musharna",
         "types": [
             "psychic"
@@ -9387,6 +9805,7 @@
         "genus": "Tiny Bird",
         "height": 0.2,
         "id": 177,
+        "locale_name": "Natu",
         "name": "natu",
         "types": [
             "psychic",
@@ -9412,6 +9831,7 @@
         "genus": "Drill",
         "height": 1.4,
         "id": 34,
+        "locale_name": "Nidoking",
         "name": "nidoking",
         "types": [
             "poison",
@@ -9437,6 +9857,7 @@
         "genus": "Drill",
         "height": 1.3,
         "id": 31,
+        "locale_name": "Nidoqueen",
         "name": "nidoqueen",
         "types": [
             "poison",
@@ -9464,6 +9885,7 @@
         "hatches_from": 5,
         "height": 0.4,
         "id": 29,
+        "locale_name": "Nidoran\u2640",
         "name": "nidoran-f",
         "types": [
             "poison"
@@ -9490,6 +9912,7 @@
         "hatches_from": 5,
         "height": 0.5,
         "id": 32,
+        "locale_name": "Nidoran\u2642",
         "name": "nidoran-m",
         "types": [
             "poison"
@@ -9515,6 +9938,7 @@
         "genus": "Poison Pin",
         "height": 0.8,
         "id": 30,
+        "locale_name": "Nidorina",
         "name": "nidorina",
         "types": [
             "poison"
@@ -9540,6 +9964,7 @@
         "genus": "Poison Pin",
         "height": 0.9,
         "id": 33,
+        "locale_name": "Nidorino",
         "name": "nidorino",
         "types": [
             "poison"
@@ -9562,6 +9987,7 @@
         "genus": "Trainee",
         "height": 0.5,
         "id": 290,
+        "locale_name": "Nincada",
         "name": "nincada",
         "types": [
             "bug",
@@ -9584,6 +10010,7 @@
         "genus": "Fox",
         "height": 1.1,
         "id": 38,
+        "locale_name": "Ninetales",
         "name": "ninetales",
         "types": [
             "fire"
@@ -9606,6 +10033,7 @@
         "genus": "Ninja",
         "height": 0.8,
         "id": 291,
+        "locale_name": "Ninjask",
         "name": "ninjask",
         "types": [
             "bug",
@@ -9628,6 +10056,7 @@
         "genus": "Owl",
         "height": 1.6,
         "id": 164,
+        "locale_name": "Noctowl",
         "name": "noctowl",
         "types": [
             "normal",
@@ -9650,6 +10079,7 @@
         "genus": "Sound Wave",
         "height": 0.5,
         "id": 714,
+        "locale_name": "Noibat",
         "name": "noibat",
         "types": [
             "flying",
@@ -9672,6 +10102,7 @@
         "genus": "Sound Wave",
         "height": 1.5,
         "id": 715,
+        "locale_name": "Noivern",
         "name": "noivern",
         "types": [
             "flying",
@@ -9694,6 +10125,7 @@
         "genus": "Compass",
         "height": 1.0,
         "id": 299,
+        "locale_name": "Nosepass",
         "name": "nosepass",
         "types": [
             "rock"
@@ -9715,6 +10147,7 @@
         "genus": "Numb",
         "height": 0.7,
         "id": 322,
+        "locale_name": "Numel",
         "name": "numel",
         "types": [
             "fire",
@@ -9740,6 +10173,7 @@
         "genus": "Wily",
         "height": 1.0,
         "id": 274,
+        "locale_name": "Nuzleaf",
         "name": "nuzleaf",
         "types": [
             "grass",
@@ -9762,6 +10196,7 @@
         "genus": "Jet",
         "height": 0.9,
         "id": 224,
+        "locale_name": "Octillery",
         "name": "octillery",
         "types": [
             "water"
@@ -9789,6 +10224,7 @@
         "hatches_from": 5,
         "height": 0.5,
         "id": 43,
+        "locale_name": "Oddish",
         "name": "oddish",
         "types": [
             "grass",
@@ -9813,6 +10249,7 @@
         "hatches_from": 10,
         "height": 0.4,
         "id": 138,
+        "locale_name": "Omanyte",
         "name": "omanyte",
         "types": [
             "rock",
@@ -9835,6 +10272,7 @@
         "genus": "Spiral",
         "height": 1.0,
         "id": 139,
+        "locale_name": "Omastar",
         "name": "omastar",
         "types": [
             "rock",
@@ -9858,6 +10296,7 @@
         "hatches_from": 10,
         "height": 8.8,
         "id": 95,
+        "locale_name": "Onix",
         "name": "onix",
         "types": [
             "rock",
@@ -9883,6 +10322,7 @@
         "genus": "Sea Otter",
         "height": 0.5,
         "id": 501,
+        "locale_name": "Oshawott",
         "name": "oshawott",
         "types": [
             "water"
@@ -9901,6 +10341,7 @@
         "genus": "EleSquirrel",
         "height": 0.4,
         "id": 417,
+        "locale_name": "Pachirisu",
         "name": "pachirisu",
         "types": [
             "electric"
@@ -9919,6 +10360,7 @@
         "genus": "Spatial",
         "height": 4.2,
         "id": 484,
+        "locale_name": "Palkia",
         "name": "palkia",
         "types": [
             "water",
@@ -9944,6 +10386,7 @@
         "genus": "Vibration",
         "height": 0.8,
         "id": 536,
+        "locale_name": "Palpitoad",
         "name": "palpitoad",
         "types": [
             "water",
@@ -9966,6 +10409,7 @@
         "genus": "Playful",
         "height": 0.6,
         "id": 674,
+        "locale_name": "Pancham",
         "name": "pancham",
         "types": [
             "fighting"
@@ -9987,6 +10431,7 @@
         "genus": "Daunting",
         "height": 2.1,
         "id": 675,
+        "locale_name": "Pangoro",
         "name": "pangoro",
         "types": [
             "fighting",
@@ -10009,6 +10454,7 @@
         "genus": "Spray",
         "height": 0.6,
         "id": 515,
+        "locale_name": "Panpour",
         "name": "panpour",
         "types": [
             "water"
@@ -10030,6 +10476,7 @@
         "genus": "Grass Monkey",
         "height": 0.6,
         "id": 511,
+        "locale_name": "Pansage",
         "name": "pansage",
         "types": [
             "grass"
@@ -10051,6 +10498,7 @@
         "genus": "High Temp",
         "height": 0.6,
         "id": 513,
+        "locale_name": "Pansear",
         "name": "pansear",
         "types": [
             "fire"
@@ -10074,6 +10522,7 @@
         "hatches_from": 5,
         "height": 0.3,
         "id": 46,
+        "locale_name": "Paras",
         "name": "paras",
         "types": [
             "bug",
@@ -10096,6 +10545,7 @@
         "genus": "Mushroom",
         "height": 1.0,
         "id": 47,
+        "locale_name": "Parasect",
         "name": "parasect",
         "types": [
             "bug",
@@ -10118,6 +10568,7 @@
         "genus": "Scout",
         "height": 0.5,
         "id": 504,
+        "locale_name": "Patrat",
         "name": "patrat",
         "types": [
             "normal"
@@ -10139,6 +10590,7 @@
         "genus": "Sharp Blade",
         "height": 0.5,
         "id": 624,
+        "locale_name": "Pawniard",
         "name": "pawniard",
         "types": [
             "dark",
@@ -10161,6 +10613,7 @@
         "genus": "Water Bird",
         "height": 1.2,
         "id": 279,
+        "locale_name": "Pelipper",
         "name": "pelipper",
         "types": [
             "water",
@@ -10183,6 +10636,7 @@
         "genus": "Classy Cat",
         "height": 1.0,
         "id": 53,
+        "locale_name": "Persian",
         "name": "persian",
         "types": [
             "normal"
@@ -10204,6 +10658,7 @@
         "genus": "Bulb",
         "height": 0.5,
         "id": 548,
+        "locale_name": "Petilil",
         "name": "petilil",
         "types": [
             "grass"
@@ -10225,6 +10680,7 @@
         "genus": "Long Nose",
         "height": 0.5,
         "id": 231,
+        "locale_name": "Phanpy",
         "name": "phanpy",
         "types": [
             "ground"
@@ -10246,6 +10702,7 @@
         "genus": "Stump",
         "height": 0.4,
         "id": 708,
+        "locale_name": "Phantump",
         "name": "phantump",
         "types": [
             "ghost",
@@ -10266,6 +10723,7 @@
         "genus": "Sea Drifter",
         "height": 0.4,
         "id": 489,
+        "locale_name": "Phione",
         "name": "phione",
         "types": [
             "water"
@@ -10290,6 +10748,7 @@
         "genus": "Tiny Mouse",
         "height": 0.3,
         "id": 172,
+        "locale_name": "Pichu",
         "name": "pichu",
         "types": [
             "electric"
@@ -10314,6 +10773,7 @@
         "genus": "Bird",
         "height": 1.5,
         "id": 18,
+        "locale_name": "Pidgeot",
         "name": "pidgeot",
         "types": [
             "normal",
@@ -10340,6 +10800,7 @@
         "genus": "Bird",
         "height": 1.1,
         "id": 17,
+        "locale_name": "Pidgeotto",
         "name": "pidgeotto",
         "types": [
             "normal",
@@ -10367,6 +10828,7 @@
         "hatches_from": 2,
         "height": 0.3,
         "id": 16,
+        "locale_name": "Pidgey",
         "name": "pidgey",
         "types": [
             "normal",
@@ -10392,6 +10854,7 @@
         "genus": "Tiny Pigeon",
         "height": 0.3,
         "id": 519,
+        "locale_name": "Pidove",
         "name": "pidove",
         "types": [
             "normal",
@@ -10417,6 +10880,7 @@
         "genus": "Fire Pig",
         "height": 1.0,
         "id": 499,
+        "locale_name": "Pignite",
         "name": "pignite",
         "types": [
             "fire",
@@ -10444,6 +10908,7 @@
         "hatches_from": 2,
         "height": 0.4,
         "id": 25,
+        "locale_name": "Pikachu",
         "name": "pikachu",
         "types": [
             "electric"
@@ -10468,6 +10933,7 @@
         "genus": "Swine",
         "height": 1.1,
         "id": 221,
+        "locale_name": "Piloswine",
         "name": "piloswine",
         "types": [
             "ice",
@@ -10490,6 +10956,7 @@
         "genus": "Bagworm",
         "height": 0.6,
         "id": 204,
+        "locale_name": "Pineco",
         "name": "pineco",
         "types": [
             "bug"
@@ -10509,6 +10976,7 @@
         "hatches_from": 10,
         "height": 1.5,
         "id": 127,
+        "locale_name": "Pinsir",
         "name": "pinsir",
         "types": [
             "bug"
@@ -10533,6 +11001,7 @@
         "genus": "Penguin",
         "height": 0.4,
         "id": 393,
+        "locale_name": "Piplup",
         "name": "piplup",
         "types": [
             "water"
@@ -10551,6 +11020,7 @@
         "genus": "Cheering",
         "height": 0.4,
         "id": 311,
+        "locale_name": "Plusle",
         "name": "plusle",
         "types": [
             "electric"
@@ -10576,6 +11046,7 @@
         "genus": "Frog",
         "height": 1.1,
         "id": 186,
+        "locale_name": "Politoed",
         "name": "politoed",
         "types": [
             "water"
@@ -10603,6 +11074,7 @@
         "hatches_from": 5,
         "height": 0.6,
         "id": 60,
+        "locale_name": "Poliwag",
         "name": "poliwag",
         "types": [
             "water"
@@ -10629,6 +11101,7 @@
         "genus": "Tadpole",
         "height": 1.0,
         "id": 61,
+        "locale_name": "Poliwhirl",
         "name": "poliwhirl",
         "types": [
             "water"
@@ -10654,6 +11127,7 @@
         "genus": "Tadpole",
         "height": 1.3,
         "id": 62,
+        "locale_name": "Poliwrath",
         "name": "poliwrath",
         "types": [
             "water",
@@ -10678,6 +11152,7 @@
         "hatches_from": 5,
         "height": 1.0,
         "id": 77,
+        "locale_name": "Ponyta",
         "name": "ponyta",
         "types": [
             "fire"
@@ -10699,6 +11174,7 @@
         "genus": "Bite",
         "height": 0.5,
         "id": 261,
+        "locale_name": "Poochyena",
         "name": "poochyena",
         "types": [
             "dark"
@@ -10724,6 +11200,7 @@
         "hatches_from": 5,
         "height": 0.8,
         "id": 137,
+        "locale_name": "Porygon",
         "name": "porygon",
         "types": [
             "normal"
@@ -10748,6 +11225,7 @@
         "genus": "Virtual",
         "height": 0.9,
         "id": 474,
+        "locale_name": "Porygon-Z",
         "name": "porygon-z",
         "types": [
             "normal"
@@ -10772,6 +11250,7 @@
         "genus": "Virtual",
         "height": 0.6,
         "id": 233,
+        "locale_name": "Porygon2",
         "name": "porygon2",
         "types": [
             "normal"
@@ -10793,6 +11272,7 @@
         "genus": "Pig Monkey",
         "height": 1.0,
         "id": 57,
+        "locale_name": "Primeape",
         "name": "primeape",
         "types": [
             "fighting"
@@ -10817,6 +11297,7 @@
         "genus": "Penguin",
         "height": 0.8,
         "id": 394,
+        "locale_name": "Prinplup",
         "name": "prinplup",
         "types": [
             "water"
@@ -10838,6 +11319,7 @@
         "genus": "Compass",
         "height": 1.4,
         "id": 476,
+        "locale_name": "Probopass",
         "name": "probopass",
         "types": [
             "rock",
@@ -10862,6 +11344,7 @@
         "hatches_from": 5,
         "height": 0.8,
         "id": 54,
+        "locale_name": "Psyduck",
         "name": "psyduck",
         "types": [
             "water"
@@ -10883,6 +11366,7 @@
         "genus": "Pumpkin",
         "height": 0.4,
         "id": 710,
+        "locale_name": "Pumpkaboo",
         "name": "pumpkaboo",
         "types": [
             "ghost",
@@ -10908,6 +11392,7 @@
         "genus": "Hard Shell",
         "height": 1.2,
         "id": 247,
+        "locale_name": "Pupitar",
         "name": "pupitar",
         "types": [
             "rock",
@@ -10930,6 +11415,7 @@
         "genus": "Devious",
         "height": 0.4,
         "id": 509,
+        "locale_name": "Purrloin",
         "name": "purrloin",
         "types": [
             "dark"
@@ -10951,6 +11437,7 @@
         "genus": "Tiger Cat",
         "height": 1.0,
         "id": 432,
+        "locale_name": "Purugly",
         "name": "purugly",
         "types": [
             "normal"
@@ -10972,6 +11459,7 @@
         "genus": "Royal",
         "height": 1.5,
         "id": 668,
+        "locale_name": "Pyroar",
         "name": "pyroar",
         "types": [
             "fire",
@@ -10994,6 +11482,7 @@
         "genus": "Water Fish",
         "height": 1.4,
         "id": 195,
+        "locale_name": "Quagsire",
         "name": "quagsire",
         "types": [
             "water",
@@ -11019,6 +11508,7 @@
         "genus": "Volcano",
         "height": 0.9,
         "id": 156,
+        "locale_name": "Quilava",
         "name": "quilava",
         "types": [
             "fire"
@@ -11043,6 +11533,7 @@
         "genus": "Spiny Armor",
         "height": 0.7,
         "id": 651,
+        "locale_name": "Quilladin",
         "name": "quilladin",
         "types": [
             "grass"
@@ -11061,6 +11552,7 @@
         "genus": "Balloon",
         "height": 0.5,
         "id": 211,
+        "locale_name": "Qwilfish",
         "name": "qwilfish",
         "types": [
             "water",
@@ -11086,6 +11578,7 @@
         "genus": "Mouse",
         "height": 0.8,
         "id": 26,
+        "locale_name": "Raichu",
         "name": "raichu",
         "types": [
             "electric"
@@ -11104,6 +11597,7 @@
         "genus": "Thunder",
         "height": 1.9,
         "id": 243,
+        "locale_name": "Raikou",
         "name": "raikou",
         "types": [
             "electric"
@@ -11129,6 +11623,7 @@
         "genus": "Feeling",
         "height": 0.4,
         "id": 280,
+        "locale_name": "Ralts",
         "name": "ralts",
         "types": [
             "psychic",
@@ -11151,6 +11646,7 @@
         "genus": "Head Butt",
         "height": 1.6,
         "id": 409,
+        "locale_name": "Rampardos",
         "name": "rampardos",
         "types": [
             "rock"
@@ -11172,6 +11668,7 @@
         "genus": "Fire Horse",
         "height": 1.7,
         "id": 78,
+        "locale_name": "Rapidash",
         "name": "rapidash",
         "types": [
             "fire"
@@ -11193,6 +11690,7 @@
         "genus": "Mouse",
         "height": 0.7,
         "id": 20,
+        "locale_name": "Raticate",
         "name": "raticate",
         "types": [
             "normal"
@@ -11216,6 +11714,7 @@
         "hatches_from": 2,
         "height": 0.3,
         "id": 19,
+        "locale_name": "Rattata",
         "name": "rattata",
         "types": [
             "normal"
@@ -11234,6 +11733,7 @@
         "genus": "Sky High",
         "height": 7.0,
         "id": 384,
+        "locale_name": "Rayquaza",
         "name": "rayquaza",
         "types": [
             "dragon",
@@ -11253,6 +11753,7 @@
         "genus": "Iceberg",
         "height": 1.8,
         "id": 378,
+        "locale_name": "Regice",
         "name": "regice",
         "types": [
             "ice"
@@ -11271,6 +11772,7 @@
         "genus": "Colossal",
         "height": 3.7,
         "id": 486,
+        "locale_name": "Regigigas",
         "name": "regigigas",
         "types": [
             "normal"
@@ -11289,6 +11791,7 @@
         "genus": "Rock Peak",
         "height": 1.7,
         "id": 377,
+        "locale_name": "Regirock",
         "name": "regirock",
         "types": [
             "rock"
@@ -11307,6 +11810,7 @@
         "genus": "Iron",
         "height": 1.9,
         "id": 379,
+        "locale_name": "Registeel",
         "name": "registeel",
         "types": [
             "steel"
@@ -11325,6 +11829,7 @@
         "genus": "Longevity",
         "height": 1.0,
         "id": 369,
+        "locale_name": "Relicanth",
         "name": "relicanth",
         "types": [
             "water",
@@ -11347,6 +11852,7 @@
         "genus": "Jet",
         "height": 0.6,
         "id": 223,
+        "locale_name": "Remoraid",
         "name": "remoraid",
         "types": [
             "water"
@@ -11365,6 +11871,7 @@
         "genus": "Vast White",
         "height": 3.2,
         "id": 643,
+        "locale_name": "Reshiram",
         "name": "reshiram",
         "types": [
             "dragon",
@@ -11390,6 +11897,7 @@
         "genus": "Multiplying",
         "height": 1.0,
         "id": 579,
+        "locale_name": "Reuniclus",
         "name": "reuniclus",
         "types": [
             "psychic"
@@ -11414,6 +11922,7 @@
         "genus": "Drill",
         "height": 1.9,
         "id": 112,
+        "locale_name": "Rhydon",
         "name": "rhydon",
         "types": [
             "ground",
@@ -11441,6 +11950,7 @@
         "hatches_from": 5,
         "height": 1.0,
         "id": 111,
+        "locale_name": "Rhyhorn",
         "name": "rhyhorn",
         "types": [
             "ground",
@@ -11466,6 +11976,7 @@
         "genus": "Drill",
         "height": 2.4,
         "id": 464,
+        "locale_name": "Rhyperior",
         "name": "rhyperior",
         "types": [
             "ground",
@@ -11488,6 +11999,7 @@
         "genus": "Emanation",
         "height": 0.7,
         "id": 447,
+        "locale_name": "Riolu",
         "name": "riolu",
         "types": [
             "fighting"
@@ -11512,6 +12024,7 @@
         "genus": "Mantle",
         "height": 0.4,
         "id": 524,
+        "locale_name": "Roggenrola",
         "name": "roggenrola",
         "types": [
             "rock"
@@ -11536,6 +12049,7 @@
         "genus": "Thorn",
         "height": 0.3,
         "id": 315,
+        "locale_name": "Roselia",
         "name": "roselia",
         "types": [
             "grass",
@@ -11561,6 +12075,7 @@
         "genus": "Bouquet",
         "height": 0.9,
         "id": 407,
+        "locale_name": "Roserade",
         "name": "roserade",
         "types": [
             "grass",
@@ -11580,6 +12095,7 @@
         "genus": "Plasma",
         "height": 0.3,
         "id": 479,
+        "locale_name": "Rotom",
         "name": "rotom",
         "types": [
             "electric",
@@ -11602,6 +12118,7 @@
         "genus": "Eaglet",
         "height": 0.5,
         "id": 627,
+        "locale_name": "Rufflet",
         "name": "rufflet",
         "types": [
             "normal",
@@ -11621,6 +12138,7 @@
         "genus": "Darkness",
         "height": 0.5,
         "id": 302,
+        "locale_name": "Sableye",
         "name": "sableye",
         "types": [
             "dark",
@@ -11646,6 +12164,7 @@
         "genus": "Dragon",
         "height": 1.5,
         "id": 373,
+        "locale_name": "Salamence",
         "name": "salamence",
         "types": [
             "dragon",
@@ -11671,6 +12190,7 @@
         "genus": "Formidable",
         "height": 1.5,
         "id": 503,
+        "locale_name": "Samurott",
         "name": "samurott",
         "types": [
             "water"
@@ -11695,6 +12215,7 @@
         "genus": "Desert Croc",
         "height": 0.7,
         "id": 551,
+        "locale_name": "Sandile",
         "name": "sandile",
         "types": [
             "ground",
@@ -11719,6 +12240,7 @@
         "hatches_from": 5,
         "height": 0.6,
         "id": 27,
+        "locale_name": "Sandshrew",
         "name": "sandshrew",
         "types": [
             "ground"
@@ -11740,6 +12262,7 @@
         "genus": "Mouse",
         "height": 1.0,
         "id": 28,
+        "locale_name": "Sandslash",
         "name": "sandslash",
         "types": [
             "ground"
@@ -11758,6 +12281,7 @@
         "genus": "Karate",
         "height": 1.4,
         "id": 539,
+        "locale_name": "Sawk",
         "name": "sawk",
         "types": [
             "fighting"
@@ -11779,6 +12303,7 @@
         "genus": "Season",
         "height": 1.9,
         "id": 586,
+        "locale_name": "Sawsbuck",
         "name": "sawsbuck",
         "types": [
             "normal",
@@ -11804,6 +12329,7 @@
         "genus": "Scatterdust",
         "height": 0.3,
         "id": 664,
+        "locale_name": "Scatterbug",
         "name": "scatterbug",
         "types": [
             "bug"
@@ -11828,6 +12354,7 @@
         "genus": "Forest",
         "height": 1.7,
         "id": 254,
+        "locale_name": "Sceptile",
         "name": "sceptile",
         "types": [
             "grass"
@@ -11849,6 +12376,7 @@
         "genus": "Pincer",
         "height": 1.8,
         "id": 212,
+        "locale_name": "Scizor",
         "name": "scizor",
         "types": [
             "bug",
@@ -11874,6 +12402,7 @@
         "genus": "Megapede",
         "height": 2.5,
         "id": 545,
+        "locale_name": "Scolipede",
         "name": "scolipede",
         "types": [
             "bug",
@@ -11896,6 +12425,7 @@
         "genus": "Hoodlum",
         "height": 1.1,
         "id": 560,
+        "locale_name": "Scrafty",
         "name": "scrafty",
         "types": [
             "dark",
@@ -11918,6 +12448,7 @@
         "genus": "Shedding",
         "height": 0.6,
         "id": 559,
+        "locale_name": "Scraggy",
         "name": "scraggy",
         "types": [
             "dark",
@@ -11941,6 +12472,7 @@
         "hatches_from": 10,
         "height": 1.5,
         "id": 123,
+        "locale_name": "Scyther",
         "name": "scyther",
         "types": [
             "bug",
@@ -11966,6 +12498,7 @@
         "genus": "Dragon",
         "height": 1.2,
         "id": 117,
+        "locale_name": "Seadra",
         "name": "seadra",
         "types": [
             "water"
@@ -11987,6 +12520,7 @@
         "genus": "Goldfish",
         "height": 1.3,
         "id": 119,
+        "locale_name": "Seaking",
         "name": "seaking",
         "types": [
             "water"
@@ -12011,6 +12545,7 @@
         "genus": "Ball Roll",
         "height": 1.1,
         "id": 364,
+        "locale_name": "Sealeo",
         "name": "sealeo",
         "types": [
             "ice",
@@ -12036,6 +12571,7 @@
         "genus": "Acorn",
         "height": 0.5,
         "id": 273,
+        "locale_name": "Seedot",
         "name": "seedot",
         "types": [
             "grass"
@@ -12059,6 +12595,7 @@
         "hatches_from": 5,
         "height": 1.1,
         "id": 86,
+        "locale_name": "Seel",
         "name": "seel",
         "types": [
             "water"
@@ -12083,6 +12620,7 @@
         "genus": "Vibration",
         "height": 1.5,
         "id": 537,
+        "locale_name": "Seismitoad",
         "name": "seismitoad",
         "types": [
             "water",
@@ -12105,6 +12643,7 @@
         "genus": "Scout",
         "height": 0.8,
         "id": 161,
+        "locale_name": "Sentret",
         "name": "sentret",
         "types": [
             "normal"
@@ -12129,6 +12668,7 @@
         "genus": "Regal",
         "height": 3.3,
         "id": 497,
+        "locale_name": "Serperior",
         "name": "serperior",
         "types": [
             "grass"
@@ -12153,6 +12693,7 @@
         "genus": "Grass Snake",
         "height": 0.8,
         "id": 496,
+        "locale_name": "Servine",
         "name": "servine",
         "types": [
             "grass"
@@ -12171,6 +12712,7 @@
         "genus": "Fang Snake",
         "height": 2.7,
         "id": 336,
+        "locale_name": "Seviper",
         "name": "seviper",
         "types": [
             "poison"
@@ -12195,6 +12737,7 @@
         "genus": "Sewing",
         "height": 0.3,
         "id": 540,
+        "locale_name": "Sewaddle",
         "name": "sewaddle",
         "types": [
             "bug",
@@ -12217,6 +12760,7 @@
         "genus": "Brutal",
         "height": 1.8,
         "id": 319,
+        "locale_name": "Sharpedo",
         "name": "sharpedo",
         "types": [
             "water",
@@ -12236,6 +12780,7 @@
         "genus": "Gratitude",
         "height": 0.2,
         "id": 492,
+        "locale_name": "Shaymin",
         "name": "shaymin",
         "types": [
             "grass"
@@ -12258,6 +12803,7 @@
         "genus": "Shed",
         "height": 0.8,
         "id": 292,
+        "locale_name": "Shedinja",
         "name": "shedinja",
         "types": [
             "bug",
@@ -12283,6 +12829,7 @@
         "genus": "Endurance",
         "height": 1.1,
         "id": 372,
+        "locale_name": "Shelgon",
         "name": "shelgon",
         "types": [
             "dragon"
@@ -12306,6 +12853,7 @@
         "hatches_from": 5,
         "height": 0.3,
         "id": 90,
+        "locale_name": "Shellder",
         "name": "shellder",
         "types": [
             "water"
@@ -12327,6 +12875,7 @@
         "genus": "Sea Slug",
         "height": 0.3,
         "id": 422,
+        "locale_name": "Shellos",
         "name": "shellos",
         "types": [
             "water"
@@ -12348,6 +12897,7 @@
         "genus": "Snail",
         "height": 0.4,
         "id": 616,
+        "locale_name": "Shelmet",
         "name": "shelmet",
         "types": [
             "bug"
@@ -12369,6 +12919,7 @@
         "genus": "Shield",
         "height": 0.5,
         "id": 410,
+        "locale_name": "Shieldon",
         "name": "shieldon",
         "types": [
             "rock",
@@ -12394,6 +12945,7 @@
         "genus": "Wicked",
         "height": 1.3,
         "id": 275,
+        "locale_name": "Shiftry",
         "name": "shiftry",
         "types": [
             "grass",
@@ -12419,6 +12971,7 @@
         "genus": "Flash",
         "height": 0.5,
         "id": 403,
+        "locale_name": "Shinx",
         "name": "shinx",
         "types": [
             "electric"
@@ -12440,6 +12993,7 @@
         "genus": "Mushroom",
         "height": 0.4,
         "id": 285,
+        "locale_name": "Shroomish",
         "name": "shroomish",
         "types": [
             "grass"
@@ -12458,6 +13012,7 @@
         "genus": "Mold",
         "height": 0.6,
         "id": 213,
+        "locale_name": "Shuckle",
         "name": "shuckle",
         "types": [
             "bug",
@@ -12480,6 +13035,7 @@
         "genus": "Puppet",
         "height": 0.6,
         "id": 353,
+        "locale_name": "Shuppet",
         "name": "shuppet",
         "types": [
             "ghost"
@@ -12498,6 +13054,7 @@
         "genus": "Avianoid",
         "height": 1.4,
         "id": 561,
+        "locale_name": "Sigilyph",
         "name": "sigilyph",
         "types": [
             "psychic",
@@ -12525,6 +13082,7 @@
         "genus": "Cocoon",
         "height": 0.6,
         "id": 266,
+        "locale_name": "Silcoon",
         "name": "silcoon",
         "types": [
             "bug"
@@ -12546,6 +13104,7 @@
         "genus": "Geyser",
         "height": 1.0,
         "id": 516,
+        "locale_name": "Simipour",
         "name": "simipour",
         "types": [
             "water"
@@ -12567,6 +13126,7 @@
         "genus": "Thorn Monkey",
         "height": 1.1,
         "id": 512,
+        "locale_name": "Simisage",
         "name": "simisage",
         "types": [
             "grass"
@@ -12588,6 +13148,7 @@
         "genus": "Ember",
         "height": 1.0,
         "id": 514,
+        "locale_name": "Simisear",
         "name": "simisear",
         "types": [
             "fire"
@@ -12606,6 +13167,7 @@
         "genus": "Armor Bird",
         "height": 1.7,
         "id": 227,
+        "locale_name": "Skarmory",
         "name": "skarmory",
         "types": [
             "steel",
@@ -12628,6 +13190,7 @@
         "genus": "Mount",
         "height": 0.9,
         "id": 672,
+        "locale_name": "Skiddo",
         "name": "skiddo",
         "types": [
             "grass"
@@ -12652,6 +13215,7 @@
         "genus": "Cottonweed",
         "height": 0.6,
         "id": 188,
+        "locale_name": "Skiploom",
         "name": "skiploom",
         "types": [
             "grass",
@@ -12674,6 +13238,7 @@
         "genus": "Kitten",
         "height": 0.6,
         "id": 300,
+        "locale_name": "Skitty",
         "name": "skitty",
         "types": [
             "normal"
@@ -12695,6 +13260,7 @@
         "genus": "Scorpion",
         "height": 0.8,
         "id": 451,
+        "locale_name": "Skorupi",
         "name": "skorupi",
         "types": [
             "poison",
@@ -12717,6 +13283,7 @@
         "genus": "Mock Kelp",
         "height": 0.5,
         "id": 690,
+        "locale_name": "Skrelp",
         "name": "skrelp",
         "types": [
             "poison",
@@ -12739,6 +13306,7 @@
         "genus": "Skunk",
         "height": 1.0,
         "id": 435,
+        "locale_name": "Skuntank",
         "name": "skuntank",
         "types": [
             "poison",
@@ -12764,6 +13332,7 @@
         "genus": "Lazy",
         "height": 2.0,
         "id": 289,
+        "locale_name": "Slaking",
         "name": "slaking",
         "types": [
             "normal"
@@ -12788,6 +13357,7 @@
         "genus": "Slacker",
         "height": 0.8,
         "id": 287,
+        "locale_name": "Slakoth",
         "name": "slakoth",
         "types": [
             "normal"
@@ -12812,6 +13382,7 @@
         "genus": "Soft Tissue",
         "height": 0.8,
         "id": 705,
+        "locale_name": "Sliggoo",
         "name": "sliggoo",
         "types": [
             "dragon"
@@ -12834,6 +13405,7 @@
         "genus": "Hermit Crab",
         "height": 1.6,
         "id": 80,
+        "locale_name": "Slowbro",
         "name": "slowbro",
         "types": [
             "water",
@@ -12857,6 +13429,7 @@
         "genus": "Royal",
         "height": 2.0,
         "id": 199,
+        "locale_name": "Slowking",
         "name": "slowking",
         "types": [
             "water",
@@ -12882,6 +13455,7 @@
         "hatches_from": 5,
         "height": 1.2,
         "id": 79,
+        "locale_name": "Slowpoke",
         "name": "slowpoke",
         "types": [
             "water",
@@ -12904,6 +13478,7 @@
         "genus": "Lava",
         "height": 0.7,
         "id": 218,
+        "locale_name": "Slugma",
         "name": "slugma",
         "types": [
             "fire"
@@ -12925,6 +13500,7 @@
         "genus": "Meringue",
         "height": 0.8,
         "id": 685,
+        "locale_name": "Slurpuff",
         "name": "slurpuff",
         "types": [
             "fairy"
@@ -12943,6 +13519,7 @@
         "genus": "Painter",
         "height": 1.2,
         "id": 235,
+        "locale_name": "Smeargle",
         "name": "smeargle",
         "types": [
             "normal"
@@ -12964,6 +13541,7 @@
         "genus": "Kiss",
         "height": 0.4,
         "id": 238,
+        "locale_name": "Smoochum",
         "name": "smoochum",
         "types": [
             "ice",
@@ -12986,6 +13564,7 @@
         "genus": "Sharp Claw",
         "height": 0.9,
         "id": 215,
+        "locale_name": "Sneasel",
         "name": "sneasel",
         "types": [
             "dark",
@@ -13011,6 +13590,7 @@
         "genus": "Grass Snake",
         "height": 0.6,
         "id": 495,
+        "locale_name": "Snivy",
         "name": "snivy",
         "types": [
             "grass"
@@ -13033,6 +13613,7 @@
         "hatches_from": 10,
         "height": 2.1,
         "id": 143,
+        "locale_name": "Snorlax",
         "name": "snorlax",
         "types": [
             "normal"
@@ -13055,6 +13636,7 @@
         "genus": "Snow Hat",
         "height": 0.7,
         "id": 361,
+        "locale_name": "Snorunt",
         "name": "snorunt",
         "types": [
             "ice"
@@ -13076,6 +13658,7 @@
         "genus": "Frost Tree",
         "height": 1.0,
         "id": 459,
+        "locale_name": "Snover",
         "name": "snover",
         "types": [
             "grass",
@@ -13098,6 +13681,7 @@
         "genus": "Fairy",
         "height": 0.6,
         "id": 209,
+        "locale_name": "Snubbull",
         "name": "snubbull",
         "types": [
             "fairy"
@@ -13122,6 +13706,7 @@
         "genus": "Cell",
         "height": 0.3,
         "id": 577,
+        "locale_name": "Solosis",
         "name": "solosis",
         "types": [
             "psychic"
@@ -13140,6 +13725,7 @@
         "genus": "Meteorite",
         "height": 1.2,
         "id": 338,
+        "locale_name": "Solrock",
         "name": "solrock",
         "types": [
             "rock",
@@ -13164,6 +13750,7 @@
         "hatches_from": 2,
         "height": 0.3,
         "id": 21,
+        "locale_name": "Spearow",
         "name": "spearow",
         "types": [
             "normal",
@@ -13189,6 +13776,7 @@
         "genus": "Scatterdust",
         "height": 0.3,
         "id": 665,
+        "locale_name": "Spewpa",
         "name": "spewpa",
         "types": [
             "bug"
@@ -13213,6 +13801,7 @@
         "genus": "Clap",
         "height": 0.8,
         "id": 363,
+        "locale_name": "Spheal",
         "name": "spheal",
         "types": [
             "ice",
@@ -13235,6 +13824,7 @@
         "genus": "String Spit",
         "height": 0.5,
         "id": 167,
+        "locale_name": "Spinarak",
         "name": "spinarak",
         "types": [
             "bug",
@@ -13254,6 +13844,7 @@
         "genus": "Spot Panda",
         "height": 1.1,
         "id": 327,
+        "locale_name": "Spinda",
         "name": "spinda",
         "types": [
             "normal"
@@ -13272,6 +13863,7 @@
         "genus": "Forbidden",
         "height": 1.0,
         "id": 442,
+        "locale_name": "Spiritomb",
         "name": "spiritomb",
         "types": [
             "ghost",
@@ -13294,6 +13886,7 @@
         "genus": "Bounce",
         "height": 0.7,
         "id": 325,
+        "locale_name": "Spoink",
         "name": "spoink",
         "types": [
             "psychic"
@@ -13315,6 +13908,7 @@
         "genus": "Perfume",
         "height": 0.2,
         "id": 682,
+        "locale_name": "Spritzee",
         "name": "spritzee",
         "types": [
             "fairy"
@@ -13341,6 +13935,7 @@
         "hatches_from": 2,
         "height": 0.5,
         "id": 7,
+        "locale_name": "Squirtle",
         "name": "squirtle",
         "types": [
             "water"
@@ -13359,6 +13954,7 @@
         "genus": "Big Horn",
         "height": 1.4,
         "id": 234,
+        "locale_name": "Stantler",
         "name": "stantler",
         "types": [
             "normal"
@@ -13383,6 +13979,7 @@
         "genus": "Predator",
         "height": 1.2,
         "id": 398,
+        "locale_name": "Staraptor",
         "name": "staraptor",
         "types": [
             "normal",
@@ -13408,6 +14005,7 @@
         "genus": "Starling",
         "height": 0.6,
         "id": 397,
+        "locale_name": "Staravia",
         "name": "staravia",
         "types": [
             "normal",
@@ -13433,6 +14031,7 @@
         "genus": "Starling",
         "height": 0.3,
         "id": 396,
+        "locale_name": "Starly",
         "name": "starly",
         "types": [
             "normal",
@@ -13455,6 +14054,7 @@
         "genus": "Mysterious",
         "height": 1.1,
         "id": 121,
+        "locale_name": "Starmie",
         "name": "starmie",
         "types": [
             "water",
@@ -13479,6 +14079,7 @@
         "hatches_from": 5,
         "height": 0.8,
         "id": 120,
+        "locale_name": "Staryu",
         "name": "staryu",
         "types": [
             "water"
@@ -13500,6 +14101,7 @@
         "genus": "Iron Snake",
         "height": 9.2,
         "id": 208,
+        "locale_name": "Steelix",
         "name": "steelix",
         "types": [
             "steel",
@@ -13525,6 +14127,7 @@
         "genus": "Big-Hearted",
         "height": 1.2,
         "id": 508,
+        "locale_name": "Stoutland",
         "name": "stoutland",
         "types": [
             "normal"
@@ -13543,6 +14146,7 @@
         "genus": "Trap",
         "height": 0.7,
         "id": 618,
+        "locale_name": "Stunfisk",
         "name": "stunfisk",
         "types": [
             "ground",
@@ -13565,6 +14169,7 @@
         "genus": "Skunk",
         "height": 0.4,
         "id": 434,
+        "locale_name": "Stunky",
         "name": "stunky",
         "types": [
             "poison",
@@ -13587,6 +14192,7 @@
         "genus": "Imitation",
         "height": 1.2,
         "id": 185,
+        "locale_name": "Sudowoodo",
         "name": "sudowoodo",
         "types": [
             "rock"
@@ -13605,6 +14211,7 @@
         "genus": "Aurora",
         "height": 2.0,
         "id": 245,
+        "locale_name": "Suicune",
         "name": "suicune",
         "types": [
             "water"
@@ -13626,6 +14233,7 @@
         "genus": "Sun",
         "height": 0.8,
         "id": 192,
+        "locale_name": "Sunflora",
         "name": "sunflora",
         "types": [
             "grass"
@@ -13647,6 +14255,7 @@
         "genus": "Seed",
         "height": 0.3,
         "id": 191,
+        "locale_name": "Sunkern",
         "name": "sunkern",
         "types": [
             "grass"
@@ -13668,6 +14277,7 @@
         "genus": "Pond Skater",
         "height": 0.5,
         "id": 283,
+        "locale_name": "Surskit",
         "name": "surskit",
         "types": [
             "bug",
@@ -13690,6 +14300,7 @@
         "genus": "Cotton Bird",
         "height": 0.4,
         "id": 333,
+        "locale_name": "Swablu",
         "name": "swablu",
         "types": [
             "normal",
@@ -13715,6 +14326,7 @@
         "genus": "Leaf-Wrapped",
         "height": 0.5,
         "id": 541,
+        "locale_name": "Swadloon",
         "name": "swadloon",
         "types": [
             "bug",
@@ -13737,6 +14349,7 @@
         "genus": "Poison Bag",
         "height": 1.7,
         "id": 317,
+        "locale_name": "Swalot",
         "name": "swalot",
         "types": [
             "poison"
@@ -13761,6 +14374,7 @@
         "genus": "Mud Fish",
         "height": 1.5,
         "id": 260,
+        "locale_name": "Swampert",
         "name": "swampert",
         "types": [
             "water",
@@ -13783,6 +14397,7 @@
         "genus": "White Bird",
         "height": 1.3,
         "id": 581,
+        "locale_name": "Swanna",
         "name": "swanna",
         "types": [
             "water",
@@ -13805,6 +14420,7 @@
         "genus": "Swallow",
         "height": 0.7,
         "id": 277,
+        "locale_name": "Swellow",
         "name": "swellow",
         "types": [
             "normal",
@@ -13830,6 +14446,7 @@
         "genus": "Pig",
         "height": 0.4,
         "id": 220,
+        "locale_name": "Swinub",
         "name": "swinub",
         "types": [
             "ice",
@@ -13852,6 +14469,7 @@
         "genus": "Cotton Candy",
         "height": 0.4,
         "id": 684,
+        "locale_name": "Swirlix",
         "name": "swirlix",
         "types": [
             "fairy"
@@ -13873,6 +14491,7 @@
         "genus": "Courting",
         "height": 0.9,
         "id": 528,
+        "locale_name": "Swoobat",
         "name": "swoobat",
         "types": [
             "psychic",
@@ -13902,6 +14521,7 @@
         "genus": "Intertwining",
         "height": 1.0,
         "id": 700,
+        "locale_name": "Sylveon",
         "name": "sylveon",
         "types": [
             "fairy"
@@ -13923,6 +14543,7 @@
         "genus": "Tiny Swallow",
         "height": 0.3,
         "id": 276,
+        "locale_name": "Taillow",
         "name": "taillow",
         "types": [
             "normal",
@@ -13948,6 +14569,7 @@
         "genus": "Scorching",
         "height": 1.2,
         "id": 663,
+        "locale_name": "Talonflame",
         "name": "talonflame",
         "types": [
             "fire",
@@ -13971,6 +14593,7 @@
         "hatches_from": 5,
         "height": 1.0,
         "id": 114,
+        "locale_name": "Tangela",
         "name": "tangela",
         "types": [
             "grass"
@@ -13992,6 +14615,7 @@
         "genus": "Vine",
         "height": 2.0,
         "id": 465,
+        "locale_name": "Tangrowth",
         "name": "tangrowth",
         "types": [
             "grass"
@@ -14011,6 +14635,7 @@
         "hatches_from": 5,
         "height": 1.4,
         "id": 128,
+        "locale_name": "Tauros",
         "name": "tauros",
         "types": [
             "normal"
@@ -14032,6 +14657,7 @@
         "genus": "Little Bear",
         "height": 0.6,
         "id": 216,
+        "locale_name": "Teddiursa",
         "name": "teddiursa",
         "types": [
             "normal"
@@ -14055,6 +14681,7 @@
         "hatches_from": 5,
         "height": 0.9,
         "id": 72,
+        "locale_name": "Tentacool",
         "name": "tentacool",
         "types": [
             "water",
@@ -14077,6 +14704,7 @@
         "genus": "Jellyfish",
         "height": 1.6,
         "id": 73,
+        "locale_name": "Tentacruel",
         "name": "tentacruel",
         "types": [
             "water",
@@ -14102,6 +14730,7 @@
         "genus": "Fire Pig",
         "height": 0.5,
         "id": 498,
+        "locale_name": "Tepig",
         "name": "tepig",
         "types": [
             "fire"
@@ -14120,6 +14749,7 @@
         "genus": "Cavern",
         "height": 1.9,
         "id": 639,
+        "locale_name": "Terrakion",
         "name": "terrakion",
         "types": [
             "rock",
@@ -14139,6 +14769,7 @@
         "genus": "Judo",
         "height": 1.3,
         "id": 538,
+        "locale_name": "Throh",
         "name": "throh",
         "types": [
             "fighting"
@@ -14157,6 +14788,7 @@
         "genus": "Bolt Strike",
         "height": 1.5,
         "id": 642,
+        "locale_name": "Thundurus",
         "name": "thundurus",
         "types": [
             "electric",
@@ -14182,6 +14814,7 @@
         "genus": "Muscular",
         "height": 0.6,
         "id": 532,
+        "locale_name": "Timburr",
         "name": "timburr",
         "types": [
             "fighting"
@@ -14203,6 +14836,7 @@
         "genus": "Prototurtle",
         "height": 0.7,
         "id": 564,
+        "locale_name": "Tirtouga",
         "name": "tirtouga",
         "types": [
             "water",
@@ -14228,6 +14862,7 @@
         "genus": "Jubilee",
         "height": 1.5,
         "id": 468,
+        "locale_name": "Togekiss",
         "name": "togekiss",
         "types": [
             "fairy",
@@ -14253,6 +14888,7 @@
         "genus": "Spike Ball",
         "height": 0.3,
         "id": 175,
+        "locale_name": "Togepi",
         "name": "togepi",
         "types": [
             "fairy"
@@ -14277,6 +14913,7 @@
         "genus": "Happiness",
         "height": 0.6,
         "id": 176,
+        "locale_name": "Togetic",
         "name": "togetic",
         "types": [
             "fairy",
@@ -14302,6 +14939,7 @@
         "genus": "Chick",
         "height": 0.4,
         "id": 255,
+        "locale_name": "Torchic",
         "name": "torchic",
         "types": [
             "fire"
@@ -14320,6 +14958,7 @@
         "genus": "Coal",
         "height": 0.5,
         "id": 324,
+        "locale_name": "Torkoal",
         "name": "torkoal",
         "types": [
             "fire"
@@ -14338,6 +14977,7 @@
         "genus": "Cyclone",
         "height": 1.5,
         "id": 641,
+        "locale_name": "Tornadus",
         "name": "tornadus",
         "types": [
             "flying"
@@ -14362,6 +15002,7 @@
         "genus": "Continent",
         "height": 2.2,
         "id": 389,
+        "locale_name": "Torterra",
         "name": "torterra",
         "types": [
             "grass",
@@ -14387,6 +15028,7 @@
         "genus": "Big Jaw",
         "height": 0.6,
         "id": 158,
+        "locale_name": "Totodile",
         "name": "totodile",
         "types": [
             "water"
@@ -14408,6 +15050,7 @@
         "genus": "Toxic Mouth",
         "height": 1.3,
         "id": 454,
+        "locale_name": "Toxicroak",
         "name": "toxicroak",
         "types": [
             "poison",
@@ -14433,6 +15076,7 @@
         "genus": "Wild Pigeon",
         "height": 0.6,
         "id": 520,
+        "locale_name": "Tranquill",
         "name": "tranquill",
         "types": [
             "normal",
@@ -14458,6 +15102,7 @@
         "genus": "Ant Pit",
         "height": 0.7,
         "id": 328,
+        "locale_name": "Trapinch",
         "name": "trapinch",
         "types": [
             "ground"
@@ -14482,6 +15127,7 @@
         "genus": "Wood Gecko",
         "height": 0.5,
         "id": 252,
+        "locale_name": "Treecko",
         "name": "treecko",
         "types": [
             "grass"
@@ -14503,6 +15149,7 @@
         "genus": "Elder Tree",
         "height": 1.5,
         "id": 709,
+        "locale_name": "Trevenant",
         "name": "trevenant",
         "types": [
             "ghost",
@@ -14522,6 +15169,7 @@
         "genus": "Fruit",
         "height": 2.0,
         "id": 357,
+        "locale_name": "Tropius",
         "name": "tropius",
         "types": [
             "grass",
@@ -14544,6 +15192,7 @@
         "genus": "Trash Bag",
         "height": 0.6,
         "id": 568,
+        "locale_name": "Trubbish",
         "name": "trubbish",
         "types": [
             "poison"
@@ -14568,6 +15217,7 @@
         "genus": "Tiny Leaf",
         "height": 0.4,
         "id": 387,
+        "locale_name": "Turtwig",
         "name": "turtwig",
         "types": [
             "grass"
@@ -14592,6 +15242,7 @@
         "genus": "Tadpole",
         "height": 0.5,
         "id": 535,
+        "locale_name": "Tympole",
         "name": "tympole",
         "types": [
             "water"
@@ -14616,6 +15267,7 @@
         "genus": "EleFish",
         "height": 0.2,
         "id": 602,
+        "locale_name": "Tynamo",
         "name": "tynamo",
         "types": [
             "electric"
@@ -14640,6 +15292,7 @@
         "genus": "Volcano",
         "height": 1.7,
         "id": 157,
+        "locale_name": "Typhlosion",
         "name": "typhlosion",
         "types": [
             "fire"
@@ -14664,6 +15317,7 @@
         "genus": "Armor",
         "height": 2.0,
         "id": 248,
+        "locale_name": "Tyranitar",
         "name": "tyranitar",
         "types": [
             "rock",
@@ -14686,6 +15340,7 @@
         "genus": "Despot",
         "height": 2.5,
         "id": 697,
+        "locale_name": "Tyrantrum",
         "name": "tyrantrum",
         "types": [
             "rock",
@@ -14710,6 +15365,7 @@
         "genus": "Scuffle",
         "height": 0.7,
         "id": 236,
+        "locale_name": "Tyrogue",
         "name": "tyrogue",
         "types": [
             "fighting"
@@ -14731,6 +15387,7 @@
         "genus": "Royal Heir",
         "height": 0.8,
         "id": 696,
+        "locale_name": "Tyrunt",
         "name": "tyrunt",
         "types": [
             "rock",
@@ -14760,6 +15417,7 @@
         "genus": "Moonlight",
         "height": 1.0,
         "id": 197,
+        "locale_name": "Umbreon",
         "name": "umbreon",
         "types": [
             "dark"
@@ -14784,6 +15442,7 @@
         "genus": "Proud",
         "height": 1.2,
         "id": 521,
+        "locale_name": "Unfezant",
         "name": "unfezant",
         "types": [
             "normal",
@@ -14803,6 +15462,7 @@
         "genus": "Symbol",
         "height": 0.5,
         "id": 201,
+        "locale_name": "Unown",
         "name": "unown",
         "types": [
             "psychic"
@@ -14824,6 +15484,7 @@
         "genus": "Hibernator",
         "height": 1.8,
         "id": 217,
+        "locale_name": "Ursaring",
         "name": "ursaring",
         "types": [
             "normal"
@@ -14842,6 +15503,7 @@
         "genus": "Knowledge",
         "height": 0.3,
         "id": 480,
+        "locale_name": "Uxie",
         "name": "uxie",
         "types": [
             "psychic"
@@ -14866,6 +15528,7 @@
         "genus": "Icy Snow",
         "height": 1.1,
         "id": 583,
+        "locale_name": "Vanillish",
         "name": "vanillish",
         "types": [
             "ice"
@@ -14890,6 +15553,7 @@
         "genus": "Fresh Snow",
         "height": 0.4,
         "id": 582,
+        "locale_name": "Vanillite",
         "name": "vanillite",
         "types": [
             "ice"
@@ -14914,6 +15578,7 @@
         "genus": "Snowstorm",
         "height": 1.3,
         "id": 584,
+        "locale_name": "Vanilluxe",
         "name": "vanilluxe",
         "types": [
             "ice"
@@ -14942,6 +15607,7 @@
         "genus": "Bubble Jet",
         "height": 1.0,
         "id": 134,
+        "locale_name": "Vaporeon",
         "name": "vaporeon",
         "types": [
             "water"
@@ -14966,6 +15632,7 @@
         "genus": "Centipede",
         "height": 0.4,
         "id": 543,
+        "locale_name": "Venipede",
         "name": "venipede",
         "types": [
             "bug",
@@ -14988,6 +15655,7 @@
         "genus": "Poison Moth",
         "height": 1.5,
         "id": 49,
+        "locale_name": "Venomoth",
         "name": "venomoth",
         "types": [
             "bug",
@@ -15012,6 +15680,7 @@
         "hatches_from": 5,
         "height": 1.0,
         "id": 48,
+        "locale_name": "Venonat",
         "name": "venonat",
         "types": [
             "bug",
@@ -15037,6 +15706,7 @@
         "genus": "Seed",
         "height": 2.0,
         "id": 3,
+        "locale_name": "Venusaur",
         "name": "venusaur",
         "types": [
             "grass",
@@ -15059,6 +15729,7 @@
         "genus": "Beehive",
         "height": 1.2,
         "id": 416,
+        "locale_name": "Vespiquen",
         "name": "vespiquen",
         "types": [
             "bug",
@@ -15084,6 +15755,7 @@
         "genus": "Vibration",
         "height": 1.1,
         "id": 329,
+        "locale_name": "Vibrava",
         "name": "vibrava",
         "types": [
             "ground",
@@ -15103,6 +15775,7 @@
         "genus": "Victory",
         "height": 0.4,
         "id": 494,
+        "locale_name": "Victini",
         "name": "victini",
         "types": [
             "psychic",
@@ -15128,6 +15801,7 @@
         "genus": "Flycatcher",
         "height": 1.7,
         "id": 71,
+        "locale_name": "Victreebel",
         "name": "victreebel",
         "types": [
             "grass",
@@ -15153,6 +15827,7 @@
         "genus": "Wild Monkey",
         "height": 1.4,
         "id": 288,
+        "locale_name": "Vigoroth",
         "name": "vigoroth",
         "types": [
             "normal"
@@ -15178,6 +15853,7 @@
         "genus": "Flower",
         "height": 1.2,
         "id": 45,
+        "locale_name": "Vileplume",
         "name": "vileplume",
         "types": [
             "grass",
@@ -15197,6 +15873,7 @@
         "genus": "Grassland",
         "height": 2.0,
         "id": 640,
+        "locale_name": "Virizion",
         "name": "virizion",
         "types": [
             "grass",
@@ -15222,6 +15899,7 @@
         "genus": "Scale",
         "height": 1.2,
         "id": 666,
+        "locale_name": "Vivillon",
         "name": "vivillon",
         "types": [
             "bug",
@@ -15241,6 +15919,7 @@
         "genus": "Firefly",
         "height": 0.7,
         "id": 313,
+        "locale_name": "Volbeat",
         "name": "volbeat",
         "types": [
             "bug"
@@ -15259,6 +15938,7 @@
         "genus": "Steam",
         "height": 1.7,
         "id": 721,
+        "locale_name": "Volcanion",
         "name": "volcanion",
         "types": [
             "fire",
@@ -15281,6 +15961,7 @@
         "genus": "Sun",
         "height": 1.6,
         "id": 637,
+        "locale_name": "Volcarona",
         "name": "volcarona",
         "types": [
             "bug",
@@ -15305,6 +15986,7 @@
         "hatches_from": 5,
         "height": 0.5,
         "id": 100,
+        "locale_name": "Voltorb",
         "name": "voltorb",
         "types": [
             "electric"
@@ -15326,6 +16008,7 @@
         "genus": "Diapered",
         "height": 0.5,
         "id": 629,
+        "locale_name": "Vullaby",
         "name": "vullaby",
         "types": [
             "dark",
@@ -15350,6 +16033,7 @@
         "hatches_from": 5,
         "height": 0.6,
         "id": 37,
+        "locale_name": "Vulpix",
         "name": "vulpix",
         "types": [
             "fire"
@@ -15371,6 +16055,7 @@
         "genus": "Ball Whale",
         "height": 2.0,
         "id": 320,
+        "locale_name": "Wailmer",
         "name": "wailmer",
         "types": [
             "water"
@@ -15392,6 +16077,7 @@
         "genus": "Float Whale",
         "height": 14.5,
         "id": 321,
+        "locale_name": "Wailord",
         "name": "wailord",
         "types": [
             "water"
@@ -15416,6 +16102,7 @@
         "genus": "Ice Break",
         "height": 1.4,
         "id": 365,
+        "locale_name": "Walrein",
         "name": "walrein",
         "types": [
             "ice",
@@ -15442,6 +16129,7 @@
         "genus": "Turtle",
         "height": 1.0,
         "id": 8,
+        "locale_name": "Wartortle",
         "name": "wartortle",
         "types": [
             "water"
@@ -15463,6 +16151,7 @@
         "genus": "Lookout",
         "height": 1.1,
         "id": 505,
+        "locale_name": "Watchog",
         "name": "watchog",
         "types": [
             "normal"
@@ -15484,6 +16173,7 @@
         "genus": "Sharp Claw",
         "height": 1.1,
         "id": 461,
+        "locale_name": "Weavile",
         "name": "weavile",
         "types": [
             "dark",
@@ -15511,6 +16201,7 @@
         "hatches_from": 2,
         "height": 0.3,
         "id": 13,
+        "locale_name": "Weedle",
         "name": "weedle",
         "types": [
             "bug",
@@ -15537,6 +16228,7 @@
         "genus": "Flycatcher",
         "height": 1.0,
         "id": 70,
+        "locale_name": "Weepinbell",
         "name": "weepinbell",
         "types": [
             "grass",
@@ -15559,6 +16251,7 @@
         "genus": "Poison Gas",
         "height": 1.2,
         "id": 110,
+        "locale_name": "Weezing",
         "name": "weezing",
         "types": [
             "poison"
@@ -15580,6 +16273,7 @@
         "genus": "Windveiled",
         "height": 0.7,
         "id": 547,
+        "locale_name": "Whimsicott",
         "name": "whimsicott",
         "types": [
             "grass",
@@ -15605,6 +16299,7 @@
         "genus": "Curlipede",
         "height": 1.2,
         "id": 544,
+        "locale_name": "Whirlipede",
         "name": "whirlipede",
         "types": [
             "bug",
@@ -15627,6 +16322,7 @@
         "genus": "Whiskers",
         "height": 0.9,
         "id": 340,
+        "locale_name": "Whiscash",
         "name": "whiscash",
         "types": [
             "water",
@@ -15652,6 +16348,7 @@
         "genus": "Whisper",
         "height": 0.6,
         "id": 293,
+        "locale_name": "Whismur",
         "name": "whismur",
         "types": [
             "normal"
@@ -15676,6 +16373,7 @@
         "genus": "Balloon",
         "height": 1.0,
         "id": 40,
+        "locale_name": "Wigglytuff",
         "name": "wigglytuff",
         "types": [
             "normal",
@@ -15698,6 +16396,7 @@
         "genus": "Seagull",
         "height": 0.6,
         "id": 278,
+        "locale_name": "Wingull",
         "name": "wingull",
         "types": [
             "water",
@@ -15720,6 +16419,7 @@
         "genus": "Patient",
         "height": 1.3,
         "id": 202,
+        "locale_name": "Wobbuffet",
         "name": "wobbuffet",
         "types": [
             "psychic"
@@ -15741,6 +16441,7 @@
         "genus": "Bat",
         "height": 0.4,
         "id": 527,
+        "locale_name": "Woobat",
         "name": "woobat",
         "types": [
             "psychic",
@@ -15763,6 +16464,7 @@
         "genus": "Water Fish",
         "height": 0.4,
         "id": 194,
+        "locale_name": "Wooper",
         "name": "wooper",
         "types": [
             "water",
@@ -15786,6 +16488,7 @@
         "genus": "Bagworm",
         "height": 0.5,
         "id": 413,
+        "locale_name": "Wormadam",
         "name": "wormadam",
         "types": [
             "bug",
@@ -15813,6 +16516,7 @@
         "genus": "Worm",
         "height": 0.3,
         "id": 265,
+        "locale_name": "Wurmple",
         "name": "wurmple",
         "types": [
             "bug"
@@ -15834,6 +16538,7 @@
         "genus": "Bright",
         "height": 0.6,
         "id": 360,
+        "locale_name": "Wynaut",
         "name": "wynaut",
         "types": [
             "psychic"
@@ -15855,6 +16560,7 @@
         "genus": "Mystic",
         "height": 1.5,
         "id": 178,
+        "locale_name": "Xatu",
         "name": "xatu",
         "types": [
             "psychic",
@@ -15874,6 +16580,7 @@
         "genus": "Life",
         "height": 3.0,
         "id": 716,
+        "locale_name": "Xerneas",
         "name": "xerneas",
         "types": [
             "fairy"
@@ -15895,6 +16602,7 @@
         "genus": "Spirit",
         "height": 0.5,
         "id": 562,
+        "locale_name": "Yamask",
         "name": "yamask",
         "types": [
             "ghost"
@@ -15916,6 +16624,7 @@
         "genus": "Clear Wing",
         "height": 1.2,
         "id": 193,
+        "locale_name": "Yanma",
         "name": "yanma",
         "types": [
             "bug",
@@ -15938,6 +16647,7 @@
         "genus": "Ogre Darner",
         "height": 1.9,
         "id": 469,
+        "locale_name": "Yanmega",
         "name": "yanmega",
         "types": [
             "bug",
@@ -15957,6 +16667,7 @@
         "genus": "Destruction",
         "height": 5.8,
         "id": 717,
+        "locale_name": "Yveltal",
         "name": "yveltal",
         "types": [
             "dark",
@@ -15976,6 +16687,7 @@
         "genus": "Cat Ferret",
         "height": 1.3,
         "id": 335,
+        "locale_name": "Zangoose",
         "name": "zangoose",
         "types": [
             "normal"
@@ -15994,6 +16706,7 @@
         "genus": "Electric",
         "height": 1.6,
         "id": 145,
+        "locale_name": "Zapdos",
         "name": "zapdos",
         "types": [
             "electric",
@@ -16016,6 +16729,7 @@
         "genus": "Thunderbolt",
         "height": 1.6,
         "id": 523,
+        "locale_name": "Zebstrika",
         "name": "zebstrika",
         "types": [
             "electric"
@@ -16034,6 +16748,7 @@
         "genus": "Deep Black",
         "height": 2.9,
         "id": 644,
+        "locale_name": "Zekrom",
         "name": "zekrom",
         "types": [
             "dragon",
@@ -16056,6 +16771,7 @@
         "genus": "Tiny Raccoon",
         "height": 0.4,
         "id": 263,
+        "locale_name": "Zigzagoon",
         "name": "zigzagoon",
         "types": [
             "normal"
@@ -16077,6 +16793,7 @@
         "genus": "Illusion Fox",
         "height": 1.6,
         "id": 571,
+        "locale_name": "Zoroark",
         "name": "zoroark",
         "types": [
             "dark"
@@ -16098,6 +16815,7 @@
         "genus": "Tricky Fox",
         "height": 0.7,
         "id": 570,
+        "locale_name": "Zorua",
         "name": "zorua",
         "types": [
             "dark"
@@ -16124,6 +16842,7 @@
         "hatches_from": 2,
         "height": 0.8,
         "id": 41,
+        "locale_name": "Zubat",
         "name": "zubat",
         "types": [
             "poison",
@@ -16149,6 +16868,7 @@
         "genus": "Hostile",
         "height": 1.4,
         "id": 634,
+        "locale_name": "Zweilous",
         "name": "zweilous",
         "types": [
             "dark",
@@ -16168,6 +16888,7 @@
         "genus": "Order",
         "height": 5.0,
         "id": 718,
+        "locale_name": "Zygarde",
         "name": "zygarde",
         "types": [
             "dragon",

@@ -70,18 +70,12 @@ def resize_sprite(sprite, factor: float):
     return buffer
 
 
-def replace_sex_suffix(s: str):
-    """ Replaces -m and -f with ♂ and ♀ respectively. """
-    return s.replace("-m", "♂").replace("-f", "♀")
-
-
 @plugins.command(name="pokedex")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
     """ Display some information of the given pokémon. tejt"""
     # Do some quick replacements
     if name_or_id.startswith("#"):
         name_or_id = name_or_id.replace("#", "")
-    name_or_id = name_or_id.replace("♂", "-m").replace("♀", "-f")
     name_or_id = name_or_id.replace(" ", "-").replace("♂", "m").replace("♀", "f")
 
     # Get the requested pokemon name
@@ -89,8 +83,14 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     try:
         pokemon_id = int(name_or_id)
     except ValueError:
+        # See if there's a pokemon with the locale name formatted like the given name
+        for pokemon in pokedex.values():
+            if pokemon["locale_name"].lower() == name:
+                name = pokemon["name"]
+                break
+
         assert name in pokedex, "There is no pokémon called **{}** in my pokédex!\nPerhaps you meant: `{}`?".format(
-            name, ", ".join(get_close_matches(name, pokedex.keys(), cutoff=0.4)))
+            name, ", ".join(get_close_matches(name, pokedex.keys(), cutoff=0.5)))
     else:
         name = id_to_name(pokemon_id)
         assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
@@ -120,7 +120,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     if "evolution_cost" in pokemon:
         pokemon_go_info += "Evolution cost: `{} {} Candy`\n".format(
             pokemon["evolution_cost"],
-            replace_sex_suffix(pokemon["evolution"][0][0]).capitalize()  # Name of the first pokemon in its chain
+            pokedex[pokemon["evolution"][0][0]]["locale_name"]  # Name of the first pokemon in its chain
         )
     if "hatches_from" in pokemon:
         pokemon_go_info += "Hatches from: `{}km Egg` ".format(pokemon["hatches_from"])
@@ -135,9 +135,9 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         "```\n{description}```"
         "**EVOLUTION**: {formatted_evolution}"
     ).format(
-        upper_name=replace_sex_suffix(pokemon["name"]).upper(),
+        upper_name=pokemon["locale_name"].upper(),
         type=" | ".join(t.capitalize() for t in pokemon["types"]),
-        formatted_evolution=" **->** ".join(" **/** ".join(replace_sex_suffix(name).upper() for name in names)
+        formatted_evolution=" **->** ".join(" **/** ".join(pokedex[name]["locale_name"].upper() for name in names)
                                             for names in pokemon["evolution"]),
         pokemon_go=pokemon_go_info,
         **pokemon
@@ -171,7 +171,7 @@ def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.Low
             egg_types.append(pokemon["hatches_from"])
 
         if pokemon["hatches_from"] == distance:
-            pokemon_criteria.append(pokemon["name"].capitalize())
+            pokemon_criteria.append(pokemon["locale_name"])
 
     # The list might be empty
     assert pokemon_criteria, "No pokemon hatch from a **{}km** egg. Valid distances are ```\n{}```".format(
