@@ -13,7 +13,7 @@ github_repo = "PcBoy111/PCBOT/"
 command_prefix = "!"
 help_arg = ("?", "help")
 version = ""
-client_name = ""
+client_name = "PCBOT"  # Placebo name, should be changed on_ready
 
 
 def set_version(ver: str):
@@ -24,23 +24,17 @@ def set_version(ver: str):
     return version
 
 
-def set_bot_name(name: str):
-    """ Set the name of the client"""
-    global client_name
-    client_name = name
-    return client_name
-
-
 class Config:
     config_path = "config/"
 
-    def __init__(self, filename: str, data=None, load: bool=True):
+    def __init__(self, filename: str, data=None, load: bool=True, pretty=False):
         """ Setup the config file if it does not exist.
 
         :param filename: usually a string representing the module name.
         :param data: default data setup, usually an empty/defaulted dictionary or list.
         :param load: should the config file load when initialized? Only loads when a config already exists. """
         self.filepath = "{}{}.json".format(self.config_path, filename)
+        self.pretty = pretty
 
         if not exists(self.config_path):
             mkdir(self.config_path)
@@ -71,7 +65,10 @@ class Config:
     def save(self):
         """ Write the current config to file. """
         with open(self.filepath, "w") as f:
-            json.dump(self.data, f)
+            if self.pretty:
+                json.dump(self.data, f, sort_keys=True, indent=4)
+            else:
+                json.dump(self.data, f)
 
     def load(self):
         """ Load the config from file if it exists.

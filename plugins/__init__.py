@@ -11,7 +11,6 @@ from traceback import format_exc
 
 import asyncio
 
-from pcbot import command_prefix
 from pcbot.utils import Annotate, format_exception
 
 plugins = {}
@@ -88,6 +87,9 @@ def command(**options):
                                     When this attribute is a bool and True, force positional arguments.
     """
     def decorator(func):
+        # The prefix might have changed since the bot started because of mess
+        from pcbot.config import command_prefix
+
         if not asyncio.iscoroutine(func):
             func = asyncio.coroutine(func)
 

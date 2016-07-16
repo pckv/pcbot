@@ -1,4 +1,4 @@
-""" Plugin that would act as a pokédex, specifically designed for Pokemon GO.
+""" Plugin that would act as a pokédex, specifically designed for Pokémon GO.
 
 Commands:
     pokedex

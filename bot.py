@@ -14,12 +14,11 @@ from argparse import ArgumentParser
 import discord
 import asyncio
 
-from pcbot import utils, command_prefix, help_arg, set_version
+from pcbot import utils, config
 import plugins
 
-
 # Sets the version to enable accessibility for other modules
-__version__ = set_version("PCBOT V3")
+__version__ = config.set_version("PCBOT V3")
 
 
 class Client(discord.Client):
@@ -288,7 +287,7 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     send_usage = True
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if cmd_args[-1] in help_arg:
+    if cmd_args[-1] in config.help_arg:
         complete = send_usage = False
         args, kwargs = [], {}
     else:
@@ -338,7 +337,7 @@ def on_message(message: discord.Message):
 
     # Get command name
     cmd = ""
-    if cmd_args[0].startswith(command_prefix) and len(cmd_args[0]) > 1:
+    if cmd_args[0].startswith(config.command_prefix) and len(cmd_args[0]) > 1:
         cmd = cmd_args[0][1:]
 
     # Handle commands
@@ -401,8 +400,19 @@ def main():
     discord_logger = logging.getLogger("discord")
     discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
 
-    plugins.load_plugin("builtin", "pcbot")  # Load plugin for builtin commands
-    plugins.load_plugins()  # Load all plugins in plugins/
+    # Setup some config for more customization
+    bot_meta = config.Config("bot_meta", pretty=True, data=dict(
+        name="PCBOT",
+        command_prefix=config.command_prefix
+    ))
+    config.client_name = bot_meta.data["name"]
+    config.command_prefix = bot_meta.data["command_prefix"]
+
+    # Load plugin for builtin commands
+    plugins.load_plugin("builtin", "pcbot")
+
+    # Load all dynamic plugins
+    plugins.load_plugins()
 
     # Handle login
     if not start_args.email:
