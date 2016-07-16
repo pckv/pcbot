@@ -34,9 +34,11 @@
                 "alakazam"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 27,
         "evolves_from_id": 0,
         "genus": "Psi",
+        "hatches_from": 5,
         "height": 0.9,
         "id": 63,
         "name": "abra",
@@ -119,6 +121,7 @@
         "evolution_id": 71,
         "evolves_from_id": 0,
         "genus": "Fossil",
+        "hatches_from": 10,
         "height": 1.8,
         "id": 142,
         "name": "aerodactyl",
@@ -1047,9 +1050,11 @@
                 "victreebel"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 29,
         "evolves_from_id": 0,
         "genus": "Flower",
+        "hatches_from": 5,
         "height": 0.7,
         "id": 69,
         "name": "bellsprout",
@@ -1495,9 +1500,11 @@
                 "venusaur"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 1,
         "evolves_from_id": 0,
         "genus": "Seed",
+        "hatches_from": 2,
         "height": 0.7,
         "id": 1,
         "name": "bulbasaur",
@@ -1799,9 +1806,11 @@
                 "butterfree"
             ]
         ],
+        "evolution_cost": 12,
         "evolution_id": 4,
         "evolves_from_id": 0,
         "genus": "Worm",
+        "hatches_from": 2,
         "height": 0.3,
         "id": 10,
         "name": "caterpie",
@@ -1870,6 +1879,7 @@
         "evolution_id": 51,
         "evolves_from_id": 440,
         "genus": "Egg",
+        "hatches_from": 10,
         "height": 1.1,
         "id": 113,
         "name": "chansey",
@@ -1916,9 +1926,11 @@
                 "charizard"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 2,
         "evolves_from_id": 0,
         "genus": "Lizard",
+        "hatches_from": 2,
         "height": 0.6,
         "id": 4,
         "name": "charmander",
@@ -1940,6 +1952,7 @@
                 "charizard"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 2,
         "evolves_from_id": 4,
         "genus": "Flame",
@@ -2317,9 +2330,11 @@
                 "clefable"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 14,
         "evolves_from_id": 173,
         "genus": "Fairy",
+        "hatches_from": 2,
         "height": 0.6,
         "id": 35,
         "name": "clefairy",
@@ -2772,9 +2787,11 @@
                 "marowak"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 46,
         "evolves_from_id": 0,
         "genus": "Lonely",
+        "hatches_from": 5,
         "height": 0.4,
         "id": 104,
         "name": "cubone",
@@ -3132,9 +3149,11 @@
                 "dugtrio"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 21,
         "evolves_from_id": 0,
         "genus": "Mole",
+        "hatches_from": 5,
         "height": 0.2,
         "id": 50,
         "name": "diglett",
@@ -3193,9 +3212,11 @@
                 "dodrio"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 36,
         "evolves_from_id": 0,
         "genus": "Twin Bird",
+        "hatches_from": 5,
         "height": 1.4,
         "id": 84,
         "name": "doduo",
@@ -3286,6 +3307,7 @@
                 "dragonite"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 76,
         "evolves_from_id": 147,
         "genus": "Dragon",
@@ -3357,9 +3379,11 @@
                 "dragonite"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 76,
         "evolves_from_id": 0,
         "genus": "Dragon",
+        "hatches_from": 10,
         "height": 1.8,
         "id": 147,
         "name": "dratini",
@@ -3443,9 +3467,11 @@
                 "hypno"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 42,
         "evolves_from_id": 0,
         "genus": "Hypnosis",
+        "hatches_from": 5,
         "height": 1.0,
         "id": 96,
         "name": "drowzee",
@@ -3762,9 +3788,11 @@
                 "sylveon"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 67,
         "evolves_from_id": 0,
         "genus": "Evolution",
+        "hatches_from": 10,
         "height": 0.3,
         "id": 133,
         "name": "eevee",
@@ -3783,9 +3811,11 @@
                 "arbok"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 9,
         "evolves_from_id": 0,
         "genus": "Snake",
+        "hatches_from": 5,
         "height": 2.0,
         "id": 23,
         "name": "ekans",
@@ -3810,6 +3840,7 @@
         "evolution_id": 60,
         "evolves_from_id": 239,
         "genus": "Electric",
+        "hatches_from": 10,
         "height": 1.1,
         "id": 125,
         "name": "electabuzz",
@@ -4119,9 +4150,11 @@
                 "exeggutor"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 45,
         "evolves_from_id": 0,
         "genus": "Egg",
+        "hatches_from": 5,
         "height": 0.4,
         "id": 102,
         "name": "exeggcute",
@@ -4930,9 +4963,11 @@
                 "gengar"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 40,
         "evolves_from_id": 0,
         "genus": "Gas",
+        "hatches_from": 5,
         "height": 1.3,
         "id": 92,
         "name": "gastly",
@@ -5021,9 +5056,11 @@
                 "golem"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 31,
         "evolves_from_id": 0,
         "genus": "Rock",
+        "hatches_from": 2,
         "height": 0.4,
         "id": 74,
         "name": "geodude",
@@ -5249,6 +5286,7 @@
                 "bellossom"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 18,
         "evolves_from_id": 43,
         "genus": "Weed",
@@ -5317,9 +5355,11 @@
                 "seaking"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 55,
         "evolves_from_id": 0,
         "genus": "Goldfish",
+        "hatches_from": 5,
         "height": 0.6,
         "id": 118,
         "name": "goldeen",
@@ -5616,6 +5656,7 @@
                 "golem"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 31,
         "evolves_from_id": 74,
         "genus": "Rock",
@@ -5663,9 +5704,11 @@
                 "muk"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 38,
         "evolves_from_id": 0,
         "genus": "Sludge",
+        "hatches_from": 5,
         "height": 0.9,
         "id": 88,
         "name": "grimer",
@@ -5750,9 +5793,11 @@
                 "arcanine"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 25,
         "evolves_from_id": 0,
         "genus": "Puppy",
+        "hatches_from": 5,
         "height": 0.7,
         "id": 58,
         "name": "growlithe",
@@ -5907,6 +5952,7 @@
                 "gengar"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 40,
         "evolves_from_id": 92,
         "genus": "Gas",
@@ -6143,6 +6189,7 @@
         "evolution_id": 47,
         "evolves_from_id": 236,
         "genus": "Punching",
+        "hatches_from": 10,
         "height": 1.4,
         "id": 107,
         "name": "hitmonchan",
@@ -6166,6 +6213,7 @@
         "evolution_id": 47,
         "evolves_from_id": 236,
         "genus": "Kicking",
+        "hatches_from": 10,
         "height": 1.5,
         "id": 106,
         "name": "hitmonlee",
@@ -6342,9 +6390,11 @@
                 "kingdra"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 54,
         "evolves_from_id": 0,
         "genus": "Dragon",
+        "hatches_from": 5,
         "height": 0.4,
         "id": 116,
         "name": "horsea",
@@ -6568,6 +6618,7 @@
                 "venusaur"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 1,
         "evolves_from_id": 1,
         "genus": "Seed",
@@ -6615,6 +6666,7 @@
                 "wigglytuff"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 16,
         "evolves_from_id": 174,
         "genus": "Balloon",
@@ -6734,6 +6786,7 @@
         "evolution_id": 59,
         "evolves_from_id": 238,
         "genus": "Human Shape",
+        "hatches_from": 10,
         "height": 1.4,
         "id": 124,
         "name": "jynx",
@@ -6753,9 +6806,11 @@
                 "kabutops"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 70,
         "evolves_from_id": 0,
         "genus": "Shellfish",
+        "hatches_from": 10,
         "height": 0.5,
         "id": 140,
         "name": "kabuto",
@@ -6800,6 +6855,7 @@
                 "alakazam"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 27,
         "evolves_from_id": 63,
         "genus": "Psi",
@@ -6824,6 +6880,7 @@
                 "beedrill"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 5,
         "evolves_from_id": 13,
         "genus": "Cocoon",
@@ -6846,6 +6903,7 @@
         "evolution_id": 53,
         "evolves_from_id": 0,
         "genus": "Parent",
+        "hatches_from": 5,
         "height": 2.2,
         "id": 115,
         "name": "kangaskhan",
@@ -7085,9 +7143,11 @@
                 "weezing"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 49,
         "evolves_from_id": 0,
         "genus": "Poison Gas",
+        "hatches_from": 5,
         "height": 0.6,
         "id": 109,
         "name": "koffing",
@@ -7106,9 +7166,11 @@
                 "kingler"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 43,
         "evolves_from_id": 0,
         "genus": "River Crab",
+        "hatches_from": 5,
         "height": 0.4,
         "id": 98,
         "name": "krabby",
@@ -7347,6 +7409,7 @@
         "evolution_id": 65,
         "evolves_from_id": 0,
         "genus": "Transport",
+        "hatches_from": 10,
         "height": 2.5,
         "id": 131,
         "name": "lapras",
@@ -7572,6 +7635,7 @@
         "evolution_id": 48,
         "evolves_from_id": 0,
         "genus": "Licking",
+        "hatches_from": 5,
         "height": 1.2,
         "id": 108,
         "name": "lickitung",
@@ -8040,6 +8104,7 @@
                 "machamp"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 28,
         "evolves_from_id": 66,
         "genus": "Superpower",
@@ -8064,9 +8129,11 @@
                 "machamp"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 28,
         "evolves_from_id": 0,
         "genus": "Superpower",
+        "hatches_from": 5,
         "height": 0.8,
         "id": 66,
         "name": "machop",
@@ -8131,9 +8198,11 @@
                 "gyarados"
             ]
         ],
+        "evolution_cost": 400,
         "evolution_id": 64,
         "evolves_from_id": 0,
         "genus": "Fish",
+        "hatches_from": 2,
         "height": 0.9,
         "id": 129,
         "name": "magikarp",
@@ -8158,6 +8227,7 @@
         "evolution_id": 61,
         "evolves_from_id": 240,
         "genus": "Spitfire",
+        "hatches_from": 10,
         "height": 1.3,
         "id": 126,
         "name": "magmar",
@@ -8203,9 +8273,11 @@
                 "magnezone"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 34,
         "evolves_from_id": 0,
         "genus": "Magnet",
+        "hatches_from": 5,
         "height": 0.3,
         "id": 81,
         "name": "magnemite",
@@ -8405,9 +8477,11 @@
                 "primeape"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 24,
         "evolves_from_id": 0,
         "genus": "Pig Monkey",
+        "hatches_from": 5,
         "height": 0.5,
         "id": 56,
         "name": "mankey",
@@ -8732,9 +8806,11 @@
                 "persian"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 22,
         "evolves_from_id": 0,
         "genus": "Scratch Cat",
+        "hatches_from": 5,
         "height": 0.4,
         "id": 52,
         "name": "meowth",
@@ -8824,6 +8900,7 @@
                 "butterfree"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 4,
         "evolves_from_id": 10,
         "genus": "Cocoon",
@@ -9380,9 +9457,11 @@
                 "nidoqueen"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 12,
         "evolves_from_id": 0,
         "genus": "Poison Pin",
+        "hatches_from": 5,
         "height": 0.4,
         "id": 29,
         "name": "nidoran-f",
@@ -9404,9 +9483,11 @@
                 "nidoking"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 13,
         "evolves_from_id": 0,
         "genus": "Poison Pin",
+        "hatches_from": 5,
         "height": 0.5,
         "id": 32,
         "name": "nidoran-m",
@@ -9428,6 +9509,7 @@
                 "nidoqueen"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 12,
         "evolves_from_id": 29,
         "genus": "Poison Pin",
@@ -9452,6 +9534,7 @@
                 "nidoking"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 13,
         "evolves_from_id": 32,
         "genus": "Poison Pin",
@@ -9699,9 +9782,11 @@
                 "bellossom"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 18,
         "evolves_from_id": 0,
         "genus": "Weed",
+        "hatches_from": 5,
         "height": 0.5,
         "id": 43,
         "name": "oddish",
@@ -9721,9 +9806,11 @@
                 "omastar"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 69,
         "evolves_from_id": 0,
         "genus": "Spiral",
+        "hatches_from": 10,
         "height": 0.4,
         "id": 138,
         "name": "omanyte",
@@ -9768,6 +9855,7 @@
         "evolution_id": 41,
         "evolves_from_id": 0,
         "genus": "Rock Snake",
+        "hatches_from": 10,
         "height": 8.8,
         "id": 95,
         "name": "onix",
@@ -9979,9 +10067,11 @@
                 "parasect"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 19,
         "evolves_from_id": 0,
         "genus": "Mushroom",
+        "hatches_from": 5,
         "height": 0.3,
         "id": 46,
         "name": "paras",
@@ -10244,6 +10334,7 @@
                 "pidgeot"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 6,
         "evolves_from_id": 16,
         "genus": "Bird",
@@ -10269,9 +10360,11 @@
                 "pidgeot"
             ]
         ],
+        "evolution_cost": 12,
         "evolution_id": 6,
         "evolves_from_id": 0,
         "genus": "Tiny Bird",
+        "hatches_from": 2,
         "height": 0.3,
         "id": 16,
         "name": "pidgey",
@@ -10344,9 +10437,11 @@
                 "raichu"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 10,
         "evolves_from_id": 172,
         "genus": "Mouse",
+        "hatches_from": 2,
         "height": 0.4,
         "id": 25,
         "name": "pikachu",
@@ -10411,6 +10506,7 @@
         "evolution_id": 62,
         "evolves_from_id": 0,
         "genus": "Stag Beetle",
+        "hatches_from": 10,
         "height": 1.5,
         "id": 127,
         "name": "pinsir",
@@ -10500,9 +10596,11 @@
                 "politoed"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 26,
         "evolves_from_id": 0,
         "genus": "Tadpole",
+        "hatches_from": 5,
         "height": 0.6,
         "id": 60,
         "name": "poliwag",
@@ -10525,6 +10623,7 @@
                 "politoed"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 26,
         "evolves_from_id": 60,
         "genus": "Tadpole",
@@ -10572,9 +10671,11 @@
                 "rapidash"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 32,
         "evolves_from_id": 0,
         "genus": "Fire Horse",
+        "hatches_from": 5,
         "height": 1.0,
         "id": 77,
         "name": "ponyta",
@@ -10620,6 +10721,7 @@
         "evolution_id": 68,
         "evolves_from_id": 0,
         "genus": "Virtual",
+        "hatches_from": 5,
         "height": 0.8,
         "id": 137,
         "name": "porygon",
@@ -10753,9 +10855,11 @@
                 "golduck"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 23,
         "evolves_from_id": 0,
         "genus": "Duck",
+        "hatches_from": 5,
         "height": 0.8,
         "id": 54,
         "name": "psyduck",
@@ -11105,9 +11209,11 @@
                 "raticate"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 7,
         "evolves_from_id": 0,
         "genus": "Mouse",
+        "hatches_from": 2,
         "height": 0.3,
         "id": 19,
         "name": "rattata",
@@ -11328,9 +11434,11 @@
                 "rhyperior"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 50,
         "evolves_from_id": 0,
         "genus": "Spikes",
+        "hatches_from": 5,
         "height": 1.0,
         "id": 111,
         "name": "rhyhorn",
@@ -11604,9 +11712,11 @@
                 "sandslash"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 11,
         "evolves_from_id": 0,
         "genus": "Mouse",
+        "hatches_from": 5,
         "height": 0.6,
         "id": 27,
         "name": "sandshrew",
@@ -11828,6 +11938,7 @@
         "evolution_id": 58,
         "evolves_from_id": 0,
         "genus": "Mantis",
+        "hatches_from": 10,
         "height": 1.5,
         "id": 123,
         "name": "scyther",
@@ -11941,9 +12052,11 @@
                 "dewgong"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 37,
         "evolves_from_id": 0,
         "genus": "Sea Lion",
+        "hatches_from": 5,
         "height": 1.1,
         "id": 86,
         "name": "seel",
@@ -12186,9 +12299,11 @@
                 "cloyster"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 39,
         "evolves_from_id": 0,
         "genus": "Bivalve",
+        "hatches_from": 5,
         "height": 0.3,
         "id": 90,
         "name": "shellder",
@@ -12760,9 +12875,11 @@
                 "slowking"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 33,
         "evolves_from_id": 0,
         "genus": "Dopey",
+        "hatches_from": 5,
         "height": 1.2,
         "id": 79,
         "name": "slowpoke",
@@ -12913,6 +13030,7 @@
         "evolution_id": 72,
         "evolves_from_id": 446,
         "genus": "Sleeping",
+        "hatches_from": 10,
         "height": 2.1,
         "id": 143,
         "name": "snorlax",
@@ -13039,9 +13157,11 @@
                 "fearow"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 8,
         "evolves_from_id": 0,
         "genus": "Tiny Bird",
+        "hatches_from": 2,
         "height": 0.3,
         "id": 21,
         "name": "spearow",
@@ -13214,9 +13334,11 @@
                 "blastoise"
             ]
         ],
+        "evolution_cost": 25,
         "evolution_id": 3,
         "evolves_from_id": 0,
         "genus": "Tiny Turtle",
+        "hatches_from": 2,
         "height": 0.5,
         "id": 7,
         "name": "squirtle",
@@ -13350,9 +13472,11 @@
                 "starmie"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 56,
         "evolves_from_id": 0,
         "genus": "Star Shape",
+        "hatches_from": 5,
         "height": 0.8,
         "id": 120,
         "name": "staryu",
@@ -13844,6 +13968,7 @@
         "evolution_id": 52,
         "evolves_from_id": 0,
         "genus": "Vine",
+        "hatches_from": 5,
         "height": 1.0,
         "id": 114,
         "name": "tangela",
@@ -13883,6 +14008,7 @@
         "evolution_id": 63,
         "evolves_from_id": 0,
         "genus": "Wild Bull",
+        "hatches_from": 5,
         "height": 1.4,
         "id": 128,
         "name": "tauros",
@@ -13922,9 +14048,11 @@
                 "tentacruel"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 30,
         "evolves_from_id": 0,
         "genus": "Jellyfish",
+        "hatches_from": 5,
         "height": 0.9,
         "id": 72,
         "name": "tentacool",
@@ -14877,9 +15005,11 @@
                 "venomoth"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 20,
         "evolves_from_id": 0,
         "genus": "Insect",
+        "hatches_from": 5,
         "height": 1.0,
         "id": 48,
         "name": "venonat",
@@ -15168,9 +15298,11 @@
                 "electrode"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 44,
         "evolves_from_id": 0,
         "genus": "Ball",
+        "hatches_from": 5,
         "height": 0.5,
         "id": 100,
         "name": "voltorb",
@@ -15211,9 +15343,11 @@
                 "ninetales"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 15,
         "evolves_from_id": 0,
         "genus": "Fox",
+        "hatches_from": 5,
         "height": 0.6,
         "id": 37,
         "name": "vulpix",
@@ -15302,6 +15436,7 @@
                 "blastoise"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 3,
         "evolves_from_id": 7,
         "genus": "Turtle",
@@ -15369,9 +15504,11 @@
                 "beedrill"
             ]
         ],
+        "evolution_cost": 12,
         "evolution_id": 5,
         "evolves_from_id": 0,
         "genus": "Hairy Bug",
+        "hatches_from": 2,
         "height": 0.3,
         "id": 13,
         "name": "weedle",
@@ -15394,6 +15531,7 @@
                 "victreebel"
             ]
         ],
+        "evolution_cost": 100,
         "evolution_id": 29,
         "evolves_from_id": 69,
         "genus": "Flycatcher",
@@ -15979,9 +16117,11 @@
                 "crobat"
             ]
         ],
+        "evolution_cost": 50,
         "evolution_id": 17,
         "evolves_from_id": 0,
         "genus": "Bat",
+        "hatches_from": 2,
         "height": 0.8,
         "id": 41,
         "name": "zubat",

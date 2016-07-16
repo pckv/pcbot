@@ -13,7 +13,7 @@ import discord
 import json
 
 import plugins
-from pcbot import Config, permission
+from pcbot import Config, permission, Annotate
 
 try:
     from PIL import Image
@@ -61,9 +61,17 @@ def upscale_sprite(sprite, factor: float):
     return buffer
 
 
+def replace_sex_suffix(s: str):
+    return s.replace("-m", "♂").replace("-f", "♀")
+
+
 @plugins.command(name="pokedex")
-def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.lower):
+def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
     """ Display some information on the given pokémon. """
+    # Do some quick replacements
+    name_or_id = name_or_id.replace("♂", "-m").replace("♀", "-f")
+    name_or_id = name_or_id.replace(" ", "-").replace("♂", "m").replace("♀", "f")
+
     # Get the requested pokemon name
     name = name_or_id
     try:
@@ -72,7 +80,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.l
         assert name in pokedex, "There is no pokémon called **{}** in my pokédex!".format(name)
     else:
         name = id_to_name(pokemon_id)
-        assert name is not None, "There is no pokémon with ID **#{}** in my pokédex!".format(pokemon_id)
+        assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
 
     # Get the server's upscale factor
     if "upscale-factor" in pokedex_config.data[message.server.id]:
@@ -95,22 +103,33 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: str.l
     # Upscale and upload the image
     if upscale:
         sprite_bytes = upscale_sprite(sprite_bytes, upscale_factor)
-
     yield from client.send_file(message.channel, sprite_bytes, filename="{}.png".format(name))
+
+    # Format Pokemon GO specific info
+    pokemon_go_info = ""
+    if "evolution_cost" in pokemon:
+        pokemon_go_info += "Evolution cost: `{} {} Candy`\n".format(
+            pokemon["evolution_cost"],
+            replace_sex_suffix(pokemon["evolution"][0][0]).capitalize()  # Name of the first pokemon in its chain
+        )
+    if "hatches_from" in pokemon:
+        pokemon_go_info += "Hatches from: `{}km egg`\n".format(pokemon["hatches_from"])
 
     # Format the message
     formatted_message = (
         "**#{id:03} {upper_name}**\n"
         "Weight: `{weight}kg` Height: `{height}m`\n"
-        "Type: {type}\n"
+        "Type: `{type}`\n"
         "**{genus} Pokémon**\n"
+        "{pokemon_go}"
         "```\n{description}```"
         "**EVOLUTION**: {formatted_evolution}"
     ).format(
-        upper_name=pokemon["name"].upper(),
+        upper_name=replace_sex_suffix(pokemon["name"]).upper(),
         type=" | ".join(t.capitalize() for t in pokemon["types"]),
         formatted_evolution=" **->** ".join(" **/** ".join(name.upper() for name in names)
                                             for names in pokemon["evolution"]),
+        pokemon_go=pokemon_go_info,
         **pokemon
     )
 
