@@ -72,11 +72,17 @@ def resize_sprite(sprite, factor: float):
 
 @plugins.command(name="pokedex")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
-    """ Display some information of the given pokémon. tejt"""
-    # Do some quick replacements
+    """ Display some information of the given pokémon. """
+    # Do some quick replacements for flexible parsing
+    name_or_id = name_or_id.strip()
+
     if name_or_id.startswith("#"):
         name_or_id = name_or_id.replace("#", "")
-    name_or_id = name_or_id.replace(" ", "-").replace("♂", "m").replace("♀", "f")
+    if " " in name_or_id:
+        if "♀" in name_or_id or "♀" in name_or_id or name_or_id.endswith("f") or name_or_id.endswith("m"):
+            name_or_id = name_or_id.replace(" ", "-").replace("♂", "m").replace("♀", "f")
+        else:
+            name_or_id = name_or_id.replace(" ", "")
 
     # Get the requested pokemon name
     name = name_or_id
