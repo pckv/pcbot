@@ -56,20 +56,34 @@ bot owner.
 Execute `python bot.py -h` to see a list of supported command-line arguments.
 
 ## Plugins
-PCBOT has a folder based plugin system. The plugins do not need any specific imports 
-(other than `discord` of course). A template plugin can be found in the `plugins/` folder.
+PCBOT has a folder based plugin system. **The documentation for creating these plugins might come along soon**, although a good example if you wish to make one is found in `pcbot/builtin.py`.
 
-**To remove an unwanted plugin from the bot**, simply remove it from the `plugins/` folder.
-*This process of handling plugins will soon be migrated to a blacklist system.*
+**To remove an unwanted plugin from the bot**, simply remove it from the `plugins/` folder. You are also free to remove any accompanying library folder.
 
-Currently, the owner can reload, unload and load plugins with the `!plugin` command:
-
-Option | Function
--------|--------
-!plugin | list all loaded plugins
-!plugin reload [plugin] | reload all or the specified plugin
-!plugin unload \<plugin\> | unload a plugin temporarily
-!plugin load \<plugin\> | load a plugin from the `plugins/` folder
+Currently, the owner can reload, unload and load plugins with the `plugin` command.
 
 When building plugins, make sure you're using syntax supported by your version of python. Considering the bot is
 built for version 3.4.2+, the best would be to follow this syntax. 
+
+## Licence
+The MIT License (MIT)
+
+Copyright (c) 2016 PC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
