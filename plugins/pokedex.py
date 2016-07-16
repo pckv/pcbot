@@ -18,21 +18,29 @@ from pcbot import Config, permission, Annotate
 try:
     from PIL import Image
 except:
-    upscale = False
+    resize = False
     logging.warn("PIL could not be loaded. The pokedex works like usual, however with lower resolution sprites.")
 else:
-    upscale = True
+    resize = True
 
 
-api_path = "plugins/pokedexlib//pokedex.json"
-sprites_path = "plugins/pokedexlib/sprites/{id}.png"
+api_path = "plugins/pokedexlib/pokedex.json"
+sprites_path = "plugins/pokedexlib/sprites/"
 pokedex_config = Config("pokedex", data=defaultdict(dict))
-default_upscale_factor = 1.8
-min_upscale_factor, max_upscale_factor = 0.25, 4
+default_scale_factor = 1.8
+min_scale_factor, max_scale_factor = 0.25, 4
 
+# Load the Pokedex API
+with open(api_path) as api_file:
+    pokedex = json.load(api_file)
 
-with open(api_path) as f:
-    pokedex = json.load(f)
+# Load all our sprites into RAM (they don't take much space)
+# Unlike the pokedex.json API, these use pokemon ID as keys.
+# The values are the sprites in bytes.
+sprites = {}
+for file in os.listdir(sprites_path):
+    with open(os.path.join(sprites_path, file), "rb") as sprite_bytes:
+        sprites[int(file.split(".")[0])] = sprite_bytes.read()
 
 
 def id_to_name(pokemon_id: int):
@@ -44,14 +52,13 @@ def id_to_name(pokemon_id: int):
     return None
 
 
-def upscale_sprite(sprite, factor: float):
-    """ Upscales a sprite (string of bytes / rb). """
+def resize_sprite(sprite, factor: float):
+    """ Resize a sprite (string of bytes / rb). """
     image = Image.open(BytesIO(sprite))
 
     # Resize with the scaled proportions
     width, height = image.size
     width, height = int(width * factor), int(height * factor)
-
     image = image.resize((width, height), Image.NEAREST)
 
     # Return the byte-like object
@@ -62,13 +69,16 @@ def upscale_sprite(sprite, factor: float):
 
 
 def replace_sex_suffix(s: str):
+    """ Replaces -m and -f with ♂ and ♀ respectively. """
     return s.replace("-m", "♂").replace("-f", "♀")
 
 
 @plugins.command(name="pokedex")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
-    """ Display some information on the given pokémon. """
+    """ Display some information of the given pokémon. """
     # Do some quick replacements
+    if name_or_id.startswith("#"):
+        name_or_id.replace("#", "")
     name_or_id = name_or_id.replace("♂", "-m").replace("♀", "-f")
     name_or_id = name_or_id.replace(" ", "-").replace("♂", "m").replace("♀", "f")
 
@@ -82,28 +92,25 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         name = id_to_name(pokemon_id)
         assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
 
-    # Get the server's upscale factor
-    if "upscale-factor" in pokedex_config.data[message.server.id]:
-        upscale_factor = pokedex_config.data[message.server.id]["upscale-factor"]
+    # Get the server's scale factor
+    if "scale-factor" in pokedex_config.data[message.server.id]:
+        scale_factor = pokedex_config.data[message.server.id]["scale-factor"]
     else:
-        upscale_factor = default_upscale_factor
+        scale_factor = default_scale_factor
 
     # Assign our pokemon
     pokemon = pokedex[name]
 
-    # Find the image to use
-    sprite_path = sprites_path.format(id=pokemon["id"])
-    if not os.path.exists(sprite_path):
-        sprite_path = sprites_path.format(id=0)
+    # Assign the sprite to use
+    if pokemon["id"] in sprites:
+        sprite = sprites[pokemon["id"]]
+    else:
+        sprite = sprites[0]
 
-    # Open said image
-    with open(sprite_path, "rb") as f:
-        sprite_bytes = f.read()
-
-    # Upscale and upload the image
-    if upscale:
-        sprite_bytes = upscale_sprite(sprite_bytes, upscale_factor)
-    yield from client.send_file(message.channel, sprite_bytes, filename="{}.png".format(name))
+    # Resize (if PIL is enabled) and upload the sprite
+    if resize and not round(scale_factor, 2) == 1:
+        sprite = resize_sprite(sprite, scale_factor)
+    yield from client.send_file(message.channel, sprite, filename="{}.png".format(name))
 
     # Format Pokemon GO specific info
     pokemon_go_info = ""
@@ -138,24 +145,24 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
 
 @permission("manage_server")
 @pokedex_.command()
-def setupscale(client: discord.Client, message: discord.Message, factor: float=default_upscale_factor):
-    """ Set the upscale factor for your server. If no factor is given, the default is set. /
+def scalefactor(client: discord.Client, message: discord.Message, factor: float=default_scale_factor):
+    """ Set the scaling factor for your server. If no factor is given, the default is set. /
     **This command requires the `Manage Server` permission.**"""
-    assert factor <= max_upscale_factor, "The factor **{}** is too high **(max={})**.".format(
-        factor, max_upscale_factor)
-    assert min_upscale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(
-        factor, min_upscale_factor)
+    assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(
+        factor, max_scale_factor)
+    assert min_scale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(
+        factor, min_scale_factor)
 
     # Handle specific scenarios
-    if factor == default_upscale_factor:
-        if "upscale-factor" in pokedex_config.data[message.server.id]:
-            del pokedex_config.data[message.server.id]["upscale-factor"]
-            reply = "Pokédex image upscale factor reset to **{factor}**."
+    if factor == default_scale_factor:
+        if "scale-factor" in pokedex_config.data[message.server.id]:
+            del pokedex_config.data[message.server.id]["scale-factor"]
+            reply = "Pokédex image scale factor reset to **{factor}**."
         else:
-            reply = "Pokédex image upscale factor is **{factor}**."
+            reply = "Pokédex image scale factor is **{factor}**."
     else:
-        pokedex_config.data[message.server.id]["upscale-factor"] = factor
-        reply = "Pokédex image upscale factor set to **{factor}**."
+        pokedex_config.data[message.server.id]["scale-factor"] = factor
+        reply = "Pokédex image scale factor set to **{factor}**."
 
     pokedex_config.save()
     yield from client.say(message, reply.format(factor=factor))
