@@ -90,7 +90,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         pokemon_id = int(name_or_id)
     except ValueError:
         assert name in pokedex, "There is no pokémon called **{}** in my pokédex!\nPerhaps you meant: `{}`?".format(
-            name, ", ".join(get_close_matches(name, pokedex.keys())))
+            name, ", ".join(get_close_matches(name, pokedex.keys(), cutoff=0.4)))
     else:
         name = id_to_name(pokemon_id)
         assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
