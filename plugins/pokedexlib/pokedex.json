@@ -100,12 +100,14 @@
         "evolution_id": 349,
         "evolves_from_id": 680,
         "genus": "Royal Sword",
+        "height": 1.7,
         "id": 681,
         "name": "aegislash",
         "types": [
             "steel",
             "ghost"
-        ]
+        ],
+        "weight": 53.0
     },
     "aerodactyl": {
         "description": "Aerodactyl is a Pok\u00e9mon from the age of dinosaurs. It was regenerated from genetic material extracted from amber. It is imagined to have been the king of the skies in ancient times.",
@@ -834,11 +836,13 @@
         "evolution_id": 280,
         "evolves_from_id": 0,
         "genus": "Hostile",
+        "height": 1.0,
         "id": 550,
         "name": "basculin",
         "types": [
             "water"
-        ]
+        ],
+        "weight": 18.0
     },
     "bastiodon": {
         "description": "Any frontal attack is repulsed. It is a docile Pok\u00e9mon that feeds on grass and berries.",
@@ -2834,11 +2838,13 @@
         "evolution_id": 282,
         "evolves_from_id": 554,
         "genus": "Blazing",
+        "height": 1.3,
         "id": 555,
         "name": "darmanitan",
         "types": [
             "fire"
-        ]
+        ],
+        "weight": 92.9
     },
     "darumaka": {
         "description": "When it sleeps, it pulls its limbs into its body and its internal fire goes down to 1,100 degrees Fahrenheit.",
@@ -3002,11 +3008,13 @@
         "evolution_id": 202,
         "evolves_from_id": 0,
         "genus": "DNA",
+        "height": 1.7,
         "id": 386,
         "name": "deoxys",
         "types": [
             "psychic"
-        ]
+        ],
+        "weight": 60.8
     },
     "dewgong": {
         "description": "Dewgong loves to snooze on bitterly cold ice. The sight of this Pok\u00e9mon sleeping on a glacier was mistakenly thought to be a mermaid by a mariner long ago.",
@@ -5103,12 +5111,14 @@
         "evolution_id": 248,
         "evolves_from_id": 0,
         "genus": "Renegade",
+        "height": 4.5,
         "id": 487,
         "name": "giratina",
         "types": [
             "ghost",
             "dragon"
-        ]
+        ],
+        "weight": 750.0
     },
     "glaceon": {
         "description": "It lowers its body heat to freeze its fur. The hairs then become like needles it can fire.",
@@ -5563,12 +5573,14 @@
         "evolution_id": 365,
         "evolves_from_id": 710,
         "genus": "Pumpkin",
+        "height": 0.9,
         "id": 711,
         "name": "gourgeist",
         "types": [
             "ghost",
             "grass"
-        ]
+        ],
+        "weight": 12.5
     },
     "granbull": {
         "description": "Granbull has a particularly well-developed lower jaw. The enormous fangs are heavy, causing the Pok\u00e9mon to tip its head back for balance. Unless it is startled, it will not try to bite indiscriminately.",
@@ -6891,12 +6903,14 @@
         "evolution_id": 334,
         "evolves_from_id": 0,
         "genus": "Colt",
+        "height": 1.4,
         "id": 647,
         "name": "keldeo",
         "types": [
             "water",
             "fighting"
-        ]
+        ],
+        "weight": 48.5
     },
     "kingdra": {
         "description": "Kingdra sleeps on the seafloor where it is otherwise devoid of life. When a storm arrives, the Pok\u00e9mon is said to awaken and wander about in search of prey.",
@@ -7292,12 +7306,14 @@
         "evolution_id": 332,
         "evolves_from_id": 0,
         "genus": "Abundance",
+        "height": 1.5,
         "id": 645,
         "name": "landorus",
         "types": [
             "ground",
             "flying"
-        ]
+        ],
+        "weight": 68.0
     },
     "lanturn": {
         "description": "Lanturn is known to emit light. If you peer down into the dark sea from a ship at night, you can sometimes see this Pok\u00e9mon's light rising from the depths where it swims. It gives the sea an appearance of a starlit night.",
@@ -8676,12 +8692,14 @@
         "evolution_id": 335,
         "evolves_from_id": 0,
         "genus": "Melody",
+        "height": 0.6,
         "id": 648,
         "name": "meloetta",
         "types": [
             "normal",
             "psychic"
-        ]
+        ],
+        "weight": 6.5
     },
     "meowstic": {
         "description": "The eyeball patterns on the interior of its ears emit psychic energy. It keeps the patterns tightly covered because that power is too immense.",
@@ -8696,11 +8714,13 @@
         "evolution_id": 348,
         "evolves_from_id": 677,
         "genus": "Constraint",
+        "height": 0.6,
         "id": 678,
         "name": "meowstic",
         "types": [
             "psychic"
-        ]
+        ],
+        "weight": 8.5
     },
     "meowth": {
         "description": "Meowth withdraws its sharp claws into its paws to slinkily sneak about without making any incriminating footsteps. For some reason, this Pok\u00e9mon loves shiny coins that glitter with light.",
@@ -10757,12 +10777,14 @@
         "evolution_id": 365,
         "evolves_from_id": 0,
         "genus": "Pumpkin",
+        "height": 0.4,
         "id": 710,
         "name": "pumpkaboo",
         "types": [
             "ghost",
             "grass"
-        ]
+        ],
+        "weight": 5.0
     },
     "pupitar": {
         "description": "Pupitar creates a gas inside its body that it compresses and forcefully ejects to propel itself like a jet. The body is very durable\u2014it avoids damage even if it hits solid steel.",
@@ -12099,11 +12121,13 @@
         "evolution_id": 253,
         "evolves_from_id": 0,
         "genus": "Gratitude",
+        "height": 0.2,
         "id": 492,
         "name": "shaymin",
         "types": [
             "grass"
-        ]
+        ],
+        "weight": 2.1
     },
     "shedinja": {
         "description": "Shedinja is a peculiar Pok\u00e9mon. It seems to appear unsought in a Pok\u00e9 Ball after a Nincada evolves. This bizarre Pok\u00e9mon is entirely immobile\u2014it doesn't even breathe.",
@@ -14003,12 +14027,14 @@
         "evolution_id": 329,
         "evolves_from_id": 0,
         "genus": "Bolt Strike",
+        "height": 1.5,
         "id": 642,
         "name": "thundurus",
         "types": [
             "electric",
             "flying"
-        ]
+        ],
+        "weight": 61.0
     },
     "timburr": {
         "description": "Always carrying squared logs, they help out with construction. As they grow, they carry bigger logs.",
@@ -14182,11 +14208,13 @@
         "evolution_id": 328,
         "evolves_from_id": 0,
         "genus": "Cyclone",
+        "height": 1.5,
         "id": 641,
         "name": "tornadus",
         "types": [
             "flying"
-        ]
+        ],
+        "weight": 63.0
     },
     "torterra": {
         "description": "Small Pok\u00e9mon occasionally gather on its unmoving back to begin building their nests.",
@@ -15618,12 +15646,14 @@
         "evolution_id": 213,
         "evolves_from_id": 412,
         "genus": "Bagworm",
+        "height": 0.5,
         "id": 413,
         "name": "wormadam",
         "types": [
             "bug",
             "grass"
-        ]
+        ],
+        "weight": 6.5
     },
     "wurmple": {
         "description": "Wurmple is targeted by Swellow as prey. This Pok\u00e9mon will try to resist by pointing the spikes on its rear at the attacking predator. It will weaken the foe by leaking poison from the spikes.",

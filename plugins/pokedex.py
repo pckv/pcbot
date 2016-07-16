@@ -27,7 +27,7 @@ else:
 api_path = "plugins/pokedexlib//pokedex.json"
 sprites_path = "plugins/pokedexlib/sprites/{id}.png"
 pokedex_config = Config("pokedex", data=defaultdict(dict))
-default_upscale_factor = 2.2
+default_upscale_factor = 1.8
 min_upscale_factor, max_upscale_factor = 0.25, 4
 
 

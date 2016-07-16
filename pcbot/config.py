@@ -13,14 +13,22 @@ github_repo = "PcBoy111/PCBOT/"
 command_prefix = "!"
 help_arg = ("?", "help")
 version = ""
+client_name = ""
 
 
-def set_version(s: str):
+def set_version(ver: str):
     """ Set the version of the API. This function should really only
     be used in bot.py. """
     global version
-    version = s
+    version = ver
     return version
+
+
+def set_bot_name(name: str):
+    """ Set the name of the client"""
+    global client_name
+    client_name = name
+    return client_name
 
 
 class Config:

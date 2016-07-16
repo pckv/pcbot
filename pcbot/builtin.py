@@ -355,7 +355,7 @@ def get_changelog(num: int):
 
 
 @plugins.command()
-def pcbot(client: discord.Client, message: discord.Message):
+def bot_info(client: discord.Client, message: discord.Message):
     """ Display basic information and changelog. """
     # Grab the latest commit
     changelog = yield from get_changelog(1)
@@ -375,7 +375,7 @@ def pcbot(client: discord.Client, message: discord.Message):
     ))
 
 
-@pcbot.command(name="changelog")
+@bot_info.command(name="changelog")
 def changelog_(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=3):
     """ Get `num` requests from the changelog. Defaults to 3. """
     changelog = yield from get_changelog(num)
