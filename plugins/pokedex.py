@@ -9,6 +9,7 @@ import logging
 from io import BytesIO
 from collections import defaultdict
 from operator import itemgetter
+from difflib import get_close_matches
 
 import discord
 import json
@@ -76,7 +77,7 @@ def replace_sex_suffix(s: str):
 
 @plugins.command(name="pokedex")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
-    """ Display some information of the given pokémon. """
+    """ Display some information of the given pokémon. tejt"""
     # Do some quick replacements
     if name_or_id.startswith("#"):
         name_or_id = name_or_id.replace("#", "")
@@ -88,7 +89,8 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     try:
         pokemon_id = int(name_or_id)
     except ValueError:
-        assert name in pokedex, "There is no pokémon called **{}** in my pokédex!".format(name)
+        assert name in pokedex, "There is no pokémon called **{}** in my pokédex!\nPerhaps you meant: `{}`?".format(
+            name, ", ".join(get_close_matches(name, pokedex.keys())))
     else:
         name = id_to_name(pokemon_id)
         assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
@@ -121,7 +123,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
             replace_sex_suffix(pokemon["evolution"][0][0]).capitalize()  # Name of the first pokemon in its chain
         )
     if "hatches_from" in pokemon:
-        pokemon_go_info += "Hatches from: `{}km Egg`".format(pokemon["hatches_from"])
+        pokemon_go_info += "Hatches from: `{}km Egg` ".format(pokemon["hatches_from"])
 
     # Format the message
     formatted_message = (
