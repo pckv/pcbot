@@ -144,7 +144,7 @@ def eval_(client: discord.Client, message: discord.Message, python_code: Annotat
     yield from client.say(message, "**Result:** \n```{}\n```".format(result))
 
 
-@plugins.command(name="plugin")
+@plugins.command(name="plugin", hidden=True)
 def plugin_(client: discord.Client, message: discord.Message):
     """ Manage plugins.
         **Owner command unless no argument is specified.** """
@@ -198,7 +198,7 @@ def unload(client: discord.Client, message: discord.Message, name: str.lower):
     yield from client.say(message, "Plugin `{}` unloaded.".format(name))
 
 
-@plugins.command(name="lambda")
+@plugins.command(name="lambda", hidden=True)
 def lambda_(client: discord.Client, message: discord.Message):
     """ Create commands. See `{pre}help do` for information on how the code works.
 
