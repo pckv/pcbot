@@ -8,6 +8,7 @@ import os
 import logging
 from io import BytesIO
 from collections import defaultdict
+from operator import itemgetter
 
 import discord
 import json
@@ -120,7 +121,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
             replace_sex_suffix(pokemon["evolution"][0][0]).capitalize()  # Name of the first pokemon in its chain
         )
     if "hatches_from" in pokemon:
-        pokemon_go_info += "Hatches from: `{}km Egg`\n".format(pokemon["hatches_from"])
+        pokemon_go_info += "Hatches from: `{}km Egg`".format(pokemon["hatches_from"])
 
     # Format the message
     formatted_message = (
@@ -141,6 +142,42 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     )
 
     yield from client.say(message, formatted_message)
+
+
+@pokedex_.command()
+def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.LowerCleanContent):
+    """ Get the pokemon hatched from the specified egg_type
+    (in distance, e.g. 2 or 5km) """
+    # Strip any km suffix (or prefix, whatever)
+    egg_type = egg_type.replace("km", "")
+
+    try:
+        distance = int(float(egg_type))  # Using float for anyone willing to type 2.0km
+    except ValueError:
+        yield from client.say(message, "The egg type **{}** is invalid.".format(egg_type))
+        return
+
+    pokemon_criteria = []
+    egg_types = []
+
+    # Find all pokemon with the specified distance, and add them sorted by range
+    for pokemon in sorted(pokedex.values(), key=itemgetter("name")):
+        if "hatches_from" not in pokemon:
+            continue
+
+        if pokemon["hatches_from"] not in egg_types:
+            egg_types.append(pokemon["hatches_from"])
+
+        if pokemon["hatches_from"] == distance:
+            pokemon_criteria.append(pokemon["name"].capitalize())
+
+    # The list might be empty
+    assert pokemon_criteria, "No pokemon hatch from a **{}km** egg. Valid distances are ```\n{}```".format(
+        distance, ", ".join("{}km".format(s) for s in sorted(egg_types)))
+
+    # Respond with the list of matching criteria
+    yield from client.say(message, "**The following Pokémon may hatch from a {}km egg**:```\n{}```".format(
+        distance, ", ".join(pokemon_criteria)))
 
 
 @permission("manage_server")
