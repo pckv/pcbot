@@ -88,14 +88,7 @@ def autosave():
 
 def log_message(message: discord.Message, prefix: str=""):
     """ Logs a command/message. """
-    logging.info("{prefix}@{0.author} -> {0.content}".format(message, prefix=prefix))
-
-
-def format_usage_message(command: plugins.Command):
-    """ Formats the command's usage for sending. """
-    # Format the usage and if there is none, try formatting with the utils function
-    # This comes in handy for group functions which use placeholders
-    return "**Usage**:```{}```".format(command.usage or utils.format_usage(command))
+    logging.info("{prefix}@{0.author} ({0.server.name}) -> {0.content}".format(message, prefix=prefix))
 
 
 @asyncio.coroutine
@@ -104,7 +97,7 @@ def execute_command(command: plugins.Command, message: discord.Message, *args, *
     try:
         yield from command.function(client, message, *args, **kwargs)
     except AssertionError as e:
-        yield from client.say(message, str(e) or command.error or format_usage_message(command))
+        yield from client.say(message, str(e) or command.error or utils.format_help(command))
 
 
 def default_self(anno, default, message: discord.Message):
@@ -284,16 +277,10 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     """ Try finding a command """
     command = plugins.get_sub_command(command, cmd_args[1:])
     cmd_args = cmd_args[command.depth:]
-    send_usage = True
-    complete = True
-
-    # If the message is sent via PM and the disabled_pm attribute is True, the command will not be parsed
-    if command.disabled_pm and message.channel.is_private:
-        complete = False
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if cmd_args[-1] in config.help_arg or not complete:
-        complete = send_usage = False
+    if cmd_args[-1] in config.help_arg or (command.disabled_pm and message.channel.is_private):
+        complete = False
         args, kwargs = [], {}
     else:
         # Parse the command and return the parsed arguments
@@ -305,13 +292,11 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
 
         if command.disabled_pm and message.channel.is_private:
             yield from client.say(message, "This command can not be executed in a private message.")
-        elif not send_usage:
-            yield from client.say(message, utils.format_help(command))
         else:
             if command.error and len(cmd_args) > 1:
                 yield from client.say(message, command.error)
             else:
-                yield from client.say(message, format_usage_message(command))
+                yield from client.say(message, utils.format_help(command))
 
         command = None
 
