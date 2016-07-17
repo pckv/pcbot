@@ -95,6 +95,11 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
                 name = pokemon["name"]
                 break
 
+        # Correct the name if it is very close to the original
+        matches = get_close_matches(name, pokedex.keys(), n=1, cutoff=0.8)
+        if matches:
+            name = matches[0]
+
         assert name in pokedex, "There is no pokémon called **{}** in my pokédex!\nPerhaps you meant: `{}`?".format(
             name, ", ".join(get_close_matches(name, pokedex.keys(), cutoff=0.5)))
     else:

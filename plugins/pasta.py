@@ -27,7 +27,7 @@ def pasta(client: discord.Client, message: discord.Message, name: Annotate.Lower
     parsed_name = name.replace(" ", "")
 
     # Pasta might not be in the set
-    assert parsed_name in pastas.data, "Pasta `{}` is undefined.\nPerhaps you meant: `{}`".format(
+    assert parsed_name in pastas.data, "Pasta `{}` is undefined.\nPerhaps you meant: `{}`?".format(
         name, ", ".join(get_close_matches(parsed_name, pastas.data.keys(), cutoff=0.5)))
 
     # Display the specified pasta
