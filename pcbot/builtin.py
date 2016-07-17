@@ -358,21 +358,20 @@ def get_changelog(num: int):
 def bot_info(client: discord.Client, message: discord.Message):
     """ Display basic information and changelog. """
     # Grab the latest commit
-    changelog = yield from get_changelog(1)
+    # changelog = yield from get_changelog(1)
 
     yield from client.say(message, "**{ver}** - **{name}**\n"
                                    "__Github repo:__ <{repo}>\n"
                                    "__Owner (host):__ `{host}`\n"
                                    "__Up since:__ `{up}`\n"
                                    "__Messages since up date:__ `{mes}`\n"
-                                   "__Servers connected to:__ `{servers}`\n"
-                                   "{changelog}".format(
+                                   "__Servers connected to:__ `{servers}`".format(
         ver=config.version, name=client.user.name,
         up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"), mes=len(client.messages),
         host=getattr(utils.get_member(client, utils.owner_cfg.data), "name", None) or "Not in this server.",
         servers=len(client.servers),
         repo="https://github.com/{}".format(config.github_repo),
-        changelog=changelog
+        #  changelog=changelog
     ))
 
 
