@@ -32,6 +32,8 @@ pokedex_config = Config("pokedex", data=defaultdict(dict))
 default_scale_factor = 1.8
 min_scale_factor, max_scale_factor = 0.25, 4
 
+pokemon_go_gen = [1]
+
 # Load the Pokedex API
 with open(api_path) as api_file:
     pokedex = json.load(api_file)
@@ -52,6 +54,20 @@ def id_to_name(pokemon_id: int):
             return name
 
     return None
+
+
+def egg_name(pokemon_evolution: list):
+    """ Return the egg name of the pokemon_evolution chain. """
+    # The pokemon are in their respective order, so we'll find the first one with
+    # a Pokemon GO generation pokemon
+    for names in pokemon_evolution:
+        for name in names:
+            pokemon = pokedex[name]
+
+            if pokemon["generation"] in pokemon_go_gen:
+                return pokemon["locale_name"]
+
+    return "Unknown"
 
 
 def resize_sprite(sprite, factor: float):
@@ -96,7 +112,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
                 break
 
         # Correct the name if it is very close to the original
-        matches = get_close_matches(name, pokedex.keys(), n=1, cutoff=0.85)
+        matches = get_close_matches(name, pokedex.keys(), n=1, cutoff=0.8)
         if matches:
             name = matches[0]
 
@@ -131,15 +147,14 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     pokemon_go_info = ""
     if "evolution_cost" in pokemon:
         pokemon_go_info += "Evolution cost: `{} {} Candy`\n".format(
-            pokemon["evolution_cost"],
-            pokedex[pokemon["evolution"][0][0]]["locale_name"]  # Name of the first pokemon in its chain
-        )
+            pokemon["evolution_cost"], egg_name(pokemon["evolution"]))
+
     if "hatches_from" in pokemon:
         pokemon_go_info += "Hatches from: `{}km Egg` ".format(pokemon["hatches_from"])
 
     # Format the message
     formatted_message = (
-        "**#{id:03} {upper_name}**\n"
+        "**#{id:03} {upper_name} - GEN {generation}**\n"
         "Weight: `{weight}kg` Height: `{height}m`\n"
         "Type: `{type}`\n"
         "**{genus} Pokémon**\n"
