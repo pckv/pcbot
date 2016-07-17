@@ -88,7 +88,11 @@ def autosave():
 
 def log_message(message: discord.Message, prefix: str=""):
     """ Logs a command/message. """
-    logging.info("{prefix}@{0.author} ({0.server.name}) -> {0.content}".format(message, prefix=prefix))
+    logging.info("{prefix}@{0.author}{server} -> {0.content}".format(
+        message,
+        server=" ({})".format(message.server.name) if not message.channel.is_private else "",
+        prefix=prefix)
+    )
 
 
 @asyncio.coroutine
