@@ -15,7 +15,7 @@ import discord
 import json
 
 import plugins
-from pcbot import Config, permission, Annotate
+from pcbot import Config, permission, Annotate, command_prefix
 
 try:
     from PIL import Image
@@ -36,7 +36,8 @@ pokemon_go_gen = [1]
 
 # Load the Pokedex API
 with open(api_path) as api_file:
-    pokedex = json.load(api_file)
+    api = json.load(api_file)
+    pokedex = api["pokemon"]
 
 # Load all our sprites into RAM (they don't take much space)
 # Unlike the pokedex.json API, these use pokemon ID as keys.
@@ -86,6 +87,11 @@ def resize_sprite(sprite, factor: float):
     return buffer
 
 
+def format_type(types: list):
+    """ Format a string from a list of a pokemon's types. """
+    return " | ".join(t.capitalize() for t in types)
+
+
 @plugins.command(name="pokedex")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
     """ Display some information of the given pokémon. """
@@ -111,9 +117,9 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
                 name = pokemon["name"]
                 break
 
-        # Correct the name if it is very close to the original
-        matches = get_close_matches(name, pokedex.keys(), n=1, cutoff=0.8)
-        if matches:
+        # Correct the name if it is very close to an existing pokemon and there's only one close match
+        matches = get_close_matches(name, pokedex.keys(), n=2, cutoff=0.8)
+        if matches and len(matches) == 1:
             name = matches[0]
 
         assert name in pokedex, "There is no pokémon called **{}** in my pokédex!\nPerhaps you meant: `{}`?".format(
@@ -163,7 +169,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         "**EVOLUTION**: {formatted_evolution}"
     ).format(
         upper_name=pokemon["locale_name"].upper(),
-        type=" | ".join(t.capitalize() for t in pokemon["types"]),
+        type=format_type(pokemon["types"]),
         formatted_evolution=" **->** ".join(" **/** ".join(pokedex[name]["locale_name"].upper() for name in names)
                                             for names in pokemon["evolution"]),
         pokemon_go=pokemon_go_info,
@@ -189,8 +195,12 @@ def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.Low
     pokemon_criteria = []
     egg_types = []
 
-    # Find all pokemon with the specified distance, and add them sorted by range
-    for pokemon in sorted(pokedex.values(), key=itemgetter("name")):
+    # Find all pokemon with the specified distance
+    for pokemon in sorted(pokedex.values(), key=itemgetter("id")):
+        # We've exceeded the generation and no longer need to search
+        if pokemon["generation"] not in pokemon_go_gen:
+            break
+
         if "hatches_from" not in pokemon:
             continue
 
@@ -201,12 +211,55 @@ def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.Low
             pokemon_criteria.append(pokemon["locale_name"])
 
     # The list might be empty
-    assert pokemon_criteria, "No pokemon hatch from a **{}km** egg. Valid distances are ```\n{}```".format(
+    assert pokemon_criteria, "No pokemon hatch from a **{}km** egg. **Valid distances are** ```\n{}```".format(
         distance, ", ".join("{}km".format(s) for s in sorted(egg_types)))
 
     # Respond with the list of matching criteria
     yield from client.say(message, "**The following Pokémon may hatch from a {}km egg**:```\n{}```".format(
-        distance, ", ".join(pokemon_criteria)))
+        distance, ", ".join(sorted(pokemon_criteria))))
+
+
+def assert_type(slot: str):
+    """ Assert if a type does not exist, and show the valid types. """
+    match = get_close_matches(slot, api["types"], n=1, cutoff=0.4)
+
+    if match:
+        matches_string = " Perhaps you meant `{}`?".format(match[0])
+    else:
+        matches_string = " See `{}help pokedex type`.".format(command_prefix)
+    assert slot in api["types"], "**{}** is not a valid pokemon type.{}".format(
+        slot.capitalize(), matches_string)
+
+
+types_str = "**Valid types are** ```\n{}```".format(", ".join(s.capitalize() for s in api["types"]))
+
+
+@pokedex_.command(name="type", description="Show pokemon with the specified types. {}".format(types_str))
+def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lower, slot_2: str.lower=None):
+    matched_pokemon = []
+    assert_type(slot_1)
+
+    # Find all pokemon with the matched criteria
+    if slot_2:
+        assert_type(slot_2)
+
+        # If two slots are provided, search for pokemon with both types matching
+        for pokemon in pokedex.values():
+            if pokemon["types"] == [slot_1, slot_2]:
+                matched_pokemon.append(pokemon["locale_name"])
+    else:
+        # All pokemon have a type in their first slot, so check if these are equal
+        for pokemon in pokedex.values():
+            if pokemon["types"][0] == slot_1:
+                matched_pokemon.append(pokemon["locale_name"])
+
+    types = [slot_1] if slot_2 is None else [slot_1, slot_2]
+
+    # There might not be any pokemon with the specified types
+    assert matched_pokemon, "Looks like there are no pokemon of type **{}**!".format(format_type(types))
+
+    yield from client.say(message, "**Pokemon with type {}**: ```\n{}```".format(
+        format_type(types), ", ".join(sorted(matched_pokemon))))
 
 
 @permission("manage_server")
