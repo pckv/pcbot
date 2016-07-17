@@ -96,7 +96,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
                 break
 
         # Correct the name if it is very close to the original
-        matches = get_close_matches(name, pokedex.keys(), n=1, cutoff=0.9)
+        matches = get_close_matches(name, pokedex.keys(), n=1, cutoff=0.85)
         if matches:
             name = matches[0]
 
