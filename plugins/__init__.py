@@ -16,7 +16,7 @@ from pcbot.utils import Annotate, format_exception
 plugins = {}
 events = defaultdict(list)
 Command = namedtuple("Command", "name name_prefix usage description function parent sub_commands depth hidden error "
-                                "pos_check")
+                                "pos_check disabled_pm")
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
                        Annotate.LowerCleanContent, Annotate.Code)
 
@@ -102,6 +102,7 @@ def command(**options):
         error = options.get("error", None)
         pos_check = options.get("pos_check", False)
         description = options.get("description") or func.__doc__ or "Undocumented."
+        disabled_pm = options.get("disabled_pm", False)
 
         formatted_usage = options.get("usage", _format_usage(func, pos_check))
         if formatted_usage is not None:
@@ -143,7 +144,8 @@ def command(**options):
 
         # Create our command
         cmd = Command(name=name, usage=usage, name_prefix=name_prefix, description=description, function=func,
-                      parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error, pos_check=pos_check)
+                      parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error, pos_check=pos_check,
+                      disabled_pm=disabled_pm)
 
         # If the command has a parent (is a subcommand)
         if parent:

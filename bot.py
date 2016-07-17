@@ -285,9 +285,14 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     command = plugins.get_sub_command(command, cmd_args[1:])
     cmd_args = cmd_args[command.depth:]
     send_usage = True
+    complete = True
+
+    # If the message is sent via PM and the disabled_pm attribute is True, the command will not be parsed
+    if command.disabled_pm and message.channel.is_private:
+        complete = False
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if cmd_args[-1] in config.help_arg:
+    if cmd_args[-1] in config.help_arg or not complete:
         complete = send_usage = False
         args, kwargs = [], {}
     else:
@@ -298,7 +303,9 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     if not complete:
         log_message(message)  # Log the command
 
-        if not send_usage:
+        if command.disabled_pm and message.channel.is_private:
+            yield from client.say(message, "This command can not be executed in a private message.")
+        elif not send_usage:
             yield from client.say(message, utils.format_help(command))
         else:
             if command.error and len(cmd_args) > 1:

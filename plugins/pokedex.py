@@ -107,7 +107,8 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
 
     # Get the server's scale factor
-    if message.server.id in pokedex_config.data and "scale-factor" in pokedex_config.data[message.server.id]:
+    if not message.channel.is_private \
+            and message.server.id in pokedex_config.data and "scale-factor" in pokedex_config.data[message.server.id]:
         scale_factor = pokedex_config.data[message.server.id]["scale-factor"]
     else:
         scale_factor = default_scale_factor
@@ -194,7 +195,7 @@ def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.Low
 
 
 @permission("manage_server")
-@pokedex_.command()
+@pokedex_.command(disabled_pm=True)
 def scalefactor(client: discord.Client, message: discord.Message, factor: float=default_scale_factor):
     """ Set the scaling factor for your server. If no factor is given, the default is set. /
     **This command requires the `Manage Server` permission.**"""
