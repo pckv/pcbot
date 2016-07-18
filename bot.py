@@ -66,6 +66,14 @@ class Client(discord.Client):
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
 
     @asyncio.coroutine
+    def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
+        """ Override send_file to notify the server when an attachment could not be sent. """
+        try:
+            yield from super().send_file(destination, fp, filename=filename, content=content, tts=tts)
+        except discord.errors.Forbidden:
+            yield from self.send_message(destination, "*I don't have the permissions to send my attachment.*")
+
+    @asyncio.coroutine
     def say(self, message: discord.Message, content: str):
         """ Equivalent to client.send_message(message.channel, content) """
         msg = yield from client.send_message(message.channel, content)
