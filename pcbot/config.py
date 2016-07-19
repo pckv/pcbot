@@ -14,6 +14,7 @@ command_prefix = "!"
 help_arg = ("?", "help")
 version = ""
 client_name = "PCBOT"  # Placebo name, should be changed on_ready
+creator = "Unknown"  # ^ This is the discriminator of the user
 
 
 def set_version(ver: str):

@@ -280,6 +280,9 @@ def scalefactor(client: discord.Client, message: discord.Message, factor: float=
         else:
             reply = "Pokédex image scale factor is **{factor}**."
     else:
+        if message.server.id not in pokedex_config.data:
+            pokedex_config.data[message.server.id] = {}
+
         pokedex_config.data[message.server.id]["scale-factor"] = factor
         reply = "Pokédex image scale factor set to **{factor}**."
 

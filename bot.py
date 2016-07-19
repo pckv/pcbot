@@ -10,6 +10,7 @@ import os
 from datetime import datetime
 from getpass import getpass
 from argparse import ArgumentParser
+from traceback import print_exc
 
 import discord
 import asyncio
@@ -110,6 +111,10 @@ def execute_command(command: plugins.Command, message: discord.Message, *args, *
         yield from command.function(client, message, *args, **kwargs)
     except AssertionError as e:
         yield from client.say(message, str(e) or command.error or utils.format_help(command))
+    except:
+        yield from client.say(message, "An error occurred while executing this command. If the error persists, "
+                                       "please send a PM to {}.".format(config.creator))
+        print_exc()
 
 
 def default_self(anno, default, message: discord.Message):
@@ -407,10 +412,12 @@ def main():
     # Setup some config for more customization
     bot_meta = config.Config("bot_meta", pretty=True, data=dict(
         name="PCBOT",
-        command_prefix=config.command_prefix
+        command_prefix=config.command_prefix,
+        creator="PC#0326"
     ))
     config.client_name = bot_meta.data["name"]
     config.command_prefix = bot_meta.data["command_prefix"]
+    config.creator = bot_meta.data["creator"]
 
     # Load plugin for builtin commands
     plugins.load_plugin("builtin", "pcbot")
