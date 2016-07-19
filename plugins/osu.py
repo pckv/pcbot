@@ -166,6 +166,11 @@ def update_user_data(client: discord.Client):
             continue
 
         mode = get_mode(member_id).value
+        user_data = yield from api.get_user(u=profile, type="id", m=mode)
+
+        # Just in case something goes wrong, we skip this member (these things are usually one-time occurances)
+        if user_data is None:
+            continue
 
         # User is already tracked
         if member_id in osu_tracking:
@@ -177,7 +182,6 @@ def update_user_data(client: discord.Client):
             osu_tracking[member_id] = dict(member=member, scores=scores)
 
         # Update the "new" data
-        user_data = yield from api.get_user(u=profile, type="id", m=mode)
         osu_tracking[member_id]["new"] = user_data
 
 

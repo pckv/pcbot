@@ -203,7 +203,10 @@ def download_json(url, **params):
     :param params: any additional url parameters """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
-        json = yield from response.json()
+        try:
+            json = yield from response.json()
+        except ValueError:
+            json = None
 
     return json
 
