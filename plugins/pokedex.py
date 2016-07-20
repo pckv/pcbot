@@ -302,7 +302,7 @@ def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lo
 
 
 @pokedex_.command(description="Display type efficacy (effectiveness) of the specified type. {}".format(types_str))
-def efficacy(client: discord.Client, message: discord.Message, type: str.lower):
+def effect(client: discord.Client, message: discord.Message, type: str.lower):
     assert_type(type)
 
     yield from client.say(message, format_efficacy([type]))
