@@ -94,9 +94,7 @@ def format_type(types: list):
 
 @plugins.command(name="pokedex")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
-    """ Display some information of the given pokémon.
-
-    Note that the `Super effective against` and `Not very effective against` """
+    """ Display some information of the given pokémon. """
     # Do some quick replacements for flexible parsing
     name_or_id = name_or_id.strip()
 
