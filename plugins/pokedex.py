@@ -94,7 +94,9 @@ def format_type(types: list):
 
 @plugins.command(name="pokedex")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
-    """ Display some information of the given pokémon. """
+    """ Display some information of the given pokémon.
+
+    Note that the `Super effective against` and `Not very effective against` """
     # Do some quick replacements for flexible parsing
     name_or_id = name_or_id.strip()
 
@@ -152,11 +154,16 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     # Format Pokemon GO specific info
     pokemon_go_info = ""
     if "evolution_cost" in pokemon:
-        pokemon_go_info += "Evolution cost: `{} {} Candy`\n".format(
+        pokemon_go_info += "Evolution cost: `{} {} Candy` ".format(
             pokemon["evolution_cost"], egg_name(pokemon["evolution"]))
 
     if "hatches_from" in pokemon:
+        if pokemon_go_info:
+            pokemon_go_info += "\n"
         pokemon_go_info += "Hatches from: `{}km Egg` ".format(pokemon["hatches_from"])
+
+    if pokemon_go_info:
+        pokemon_go_info = "**Pokémon GO**\n" + pokemon_go_info
 
     # Format the message
     formatted_message = (
@@ -234,6 +241,38 @@ def assert_type(slot: str):
 types_str = "**Valid types are** ```\n{}```".format(", ".join(s.capitalize() for s in api["types"]))
 
 
+def format_efficacy(types: list):
+    """ Format an efficacy string so that we can use this function for
+    multiple commands. """
+    efficacy = ""
+    for type_name in types:
+        efficacy += \
+            "**{0} OFFENSIVE**\n" \
+            "Super effective against: `{1}`\n" \
+            "Not very effective against: `{2}`\n".format(
+                type_name.upper(),
+                ", ".join(s.capitalize() for s in sorted(api["types"][type_name]["effective"])) or "None",
+                ", ".join(s.capitalize() for s in sorted(api["types"][type_name]["ineffective"])) or "None")
+
+        # Find any type which is effective and ineffective against type_name
+        effective, ineffective = [], []
+        for other_type_name in api["types"]:
+            if type_name in api["types"][other_type_name]["effective"]:
+                effective.append(other_type_name)
+            elif type_name in api["types"][other_type_name]["ineffective"]:
+                ineffective.append(other_type_name)
+
+        efficacy += \
+            "**{0} DEFENSIVE**\n" \
+            "Not very effective against {1} type: `{2}`\n" \
+            "Super effective against {1} type: `{3}`\n".format(
+                type_name.upper(),
+                type_name,
+                ", ".join(s.capitalize() for s in sorted(ineffective)) or "None",
+                ", ".join(s.capitalize() for s in sorted(effective)) or "None")
+    return efficacy.strip("\n")
+
+
 @pokedex_.command(name="type", description="Show pokemon with the specified types. {}".format(types_str))
 def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lower, slot_2: str.lower=None):
     matched_pokemon = []
@@ -262,6 +301,13 @@ def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lo
         format_type(types), ", ".join(sorted(matched_pokemon))))
 
 
+@pokedex_.command(description="Display type efficacy (effectiveness) of the specified type. {}".format(types_str))
+def efficacy(client: discord.Client, message: discord.Message, type: str.lower):
+    assert_type(type)
+
+    yield from client.say(message, format_efficacy([type]))
+
+
 @permission("manage_server")
 @pokedex_.command(disabled_pm=True)
 def scalefactor(client: discord.Client, message: discord.Message, factor: float=default_scale_factor):
@@ -272,6 +318,9 @@ def scalefactor(client: discord.Client, message: discord.Message, factor: float=
     assert min_scale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(
         factor, min_scale_factor)
 
+    if message.server.id not in pokedex_config.data:
+        pokedex_config.data[message.server.id] = {}
+
     # Handle specific scenarios
     if factor == default_scale_factor:
         if "scale-factor" in pokedex_config.data[message.server.id]:
@@ -280,9 +329,6 @@ def scalefactor(client: discord.Client, message: discord.Message, factor: float=
         else:
             reply = "Pokédex image scale factor is **{factor}**."
     else:
-        if message.server.id not in pokedex_config.data:
-            pokedex_config.data[message.server.id] = {}
-
         pokedex_config.data[message.server.id]["scale-factor"] = factor
         reply = "Pokédex image scale factor set to **{factor}**."
 

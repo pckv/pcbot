@@ -17648,24 +17648,261 @@
             "weight": 305.0
         }
     },
-    "types": [
-        "grass",
-        "poison",
-        "fire",
-        "flying",
-        "water",
-        "bug",
-        "normal",
-        "electric",
-        "ground",
-        "fairy",
-        "fighting",
-        "psychic",
-        "rock",
-        "steel",
-        "ice",
-        "ghost",
-        "dragon",
-        "dark"
-    ]
+    "types": {
+        "bug": {
+            "effective": [
+                "grass",
+                "psychic",
+                "dark"
+            ],
+            "id": 7,
+            "ineffective": [
+                "fighting",
+                "flying",
+                "poison",
+                "ghost",
+                "steel",
+                "fire",
+                "fairy"
+            ],
+            "name": "bug"
+        },
+        "dark": {
+            "effective": [
+                "ghost",
+                "psychic"
+            ],
+            "id": 17,
+            "ineffective": [
+                "fighting",
+                "dark",
+                "fairy"
+            ],
+            "name": "dark"
+        },
+        "dragon": {
+            "effective": [
+                "dragon"
+            ],
+            "id": 16,
+            "ineffective": [
+                "steel"
+            ],
+            "name": "dragon"
+        },
+        "electric": {
+            "effective": [
+                "flying",
+                "water"
+            ],
+            "id": 13,
+            "ineffective": [
+                "grass",
+                "electric",
+                "dragon"
+            ],
+            "name": "electric"
+        },
+        "fairy": {
+            "effective": [
+                "fighting",
+                "dragon",
+                "dark"
+            ],
+            "id": 18,
+            "ineffective": [
+                "poison",
+                "steel",
+                "fire"
+            ],
+            "name": "fairy"
+        },
+        "fighting": {
+            "effective": [
+                "normal",
+                "rock",
+                "steel",
+                "ice",
+                "dark"
+            ],
+            "id": 2,
+            "ineffective": [
+                "flying",
+                "poison",
+                "bug",
+                "psychic",
+                "fairy"
+            ],
+            "name": "fighting"
+        },
+        "fire": {
+            "effective": [
+                "bug",
+                "steel",
+                "grass",
+                "ice"
+            ],
+            "id": 10,
+            "ineffective": [
+                "rock",
+                "fire",
+                "water",
+                "dragon"
+            ],
+            "name": "fire"
+        },
+        "flying": {
+            "effective": [
+                "fighting",
+                "bug",
+                "grass"
+            ],
+            "id": 3,
+            "ineffective": [
+                "rock",
+                "steel",
+                "electric"
+            ],
+            "name": "flying"
+        },
+        "ghost": {
+            "effective": [
+                "ghost",
+                "psychic"
+            ],
+            "id": 8,
+            "ineffective": [
+                "dark"
+            ],
+            "name": "ghost"
+        },
+        "grass": {
+            "effective": [
+                "ground",
+                "rock",
+                "water"
+            ],
+            "id": 12,
+            "ineffective": [
+                "flying",
+                "poison",
+                "bug",
+                "steel",
+                "fire",
+                "grass",
+                "dragon"
+            ],
+            "name": "grass"
+        },
+        "ground": {
+            "effective": [
+                "poison",
+                "rock",
+                "steel",
+                "fire",
+                "electric"
+            ],
+            "id": 5,
+            "ineffective": [
+                "bug",
+                "grass"
+            ],
+            "name": "ground"
+        },
+        "ice": {
+            "effective": [
+                "flying",
+                "ground",
+                "grass",
+                "dragon"
+            ],
+            "id": 15,
+            "ineffective": [
+                "steel",
+                "fire",
+                "water",
+                "ice"
+            ],
+            "name": "ice"
+        },
+        "normal": {
+            "effective": [],
+            "id": 1,
+            "ineffective": [
+                "rock",
+                "steel"
+            ],
+            "name": "normal"
+        },
+        "poison": {
+            "effective": [
+                "grass",
+                "fairy"
+            ],
+            "id": 4,
+            "ineffective": [
+                "poison",
+                "ground",
+                "rock",
+                "ghost"
+            ],
+            "name": "poison"
+        },
+        "psychic": {
+            "effective": [
+                "fighting",
+                "poison"
+            ],
+            "id": 14,
+            "ineffective": [
+                "steel",
+                "psychic"
+            ],
+            "name": "psychic"
+        },
+        "rock": {
+            "effective": [
+                "flying",
+                "bug",
+                "fire",
+                "ice"
+            ],
+            "id": 6,
+            "ineffective": [
+                "fighting",
+                "ground",
+                "steel"
+            ],
+            "name": "rock"
+        },
+        "steel": {
+            "effective": [
+                "rock",
+                "ice",
+                "fairy"
+            ],
+            "id": 9,
+            "ineffective": [
+                "steel",
+                "fire",
+                "water",
+                "electric"
+            ],
+            "name": "steel"
+        },
+        "water": {
+            "effective": [
+                "ground",
+                "rock",
+                "fire"
+            ],
+            "id": 11,
+            "ineffective": [
+                "water",
+                "grass",
+                "dragon"
+            ],
+            "name": "water"
+        }
+    }
 }

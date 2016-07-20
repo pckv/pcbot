@@ -1,4 +1,4 @@
-pokedex.json is composed purely of data from
+pokedex.json is composed of data from
     https://github.com/veekun/pokedex/tree/master/pokedex/data/csv
 
 Every sprite in sprites/ are from
