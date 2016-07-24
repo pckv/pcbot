@@ -66,7 +66,7 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
         current = moderate.data[message.server.id][name]
         yield from client.say(message, "{} is **{}**.".format(setting, "enabled" if current else "disabled"))
 
-    @display_setting.command(hidden=True)
+    @display_setting.command(hidden=True, aliases="true set enable")
     @utils.permission(*permissions)
     def on(client: discord.Client, message: discord.Message):
         """ The command to enable this setting. """
@@ -74,7 +74,7 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
         moderate.save()
         yield from client.say(message, "{} **enabled**.".format(setting))
 
-    @display_setting.command(hidden=True)
+    @display_setting.command(hidden=True, aliases="true set enable")
     @utils.permission(*permissions)
     def off(client: discord.Client, message: discord.Message):
         """ The command to enable this setting. """

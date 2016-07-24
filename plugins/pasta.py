@@ -16,7 +16,7 @@ import plugins
 pastas = Config("pastas", data={})
 
 
-@plugins.command()
+@plugins.command(aliases="paste")
 def pasta(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
         pasta action. You also need quotes around `<name>` if it has any spaces. """
@@ -34,7 +34,7 @@ def pasta(client: discord.Client, message: discord.Message, name: Annotate.Lower
     yield from client.say(message, pastas.data[parsed_name])
 
 
-@pasta.command()
+@pasta.command(aliases="a")
 def add(client: discord.Client, message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
     """ Add a pasta with the specified content. """
     # When creating pastas we don't use spaces either!
@@ -48,7 +48,7 @@ def add(client: discord.Client, message: discord.Message, name: str.lower, copyp
     yield from client.say(message, "Pasta `{}` set.".format(name))
 
 
-@pasta.command()
+@pasta.command(aliases="r")
 def remove(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Remove a pasta with the specified name. """
     # We don't even use spaces when removing pastas!

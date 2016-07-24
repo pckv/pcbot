@@ -15,8 +15,9 @@ from pcbot.utils import Annotate, format_exception
 
 plugins = {}
 events = defaultdict(list)
-Command = namedtuple("Command", "name name_prefix usage description function parent sub_commands depth hidden error "
-                                "pos_check disabled_pm")
+Command = namedtuple("Command", "name name_prefix  aliases "
+                                "usage description function parent sub_commands depth hidden error pos_check "
+                                "disabled_pm")
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
                        Annotate.LowerCleanContent, Annotate.Code)
 
@@ -79,6 +80,7 @@ def command(**options):
 
     Command attributes are:
         name        : str         : The commands name. Will use the function name by default.
+        aliases     : str / list  : Aliases for this command as a str separated by whitespace or a list.
         usage       : str         : The command usage following the command trigger, e.g the "[cmd]" in "help [cmd]".
         description : str         : The commands description. By default this uses the docstring of the function.
         hidden      : bool        : Whether or not to show this function in the builtin help command.
@@ -95,6 +97,7 @@ def command(**options):
 
         # Define all function stats
         name = options.get("name", func.__name__)
+        aliases = options.get("aliases")
         hidden = options.get("hidden", False)
         parent = options.get("parent", None)
         depth = parent.depth + 1 if parent is not None else 0
@@ -103,6 +106,12 @@ def command(**options):
         pos_check = options.get("pos_check", False)
         description = options.get("description") or func.__doc__ or "Undocumented."
         disabled_pm = options.get("disabled_pm", False)
+
+        # Parse aliases
+        if type(aliases) is str:
+            aliases = aliases.split(" ")
+        elif aliases is None:
+            aliases = []
 
         formatted_usage = options.get("usage", _format_usage(func, pos_check))
         if formatted_usage is not None:
@@ -143,9 +152,9 @@ def command(**options):
             raise KeyError("You can't assign two commands with the same name")
 
         # Create our command
-        cmd = Command(name=name, usage=usage, name_prefix=name_prefix, description=description, function=func,
-                      parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error, pos_check=pos_check,
-                      disabled_pm=disabled_pm)
+        cmd = Command(name=name, aliases=aliases, usage=usage, name_prefix=name_prefix, description=description,
+                      function=func, parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error,
+                      pos_check=pos_check, disabled_pm=disabled_pm)
 
         # If the command has a parent (is a subcommand)
         if parent:
@@ -198,25 +207,22 @@ def parent_attr(cmd: Command, attr: str):
     return getattr(cmd.parent, attr, False) or getattr(cmd, attr)
 
 
-def get_command(plugin, cmd: str):
+def get_command(plugin, trigger: str):
     """ Find and return a command function from a plugin.
 
     :param plugin: plugin module to look through.
-    :param cmd: a str representing the command name. """
+    :param trigger: a str representing the command name or alias. """
     commands = getattr(plugin, "__commands", None)
 
     # Return None if the bot doesn't have any commands
     if not commands:
         return None
 
-    names = [cmd.name for cmd in plugin.__commands]
-
-    # Return None if the specified plugin doesn't have the specified command
-    if cmd not in names:
+    for cmd in plugin.__commands:
+        if trigger == cmd.name or trigger in cmd.aliases:
+            return cmd
+    else:
         return None
-
-    # Return the found command
-    return commands[names.index(cmd)]
 
 
 def get_sub_command(cmd, args: list):
@@ -225,13 +231,12 @@ def get_sub_command(cmd, args: list):
     :param cmd: type plugins.Command
     :param args: a list of arguments *following* the command trigger. """
     for arg in args:
-        names = [cmd.name for cmd in cmd.sub_commands]
-
-        if not names:
+        for sub_cmd in cmd.sub_commands:
+            if arg == sub_cmd.name or arg in sub_cmd.aliases:
+                cmd = sub_cmd
+                continue
+        else:
             break
-
-        if arg in names:
-            cmd = cmd.sub_commands[names.index(arg)]
 
     return cmd
 

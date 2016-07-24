@@ -352,20 +352,21 @@ def on_message(message: discord.Message):
     # Handle commands
     for plugin in plugins.all_values():
         # If there was a command and the bot can send messages in the channel, parse the command
-        if cmd:
-            command = plugins.get_command(plugin, cmd)
+        if not cmd:
+            continue
+        command = plugins.get_command(plugin, cmd)
 
-            if command:
-                parsed_command, args, kwargs = yield from parse_command(command, cmd_args, message)
+        if command:
+            parsed_command, args, kwargs = yield from parse_command(command, cmd_args, message)
 
-                if parsed_command:
-                    log_message(message)  # Log the command
-                    client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))  # Run command
+            if parsed_command:
+                log_message(message)  # Log the command
+                client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))  # Run command
 
-                    # Log time spent parsing the command
-                    stop_time = datetime.now()
-                    time_elapsed = (stop_time - start_time).total_seconds() / 1000
-                    logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
+                # Log time spent parsing the command
+                stop_time = datetime.now()
+                time_elapsed = (stop_time - start_time).total_seconds() / 1000
+                logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
 
 
 @asyncio.coroutine

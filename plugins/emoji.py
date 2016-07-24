@@ -24,9 +24,9 @@ max_width = size * 4
 max_emoji = 64
 
 
-# This will be a list of all emoji SVG files. store this in
-# RAM is for easier access. Considering the library of emojies
-# only take up about 2.5MB (or 4MB in disk) as of now, and if
+# This will be a list of all emoji SVG files. Storing this in
+# RAM is for easier access, considering the library of emojies
+# only take up about 2.5MB (or 4MB in disk) as of now. If
 # the library expands, the size should not increase drastically.
 emoji = {}
 for file in os.listdir(emoji_path):

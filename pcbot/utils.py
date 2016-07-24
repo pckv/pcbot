@@ -13,7 +13,7 @@ import discord
 import asyncio
 import aiohttp
 
-from pcbot import Config
+from pcbot import Config, command_prefix
 
 owner_cfg = Config("owner")
 member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
@@ -113,7 +113,13 @@ def format_help(command):
     if getattr(command.function, "__owner__", False):
         desc += "\n:information_source:`Only the bot owner can execute this command.`"
 
-    return "**Usage**: ```{}```**Description**: {}".format(usage, desc)
+    # Format aliases
+    alias_format = ""
+    if command.aliases:
+        alias_format = "\n**Aliases**: ```{}```".format(
+            ", ".join(command_prefix + alias for alias in command.aliases))
+
+    return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
 
 
 def is_owner(member):

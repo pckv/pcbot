@@ -21,7 +21,7 @@ lambda_config = Config("lambda-config", data=dict(imports=[], blacklist=[]))
 code_globals = {}
 
 
-@plugins.command(name="help")
+@plugins.command(name="help", aliases="commands")
 def help_(client: discord.Client, message: discord.Message, command: str.lower=None, *args):
     """ Display commands or their usage and description. """
     # Display the specific command
@@ -144,7 +144,7 @@ def eval_(client: discord.Client, message: discord.Message, python_code: Annotat
     yield from client.say(message, "**Result:** \n```{}\n```".format(result))
 
 
-@plugins.command(name="plugin", hidden=True)
+@plugins.command(name="plugin", hidden=True, aliases="pl")
 def plugin_(client: discord.Client, message: discord.Message):
     """ Manage plugins.
         **Owner command unless no argument is specified.** """
@@ -152,7 +152,7 @@ def plugin_(client: discord.Client, message: discord.Message):
                           "**Plugins:** ```{}```".format(", ".join(plugins.all_keys())))
 
 
-@plugin_.command()
+@plugin_.command(aliases="r")
 @utils.owner
 def reload(client: discord.Client, message: discord.Message, name: str.lower=None):
     """ Reloads all plugins or the specified plugin. """
@@ -209,19 +209,16 @@ def lambda_(client: discord.Client, message: discord.Message):
                           "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
 
 
-@lambda_.command()
+@lambda_.command(aliases="a")
 @utils.owner
 def add(client: discord.Client, message: discord.Message, trigger: str.lower, python_code: Annotate.Code):
     """ Add a command that runs the specified python code. """
-    assert trigger not in lambdas.data, "Command `{}` already exists.".format(trigger)
-
-    # The command does not exist so we create it
     lambdas.data[trigger] = python_code
     lambdas.save()
     yield from client.say(message, "Command `{}` set.".format(trigger))
 
 
-@lambda_.command()
+@lambda_.command(aliases="r")
 @utils.owner
 def remove(client: discord.Client, message: discord.Message, trigger: str.lower):
     """ Remove a command. """

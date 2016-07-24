@@ -92,7 +92,7 @@ def format_type(types: list):
     return " | ".join(t.capitalize() for t in types)
 
 
-@plugins.command(name="pokedex")
+@plugins.command(name="pokedex", aliases="pd pokemon")
 def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
     """ Display some information of the given pokémon. """
     # Do some quick replacements for flexible parsing
@@ -299,7 +299,8 @@ def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lo
         format_type(types), ", ".join(sorted(matched_pokemon))))
 
 
-@pokedex_.command(description="Display type efficacy (effectiveness) of the specified type. {}".format(types_str))
+@pokedex_.command(aliases="e",
+                  description="Display type efficacy (effectiveness) of the specified type. {}".format(types_str))
 def effect(client: discord.Client, message: discord.Message, type: str.lower):
     assert_type(type)
 
@@ -307,9 +308,9 @@ def effect(client: discord.Client, message: discord.Message, type: str.lower):
 
 
 @permission("manage_server")
-@pokedex_.command(disabled_pm=True)
+@pokedex_.command(disabled_pm=True, aliases="sf")
 def scalefactor(client: discord.Client, message: discord.Message, factor: float=default_scale_factor):
-    """ Set the scaling factor for your server. If no factor is given, the default is set. /
+    """ Set the image scaling factor for your server. If no factor is given, the default is set. /
     **This command requires the `Manage Server` permission.**"""
     assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(
         factor, max_scale_factor)
