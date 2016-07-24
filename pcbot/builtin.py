@@ -37,9 +37,7 @@ def help_(client: discord.Client, message: discord.Message, command: str.lower=N
             # Get the specific command with arguments and send the help
             cmd = plugins.get_sub_command(cmd, args)
             yield from client.say(message, utils.format_help(cmd))
-            return
-        else:
-            yield from client.say(message, "Command `{}` does not exist.".format(command))
+            break
 
     # Display every command
     else:
