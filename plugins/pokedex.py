@@ -21,7 +21,7 @@ try:
     from PIL import Image
 except:
     resize = False
-    logging.warn("PIL could not be loaded. The pokedex works like usual, however with lower resolution sprites.")
+    logging.warn("PIL could not be loaded. The pokedex works like usual, however sprites will remain 1x scaled.")
 else:
     resize = True
 
@@ -159,9 +159,6 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         if pokemon_go_info:
             pokemon_go_info += "\n"
         pokemon_go_info += "Hatches from: `{}km Egg` ".format(pokemon["hatches_from"])
-
-    if pokemon_go_info:
-        pokemon_go_info = "**Pokémon GO**\n" + pokemon_go_info
 
     # Format the message
     formatted_message = (
