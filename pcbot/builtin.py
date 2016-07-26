@@ -359,7 +359,7 @@ def bot_info(client: discord.Client, message: discord.Message):
                                    "Up      : {up} UTC\n"
                                    "Servers : {servers}```"
                                    "{desc}".format(
-        ver=config.version, name=config.name,
+        ver=config.version, name=app_info.name,
         repo="https://github.com/{}".format(config.github_repo),
         owner=str(app_info.owner),
         up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"),
