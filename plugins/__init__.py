@@ -12,6 +12,7 @@ from traceback import format_exc
 import asyncio
 
 from pcbot.utils import Annotate, format_exception
+from pcbot import config
 
 plugins = {}
 events = defaultdict(list)
@@ -90,8 +91,6 @@ def command(**options):
     """
     def decorator(func):
         # The prefix might have changed since the bot started because of mess
-        from pcbot.config import command_prefix
-
         if not asyncio.iscoroutine(func):
             func = asyncio.coroutine(func)
 
@@ -101,7 +100,7 @@ def command(**options):
         hidden = options.get("hidden", False)
         parent = options.get("parent", None)
         depth = parent.depth + 1 if parent is not None else 0
-        name_prefix = parent.name_prefix + " " + name if parent is not None else command_prefix + name
+        name_prefix = parent.name_prefix + " " + name if parent is not None else config.command_prefix + name
         error = options.get("error", None)
         pos_check = options.get("pos_check", False)
         description = options.get("description") or func.__doc__ or "Undocumented."
@@ -137,7 +136,7 @@ def command(**options):
             description = new_desc
 
         # Format the description for any optional keys
-        description = description.format(pre=command_prefix)
+        description = description.format(pre=config.command_prefix)
 
         # Load the plugin the function is from, so that we can modify the __commands attribute
         plugin = inspect.getmodule(func)

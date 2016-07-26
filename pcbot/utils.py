@@ -13,7 +13,7 @@ import discord
 import asyncio
 import aiohttp
 
-from pcbot import Config, command_prefix
+from pcbot import Config, config
 
 owner_cfg = Config("owner")
 member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
@@ -47,9 +47,7 @@ def int_range(f: int=None, t: int=None):
             return None
 
         # Compare the lowest and highest numbers
-        if f and num < f:
-            return None
-        if t and num > t:
+        if (f and num < f) or (t and num > t):
             return None
 
         # The string given is converted to a number and fits the criteria
@@ -117,7 +115,7 @@ def format_help(command):
     alias_format = ""
     if command.aliases:
         alias_format = "\n**Aliases**: ```{}```".format(
-            ", ".join(command_prefix + alias for alias in command.aliases))
+            ", ".join(config.command_prefix + alias for alias in command.aliases))
 
     return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
 
@@ -193,7 +191,8 @@ def download_file(url, **params):
     """ Download and return a byte-like object of a file.
 
     :param url: download url as str
-    :param params: any additional url parameters """
+    :param params: any additional url parameters
+    :return: The byte-like file and the response headers """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
         file = yield from response.read()
@@ -206,7 +205,8 @@ def download_json(url, **params):
     """ Download and return a json file.
 
     :param url: download url as str
-    :param params: any additional url parameters """
+    :param params: any additional url parameters
+    :return: The byte-like file and the response headers """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
         try:
@@ -214,7 +214,7 @@ def download_json(url, **params):
         except ValueError:
             json = None
 
-    return json
+    return json, response.headers
 
 
 def find_member(server: discord.Server, name, steps=3, mention=True):

@@ -122,7 +122,7 @@ def def_section(api_name: str, first_element: bool=False):
             params["k"] = api_key
 
         # Download using a URL of the given API function name
-        json = yield from utils.download_json(api_url + api_name, **params)
+        json, _ = yield from utils.download_json(api_url + api_name, **params)
         requests_sent += 1
 
         # Unless we want to extract the first element, return the entire object (usually a list)
