@@ -27,7 +27,7 @@ def define(client: discord.Client, message: discord.Message, term: Annotate.Lowe
             definition["example"] = "```{}```".format(definition["example"])
 
         # Format definition
-        msg = "**{word}**:\n{definition}\n{example}".format(*definition)
+        msg = "**{word}**:\n{definition}\n{example}".format(**definition)
 
         # If this definition fits in a message, break the loop so that we can send it
         if len(msg) <= 2000:

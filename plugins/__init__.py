@@ -6,7 +6,7 @@ import os
 import logging
 import inspect
 from collections import namedtuple, defaultdict
-from functools import partial, wraps
+from functools import partial
 from traceback import format_exc
 
 import asyncio

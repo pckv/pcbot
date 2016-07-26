@@ -27,7 +27,7 @@ class Client(discord.Client):
     some helper functions. """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.time_started = datetime.now()
+        self.time_started = datetime.utcnow()
 
     @asyncio.coroutine
     def _handle_event(self, func, event, *args, **kwargs):
@@ -107,13 +107,15 @@ def log_message(message: discord.Message, prefix: str=""):
 @asyncio.coroutine
 def execute_command(command: plugins.Command, message: discord.Message, *args, **kwargs):
     """ Execute a command and send any AttributeError exceptions. """
+    app_info = yield from client.application_info()
+
     try:
         yield from command.function(client, message, *args, **kwargs)
     except AssertionError as e:
         yield from client.say(message, str(e) or command.error or utils.format_help(command))
     except:
         yield from client.say(message, "An error occurred while executing this command. If the error persists, "
-                                       "please send a PM to {}.".format(config.creator))
+                                       "please send a PM to {}.".format(app_info.owner))
         print_exc()
 
 
@@ -413,12 +415,10 @@ def main():
     # Setup some config for more customization
     bot_meta = config.Config("bot_meta", pretty=True, data=dict(
         name="PCBOT",
-        command_prefix=config.command_prefix,
-        creator="PC#0326"
+        command_prefix=config.command_prefix
     ))
-    config.client_name = bot_meta.data["name"]
+    config.name = bot_meta.data["name"]
     config.command_prefix = bot_meta.data["command_prefix"]
-    config.creator = bot_meta.data["creator"]
 
     # Load plugin for builtin commands
     plugins.load_plugin("builtin", "pcbot")

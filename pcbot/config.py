@@ -13,8 +13,7 @@ github_repo = "PcBoy111/PCBOT/"
 command_prefix = "!"
 help_arg = ("?", "help")
 version = ""
-client_name = "PCBOT"  # Placebo name, should be changed on_ready
-creator = "Unknown"  # ^ This is the discriminator of the user
+name = "PCBOT"  # Placebo name, should be changed on_ready
 
 
 def set_version(ver: str):
