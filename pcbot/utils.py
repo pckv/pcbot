@@ -19,6 +19,7 @@ owner_cfg = Config("owner")
 member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_regex = re.compile(r"<#(?P<id>\d+)>")
 markdown_code_regex = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
+identifier_prefix = re.compile(r"[a-zA-Z_]")
 
 
 class Annotate(Enum):
@@ -115,7 +116,8 @@ def format_help(command):
     alias_format = ""
     if command.aliases:
         alias_format = "\n**Aliases**: ```{}```".format(
-            ", ".join(config.command_prefix + alias for alias in command.aliases))
+            ", ".join((config.command_prefix if identifier_prefix.match(alias[0]) else "") + alias
+                      for alias in command.aliases))
 
     return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
 

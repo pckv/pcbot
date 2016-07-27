@@ -213,7 +213,7 @@ def get_command(plugin, trigger: str):
     :param trigger: a str representing the command name or alias. """
     commands = getattr(plugin, "__commands", None)
 
-    # Return None if the bot doesn't have any commands
+    # Return None if the plugin doesn't have any commands
     if not commands:
         return None
 
