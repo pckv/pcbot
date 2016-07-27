@@ -233,9 +233,7 @@ def get_sub_command(cmd, args: list):
         for sub_cmd in cmd.sub_commands:
             if arg == sub_cmd.name or arg in sub_cmd.aliases:
                 cmd = sub_cmd
-                continue
-        else:
-            break
+                break
 
     return cmd
 

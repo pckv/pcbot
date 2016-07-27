@@ -348,8 +348,8 @@ def on_message(message: discord.Message):
 
     # Get command name
     cmd = ""
-    if cmd_args[0].startswith(config.command_prefix) and len(cmd_args[0]) > 1:
-        cmd = cmd_args[0][1:]
+    if cmd_args[0].startswith(config.command_prefix) and len(cmd_args[0]) > len(config.command_prefix):
+        cmd = cmd_args[0][len(config.command_prefix):]
 
     # Handle commands
     for plugin in plugins.all_values():

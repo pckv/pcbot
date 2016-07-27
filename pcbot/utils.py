@@ -80,7 +80,7 @@ def format_usage(command):
     of a sub command on a newline.
 
     :param command: type plugins.Command """
-    if command.hidden:
+    if command.hidden and command.parent is not None:
         return
 
     usage = [command.usage]
@@ -102,7 +102,7 @@ def format_help(command):
 
     # If there is no usage, the command isn't supposed to be displayed as such
     # Therefore, we switch to using the parent command instead
-    if usage is None:
+    if usage is None and command.parent is not None:
         return format_help(command.parent)
 
     desc = command.description

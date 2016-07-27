@@ -27,7 +27,7 @@ def help_(client: discord.Client, message: discord.Message, command: str.lower=N
     # Display the specific command
     if command:
         if command.startswith(config.command_prefix):
-            command = command[1:]
+            command = command[len(config.command_prefix):]
 
         for plugin in plugins.all_values():
             cmd = plugins.get_command(plugin, command)
@@ -306,7 +306,7 @@ def source(client: discord.Client, message: discord.Message, trigger: str.lower)
     yield from client.say(message, "Source for `{}`:\n{}".format(trigger, lambdas.data[trigger]))
 
 
-@plugins.command()
+@plugins.command(hidden=True)
 def ping(client: discord.Client, message: discord.Message):
     """ Tracks the time spent parsing the command and sending a message. """
     # Track the time it took to receive a message and send it.
