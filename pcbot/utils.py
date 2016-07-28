@@ -343,7 +343,7 @@ def split(string, maxsplit=-1):
     if maxsplit == -1:
         try:
             split_object = shlex.shlex(string, posix=True)
-            split_object.quotes = '"'
+            split_object.quotes = '"`'
             split_object.whitespace_split = True
             split_object.commenters = ""
             return list(split_object)
