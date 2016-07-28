@@ -116,8 +116,8 @@ def format_help(command):
     alias_format = ""
     if command.aliases:
         alias_format = "\n**Aliases**: ```{}```".format(
-            ", ".join((config.command_prefix if identifier_prefix.match(alias[0]) else "") + alias
-                      for alias in command.aliases))
+            ", ".join((config.command_prefix if identifier_prefix.match(alias[0]) and command.parent is None else "") +
+                      alias for alias in command.aliases))
 
     return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
 
