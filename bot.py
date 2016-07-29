@@ -406,7 +406,8 @@ def main():
     start_args = parser.parse_args()
 
     # Setup logger with level specified in start_args or logging.INFO
-    logging.basicConfig(level=start_args.log_level, format="%(levelname)s [%(module)s] %(asctime)s: %(message)s")
+    logging.basicConfig(level=start_args.log_level,
+                        format="%(levelname)s %(asctime)s [%(module)s / %(name)s]: %(message)s")
 
     # Always keep discord.py logger at INFO as a minimum
     discord_logger = logging.getLogger("discord")
