@@ -115,7 +115,11 @@ def format_help(command):
     # Format aliases
     alias_format = ""
     if command.aliases:
-        alias_format = "\n**Aliases**: ```{}```".format(
+        # Don't add blank space unless necessary
+        if not desc.strip().endswith("```"):
+            alias_format += "\n"
+
+        alias_format += "**Aliases**: ```{}```".format(
             ", ".join((config.command_prefix if identifier_prefix.match(alias[0]) and command.parent is None else "") +
                       alias for alias in command.aliases))
 
@@ -351,7 +355,7 @@ def split(string, maxsplit=-1):
             return string.split()
 
     split_object = shlex.shlex(string, posix=True)
-    split_object.quotes = '"'
+    split_object.quotes = '"`'
     split_object.whitespace_split = True
     split_object.commenters = ""
     maxsplit_object = []
