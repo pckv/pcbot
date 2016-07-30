@@ -32,6 +32,7 @@ osu_config = Config("osu", data=dict(key="change to your api key", profiles={}, 
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
 update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
+rank_regex = re.compile(r"#\d+")
 
 pp_threshold = 0.1
 score_request_limit = 100
@@ -96,7 +97,7 @@ def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int
     return formatted
 
 
-def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int):
+def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None):
     """ Format any osu!Standard score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
@@ -105,8 +106,9 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int):
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
         "{sign} {acc:<8.2%}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}{max_combo}```"
-        "**Profile**: <https://osu.ppy.sh/u/{user_id}>.\n"
-        "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>."
+        "**Profile**: <https://osu.ppy.sh/u/{user_id}>\n"
+        "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>"
+        "{live}"
     ).format(
         limit=score_request_limit,
         sign=("!" if acc == 1 else "+") if score["perfect"] == "1" else "-",
@@ -118,6 +120,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int):
         stars=float(beatmap["difficultyrating"]),
         max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.CTB) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
+        live="\n**Watch live @** <{}>".format(stream_url) if stream_url else "",
         **score
     )
 
@@ -151,7 +154,7 @@ def update_user_data(client: discord.Client):
                 return False
 
             # See if the member is playing
-            if m.game and "osu!" in m.game.name:
+            if m.game and ("osu!" in m.game.name.lower() or rank_regex.search(m.game.name)):
                 return True
 
             return False
@@ -251,8 +254,9 @@ def notify_pp(client: discord.Client):
             beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
             beatmap = api.lookup_beatmap(beatmap_search)
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
+            stream_url = member.game.url if member.game is not None else None
             m = "{} (`{}`) ".format(member.mention, new["username"]) + \
-                format_new_score(mode, score, beatmap, scoreboard_rank) + "\n"
+                format_new_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
