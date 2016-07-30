@@ -305,7 +305,8 @@ def on_ready(client: discord.Client):
 
 
 @plugins.command()
-def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
+def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
+        mode: api.GameMode.get_mode=None):
     """ Handle osu! commands.
 
     When your user is linked, this plugin will check if you are playing osu!
@@ -315,6 +316,7 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
     user_id = osu_config.data["profiles"][member.id]
+    mode = get_mode(member.id) if mode is None else mode
 
     # Set the signature color to that of the role color
     color = "pink" if member.color == discord.Color.default() \
@@ -323,7 +325,7 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
     # Download and upload the signature
     signature, _ = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
                                                   colour=color, uname=user_id, pp=True,
-                                                  countryrank=True, xpbar=True, mode=get_mode(member.id).value)
+                                                  countryrank=True, xpbar=True, mode=mode.value)
     yield from client.send_file(message.channel, signature, filename="sig.png")
 
     yield from client.say(message, "<https://osu.ppy.sh/u/{}>".format(user_id))
