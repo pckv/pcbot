@@ -9,9 +9,9 @@ PCBOT should be supported by all python versions above 3.4.2. It is however only
 ## BotéMon
 **For those who have arrived from BotéMon and wish to contribute/have a look/access the resources**, the libraries used are found in `plugins/pokedex.py` and `plugins/pokedexlib/`!
 
-Currently, I only host BotéMon for public use. **If you wish to add the bot to your server, you may use [this link!][botemon]**
+Currently, I only host BotéMon for public use. **If you wish to add the bot to your server, check [it's bots.discord.pw entry!][botemon]**
 
-[botemon]: https://discordapp.com/oauth2/authorize?client_id=203868685557956608&scope=bot&permissions=0
+[botemon]: https://bots.discord.pw/bots/203868728884985857
 
 ## Installing
 The bot itself requires no extra python modules, although `prank` plugin needs Pillow. To install the bot, 
