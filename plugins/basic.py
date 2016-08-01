@@ -3,14 +3,14 @@
 Commands:
     roll
     feature
-    pcbot
 """
 
 import random
 from re import match
 
 import discord
-import asyncio
+import pendulum
+import pytz
 
 from pcbot import utils, Config, Annotate
 import plugins
@@ -25,6 +25,38 @@ def roll(client: discord.Client, message: discord.Message, num: utils.int_range(
         Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, num)
     yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
+
+
+@plugins.command(aliases="timezone")
+def when(client: discord.Client, message: discord.Message, *time):
+    """ Convert time from specified timezone or UTC to UTC and formatted string
+    of e.g. `2 hours from now`. """
+    time = list(time)
+    for i, s in enumerate(time):
+        if s in pytz.all_timezones:
+            timezone = s
+            del time[i]
+            break
+    else:
+        timezone = "UTC"
+
+    try:
+        dt = pendulum.parse(" ".join(time), tz=timezone)
+    except ValueError:
+        yield from client.say(message, "Time format not recognized.")
+        return
+    except pytz.exceptions.UnknownTimeZoneError:
+        yield from client.say(message, "Unknown timezone.")
+        return
+
+    now = pendulum.utcnow()
+
+    yield from client.say(message, "`{} UTC` is **{} {}{}**.".format(
+        dt.in_tz("UTC").to_datetime_string(),
+        "is in" if dt > now else "was",
+        dt.diff_for_humans(absolute=True),
+        " ago" if dt < now else ""
+    ))
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")
