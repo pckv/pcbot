@@ -57,7 +57,7 @@ def when(client: discord.Client, message: discord.Message, *time):
 
     now = pendulum.utcnow()
 
-    yield from client.say(message, "`{} UTC` is **{} {}{}**.".format(
+    yield from client.say(message, "`{} UTC` **{} {}{}**.".format(
         dt.in_tz("UTC").to_datetime_string(),
         ("is" + (" in" if time else "")) if dt > now else ("was" if time else "is"),
         dt.diff_for_humans(absolute=True) if time else dt.offset_hours,
