@@ -46,7 +46,7 @@ def when(client: discord.Client, message: discord.Message, *time):
         if time:
             dt = pendulum.parse(" ".join(time), tz=timezone)
         else:
-            dt = pendulum.now("UTC").add(hours=pendulum.now(tz=timezone).offset_hours)
+            dt = pendulum.now(timezone)
 
     except ValueError:
         yield from client.say(message, "Time format not recognized.")
@@ -60,8 +60,8 @@ def when(client: discord.Client, message: discord.Message, *time):
     yield from client.say(message, "`{} UTC` is **{} {}{}**.".format(
         dt.in_tz("UTC").to_datetime_string(),
         ("is" + (" in" if time else "")) if dt > now else ("was" if time else "is"),
-        dt.diff_for_humans(absolute=True),
-        (" ago" if time else " behind UTC") if dt < now else ("" if time else " before UTC")
+        dt.diff_for_humans(absolute=True) if time else dt.offset_hours,
+        (" ago" if time else " behind UTC") if dt < now else ("" if time else " ahead of UTC")
     ))
 
 
