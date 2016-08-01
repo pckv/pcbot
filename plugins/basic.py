@@ -32,19 +32,22 @@ def when(client: discord.Client, message: discord.Message, *time):
     """ Convert time from specified timezone or UTC to UTC and formatted string
     of e.g. `2 hours from now`. """
     time = list(time)
+    timezone = "UTC"
     for i, s in enumerate(time):
-        if s in pytz.all_timezones:
-            timezone = s
-            del time[i]
-            break
-    else:
-        timezone = "UTC"
+        for tz in pytz.all_timezones:
+            if not timezone == "UTC":
+                break
+
+            if tz.lower().endswith(s.lower()):
+                timezone = tz
+                del time[i]
 
     try:
         if time:
             dt = pendulum.parse(" ".join(time), tz=timezone)
         else:
-            dt = pendulum.now(tz=timezone)
+            dt = pendulum.now("UTC").add(hours=pendulum.now(tz=timezone).offset_hours)
+
     except ValueError:
         yield from client.say(message, "Time format not recognized.")
         return
@@ -56,9 +59,9 @@ def when(client: discord.Client, message: discord.Message, *time):
 
     yield from client.say(message, "`{} UTC` is **{} {}{}**.".format(
         dt.in_tz("UTC").to_datetime_string(),
-        "is in" if dt > now else "was",
+        ("is" + (" in" if time else "")) if dt > now else ("was" if time else "is"),
         dt.diff_for_humans(absolute=True),
-        " ago" if dt < now else ""
+        (" ago" if time else " behind UTC") if dt < now else ("" if time else " before UTC")
     ))
 
 
