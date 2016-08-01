@@ -41,7 +41,10 @@ def when(client: discord.Client, message: discord.Message, *time):
         timezone = "UTC"
 
     try:
-        dt = pendulum.parse(" ".join(time), tz=timezone)
+        if time:
+            dt = pendulum.parse(" ".join(time), tz=timezone)
+        else:
+            dt = pendulum.now(tz=timezone)
     except ValueError:
         yield from client.say(message, "Time format not recognized.")
         return
