@@ -19,7 +19,6 @@ from traceback import print_exc
 import os
 import platform
 import re
-from subprocess import Popen, PIPE
 
 import discord
 import asyncio
@@ -439,9 +438,9 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     if options:
         command_args.extend(options)
 
-    command_stream = Popen(command_args, universal_newlines=True, stdout=PIPE)
-    output = command_stream.stdout.read()
-    match = re.search(r"(?P<pp>[0-9.e+]+)pp", output)
+    process = yield from asyncio.create_subprocess_exec(*command_args, stdout=asyncio.subprocess.PIPE)
+    output, _ = yield from process.communicate()
+    match = re.search(r"(?P<pp>[0-9.e+]+)pp", output.decode("utf-8"))
 
     # Something went wrong with our service
     assert match, "A problem occurred when parsing the beatmap."
