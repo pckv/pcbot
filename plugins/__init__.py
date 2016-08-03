@@ -21,6 +21,7 @@ Command = namedtuple("Command", "name name_prefix  aliases "
                                 "disabled_pm")
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
                        Annotate.LowerCleanContent, Annotate.Code)
+argument_format = "{open}{name}{suffix}{close}"
 
 
 def get_plugin(name):
@@ -59,7 +60,7 @@ def _format_usage(func, pos_check):
         if getattr(param.annotation, "__name__", "") == "placeholder":
             return
 
-        param_format = getattr(param.annotation, "argument", "{open}{name}{suffix}{close}")
+        param_format = getattr(param.annotation, "argument", argument_format)
         name = param.name
         open, close, suffix = "[", "]", ""
 
@@ -192,7 +193,7 @@ def event(name=None):
     return decorator
 
 
-def argument(format):
+def argument(format=argument_format):
     """ Decorator for easily setting custom argument usage formats. """
     def decorator(func):
         func.argument = format

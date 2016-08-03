@@ -10,7 +10,7 @@ from re import match
 
 import discord
 import pendulum
-import pytz
+from pytz import all_timezones
 
 from pcbot import utils, Config, Annotate
 import plugins
@@ -27,42 +27,50 @@ def roll(client: discord.Client, message: discord.Message, num: utils.int_range(
     yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
 
 
+@plugins.argument()
+def tz_arg(timezone: str):
+    """ Get timezone from a string. """
+    for tz in all_timezones:
+        if tz.lower().endswith(timezone.lower()):
+            return tz
+    return None
+
+
 @plugins.command(aliases="timezone")
-def when(client: discord.Client, message: discord.Message, *time):
+def when(client: discord.Client, message: discord.Message, *time, timezone: tz_arg="UTC"):
     """ Convert time from specified timezone or UTC to UTC and formatted string
     of e.g. `2 hours from now`. """
-    time = list(time)
-    timezone = "UTC"
-    for i, s in enumerate(time):
-        for tz in pytz.all_timezones:
-            if not timezone == "UTC":
-                break
-
-            if tz.lower().endswith(s.lower()):
-                timezone = tz
-                del time[i]
-
-    try:
-        if time:
-            dt = pendulum.parse(" ".join(time), tz=timezone)
-        else:
-            dt = pendulum.now(timezone)
-
-    except ValueError:
-        yield from client.say(message, "Time format not recognized.")
-        return
-    except pytz.exceptions.UnknownTimeZoneError:
-        yield from client.say(message, "Unknown timezone.")
-        return
-
     now = pendulum.utcnow()
+    original_timezone = timezone
 
-    yield from client.say(message, "`{} UTC` **{} {}{}**.".format(
-        dt.in_tz("UTC").to_datetime_string(),
-        ("is" + (" in" if time else "")) if dt > now else ("was" if time else "is"),
-        dt.diff_for_humans(absolute=True) if time else dt.offset_hours,
-        (" ago" if time else " behind UTC") if dt < now else ("" if time else " ahead of UTC")
-    ))
+    # POSIX is stupid so these are reversed
+    if "+" in timezone:
+        timezone = timezone.replace("+", "-")
+    elif "-" in timezone:
+        timezone = timezone.replace("-", "+")
+
+    if time:
+        try:
+            dt = pendulum.parse(" ".join(time), tz=timezone)
+        except ValueError:
+            yield from client.say(message, "Time format not recognized.")
+            return
+
+        yield from client.say(message, "`{} UTC` is **{} {}{}** for {}.".format(
+            dt.in_tz("UTC").to_datetime_string(),
+            "in" if dt > now else "was",
+            dt.diff_for_humans(absolute=True),
+            " ago" if dt < now else "",
+            original_timezone
+        ))
+    else:
+        dt = pendulum.now(tz=timezone)
+
+        yield from client.say(message, "`{} {}` is **{}{}**.".format(
+            dt.to_datetime_string(), original_timezone,
+            "{} hours".format(abs(dt.offset_hours)) if dt.offset_hours else "",
+            " behind UTC" if dt.offset_hours < 0 else (" ahead of UTC" if dt.offset_hours > 0 else " on time with UTC")
+        ))
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")
