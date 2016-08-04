@@ -62,7 +62,7 @@ def when(client: discord.Client, message: discord.Message, *time, timezone: tz_a
         yield from client.say(message, "`{} UTC` is **{} {}{}{}** for {}.".format(
             dt.in_tz("UTC").to_datetime_string(),
             "in" if dt > now else "was",
-            major_diff + " " if major_diff not in detailed_diff else "", detailed_diff,
+            "~" + major_diff + "** / **" if major_diff not in detailed_diff else "", detailed_diff,
             " ago" if dt < now else "", original_timezone
         ))
     else:
