@@ -56,12 +56,14 @@ def when(client: discord.Client, message: discord.Message, *time, timezone: tz_a
             yield from client.say(message, "Time format not recognized.")
             return
 
-        yield from client.say(message, "`{} UTC` is **{} {}{}** for {}.".format(
+        diff = (dt - now)
+        major_diff = dt.diff_for_humans(absolute=True)
+        detailed_diff = diff.in_words()
+        yield from client.say(message, "`{} UTC` is **{} {}{}{}** for {}.".format(
             dt.in_tz("UTC").to_datetime_string(),
             "in" if dt > now else "was",
-            dt.diff_for_humans(absolute=True),
-            " ago" if dt < now else "",
-            original_timezone
+            major_diff + " " if major_diff not in detailed_diff else "", detailed_diff,
+            " ago" if dt < now else "", original_timezone
         ))
     else:
         dt = pendulum.now(tz=timezone)
