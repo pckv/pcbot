@@ -8,6 +8,7 @@ from pcbot import Config, Annotate, get_member
 
 
 time_cfg = Config("time", data=dict(countdown={}, timezone={}))
+dt_format = "%A, %d %B %Y %H:%M:%S"
 
 
 @plugins.argument()
@@ -51,10 +52,10 @@ def format_when(dt: pendulum.Pendulum, timezone: str="UTC"):
     major_diff = dt.diff_for_humans(absolute=True)
     detailed_diff = diff.in_words().replace("-", "")
 
-    return "`{time} {tz}` is **{pronoun} {major}{diff}{pronoun2}**.".format(
-        time=dt.to_datetime_string(),
+    return "`{time} {tz}` {pronoun} **{major}{diff}{pronoun2}**.".format(
+        time=dt.format(dt_format),
         tz=timezone,
-        pronoun="in" if dt > now else "was",
+        pronoun="is in" if dt > now else "was",
         major="~" + major_diff + "** / **" if major_diff not in detailed_diff else "",
         diff=detailed_diff,
         pronoun2=" ago" if dt < now else ""
@@ -76,7 +77,7 @@ def when(client: discord.Client, message: discord.Message, *time, timezone: tz_a
         dt = pendulum.now(tz=timezone)
 
         yield from client.say(message, "`{} {}` is **UTC{}{}**.".format(
-            dt.to_datetime_string(), timezone_name,
+            dt.format(dt_format), timezone_name,
             "-" if dt.offset_hours < 0 else ("+" if dt.offset_hours > 0 else ""),
             abs(dt.offset_hours) if dt.offset_hours else "",
         ))
@@ -131,3 +132,17 @@ def delete(client: discord.Client, message: discord.Message, tag: Annotate.Conte
     del time_cfg.data["countdown"][tag]
     time_cfg.save()
     yield from client.say(message, "Countdown with tag `{}` removed.".format(tag))
+
+
+@countdown.command(name="list")
+def cmd_list(client: discord.Client, message: discord.Message, author: Annotate.Member=None):
+    """ List all countdowns or all countdowns by the specified author. """
+    assert time_cfg.data["countdown"], "There are no countdowns created."
+
+    if author:
+        tags = (tag for tag, value in time_cfg.data["countdown"].items() if value["author"] == author.id)
+    else:
+        tags = (tag for tag in time_cfg.data["countdown"].keys())
+
+    yield from client.say(message, "**{}countdown tags**:```\n{}```".format(
+        "{}'s ".format(author.name) if author else "", ", ".join(tags)))
