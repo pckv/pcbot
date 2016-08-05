@@ -9,8 +9,6 @@ import random
 from re import match
 
 import discord
-import pendulum
-from pytz import all_timezones
 
 from pcbot import utils, Config, Annotate
 import plugins
@@ -25,54 +23,6 @@ def roll(client: discord.Client, message: discord.Message, num: utils.int_range(
         Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, num)
     yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
-
-
-@plugins.argument()
-def tz_arg(timezone: str):
-    """ Get timezone from a string. """
-    for tz in all_timezones:
-        if tz.lower().endswith(timezone.lower()):
-            return tz
-    return None
-
-
-@plugins.command(aliases="timezone")
-def when(client: discord.Client, message: discord.Message, *time, timezone: tz_arg="UTC"):
-    """ Convert time from specified timezone or UTC to UTC and formatted string
-    of e.g. `2 hours from now`. """
-    now = pendulum.utcnow()
-    original_timezone = timezone
-
-    # POSIX is stupid so these are reversed
-    if "+" in timezone:
-        timezone = timezone.replace("+", "-")
-    elif "-" in timezone:
-        timezone = timezone.replace("-", "+")
-
-    if time:
-        try:
-            dt = pendulum.parse(" ".join(time), tz=timezone)
-        except ValueError:
-            yield from client.say(message, "Time format not recognized.")
-            return
-
-        diff = (dt - now)
-        major_diff = dt.diff_for_humans(absolute=True)
-        detailed_diff = diff.in_words()
-        yield from client.say(message, "`{} UTC` is **{} {}{}{}** for {}.".format(
-            dt.in_tz("UTC").to_datetime_string(),
-            "in" if dt > now else "was",
-            "~" + major_diff + "** / **" if major_diff not in detailed_diff else "", detailed_diff,
-            " ago" if dt < now else "", original_timezone
-        ))
-    else:
-        dt = pendulum.now(tz=timezone)
-
-        yield from client.say(message, "`{} {}` is **{}{}**.".format(
-            dt.to_datetime_string(), original_timezone,
-            "{} hours".format(abs(dt.offset_hours)) if dt.offset_hours else "",
-            " behind UTC" if dt.offset_hours < 0 else (" ahead of UTC" if dt.offset_hours > 0 else " on time with UTC")
-        ))
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")
