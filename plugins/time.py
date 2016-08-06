@@ -113,7 +113,7 @@ def create(client: discord.Client, message: discord.Message, tag: tag_arg, *time
     assert (dt - pendulum.utcnow()).seconds > 0, "A countdown has to be set in the future."
 
     time_cfg.data["countdown"][tag] = dict(time=dt.to_datetime_string(), tz=timezone, tz_name=timezone_name,
-                                           author=message.author.id)
+                                           author=message.author.id, channel=message.channel.id)
     time_cfg.save()
     yield from client.say(message, "Added countdown with tag `{}`.".format(tag))
 

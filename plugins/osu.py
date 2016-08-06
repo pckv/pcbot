@@ -307,7 +307,7 @@ def on_ready(client: discord.Client):
             #     sent_requests = 0
 
 
-@plugins.command()
+@plugins.command(aliases="circlesimulator eba")
 def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
         mode: api.GameMode.get_mode=None):
     """ Handle osu! commands.
@@ -370,7 +370,7 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
-@osu.command(error="The specified gamemode does not exist.")
+@osu.command(aliases="mode m", error="The specified gamemode does not exist.")
 def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
     """ Set the gamemode for the specified member.
 
