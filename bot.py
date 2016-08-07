@@ -232,7 +232,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
             # We want to override the default, as this is often handled by python itself for these.
             # It also seems to break some flexibility when parsing commands with positional arguments
             # followed by a keyword argument, which has a not None default.
-            default = None if type(param.default) is utils.Annotate else param.default
+            default = param.default if type(param.default) is utils.Annotate else None
             tmp_arg = parse_annotation(param, default, cmd_arg, (index - 1) + start_index, message)
 
             if tmp_arg is not None:
