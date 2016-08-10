@@ -17,6 +17,7 @@ Commands:
 import logging
 from traceback import print_exc
 import os
+import operator
 import platform
 import re
 
@@ -36,6 +37,7 @@ rank_regex = re.compile(r"#\d+")
 pp_threshold = 0.1
 score_request_limit = 100
 member_timeout = 2  # How long to wait before removing a member from the register (update_interval * value seconds)
+max_diff_length = 32
 
 api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
@@ -110,7 +112,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         "{live}"
     ).format(
         limit=score_request_limit,
-        sign=("!" if acc == 1 else "+") if score["perfect"] == "1" else "-",
+        sign="!" if acc == 1 else ("+" if score["perfect"] == "1" else "-"),
         mods=Mods.format_mods(int(score["enabled_mods"])),
         acc=acc,
         artist=beatmap["artist"].replace("*", "\*").replace("_", "\_"),
@@ -272,15 +274,108 @@ def notify_pp(client: discord.Client):
 
         # Send the message to all servers
         for server in client.servers:
-            if member in server.members:
-                channels = get_notify_channels(server, "score")
+            member = server.get_member(member_id)
+            channels = get_notify_channels(server, "score")
 
-                if not channels:
-                    continue
+            if not member or not channels:
+                continue
 
-                for i, channel in enumerate(channels):
+            for i, channel in enumerate(channels):
+                try:
                     yield from client.send_message(channel, m.format(member.mention) if i == 0 and score else
                                                             m.format("**" + member.display_name + "**"))
+                except discord.errors.Forbidden:
+                    pass
+
+
+def format_beatmapset_diffs(beatmapset: dict):
+    """ Format some difficulty info on a beatmapset. """
+    # Get the longest difficulty name
+    diff_length = len(max((diff["version"] for diff in beatmapset), key=len))
+    if diff_length > max_diff_length:
+        diff_length = max_diff_length
+    elif diff_length < len("version"):
+        diff_length = len("version")
+
+    m = "```xl\n" \
+        "mode  {version: <{diff_len}}  |  stars   cs   ar   od   hp".format(
+        version="version", diff_len=diff_length)
+
+    for diff in sorted(beatmapset, key=lambda d: float(d["difficultyrating"])):
+        diff_name = diff["version"].replace("'", "`")
+        m += "\n{gamemode: <6}{name: <{diff_len}}  |  " \
+             "{stars: <8}{diff_size: <5}{diff_approach: <5}{diff_overall: <5}{diff_drain}".format(
+            gamemode=api.GameMode(int(diff["mode"])).name[0],
+            name=diff_name if len(diff_name) < max_diff_length else diff_name[:29] + "...",
+            diff_len=diff_length,
+            stars="{:.2f}\u2605".format(float(diff["difficultyrating"])),
+            **diff
+        )
+
+    return m + "```"
+
+
+def format_map_status(member_name: str, status_format: str, beatmapset: dict):
+    """ Format the status update of a beatmap"""
+    return status_format.format(name=member_name, **beatmapset[0]) + \
+           format_beatmapset_diffs(beatmapset) + \
+           "**Beatmap**: <{}s/{}>".format(host, beatmapset[0]["beatmapset_id"])
+
+
+@asyncio.coroutine
+def notify_maps(client: discord.Client):
+    """ Notify any map updates, such as update, resurrect and qualified. """
+    for member_id, data in osu_tracking.items():
+        # Only update when there is a difference
+        if "old" not in data:
+            continue
+
+        # Get the old and the new events
+        old, new = data["old"]["events"], data["new"]["events"]
+
+        # If nothing has changed, move on to the next member
+        if old == new:
+            continue
+
+        # Get the new events
+        events = []
+        for event in new:
+            if event in old:
+                break
+            events.append(event)
+
+        # Format and post the events
+        for event in events:
+            html = event["display_html"]
+
+            # Get the type of event
+            if "submitted" in html:
+                status_format = "\U0001F310 **{name}** has submitted a new beatmap **{artist} - {title}**"
+            elif "updated" in html:
+                status_format = "\U0001F53C **{name}** has updated the beatmap **{artist} - {title}**"
+            elif "revived" in html:
+                status_format = "\U0001F64F **{artist} - {title}** has been revived from eternal slumber by **{name}**"
+            elif "qualified" in html:
+                status_format = "\U0001F497 **{artist} - {title}** by **{name}** has just been qualified!"
+            else:  # We discard any other events
+                continue
+
+            beatmapset = yield from api.get_beatmaps(s=event["beatmapset_id"])
+
+            # Send the message to all servers
+            for server in client.servers:
+                member = server.get_member(member_id)
+                channels = get_notify_channels(server, "map")
+
+                if not member or not channels:
+                    continue
+
+                for channel in channels:
+                    try:
+                        yield from client.send_message(channel, format_map_status(member.display_name,
+                                                                                  status_format, beatmapset))
+                    except discord.errors.Forbidden:
+                        pass
 
 
 @asyncio.coroutine
@@ -300,6 +395,9 @@ def on_ready(client: discord.Client):
             # Next, check for any differences in pp between the "old" and the "new" subsections
             # and notify any servers
             yield from notify_pp(client)
+
+            # Check for any differences in the users' events and post about map updates
+            yield from notify_maps(client)
         # We don't want to stop updating scores even if something breaks
         except:
             print_exc()
@@ -466,12 +564,14 @@ def init_server_config(server: discord.Server):
 
 @osu.command(aliases="configure cfg")
 def config(client, message, _: utils.placeholder):
+    """ Manage configuration for this plugin. """
     pass
 
 
 @config.command()
 @utils.permission("manage_server")
 def scores(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+    """ Set which channels to post scores to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["score-channels"] = list(c.id for c in channels)
     osu_config.save()
@@ -482,6 +582,7 @@ def scores(client: discord.Client, message: discord.Message, *channels: Annotate
 @config.command()
 @utils.permission("manage_server")
 def maps(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+    """ Set which channels to post map updates to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["map-channels"] = list(c.id for c in channels)
     osu_config.save()
