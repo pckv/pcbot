@@ -259,12 +259,12 @@ def notify_pp(client: discord.Client):
             beatmap = api.lookup_beatmap(beatmap_search)
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
             stream_url = member.game.url if member.game is not None else None
-            m = "{} (`{}`) ".format(member.mention, new["username"]) + \
+            m = "{} " + "(`{}`) ".format(new["username"]) + \
                 format_new_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
 
         # There was not enough pp to get a top score, so add the name without mention
         else:
-            m = "**{}** " + "(`{}`) ".format(new["username"])
+            m = "{} " + "(`{}`) ".format(new["username"])
 
         # Always add the difference in pp along with the ranks
         m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
@@ -274,15 +274,9 @@ def notify_pp(client: discord.Client):
             if member in server.members:
                 channels = get_notify_channels(server, "score")
 
-                if not channels:
-                    continue
-
-                # Add the display name in this server when we don't mention
-                if not score:
-                    m = m.format(member.display_name)
-
-                for channel in channels:
-                    yield from client.send_message(channel, m)
+                for i, channel in enumerate(channels):
+                    yield from client.send_message(channel, m.format(member.mention) if i == 0 and score else
+                                                            m.format("**" + member.display_name + "**"))
 
 
 @asyncio.coroutine
