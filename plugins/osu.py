@@ -17,7 +17,6 @@ Commands:
 import logging
 from traceback import print_exc
 import os
-import operator
 import platform
 import re
 
@@ -226,66 +225,65 @@ def get_notify_channels(server: discord.Server, data_type: str):
 
 
 @asyncio.coroutine
-def notify_pp(client: discord.Client):
+def notify_pp(client: discord.Client, member_id: str, data: dict):
     """ Notify any differences in pp and post the scores + rank/pp gained. """
-    for member_id, data in osu_tracking.items():
-        # Only update pp when there is actually a difference
-        if "old" not in data:
+    # Only update pp when there is actually a difference
+    if "old" not in data:
+        return
+
+    old, new = data["old"], data["new"]
+
+    # At this point, there is a difference in pp and we want to notify this
+    pp_diff = get_diff(old, new, "pp_raw")
+
+    # There is no difference in pp, therefore we move on to the next member
+    if pp_diff == 0:
+        return
+
+    # If the difference is too small, move on
+    if pp_threshold > pp_diff > pp_threshold * -1:
+        return
+
+    rank_diff = get_diff(old, new, "pp_rank") * -1
+    country_rank_diff = get_diff(old, new, "pp_country_rank") * -1
+    accuracy_diff = get_diff(old, new, "accuracy")  # Percent points difference
+
+    # Since the user got pp they probably have a new score in their own top 100
+    # If there is a score, there is also a beatmap
+    score = yield from get_new_score(member_id)
+    member = data["member"]
+    mode = get_mode(member_id)
+
+    # If a new score was found, format the score
+    if score:
+        beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
+        beatmap = api.lookup_beatmap(beatmap_search)
+        scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
+        stream_url = member.game.url if member.game is not None else None
+        m = "{} " + "(`{}`) ".format(new["username"]) + \
+            format_new_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
+
+    # There was not enough pp to get a top score, so add the name without mention
+    else:
+        m = "{} " + "(`{}`) ".format(new["username"])
+
+    # Always add the difference in pp along with the ranks
+    m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
+
+    # Send the message to all servers
+    for server in client.servers:
+        member = server.get_member(member_id)
+        channels = get_notify_channels(server, "score")
+
+        if not member or not channels:
             continue
 
-        old, new = data["old"], data["new"]
-
-        # At this point, there is a difference in pp and we want to notify this
-        pp_diff = get_diff(old, new, "pp_raw")
-
-        # There is no difference in pp, therefore we move on to the next member
-        if pp_diff == 0:
-            continue
-
-        # If the difference is too small, move on
-        if pp_threshold > pp_diff > pp_threshold * -1:
-            continue
-
-        rank_diff = get_diff(old, new, "pp_rank") * -1
-        country_rank_diff = get_diff(old, new, "pp_country_rank") * -1
-        accuracy_diff = get_diff(old, new, "accuracy")  # Percent points difference
-
-        # Since the user got pp they probably have a new score in their own top 100
-        # If there is a score, there is also a beatmap
-        score = yield from get_new_score(member_id)
-        member = data["member"]
-        mode = get_mode(member_id)
-
-        # If a new score was found, format the score
-        if score:
-            beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
-            beatmap = api.lookup_beatmap(beatmap_search)
-            scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
-            stream_url = member.game.url if member.game is not None else None
-            m = "{} " + "(`{}`) ".format(new["username"]) + \
-                format_new_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
-
-        # There was not enough pp to get a top score, so add the name without mention
-        else:
-            m = "{} " + "(`{}`) ".format(new["username"])
-
-        # Always add the difference in pp along with the ranks
-        m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
-
-        # Send the message to all servers
-        for server in client.servers:
-            member = server.get_member(member_id)
-            channels = get_notify_channels(server, "score")
-
-            if not member or not channels:
-                continue
-
-            for i, channel in enumerate(channels):
-                try:
-                    yield from client.send_message(channel, m.format(member.mention) if i == 0 and score else
-                                                            m.format("**" + member.display_name + "**"))
-                except discord.errors.Forbidden:
-                    pass
+        for i, channel in enumerate(channels):
+            try:
+                yield from client.send_message(channel, m.format(member.mention) if i == 0 and score else
+                                                        m.format("**" + member.display_name + "**"))
+            except discord.errors.Forbidden:
+                pass
 
 
 def format_beatmapset_diffs(beatmapset: dict):
@@ -323,59 +321,67 @@ def format_map_status(member_name: str, status_format: str, beatmapset: dict):
 
 
 @asyncio.coroutine
-def notify_maps(client: discord.Client):
+def notify_maps(client: discord.Client, member_id: str, data: dict):
     """ Notify any map updates, such as update, resurrect and qualified. """
-    for member_id, data in osu_tracking.items():
-        # Only update when there is a difference
-        if "old" not in data:
+    # Only update when there is a difference
+    if "old" not in data:
+        return
+
+    # Get the old and the new events
+    old, new = data["old"]["events"], data["new"]["events"]
+
+    # If nothing has changed, move on to the next member
+    if old == new:
+        return
+
+    # Get the new events
+    events = []
+    for event in new:
+        if event in old:
+            break
+        events.append(event)
+
+    # Format and post the events
+    for event in events:
+        html = event["display_html"]
+
+        # Get the type of event
+        if "submitted" in html:
+            status_format = "\U0001F310 **{name}** has submitted a new beatmap **{artist} - {title}**"
+        elif "updated" in html:
+            status_format = "\U0001F53C **{name}** has updated the beatmap **{artist} - {title}**"
+        elif "revived" in html:
+            status_format = "\U0001F64F **{artist} - {title}** has been revived from eternal slumber by **{name}**"
+        elif "qualified" in html:
+            status_format = "\U0001F497 **{artist} - {title}** by **{name}** has just been qualified!"
+        else:  # We discard any other events
             continue
 
-        # Get the old and the new events
-        old, new = data["old"]["events"], data["new"]["events"]
-
-        # If nothing has changed, move on to the next member
-        if old == new:
-            continue
-
-        # Get the new events
-        events = []
-        for event in new:
-            if event in old:
+        # Try returning the beatmap info 6 times with a span of 20 seconds.
+        # This might be needed when new maps are submitted.
+        for _ in range(6):
+            beatmapset = yield from api.get_beatmaps(s=event["beatmapset_id"])
+            if beatmapset:
                 break
-            events.append(event)
+            yield from asyncio.sleep(20)
+        else:
+            # Oh well, false positive?
+            continue
 
-        # Format and post the events
-        for event in events:
-            html = event["display_html"]
+        # Send the message to all servers
+        for server in client.servers:
+            member = server.get_member(member_id)
+            channels = get_notify_channels(server, "map")
 
-            # Get the type of event
-            if "submitted" in html:
-                status_format = "\U0001F310 **{name}** has submitted a new beatmap **{artist} - {title}**"
-            elif "updated" in html:
-                status_format = "\U0001F53C **{name}** has updated the beatmap **{artist} - {title}**"
-            elif "revived" in html:
-                status_format = "\U0001F64F **{artist} - {title}** has been revived from eternal slumber by **{name}**"
-            elif "qualified" in html:
-                status_format = "\U0001F497 **{artist} - {title}** by **{name}** has just been qualified!"
-            else:  # We discard any other events
+            if not member or not channels:
                 continue
 
-            beatmapset = yield from api.get_beatmaps(s=event["beatmapset_id"])
-
-            # Send the message to all servers
-            for server in client.servers:
-                member = server.get_member(member_id)
-                channels = get_notify_channels(server, "map")
-
-                if not member or not channels:
-                    continue
-
-                for channel in channels:
-                    try:
-                        yield from client.send_message(channel, format_map_status(member.display_name,
-                                                                                  status_format, beatmapset))
-                    except discord.errors.Forbidden:
-                        pass
+            for channel in channels:
+                try:
+                    yield from client.send_message(channel, format_map_status(member.display_name,
+                                                                              status_format, beatmapset))
+                except discord.errors.Forbidden:
+                    pass
 
 
 @asyncio.coroutine
@@ -394,10 +400,12 @@ def on_ready(client: discord.Client):
 
             # Next, check for any differences in pp between the "old" and the "new" subsections
             # and notify any servers
-            yield from notify_pp(client)
+            for member_id, data in osu_tracking.items():
+                asyncio.async(notify_pp(client, member_id, data))
 
             # Check for any differences in the users' events and post about map updates
-            yield from notify_maps(client)
+            for member_id, data in osu_tracking.items():
+                asyncio.async(notify_maps(client, member_id, data))
         # We don't want to stop updating scores even if something breaks
         except:
             print_exc()
@@ -600,3 +608,10 @@ def debug(client: discord.Client, message: discord.Message):
         client.time_started.ctime(),
         utils.format_objects(*[d["member"] for d in osu_tracking.values()], dec="`")
     ))
+
+
+@osu.command()
+@utils.owner
+def test(client: discord.Client, message: discord.Message, bid: str):
+    s = yield from api.get_beatmaps(s=bid)
+    print(s)
