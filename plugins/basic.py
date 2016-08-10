@@ -7,6 +7,7 @@ Commands:
 
 import random
 from re import match
+from datetime import datetime, timedelta
 
 import discord
 
@@ -23,6 +24,22 @@ def roll(client: discord.Client, message: discord.Message, num: utils.int_range(
         Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, num)
     yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
+
+
+@plugins.command(aliases="whomentionedme")
+def mentioned(client: discord.Client, message: discord.Message):
+    """ Tries to find the first message which mentions you in the last 16 hours. """
+    after = datetime.utcnow() - timedelta(minutes=20)
+    log = yield from client.logs_from(message.channel, limit=5000, after=after)
+    print(len(list(log)))
+
+    for m in log:
+        if message.author in m.mentions:
+            yield from client.say(message, "**{0.author.display_name} - {1}**\n{0.clean_content}".format(
+                m, m.timestamp.strftime("%A, %d %B %Y %H:%M:%S")))
+            break
+    else:
+        yield from client.say(message, "Could not find a message mentioning you in the last 16 hours.")
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")

@@ -219,7 +219,7 @@ def get_notify_channels(server: discord.Server, data_type: str):
     if data_type + "-channels" not in osu_config.data["server"][server.id]:
         return None
 
-    return osu_config.data["server"][server.id][data_type + "-channels"]
+    return [server.get_channel(s) for s in osu_config.data["server"][server.id][data_type + "-channels"]]
 
 
 @asyncio.coroutine
