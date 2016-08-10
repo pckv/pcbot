@@ -219,7 +219,8 @@ def get_notify_channels(server: discord.Server, data_type: str):
     if data_type + "-channels" not in osu_config.data["server"][server.id]:
         return None
 
-    return [server.get_channel(s) for s in osu_config.data["server"][server.id][data_type + "-channels"]]
+    return [server.get_channel(s) for s in osu_config.data["server"][server.id][data_type + "-channels"]
+            if server.get_channel(s)]
 
 
 @asyncio.coroutine
@@ -275,7 +276,7 @@ def notify_pp(client: discord.Client):
                 channels = get_notify_channels(server, "score")
 
                 if not channels:
-                    return
+                    continue
 
                 for i, channel in enumerate(channels):
                     yield from client.send_message(channel, m.format(member.mention) if i == 0 and score else
