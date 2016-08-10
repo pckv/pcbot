@@ -336,10 +336,32 @@ def get_formatted_code(code):
     return "raise Exception(\"Could not format code.\")"
 
 
-def format_members(*members: discord.Member, dec: str="`", sep: str=", "):
+def format_objects(*objects: tuple, attr=None, dec: str= "", sep: str= ", "):
+    """ Return a formatted string of objects (User, Member, Channel or Server) using
+    the given decorator and the given separator.
+
+    :param attr: The attribute to get from the member. """
+    if not objects:
+        return
+
+    first_object = objects[0]
+    if attr is None:
+        if isinstance(first_object, discord.User):
+            attr = "display_name"
+        elif isinstance(first_object, discord.Channel):
+            attr = "mention"
+        elif isinstance(first_object, discord.Server):
+            attr = "name"
+
+    return sep.join(dec + getattr(m, attr) + dec for m in objects)
+
+
+def format_channels(*members: discord.Member, attr="mention", dec: str = "`", sep: str = ", "):
     """ Return a formatted string of members (or member) using the given
-    decorator and the given separator. """
-    return sep.join(dec + m.display_name + dec for m in members)
+    decorator and the given separator.
+
+    :param attr: The attribute to get from the member. """
+    return sep.join(dec + getattr(m, attr) + dec for m in members)
 
 
 def split(string, maxsplit=-1):

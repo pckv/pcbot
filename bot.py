@@ -229,9 +229,9 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
             else:
                 return args, kwargs, False  # Force quit
         elif param.kind is param.KEYWORD_ONLY:  # Parse a regular arg as a kwarg
-            # We want to override the default, as this is often handled by python itself for these.
+            # We want to override the default, as this is often handled by python itself.
             # It also seems to break some flexibility when parsing commands with positional arguments
-            # followed by a keyword argument, which has a not None default.
+            # followed by a keyword argument with it's default being anything but None.
             default = param.default if type(param.default) is utils.Annotate else None
             tmp_arg = parse_annotation(param, default, cmd_arg, (index - 1) + start_index, message)
 

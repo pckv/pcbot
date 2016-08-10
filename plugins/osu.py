@@ -27,7 +27,7 @@ from pcbot import Config, utils, Annotate
 import plugins
 from plugins.osulib import api, Mods
 
-osu_config = Config("osu", data=dict(key="change to your api key", profiles={}, mode={}))
+osu_config = Config("osu", data=dict(key="change to your api key", profiles={}, mode={}, server={}))
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
 update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
@@ -153,7 +153,7 @@ def update_user_data(client: discord.Client):
                 return False
 
             # See if the member is playing
-            if m.game and ("osu!" in m.game.name.lower() or rank_regex.search(m.game.name)):
+            if m.game and ("osu" in m.game.name.lower() or rank_regex.search(m.game.name)):
                 return True
 
             return False
@@ -211,10 +211,15 @@ def get_diff(old, new, value):
     return float(new[value]) - float(old[value])
 
 
-def get_notify_channel(server: discord.Server):
+def get_notify_channel(server: discord.Server, data_type: str):
     """ Find the notifying channel or return the server. """
-    channel = discord.utils.find(lambda c: "osu" in c.name, server.channels)
-    return channel or server
+    if server.id not in osu_config.data["server"]:
+        return None
+
+    if data_type + "-channels" not in osu_config.data["server"][server.id]:
+        return None
+
+    return osu_config.data["server"][server.id][data_type + "-channels"]
 
 
 @asyncio.coroutine
@@ -267,7 +272,10 @@ def notify_pp(client: discord.Client):
         # Send the message to all servers
         for server in client.servers:
             if member in server.members:
-                channel = get_notify_channel(server)
+                channel = get_notify_channel(server, "score")
+
+                if not channel:
+                    continue
 
                 # Add the display name in this server when we don't mention
                 if not score:
@@ -450,6 +458,38 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
         float(match.group("pp")), " ".join(options), **beatmap))
 
 
+def init_server_config(server: discord.Server):
+    """ Initializes the config when it's not already set. """
+    if server.id not in osu_config.data["server"]:
+        osu_config.data["server"][server.id] = {}
+        osu_config.save()
+
+
+@osu.command(aliases="configure cfg")
+def config(client, message, _: utils.placeholder):
+    pass
+
+
+@config.command()
+@utils.permission("manage_server")
+def scores(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+    init_server_config(message.server)
+    osu_config.data["server"][message.server.id]["score-channels"] = list(c.id for c in channels)
+    osu_config.save()
+    yield from client.say(message, "**Notifying scores in {}.**".format(
+        utils.format_objects(*channels) or "no channels"))
+
+
+@config.command()
+@utils.permission("manage_server")
+def maps(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+    init_server_config(message.server)
+    osu_config.data["server"][message.server.id]["map-channels"] = list(c.id for c in channels)
+    osu_config.save()
+    yield from client.say(message, "**Notifying map updates in {}.**".format(
+        utils.format_objects(*channels) or "no channels"))
+
+
 @osu.command()
 @utils.owner
 def debug(client: discord.Client, message: discord.Message):
@@ -458,5 +498,5 @@ def debug(client: discord.Client, message: discord.Message):
                                    "Members registered for update: {}".format(
         api.requests_sent,
         client.time_started.ctime(),
-        utils.format_members(*[d["member"] for d in osu_tracking.values()])
+        utils.format_objects(*[d["member"] for d in osu_tracking.values()], dec="`")
     ))

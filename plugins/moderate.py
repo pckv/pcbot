@@ -133,7 +133,7 @@ def mute(client: discord.Client, message: discord.Message, *members: Annotate.Me
 
     # Some members were muted, success!
     if muted_members:
-        yield from client.say(message, "Muted {}".format(utils.format_members(*muted_members)))
+        yield from client.say(message, "Muted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
 @plugins.command(pos_check=True)
@@ -144,7 +144,7 @@ def unmute(client: discord.Client, message: discord.Message, *members: Annotate.
 
     # Some members were unmuted, success!
     if muted_members:
-        yield from client.say(message, "Unmuted {}".format(utils.format_members(*muted_members)))
+        yield from client.say(message, "Unmuted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
 @plugins.command(pos_check=True)
@@ -158,8 +158,8 @@ def timeout(client: discord.Client, message: discord.Message, *members: Annotate
     if not muted_members:
         return
 
-    yield from client.say(message, "Timed out {} for `{}` minutes.".format(utils.format_members(*muted_members),
-                                                                           minutes))
+    yield from client.say(message, "Timed out {} for `{}` minutes.".format(
+        utils.format_objects(*muted_members, dec="`"), minutes))
 
     # Sleep for the given minutes and unmute the member
     yield from asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60
