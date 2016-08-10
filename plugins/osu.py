@@ -211,7 +211,7 @@ def get_diff(old, new, value):
     return float(new[value]) - float(old[value])
 
 
-def get_notify_channel(server: discord.Server, data_type: str):
+def get_notify_channels(server: discord.Server, data_type: str):
     """ Find the notifying channel or return the server. """
     if server.id not in osu_config.data["server"]:
         return None
@@ -272,16 +272,17 @@ def notify_pp(client: discord.Client):
         # Send the message to all servers
         for server in client.servers:
             if member in server.members:
-                channel = get_notify_channel(server, "score")
+                channels = get_notify_channels(server, "score")
 
-                if not channel:
+                if not channels:
                     continue
 
                 # Add the display name in this server when we don't mention
                 if not score:
                     m = m.format(member.display_name)
 
-                yield from client.send_message(channel, m)
+                for channel in channels:
+                    yield from client.send_message(channel, m)
 
 
 @asyncio.coroutine
