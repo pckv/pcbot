@@ -274,6 +274,9 @@ def notify_pp(client: discord.Client):
             if member in server.members:
                 channels = get_notify_channels(server, "score")
 
+                if not channels:
+                    return
+
                 for i, channel in enumerate(channels):
                     yield from client.send_message(channel, m.format(member.mention) if i == 0 and score else
                                                             m.format("**" + member.display_name + "**"))
