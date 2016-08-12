@@ -357,6 +357,9 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
         else:  # We discard any other events
             continue
 
+        # We'll sleep a little bit to let the beatmap API catch up with the change
+        yield from asyncio.sleep(10)
+
         # Try returning the beatmap info 6 times with a span of 20 seconds.
         # This might be needed when new maps are submitted.
         for _ in range(6):
@@ -608,10 +611,3 @@ def debug(client: discord.Client, message: discord.Message):
         client.time_started.ctime(),
         utils.format_objects(*[d["member"] for d in osu_tracking.values()], dec="`")
     ))
-
-
-@osu.command()
-@utils.owner
-def test(client: discord.Client, message: discord.Message, bid: str):
-    s = yield from api.get_beatmaps(s=bid)
-    print(s)
