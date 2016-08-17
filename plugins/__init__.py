@@ -178,7 +178,9 @@ def command(**options):
 def event(name=None):
     """ Decorator to add event listeners in plugins. """
     def decorator(func):
-        if name == "on_ready":
+        event_name = name or func.__name__
+
+        if event_name == "on_ready":
             raise NameError("on_ready in plugins is reserved for bot initialization only (use it without the"
                             "event listener call).")
 
@@ -186,7 +188,6 @@ def event(name=None):
             func = asyncio.coroutine(func)
 
         # Register our event
-        event_name = name or func.__name__
         events[event_name].append(func)
         return func
 
@@ -271,7 +272,7 @@ def reload_plugin(name: str):
         # Remove all registered events from the given plugin
         for event_name, funcs in events.items():
             for func in funcs:
-                if func.__module__ == "plugins." + name:
+                if func.__module__.endswith(name):
                     events[event_name].remove(func)
 
         plugins[name] = importlib.reload(plugins[name])

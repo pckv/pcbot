@@ -296,17 +296,18 @@ def format_beatmapset_diffs(beatmapset: dict):
         diff_length = len("version")
 
     m = "```xl\n" \
-        "mode  {version: <{diff_len}}  |  stars   cs   ar   od   hp".format(
+        "mode  {version: <{diff_len}}  |  stars   cs   ar   od   hp   drain".format(
         version="version", diff_len=diff_length)
 
     for diff in sorted(beatmapset, key=lambda d: float(d["difficultyrating"])):
         diff_name = diff["version"].replace("'", "`")
         m += "\n{gamemode: <6}{name: <{diff_len}}  |  " \
-             "{stars: <8}{diff_size: <5}{diff_approach: <5}{diff_overall: <5}{diff_drain}".format(
+             "{stars: <8}{diff_size: <5}{diff_approach: <5}{diff_overall: <5}{diff_drain: <5}{drain}".format(
             gamemode=api.GameMode(int(diff["mode"])).name[0],
             name=diff_name if len(diff_name) < max_diff_length else diff_name[:29] + "...",
             diff_len=diff_length,
             stars="{:.2f}\u2605".format(float(diff["difficultyrating"])),
+            len="{}:{}".format(*divmod(int(diff["hit_length"]), 60)),
             **diff
         )
 
@@ -579,7 +580,7 @@ def config(client, message, _: utils.placeholder):
     pass
 
 
-@config.command()
+@config.command(alias="score")
 @utils.permission("manage_server")
 def scores(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
     """ Set which channels to post scores to. """
@@ -590,7 +591,7 @@ def scores(client: discord.Client, message: discord.Message, *channels: Annotate
         utils.format_objects(*channels) or "no channels"))
 
 
-@config.command()
+@config.command(alias="map")
 @utils.permission("manage_server")
 def maps(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
     """ Set which channels to post map updates to. """
