@@ -418,6 +418,8 @@ def on_message(client: discord.Client, message: discord.Message):
         # Execute the command
         try:
             exec(lambdas.data[args[0]], code_globals)
+        except AssertionError as e:  # Send assertion errors to the core module
+            raise AssertionError(e)
         except Exception as e:
             if utils.is_owner(message.author):
                 say("```" + utils.format_exception(e) + "```")
