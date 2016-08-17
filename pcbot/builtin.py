@@ -209,7 +209,7 @@ def lambda_(client: discord.Client, message: discord.Message):
 
 @lambda_.command(aliases="a")
 @utils.owner
-def add(client: discord.Client, message: discord.Message, trigger: str.lower, python_code: Annotate.Code):
+def add(client: discord.Client, message: discord.Message, trigger: str, python_code: Annotate.Code):
     """ Add a command that runs the specified python code. """
     lambdas.data[trigger] = python_code
     lambdas.save()
@@ -218,7 +218,7 @@ def add(client: discord.Client, message: discord.Message, trigger: str.lower, py
 
 @lambda_.command(aliases="r")
 @utils.owner
-def remove(client: discord.Client, message: discord.Message, trigger: str.lower):
+def remove(client: discord.Client, message: discord.Message, trigger: str):
     """ Remove a command. """
     assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
 
@@ -230,7 +230,7 @@ def remove(client: discord.Client, message: discord.Message, trigger: str.lower)
 
 @lambda_.command()
 @utils.owner
-def enable(client: discord.Client, message: discord.Message, trigger: str.lower):
+def enable(client: discord.Client, message: discord.Message, trigger: str):
     """ Enable a command. """
     # If the specified trigger is in the blacklist, we remove it
     if trigger in lambda_config.data["blacklist"]:
@@ -246,7 +246,7 @@ def enable(client: discord.Client, message: discord.Message, trigger: str.lower)
 
 @lambda_.command()
 @utils.owner
-def disable(client: discord.Client, message: discord.Message, trigger: str.lower):
+def disable(client: discord.Client, message: discord.Message, trigger: str):
     """ Disable a command. """
     # If the specified trigger is not in the blacklist, we add it
     if trigger not in lambda_config.data["blacklist"]:
