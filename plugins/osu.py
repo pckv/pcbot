@@ -307,7 +307,7 @@ def format_beatmapset_diffs(beatmapset: dict):
             name=diff_name if len(diff_name) < max_diff_length else diff_name[:29] + "...",
             diff_len=diff_length,
             stars="{:.2f}\u2605".format(float(diff["difficultyrating"])),
-            len="{}:{}".format(*divmod(int(diff["hit_length"]), 60)),
+            drain="{}:{}".format(*divmod(int(diff["hit_length"]), 60)),
             **diff
         )
 
