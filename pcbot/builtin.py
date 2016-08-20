@@ -117,8 +117,8 @@ def stream(client: discord.Client, message: discord.Message, url: str, title: An
 def do(client: discord.Client, message: discord.Message, python_code: Annotate.Code):
     """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
         to send a message, optionally to a channel. Eg: `say("Hello!")`. """
-    def say(msg, m=message):
-        asyncio.async(client.say(m, msg))
+    def say(msg, c=message.channel):
+        asyncio.async(client.send_message(c, msg))
 
     code_globals.update(dict(say=say, message=message, client=client))
 
@@ -404,8 +404,8 @@ def on_message(client: discord.Client, message: discord.Message):
 
     # Check if the command is a lambda command and is not disabled (in the blacklist)
     if args[0] in lambdas.data and args[0] not in lambda_config.data["blacklist"]:
-        def say(msg, m=message):
-            asyncio.async(client.say(m, msg))
+        def say(msg, c=message.channel):
+            asyncio.async(client.send_message(c, msg))
 
         def arg(i, default=0):
             if len(args) > i:
