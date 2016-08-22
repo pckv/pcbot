@@ -33,7 +33,7 @@ update_interval = 30  # Seconds
 logging_interval = 30  # Minutes
 rank_regex = re.compile(r"#\d+")
 
-pp_threshold = 0.1
+pp_threshold = 0.15
 score_request_limit = 100
 member_timeout = 2  # How long to wait before removing a member from the register (update_interval * value seconds)
 max_diff_length = 32
