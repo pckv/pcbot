@@ -132,7 +132,7 @@ def manage_mute(client: discord.Client, message: discord.Message, *members: disc
 @utils.permission("manage_messages")
 def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Mute the specified members. """
-    muted_members = yield from manage_mute(client, message, *members, mute=True)
+    muted_members = yield from manage_mute(client, message, *members, muted=True)
 
     # Some members were muted, success!
     if muted_members:
@@ -143,7 +143,7 @@ def mute(client: discord.Client, message: discord.Message, *members: Annotate.Me
 @utils.permission("manage_messages")
 def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Unmute the specified members. """
-    muted_members = yield from manage_mute(client, message, *members, mute=False)
+    muted_members = yield from manage_mute(client, message, *members, muted=False)
 
     # Some members were unmuted, success!
     if muted_members:
@@ -154,7 +154,7 @@ def unmute(client: discord.Client, message: discord.Message, *members: Annotate.
 @utils.permission("manage_messages")
 def timeout(client: discord.Client, message: discord.Message, *members: Annotate.Member, minutes: int):
     """ Timeout the specified members for given minutes. """
-    muted_members = yield from manage_mute(client, message, *members, mute=True)
+    muted_members = yield from manage_mute(client, message, *members, muted=True)
 
     # Do not progress if the members were not successfully muted
     # At this point, manage_mute will have reported any errors
@@ -166,7 +166,7 @@ def timeout(client: discord.Client, message: discord.Message, *members: Annotate
 
     # Sleep for the given minutes and unmute the member
     yield from asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60
-    yield from manage_mute(client, message, *muted_members, mute=False)
+    yield from manage_mute(client, message, *muted_members, muted=False)
 
 
 @asyncio.coroutine
