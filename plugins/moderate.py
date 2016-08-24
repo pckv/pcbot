@@ -88,7 +88,7 @@ add_setting("Changelog", permissions=["manage_server"], default=False)
 
 
 @asyncio.coroutine
-def manage_mute(client: discord.Client, message: discord.Message, function, *members: discord.Member):
+def manage_mute(client: discord.Client, message: discord.Message, *members: discord.Member, muted=True):
     """ Add or remove Muted role for given members.
 
     :param function: either client.add_roles or client.remove_roles
@@ -98,6 +98,7 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
         "I need `Manage Roles` permission to use this command."
 
     muted_role = discord.utils.get(message.server.roles, name="Muted")
+    function = client.add_roles if muted else client.remove_roles
 
     # The server needs to properly manage the Muted role
     assert muted_role, "No role assigned for muting. Please create a `Muted` role."
@@ -107,14 +108,16 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
     # Try giving members the Muted role
     for member in members:
         if member is message.server.me:
-            yield from client.say(message, "I refuse to mute myself!")
+            yield from client.say(message, "I refuse to {}mute myself!".format("" if mute else "un"))
             continue
 
         while True:
             try:
                 yield from function(member, muted_role)
+                yield from client.server_voice_state(member, mute=muted)
             except discord.errors.Forbidden:
-                yield from client.say(message, "I do not have permission to give members the `Muted` role.")
+                yield from client.say(message, "I either don't have permission to give members the `Muted` role, or "
+                                               "lack the `Mute Members` voice role.")
                 return None
             except discord.errors.HTTPException:
                 continue
@@ -129,7 +132,7 @@ def manage_mute(client: discord.Client, message: discord.Message, function, *mem
 @utils.permission("manage_messages")
 def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Mute the specified members. """
-    muted_members = yield from manage_mute(client, message, client.add_roles, *members)
+    muted_members = yield from manage_mute(client, message, *members, mute=True)
 
     # Some members were muted, success!
     if muted_members:
@@ -140,7 +143,7 @@ def mute(client: discord.Client, message: discord.Message, *members: Annotate.Me
 @utils.permission("manage_messages")
 def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Unmute the specified members. """
-    muted_members = yield from manage_mute(client, message, client.remove_roles, *members)
+    muted_members = yield from manage_mute(client, message, *members, mute=False)
 
     # Some members were unmuted, success!
     if muted_members:
@@ -151,7 +154,7 @@ def unmute(client: discord.Client, message: discord.Message, *members: Annotate.
 @utils.permission("manage_messages")
 def timeout(client: discord.Client, message: discord.Message, *members: Annotate.Member, minutes: int):
     """ Timeout the specified members for given minutes. """
-    muted_members = yield from manage_mute(client, message, client.add_roles, *members)
+    muted_members = yield from manage_mute(client, message, *members, mute=True)
 
     # Do not progress if the members were not successfully muted
     # At this point, manage_mute will have reported any errors
@@ -163,7 +166,7 @@ def timeout(client: discord.Client, message: discord.Message, *members: Annotate
 
     # Sleep for the given minutes and unmute the member
     yield from asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60
-    yield from manage_mute(client, message, client.remove_roles, *muted_members)
+    yield from manage_mute(client, message, *muted_members, mute=False)
 
 
 @asyncio.coroutine
