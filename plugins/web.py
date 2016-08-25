@@ -17,16 +17,16 @@ def define(client: discord.Client, message: discord.Message, term: Annotate.Lowe
     assert json["list"], "Could not define `{}`.".format(term)
 
     definitions = json["list"]
+    msg = ""
 
     # Send any valid definition (length of message < 2000 characters)
-    msg = ""
     for definition in definitions:
         # Format example in code if there is one
         if definition.get("example"):
             definition["example"] = "```{}```".format(definition["example"])
 
         # Format definition
-        msg = "**{word}**:\n{definition}\n{example}".format(**definition)
+        msg = "**{word}**:\n{definition}{example}".format(**definition)
 
         # If this definition fits in a message, break the loop so that we can send it
         if len(msg) <= 2000:

@@ -193,18 +193,18 @@ class HotPotato(Roulette):
         ))
         yield from self.client.send_message(self.message.channel, "**GAME OVER**")
 
-        started.pop(started.index(self.message.channel.id))
+        del started[started.index(self.message.channel.id)]
 
 
-desc_template = "Starts a game of {game.name}. To participate, say `I` in the chat.\n" \
-                "The optional `participants` argument sets a custom number of participants.\n" \
-                "*Please beware that you may or may not die using this command.*"
+desc_template = "Starts a game of {game.name}. To participate, say `I` in the chat.\n\n" \
+                "The optional `participants` argument sets a custom number of participants, where `{game.min_num}` " \
+                "is the minimum."
 
 
 def init_game(client: discord.Client, message: discord.Message, game, num: int):
     """ Initialize a game.
 
-    :param game: is an object that takes (client, message, participants) in __init__
+    :param game: An object that takes (client, message, participants) in __init__
                  and has a start() method
     :param num: The specified participants
     """

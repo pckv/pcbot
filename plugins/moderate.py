@@ -3,8 +3,20 @@
 The bot will perform different tasks when some settings are enabled in a server:
 
 _____________________________________NSFW Filter_____________________________________
-    If enabled on the server, spots any text containing the keyword nsfw and a link.
-    Then tries to delete their message, and post a link to the dedicated nsfw channel.
+    If enabled on the server, this setting spots any text containing the keyword
+    nsfw and a link. When such message is found, it will be deleted and the user
+    will be given a mention to the nsfw channel if the bot finds one. The nsfw
+    channel would be any channel with the keywords nsfw consecutively in it.
+
+______________________________________Changelog______________________________________
+    When changelog is enabled, the bot will look for any channel with the name
+    #changelog and post server history there. The posts will be as follows:
+
+        When a message not sent by the bot itself is deleted.
+        When a member changes their user- or nickname.
+        When a member joins or leaves the server.
+        When a member is banned or unbanned from the server.
+        When a new channel is created, or an old one is deleted.
 
 Commands:
     moderate
