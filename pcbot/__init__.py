@@ -7,3 +7,4 @@ the plugin manager (plugins.__init__.py)
 
 from .config import *
 from .utils import *
+from .cleverbot import Cleverbot

@@ -5,11 +5,12 @@ Commands:
     hotpotato
 """
 
+from datetime import datetime
 from random import randint, choice
 from threading import Timer
 
-import discord
 import asyncio
+import discord
 
 import plugins
 
@@ -18,19 +19,18 @@ import plugins
 started = []
 
 
-class Roulette:
-    """ A game of Roulette. """
-    name = "Russian Roulette"
-    min_num = 1
+class Game:
+    name = "Unnamed Game"
+    minimum_participants = 1
 
     def __init__(self, client: discord.Client, message: discord.Message, num: int):
         self.client = client
         self.message = message
+        self.channel = message.channel
         self.member = message.server.me
 
-        self.num = num if num >= self.min_num else self.min_num
+        self.num = num if num >= self.minimum_participants else self.minimum_participants
         self.participants = []
-        self.bullets = []
 
     def on_start(self):
         """ Notify the channel that the game has been initialized. """
@@ -48,7 +48,7 @@ class Roulette:
                 return False
 
             # Wait with a timeout of 2 minutes and check each message with check(m)
-            reply = yield from self.client.wait_for_message(timeout=120, channel=self.message.channel, check=check)
+            reply = yield from self.client.wait_for_message(timeout=120, channel=self.channel, check=check)
 
             if reply:  # A user replied with a valid check
                 asyncio.async(
@@ -59,17 +59,43 @@ class Roulette:
                 self.participants.append(reply.author.id)
 
                 # Remove the message if bot has permissions
-                if self.member.permissions_in(self.message.channel).manage_messages:
+                if self.member.permissions_in(self.channel).manage_messages:
                     asyncio.async(self.client.delete_message(reply))
             else:
                 # At this point we got no reply in time and thus, gathering participants failed
                 yield from self.client.say(self.message, "**The {} game failed to gather {} participants.**".format(
                     self.name, self.num))
-                started.pop(started.index(self.message.channel.id))
+                started.pop(started.index(self.channel.id))
 
                 return False
 
-    def shuffle(self):
+    def prepare(self):
+        """ Prepare anything needed before starting the game. """
+        pass
+
+    def game(self):
+        """ Start playing the game. """
+        pass
+
+    def start(self):
+        """ Run the entire game's cycle. """
+        yield from self.on_start()
+        valid = yield from self.get_participants()
+
+        if valid is not False:
+            yield from self.prepare()
+            yield from self.game()
+
+
+class Roulette(Game):
+    """ A game of Roulette. """
+    name = "Russian Roulette"
+
+    def __init__(self, client: discord.Client, message: discord.Message, num: int):
+        super().__init__(client, message, num)
+        self.bullets = []
+
+    def prepare(self):
         """ Shuffle the bullets. """
         self.bullets = [0] * len(self.participants)
         self.bullets[randint(0, len(self.participants) - 1)] = 1
@@ -80,10 +106,10 @@ class Roulette:
             member = self.message.server.get_member(participant)
 
             yield from self.client.send_message(
-                self.message.channel,
+                self.channel,
                 "{} is up next! Say `go` whenever you are ready.".format(member.mention)
             )
-            reply = yield from self.client.wait_for_message(timeout=15, channel=self.message.channel, author=member,
+            reply = yield from self.client.wait_for_message(timeout=15, channel=self.channel, author=member,
                                                             check=lambda m: "go" in m.content.lower())
 
             hit = ":dash:"
@@ -92,41 +118,25 @@ class Roulette:
                 hit = ":boom:"
 
             if reply is None:
-                yield from self.client.send_message(self.message.channel, "*fuck you*")
+                yield from self.client.send_message(self.channel, "*fuck you*")
 
-            yield from self.client.send_message(self.message.channel, "{} {} :gun: ".format(member.mention, hit))
+            yield from self.client.send_message(self.channel, "{} {} :gun: ".format(member.mention, hit))
 
             if self.bullets[i] == 1:
                 break
 
-        yield from self.client.send_message(self.message.channel, "**GAME OVER**")
+        yield from self.client.send_message(self.channel, "**GAME OVER**")
 
-        started.pop(started.index(self.message.channel.id))
-
-    def start(self):
-        """ Run the entire game's cycle. """
-        yield from self.on_start()
-        valid = yield from self.get_participants()
-
-        if valid is not False:
-            self.shuffle()
-            yield from self.game()
+        started.pop(started.index(self.channel.id))
 
 
-class HotPotato(Roulette):
+class HotPotato(Game):
     name = "Hot Potato"
-    min_num = 3
+    minimum_participants = 3
 
     def __init__(self, client: discord.Client, message: discord.Message, num: int):
         super().__init__(client, message, num)
-
         self.time_remaining = 0
-
-        del self.bullets
-
-    def shuffle(self):
-        """ Do not shuffle anything. """
-        pass
 
     def timer(self):
         """ I honestly don't remember how this function works. """
@@ -160,7 +170,7 @@ class HotPotato(Roulette):
 
             if reply is not None:
                 yield from self.client.send_message(
-                    self.message.channel,
+                    self.channel,
                     "{} :bomb: got the bomb! Pass it to either {} or {}!".format(
                         member.mention,
                         self.message.server.get_member(pass_to[0]).mention,
@@ -176,36 +186,75 @@ class HotPotato(Roulette):
                 return False
 
             wait = (self.time_remaining - notify) if (self.time_remaining >= notify) else self.time_remaining
-            reply = yield from self.client.wait_for_message(timeout=wait, channel=self.message.channel, author=member,
+            reply = yield from self.client.wait_for_message(timeout=wait, channel=self.channel, author=member,
                                                             check=check)
 
             if reply:
                 participant = reply.mentions[0].id
                 pass_to = []
-                if self.member.permissions_in(self.message.channel).manage_messages:
+                if self.member.permissions_in(self.channel).manage_messages:
                     asyncio.async(self.client.delete_message(reply))
             elif self.time_remaining == notify:
-                asyncio.async(self.client.send_message(self.message.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
+                asyncio.async(self.client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
                 self.time_remaining -= 1
 
-        yield from self.client.send_message(self.message.channel, "{} :fire: :boom: :boom: :fire:".format(
+        yield from self.client.send_message(self.channel, "{} :fire: :boom: :boom: :fire:".format(
             self.message.server.get_member(participant).mention
         ))
-        yield from self.client.send_message(self.message.channel, "**GAME OVER**")
+        yield from self.client.send_message(self.channel, "**GAME OVER**")
 
-        del started[started.index(self.message.channel.id)]
+        del started[started.index(self.channel.id)]
+
+
+class Typing(Game):
+    name = "Typing"
+    sentences = ["I am PC.", "PC is me.", "How very polite to be a tree."]
+    minimum_wpm = 35
+
+    def __init__(self, client: discord.Client, message: discord.Message, num: int):
+        super().__init__(client, message, num)
+        self.sentence = ""
+
+    def prepare(self):
+        """ Get the sentence to send. """
+        self.sentence = choice(self.sentences)
+
+    def send_sentence(self):
+        """ Generate the function for sending the sentence. """
+        yield from self.client.send_message(self.channel, self.sentence)
+
+    def calculate_accuracy(self, content: str):
+        """ Calculate the accuracy """
+
+    def calculate_wpm(self, content: str, delta_seconds: int):
+        """ Calculate the gross WPM from the given timedelta.
+        This function will return a wpm where any 5 characters is considered a word.
+
+        :param delta_seconds: Seconds elapsed since start. """
+
+        minutes = delta_seconds * 60
+
+
+    def calculate_timeout(self):
+        """ Calculate the timeout for this game. """
+        words = self.sentence.split()
+
+
+    def game(self):
+        """ Run the game. """
+        started = datetime.now()
+
 
 
 desc_template = "Starts a game of {game.name}. To participate, say `I` in the chat.\n\n" \
-                "The optional `participants` argument sets a custom number of participants, where `{game.min_num}` " \
-                "is the minimum."
+                "The optional `participants` argument sets a custom number of participants, where " \
+                "`{game.minimum_participants}` is the minimum."
 
 
 def init_game(client: discord.Client, message: discord.Message, game, num: int):
     """ Initialize a game.
 
-    :param game: An object that takes (client, message, participants) in __init__
-                 and has a start() method
+    :param game: A Game object.
     :param num: The specified participants
     """
     if num > message.server.member_count:

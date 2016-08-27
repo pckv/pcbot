@@ -11,11 +11,12 @@ from datetime import datetime, timedelta
 
 import discord
 
-from pcbot import utils, Config, Annotate
+from pcbot import utils, Config, Annotate, Cleverbot
 import plugins
 
 
 feature_reqs = Config(filename="feature_requests", data={})
+cleverbot = Cleverbot()
 
 
 @plugins.command()
@@ -162,13 +163,14 @@ def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_r
 
 @plugins.event()
 def on_message(client: discord.Client, message: discord.Message):
-    # Have the bot reply confused whenever someone mentions it
-    if not message.content.startswith("!") and client.user.id in [m.id for m in message.mentions]:
-        phrases = ["what", "huh", "sorry", "pardon", "...", "!", "", "EH!", "wat", "excuse me", "really"]
-        phrase = random.choice(phrases)
-        if random.randint(0, 4) > 0:
-            phrase += "?"
+    # Have cleverbot respond to our bot
+    if not message.content.startswith("!") and client.user in message.mentions:
+        # Start typing and remove the bot mention from the message.
+        yield from client.send_typing(message.channel)
+        question = " ".join(word for word in message.content.split() if not word == message.server.me.mention)
 
-        yield from client.send_message(message.channel, phrase)
+        # Ask cleverbot the given question and send the response.
+        response = yield from cleverbot.ask(question)
+        yield from client.say(message, response)
 
         return True

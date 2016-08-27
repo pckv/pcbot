@@ -442,6 +442,7 @@ def main():
         email = start_args.email
 
         password = ""
+        # noinspection PyProtectedMember
         cached_path = client._get_cache_filename(email)  # Get the name of the would-be cached email
 
         # If the --new-pass command-line argument is specified, remove the cached password

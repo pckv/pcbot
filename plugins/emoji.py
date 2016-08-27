@@ -11,6 +11,7 @@ import os
 from io import BytesIO
 
 import discord
+# noinspection PyUnresolvedReferences
 import cairosvg
 from PIL import Image
 
