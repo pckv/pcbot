@@ -15,22 +15,24 @@ Commands:
 """
 
 import logging
-from traceback import print_exc
 import os
 import platform
 import re
+from datetime import datetime
+from traceback import print_exc
 
-import discord
 import asyncio
+import discord
 
-from pcbot import Config, utils, Annotate
 import plugins
+from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods
 
 osu_config = Config("osu", data=dict(key="change to your api key", profiles={}, mode={}, server={}))
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
-update_interval = 30  # Seconds
-logging_interval = 30  # Minutes
+update_interval = 30  # The pause time in seconds between updates
+time_elapsed = 0  # The registered time it takes to process all information between updates (changes each update)
+logging_interval = 30  # The time it takes before posting logging information to the console. TODO: setup logging
 rank_regex = re.compile(r"#\d+")
 
 pp_threshold = 0.15
@@ -340,13 +342,16 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
     for event in new:
         if event in old:
             break
-        events.append(event)
+
+        # Since the events are displayed on the profile from newest to oldest,
+        # we want to post the oldest first
+        events.insert(0, event)
 
     # Format and post the events
     for event in events:
         html = event["display_html"]
 
-        # Get the type of event
+        # Get and format the type of event
         if "submitted" in html:
             status_format = "\U0001F310 **{name}** has submitted a new beatmap **{artist} - {title}**"
         elif "updated" in html:
@@ -361,9 +366,9 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
         # We'll sleep a little bit to let the beatmap API catch up with the change
         yield from asyncio.sleep(10)
 
-        # Try returning the beatmap info 6 times with a span of 20 seconds.
+        # Try returning the beatmap info 3 times with a span of 20 seconds.
         # This might be needed when new maps are submitted.
-        for _ in range(6):
+        for _ in range(3):
             beatmapset = yield from api.get_beatmaps(s=event["beatmapset_id"])
             if beatmapset:
                 break
@@ -382,8 +387,8 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
 
             for channel in channels:
                 try:
-                    yield from client.send_message(channel, format_map_status(member.display_name,
-                                                                              status_format, beatmapset))
+                    yield from client.send_message(channel,
+                                                   format_map_status(member.display_name, status_format, beatmapset))
                 except discord.errors.Forbidden:
                     pass
 
@@ -391,6 +396,8 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
 @asyncio.coroutine
 def on_ready(client: discord.Client):
     """ Handle every event. """
+    global time_elapsed
+
     # Notify the owner when they have not set their API key
     if osu_config.data["key"] == "change to your api key":
         logging.warning("osu! functionality is unavailable until an API key is provided")
@@ -398,6 +405,7 @@ def on_ready(client: discord.Client):
     while not client.is_closed:
         try:
             yield from asyncio.sleep(update_interval)
+            started = datetime.now()
 
             # First, update every user's data
             yield from update_user_data(client)
@@ -416,12 +424,9 @@ def on_ready(client: discord.Client):
         finally:
             pass
             # TODO: setup logging
-            # # Send info on how many requests were sent the last 30 minutes (60 loops)
-            # updated += 1
-            #
-            # if updated % updates_per_log() == 0:
-            #     logging.info("Requested osu! scores {} times in {} minutes.".format(sent_requests, logging_interval))
-            #     sent_requests = 0
+
+            # Save the time elapsed since we started the update
+            time_elapsed = (datetime.now() - started).total_seconds()
 
 
 @plugins.command(aliases="circlesimulator eba")
@@ -607,8 +612,9 @@ def maps(client: discord.Client, message: discord.Message, *channels: Annotate.C
 def debug(client: discord.Client, message: discord.Message):
     """ Display some debug info. """
     yield from client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
+                                   "Spent `{:.3f}` seconds last update.\n"
                                    "Members registered for update: {}".format(
-        api.requests_sent,
-        client.time_started.ctime(),
+        api.requests_sent, client.time_started.ctime(),
+        time_elapsed,
         utils.format_objects(*[d["member"] for d in osu_tracking.values()], dec="`")
     ))
