@@ -33,11 +33,11 @@ class GameMode(IntEnum):
     @classmethod
     def get_mode(cls, mode: str):
         """ Return the mode with the specified lowered string. """
-        values = {e.name.lower(): e.value for e in list(cls)}
-        if mode.lower() not in values:
-            return None
+        for enum in cls:
+            if enum.name.lower().startswith(mode):
+                return enum
 
-        return cls(values[mode.lower()])
+        return None
 
 
 class Mods(IntEnum):
