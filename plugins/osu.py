@@ -511,14 +511,15 @@ def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMod
 
 
 @osu.command()
-def url(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
+def url(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
+        section: str.lower=None):
     """ Display the member's osu! profile URL. """
     # Member might not be registered
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
     # Send the URL since the member is registered
-    yield from client.say(message, "**{0.display_name}'s profile:** <https://osu.ppy.sh/u/{1}>".format(
-        member, osu_config.data["profiles"][member.id]))
+    yield from client.say(message, "**{0.display_name}'s profile:** <https://osu.ppy.sh/u/{1}{2}>".format(
+        member, osu_config.data["profiles"][member.id], "#_{}".format(section) if section else ""))
 
 
 @osu.command(name="pp")
