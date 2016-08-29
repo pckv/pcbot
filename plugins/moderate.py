@@ -3,20 +3,8 @@
 The bot will perform different tasks when some settings are enabled in a server:
 
 _____________________________________NSFW Filter_____________________________________
-    If enabled on the server, this setting spots any text containing the keyword
-    nsfw and a link. When such message is found, it will be deleted and the user
-    will be given a mention to the nsfw channel if the bot finds one. The nsfw
-    channel would be any channel with the keywords nsfw consecutively in it.
-
-______________________________________Changelog______________________________________
-    When changelog is enabled, the bot will look for any channel with the name
-    #changelog and post server history there. The posts will be as follows:
-
-        When a message not sent by the bot itself is deleted.
-        When a member changes their user- or nickname.
-        When a member joins or leaves the server.
-        When a member is banned or unbanned from the server.
-        When a new channel is created, or an old one is deleted.
+    If enabled on the server, spots any text containing the keyword nsfw and a link.
+    Then tries to delete their message, and post a link to the dedicated nsfw channel.
 
 Commands:
     moderate
@@ -100,7 +88,7 @@ add_setting("Changelog", permissions=["manage_server"], default=False)
 
 
 @asyncio.coroutine
-def manage_mute(client: discord.Client, message: discord.Message, *members: discord.Member, muted=True):
+def manage_mute(client: discord.Client, message: discord.Message, function, *members: discord.Member):
     """ Add or remove Muted role for given members.
 
     :param function: either client.add_roles or client.remove_roles
@@ -110,7 +98,6 @@ def manage_mute(client: discord.Client, message: discord.Message, *members: disc
         "I need `Manage Roles` permission to use this command."
 
     muted_role = discord.utils.get(message.server.roles, name="Muted")
-    function = client.add_roles if muted else client.remove_roles
 
     # The server needs to properly manage the Muted role
     assert muted_role, "No role assigned for muting. Please create a `Muted` role."
@@ -120,16 +107,14 @@ def manage_mute(client: discord.Client, message: discord.Message, *members: disc
     # Try giving members the Muted role
     for member in members:
         if member is message.server.me:
-            yield from client.say(message, "I refuse to {}mute myself!".format("" if mute else "un"))
+            yield from client.say(message, "I refuse to mute myself!")
             continue
 
         while True:
             try:
                 yield from function(member, muted_role)
-                yield from client.server_voice_state(member, mute=muted)
             except discord.errors.Forbidden:
-                yield from client.say(message, "I either don't have permission to give members the `Muted` role, or "
-                                               "lack the `Mute Members` voice role.")
+                yield from client.say(message, "I do not have permission to give members the `Muted` role.")
                 return None
             except discord.errors.HTTPException:
                 continue
@@ -144,7 +129,7 @@ def manage_mute(client: discord.Client, message: discord.Message, *members: disc
 @utils.permission("manage_messages")
 def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Mute the specified members. """
-    muted_members = yield from manage_mute(client, message, *members, muted=True)
+    muted_members = yield from manage_mute(client, message, client.add_roles, *members)
 
     # Some members were muted, success!
     if muted_members:
@@ -155,7 +140,7 @@ def mute(client: discord.Client, message: discord.Message, *members: Annotate.Me
 @utils.permission("manage_messages")
 def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
     """ Unmute the specified members. """
-    muted_members = yield from manage_mute(client, message, *members, muted=False)
+    muted_members = yield from manage_mute(client, message, client.remove_roles, *members)
 
     # Some members were unmuted, success!
     if muted_members:
@@ -166,7 +151,7 @@ def unmute(client: discord.Client, message: discord.Message, *members: Annotate.
 @utils.permission("manage_messages")
 def timeout(client: discord.Client, message: discord.Message, *members: Annotate.Member, minutes: int):
     """ Timeout the specified members for given minutes. """
-    muted_members = yield from manage_mute(client, message, *members, muted=True)
+    muted_members = yield from manage_mute(client, message, client.add_roles, *members)
 
     # Do not progress if the members were not successfully muted
     # At this point, manage_mute will have reported any errors
@@ -178,7 +163,7 @@ def timeout(client: discord.Client, message: discord.Message, *members: Annotate
 
     # Sleep for the given minutes and unmute the member
     yield from asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60
-    yield from manage_mute(client, message, *muted_members, muted=False)
+    yield from manage_mute(client, message, client.remove_roles, *muted_members)
 
 
 @asyncio.coroutine
@@ -242,6 +227,11 @@ def get_changelog_channel(server: discord.Server):
 def on_message_delete(client: discord.Client, message: discord.Message):
     """ Update the changelog with deleted messages. """
     changelog_channel = get_changelog_channel(message.server)
+
+    # Don't log any message the bot deleted
+    if message == client.last_deleted_message:
+        return
+
     if not changelog_channel:
         return
 
@@ -249,9 +239,6 @@ def on_message_delete(client: discord.Client, message: discord.Message):
         return
 
     if message.author == client.user:
-        return
-
-    if message.content.startswith("|"):  # Custom check for pastas
         return
 
     yield from client.send_message(

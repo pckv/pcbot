@@ -28,6 +28,7 @@ class Client(discord.Client):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.time_started = datetime.utcnow()
+        self.last_deleted_message = None
 
     @asyncio.coroutine
     def _handle_event(self, func, event, *args, **kwargs):
@@ -73,6 +74,12 @@ class Client(discord.Client):
             yield from super().send_file(destination, fp, filename=filename, content=content, tts=tts)
         except discord.errors.Forbidden:
             yield from self.send_message(destination, "*I don't have the permissions to send my attachment.*")
+
+    @asyncio.coroutine
+    def delete_message(self, message):
+        """ Override to add info on the last deleted message. """
+        self.last_deleted_message = message
+        yield from super().delete_message(message)
 
     @asyncio.coroutine
     def say(self, message: discord.Message, content: str):
@@ -442,7 +449,6 @@ def main():
         email = start_args.email
 
         password = ""
-        # noinspection PyProtectedMember
         cached_path = client._get_cache_filename(email)  # Get the name of the would-be cached email
 
         # If the --new-pass command-line argument is specified, remove the cached password
