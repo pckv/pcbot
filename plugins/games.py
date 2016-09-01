@@ -32,12 +32,14 @@ class Game:
         self.num = num if num >= self.minimum_participants else self.minimum_participants
         self.participants = []
 
+    @asyncio.coroutine
     def on_start(self):
         """ Notify the channel that the game has been initialized. """
         yield from self.client.say(self.message,
                                    "{} has started a game of {}! To participate, say `I`! {} players needed.".format(
                                        self.message.author.mention, self.name, self.num))
 
+    @asyncio.coroutine
     def get_participants(self):
         """ Wait for input and get all participants. """
         for i in range(self.num):
@@ -69,10 +71,12 @@ class Game:
 
                 return False
 
+    @asyncio.coroutine
     def prepare(self):
         """ Prepare anything needed before starting the game. """
         pass
 
+    @asyncio.coroutine
     def game(self):
         """ Start playing the game. """
         pass
@@ -95,11 +99,13 @@ class Roulette(Game):
         super().__init__(client, message, num)
         self.bullets = []
 
+    @asyncio.coroutine
     def prepare(self):
         """ Shuffle the bullets. """
         self.bullets = [0] * len(self.participants)
         self.bullets[randint(0, len(self.participants) - 1)] = 1
 
+    @asyncio.coroutine
     def game(self):
         """ Start playing. """
         for i, participant in enumerate(self.participants):
@@ -144,6 +150,7 @@ class HotPotato(Game):
         if self.time_remaining > 0:
             Timer(1, self.timer).start()
 
+    @asyncio.coroutine
     def game(self):
         """ Start the game. No comments because I was stupid and now I'm too
         lazy to comment everything in. """
@@ -215,10 +222,12 @@ class Typing(Game):
         super().__init__(client, message, num)
         self.sentence = ""
 
+    @asyncio.coroutine
     def prepare(self):
         """ Get the sentence to send. """
         self.sentence = choice(self.sentences)
 
+    @asyncio.coroutine
     def send_sentence(self):
         """ Generate the function for sending the sentence. """
         yield from self.client.send_message(self.channel, self.sentence)
@@ -234,16 +243,14 @@ class Typing(Game):
 
         minutes = delta_seconds * 60
 
-
     def calculate_timeout(self):
         """ Calculate the timeout for this game. """
         words = self.sentence.split()
 
-
+    @asyncio.coroutine
     def game(self):
         """ Run the game. """
         started = datetime.now()
-
 
 
 desc_template = "Starts a game of {game.name}. To participate, say `I` in the chat.\n\n" \
