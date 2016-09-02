@@ -258,7 +258,7 @@ def notify_pp(client: discord.Client, member_id: str, data: dict):
 
     # If a new score was found, format the score
     if score:
-        beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]))
+        beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1)
         beatmap = api.lookup_beatmap(beatmap_search)
         scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
         stream_url = member.game.url if member.game is not None else None
