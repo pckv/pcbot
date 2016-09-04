@@ -43,7 +43,7 @@ max_diff_length = 32
 api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
 oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
-last_calc_beatmap = dict(beatmap_id="---", beatmapset_id="---")  # The last calculated beatmap info
+last_calc_beatmap = dict(beatmap_url="---")  # The last calculated beatmap info
 
 
 def calculate_acc(mode: api.GameMode, score: dict):
@@ -537,24 +537,37 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     assert os.path.exists(os.path.join(oppai_path, "oppai")), \
         "This service is unavailable until the owner sets up the `oppai` lib."
 
-    # Only download and request when the id is different from the last check
-    if last_calc_beatmap["beatmap_id"] not in beatmap_url and last_calc_beatmap["beatmapset_id"] not in beatmap_url:
+    # Only download and request when the beatmap url is different
+    if not last_calc_beatmap["beatmap_url"] == beatmap_url:
         # Parse beatmap URL and download the beatmap .osu
         try:
             beatmap = yield from api.beatmap_from_url(beatmap_url)
+        except SyntaxError as e:  # URL is invalid, perhaps it's a .osu file?
+            beatmap_file, headers = yield from utils.download_file(beatmap_url)
+
+            # Try finding out if this is a valid .osu file
+            if not ("text/plain" in headers.get("Content-Type", "")
+                    and ".osu" in headers.get("Content-Disposition", "")):
+                yield from client.say(message, e)
+                return
+
+            beatmap = dict(beatmap_url=beatmap_url)
         except Exception as e:
             yield from client.say(message, e)
             return
+        else:
+            beatmap["beatmap_url"] = beatmap_url
 
-        # Download and save the beatmap pp_map.osu
-        beatmap_file, _ = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+            # Download the beatmap though the osu! website
+            beatmap_file, _ = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+
+        # Save the beatmap pp_map.osu
         with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
             f.write(beatmap_file)
     else:
         beatmap = last_calc_beatmap
 
     last_calc_beatmap = beatmap
-
     command_args = [os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu")]
 
     # Add additional options
@@ -563,14 +576,21 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
 
     process = yield from asyncio.create_subprocess_exec(*command_args, stdout=asyncio.subprocess.PIPE)
     output, _ = yield from process.communicate()
-    match = re.search(r"(?P<pp>[0-9.e+]+)pp", output.decode("utf-8"))
+    output = output.decode("utf-8")
 
-    # Something went wrong with our service
-    assert match, "A problem occurred when parsing the beatmap."
+    pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp", output)
+
+    # The library did not return the pp. Perhaps the user did something wrong?
+    assert pp_match, "A problem occurred when parsing the beatmap."
+
+    # Since a pp formatted string was found, we assume that these ones are present
+    data_match = re.search(r"(?P<name>.+)\s\[(?P<version>.+)\]", output)
+    stars_match = re.search(r"([0-9.e+]+)\sstars", output)
 
     # We're done! Tell the user how much this score is worth.
-    yield from client.say(message, "*{artist} - {title}* **[{version}] {1}** would be worth `{0:,}pp`.".format(
-        float(match.group("pp")), " ".join(options), **beatmap))
+    yield from client.say(message, "*{name}* **[{version}] {1}** {stars}\u2605 would be worth `{0:,}pp`.".format(
+        float(pp_match.group("pp")), " ".join(options),
+        stars=stars_match.group(1), **data_match.groupdict()))
 
 
 def init_server_config(server: discord.Server):
