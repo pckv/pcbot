@@ -523,7 +523,7 @@ def url(client: discord.Client, message: discord.Message, member: Annotate.Membe
 
 
 @osu.command(name="pp")
-def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower, *options):
+def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *options):
     """ Calculate and return the would be pp using `oppai`.
 
     Options are a parsed set of command-line arguments:  /
