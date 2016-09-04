@@ -584,7 +584,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str.lower
     assert pp_match, "A problem occurred when parsing the beatmap."
 
     # Since a pp formatted string was found, we assume that these ones are present
-    data_match = re.search(r"(?P<name>.+)\s\[(?P<version>.+)\]", output)
+    data_match = re.search(r"(?P<name>.+)\s\[(?P<version>.*)\]", output)
     stars_match = re.search(r"([0-9.e+]+)\sstars", output)
 
     # We're done! Tell the user how much this score is worth.
