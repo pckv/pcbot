@@ -148,7 +148,7 @@ def command(**options):
             raise NameError("__commands is reserved for the plugin's commands, and must be of type list")
 
         # Assert that there are no commands already defined with the given name
-        if any(cmd.name == name for cmd in commands):
+        if any(cmd.name == name for cmd in commands) and parent is None:
             raise KeyError("You can't assign two commands with the same name")
 
         # Create our command

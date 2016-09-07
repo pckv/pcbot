@@ -522,7 +522,7 @@ def url(client: discord.Client, message: discord.Message, member: Annotate.Membe
         member, osu_config.data["profiles"][member.id], "#_{}".format(section) if section else ""))
 
 
-@osu.command(name="pp")
+@plugins.command(name="pp")
 def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *options):
     """ Calculate and return the would be pp using `oppai`.
 
@@ -591,6 +591,9 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
     yield from client.say(message, "*{name}* **[{version}] {1}** {stars}\u2605 would be worth `{0:,}pp`.".format(
         float(pp_match.group("pp")), " ".join(options),
         stars=stars_match.group(1), **data_match.groupdict()))
+
+
+osu.command(name="pp")(pp_)
 
 
 def init_server_config(server: discord.Server):
