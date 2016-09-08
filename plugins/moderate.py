@@ -308,9 +308,6 @@ def on_member_update(client: discord.Client, before: discord.Member, after: disc
     nick_change = not before.nick == after.nick
     role_change = not before.roles == after.roles
 
-    if not name_change and not nick_change and not role_change:
-        return
-
     changelog_channel = get_changelog_channel(after.server)
     if not changelog_channel:
         return
@@ -322,14 +319,23 @@ def on_member_update(client: discord.Client, before: discord.Member, after: disc
         if not before.nick:
             m = "{0.mention} got the nickname **{1.nick}**."
         elif not after.nick:
-            m = "{0.mention} (previously **{0.nick}**), no longer has a nickname."
+            m = "{0.mention} (previously **{0.nick}**) no longer has a nickname."
         else:
             m = "{0.mention} (previously **{0.nick}**) got the nickname **{1.nick}**."
     elif role_change:
         if len(before.roles) > len(after.roles):
-            m = "{0.mention}"
+            role = [r for r in before.roles if r not in after.roles][0]
+            m = "{0.mention} lost the role **{1.name}**".format(after, role)
+        else:
+            role = [r for r in after.roles if r not in before.roles][0]
+            m = "{0.mention} received the role **{1.name}**".format(after, role)
+    else:
+        return
 
-    yield from client.send_message(changelog_channel, m.format(before, after))
+    if name_change or nick_change:
+        yield from client.send_message(changelog_channel, m.format(before, after))
+    else:
+        yield from client.send_message(changelog_channel, m)
 
 
 @plugins.event()
