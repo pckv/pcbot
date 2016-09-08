@@ -456,7 +456,7 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
     yield from client.say(message, "<https://osu.ppy.sh/u/{}>".format(user_id))
 
 
-@osu.command()
+@osu.command(aliases="set")
 def link(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Tell the bot who you are on osu!. """
     osu_user = yield from api.get_user(u=name)
@@ -475,7 +475,7 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
     yield from client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
 
 
-@osu.command()
+@osu.command(aliases="unset")
 def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Unlink your osu! account or unlink the member specified (**Owner only**). """
     # The message author is allowed to unlink himself

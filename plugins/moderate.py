@@ -306,8 +306,9 @@ def on_member_update(client: discord.Client, before: discord.Member, after: disc
     """ Update the changelog with any changed names. """
     name_change = not before.name == after.name
     nick_change = not before.nick == after.nick
+    role_change = not before.roles == after.roles
 
-    if not name_change and not nick_change:
+    if not name_change and not nick_change and not role_change:
         return
 
     changelog_channel = get_changelog_channel(after.server)
@@ -317,13 +318,16 @@ def on_member_update(client: discord.Client, before: discord.Member, after: disc
     # Format the nickname or username changed
     if name_change:
         m = "{0.mention} (previously **{0.name}**) changed their username to **{1.name}**."
-    else:
+    elif nick_change:
         if not before.nick:
             m = "{0.mention} got the nickname **{1.nick}**."
         elif not after.nick:
             m = "{0.mention} (previously **{0.nick}**), no longer has a nickname."
         else:
             m = "{0.mention} (previously **{0.nick}**) got the nickname **{1.nick}**."
+    elif role_change:
+        if len(before.roles) > len(after.roles):
+            m = "{0.mention}"
 
     yield from client.send_message(changelog_channel, m.format(before, after))
 
