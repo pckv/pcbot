@@ -39,7 +39,7 @@ def init_dt(client: discord.Client, message: discord.Message, time: str, timezon
         dt = pendulum.parse(time, tz=timezone)
     except ValueError:
         yield from client.say(message, "Time format not recognized.")
-        return
+        return None, None
 
     return dt, timezone
 
@@ -70,6 +70,8 @@ def when(client: discord.Client, message: discord.Message, *time, timezone: tz_a
 
     if time:
         dt, timezone = yield from init_dt(client, message, " ".join(time), timezone)
+        if dt is None or timezone is None:
+            return
 
         yield from client.say(message, format_when(dt, timezone_name))
     else:
