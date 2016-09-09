@@ -80,7 +80,12 @@ def parse_emoji(text: str):
         elif length < 1:
             break
 
-    return [get_emoji(c) for c in parsed_emoji]
+    size = default_size
+    if size > max_width:
+        scale = 1 / ((size - 1) // max_width + 1)
+        size *= scale
+
+    return [get_emoji(c, size=size) for c in parsed_emoji]
 
 
 @plugins.command()
@@ -97,18 +102,13 @@ def greater(client: discord.Client, message: discord.Message, text: Annotate.Cle
         return
 
     image_objects = [Image.open(BytesIO(b)) for b in parsed_emoji]
-    width, height = default_size * len(image_objects), default_size
+    size, _ = image_objects[0].size
+    width, height = size * len(image_objects), size
 
     # Stitch all the images together
     image = Image.new("RGBA", (width, height))
     for i, image_object in enumerate(image_objects):
         image.paste(image_object, box=(i * default_size, 0))
-
-    # Resize the image so that the width is no higher than 2048, but only for each factor 
-    # we go higher than the max_width
-    if width > max_width:
-        scale = 1 / ((width - 1) // max_width + 1)
-        image = image.resize((int(width * scale), int(height * scale)), Image.ANTIALIAS)
 
     # Upload the stitched image
     buffer = BytesIO()
