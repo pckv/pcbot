@@ -8,10 +8,10 @@ Commands:
 """
 
 import os
+import re
 from io import BytesIO
 
 import discord
-# noinspection PyUnresolvedReferences
 import cairosvg
 from PIL import Image
 
@@ -38,73 +38,56 @@ def init_emoji():
             emoji[emoji_name] = emoji_bytes
 
 
-def get_emoji(char: chr, size=default_size):
+def get_emoji(chars: str, size=default_size):
     """ Return the emoji with the specified character and optionally
     with the given size. """
-    if char not in emoji:
+    if chars not in emoji:
         return None
 
-    emoji_bytes = emoji[char]
+    emoji_bytes = emoji[chars]
     size_bytes = bytes(str(size), encoding="utf-8")
     emoji_bytes = emoji_bytes.replace(b"<svg ",
                                       b"<svg width=\"" + size_bytes + b"px\" height=\"" + size_bytes + b"px\" ")
     return cairosvg.svg2png(emoji_bytes)
 
 
-def parse_emoji(s: str):
+def parse_emoji(text: str):
     """ Go through and return all emoji in the given string. """
-    found_emoji = []
+    parsed_emoji = []
 
-    # Print all characters in a string
-    for char in s:
-        print(char)
+    # Convert all characters in the given text to hex format strings
+    chars = [hex(ord(c))[2:] for c in text if not c == " "]
+    chars_remaining = length = len(chars)
 
-    return emoji
+    # Try the entire string backwards, and reduce the length by one character until there'text a match
+    while True:
+        sliced_chars = chars[:length]
+
+        # If the emoji is in the list, update the index and reset the length, with the updated index
+        if "-".join(sliced_chars) in emoji.keys():
+            parsed_emoji.append("-".join(sliced_chars))
+            chars = chars[length:]
+            chars_remaining = length = len(chars)
+            continue
+
+        # When we don't find an emoji, reduce the length
+        length -= 1
+
+        # When the length is 0, but the amount of characters is greater than 1, remove the first one
+        if length == 0 and chars_remaining > 1:
+            chars = chars[1:]
+            chars_remaining = length = len(chars)
+        elif length < 1:
+            break
+
+    return [get_emoji(c) for c in parsed_emoji]
 
 
 @plugins.command()
 def greater(client: discord.Client, message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
-    # Convert the given text to characters
-    unicode = [hex(ord(c))[2:] for c in text]
-    
     # Parse all unicode and load the emojies
-    parsed_emoji = []
-    combined = False
-    for i, char in enumerate(unicode):
-        if len(parsed_emoji) > max_emoji:
-            break
-
-        if combined:
-            combined = False
-            continue
-
-        # Some emojies use two unicode characters, so we try to parse these first
-        if len(unicode) > (i + 1):
-            name = "{}-{}".format(char, unicode[i + 1])
-
-            if name in emoji:
-                if name not in emoji_cache:
-                    converted = cairosvg.svg2png(emoji[name])
-                    emoji_cache[name] = converted
-                else:
-                    converted = emoji_cache[name]
-                
-                parsed_emoji.append(converted)
-                combined = True
-                continue
-
-        # At this point we only need one character, and we pretty much do the entire process over again
-        # (I know, this code is pretty lame)
-        if char in emoji:
-            if char not in emoji_cache:
-                converted = cairosvg.svg2png(emoji[char])
-                emoji_cache[char] = converted
-            else:
-                converted = emoji_cache[char]
-
-            parsed_emoji.append(converted)
-
+    parsed_emoji = parse_emoji(text)
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
     # We now want to combine the images if there are multiples
