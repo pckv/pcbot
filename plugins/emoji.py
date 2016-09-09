@@ -20,7 +20,7 @@ from pcbot import Annotate
 
 
 emoji_path = "plugins/twemoji21lib/"
-default_size = 1024
+default_size = 512
 max_width = default_size * 4
 max_emoji = 64
 emoji = {}
@@ -85,7 +85,7 @@ def parse_emoji(text: str):
     # When the size of all emoji next to each other is greater than the max width,
     # divide the size to properly fit the max_width at all times
     if size * len(parsed_emoji) > max_width:
-        scale = 1 / ((size - 1) // max_width + 1)
+        scale = 1 / ((size * len(parsed_emoji) - 1) // max_width + 1)
         size *= scale
 
     return [get_emoji(c, size=size) for c in parsed_emoji]
