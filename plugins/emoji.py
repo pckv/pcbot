@@ -20,7 +20,7 @@ from pcbot import Annotate
 
 
 emoji_path = "plugins/twemoji21lib/"
-default_size = 512
+default_size = 1024
 max_width = default_size * 4
 max_emoji = 64
 emoji = {}
@@ -111,7 +111,7 @@ def greater(client: discord.Client, message: discord.Message, text: Annotate.Cle
     # Stitch all the images together
     image = Image.new("RGBA", (width, height))
     for i, image_object in enumerate(image_objects):
-        image.paste(image_object, box=(i * default_size, 0))
+        image.paste(image_object, box=(i * size, 0))
 
     # Upload the stitched image
     buffer = BytesIO()
