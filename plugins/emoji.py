@@ -20,8 +20,8 @@ from pcbot import Annotate
 
 
 emoji_path = "plugins/twemoji21lib/"
-default_size = 512
-max_width = default_size * 4
+default_size = 1024
+max_width = 2048
 max_emoji = 64
 emoji = {}
 
