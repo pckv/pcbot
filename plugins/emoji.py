@@ -127,7 +127,7 @@ def format_emotes(text: str, server: discord.Server):
         scale = 1 / ((size * len(parsed_emoji) - 1) // max_width + 1)
         size *= scale
 
-    return [get_emoji(c, size=size) for c in parsed_emoji]
+    return [get_emoji(c, size=size) for c in parsed_emoji].extend(emotes)
 
 
 @plugins.command()
