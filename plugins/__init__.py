@@ -18,7 +18,7 @@ plugins = {}
 events = defaultdict(list)
 Command = namedtuple("Command", "name name_prefix  aliases "
                                 "usage description function parent sub_commands depth hidden error pos_check "
-                                "disabled_pm")
+                                "disabled_pm doc_args")
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
                        Annotate.LowerCleanContent, Annotate.Code)
 argument_format = "{open}{name}{suffix}{close}"
@@ -89,6 +89,7 @@ def command(**options):
         error       : str         : An optional message to send when argument requirements are not met.
         pos_check   : func / bool : An optional check function for positional arguments, eg: pos_check=lambda s: s
                                     When this attribute is a bool and True, force positional arguments.
+        doc_args    : dict        : Arguments to send to the docstring under formatting.
     """
     def decorator(func):
         # The prefix might have changed since the bot started because of mess
@@ -106,6 +107,7 @@ def command(**options):
         pos_check = options.get("pos_check", False)
         description = options.get("description") or func.__doc__ or "Undocumented."
         disabled_pm = options.get("disabled_pm", False)
+        doc_args = options.get("doc_args", dict())
 
         # Parse aliases
         if type(aliases) is str:
@@ -137,7 +139,7 @@ def command(**options):
             description = new_desc
 
         # Format the description for any optional keys
-        description = description.format(pre=config.command_prefix)
+        description = description.format(pre=config.command_prefix, **doc_args)
 
         # Load the plugin the function is from, so that we can modify the __commands attribute
         plugin = inspect.getmodule(func)
@@ -154,7 +156,7 @@ def command(**options):
         # Create our command
         cmd = Command(name=name, aliases=aliases, usage=usage, name_prefix=name_prefix, description=description,
                       function=func, parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error,
-                      pos_check=pos_check, disabled_pm=disabled_pm)
+                      pos_check=pos_check, disabled_pm=disabled_pm, doc_args=doc_args)
 
         # If the command has a parent (is a subcommand)
         if parent:

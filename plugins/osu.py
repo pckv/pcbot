@@ -492,11 +492,14 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
-@osu.command(aliases="mode m", error="The specified gamemode does not exist.")
+gamemodes = ", ".join(gm.name for gm in api.GameMode)
+
+
+@osu.command(aliases="mode m", error="The specified gamemode does not exist.", doc_args=dict(modes=gamemodes))
 def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
     """ Set the gamemode for the specified member.
 
-    Gamemodes are `Standard`, `Taiko`, `CTB` and `Mania`. """
+    Gamemodes are: `{modes}`. """
     assert message.author.id in osu_config.data["profiles"], \
         "No osu! profile assigned to **{}**!".format(message.author.name)
 
