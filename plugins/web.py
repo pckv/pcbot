@@ -13,7 +13,7 @@ import plugins
 @plugins.command()
 def define(client: discord.Client, message: discord.Message, term: Annotate.LowerCleanContent):
     """ Defines a term using Urban Dictionary. """
-    json, _ = yield from utils.download_json("http://api.urbandictionary.com/v0/define", term=term)
+    json = yield from utils.download_json("http://api.urbandictionary.com/v0/define", term=term)
     assert json["list"], "Could not define `{}`.".format(term)
 
     definitions = json["list"]

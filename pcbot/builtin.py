@@ -324,7 +324,7 @@ def ping(client: discord.Client, message: discord.Message):
 def get_changelog(num: int):
     """ Get the latest commit messages from PCBOT. """
     since = datetime.utcnow() - timedelta(days=7)
-    commits, _ = yield from utils.download_json("https://api.github.com/repos/{}commits".format(config.github_repo),
+    commits = yield from utils.download_json("https://api.github.com/repos/{}commits".format(config.github_repo),
                                                 since=since.strftime("%Y-%m-%dT00:00:00"))
     changelog = []
 

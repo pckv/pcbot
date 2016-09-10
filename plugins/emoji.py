@@ -66,7 +66,7 @@ def get_emote(emote_id: str, server: discord.Server):
         return emote_cache[emote.id]
 
     # Otherwise, download the emote, store it in the cache and return
-    emote_bytes, _ = yield from utils.download_file(emote.url)
+    emote_bytes = yield from utils.download_file(emote.url)
     emote_cache[emote.id] = emote_bytes
     return emote_bytes
 

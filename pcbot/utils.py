@@ -193,26 +193,39 @@ def role(*roles: str):
 
 
 @asyncio.coroutine
+def retrieve_headers(url, **params):
+    """ Retrieve the headers from a URL.
+
+    :param url: URL as str
+    :param params: Any additional url parameters
+    :return: Headers as a dict """
+    with aiohttp.ClientSession() as session:
+        response = yield from session.head(url, params=params)
+
+    return response.headers
+
+
+@asyncio.coroutine
 def download_file(url, **params):
     """ Download and return a byte-like object of a file.
 
-    :param url: download url as str
-    :param params: any additional url parameters
-    :return: The byte-like file and the response headers """
+    :param url: Download url as str
+    :param params: Any additional url parameters
+    :return: The byte-like file """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
         file = yield from response.read()
 
-    return file, response.headers
+    return file
 
 
 @asyncio.coroutine
 def download_json(url, **params):
     """ Download and return a json file.
 
-    :param url: download url as str
-    :param params: any additional url parameters
-    :return: The byte-like file and the response headers """
+    :param url: Download url as str
+    :param params: Any additional url parameters
+    :return: A JSON representation of the downloaded file """
     with aiohttp.ClientSession() as session:
         response = yield from session.get(url, params=params)
         try:

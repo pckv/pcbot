@@ -41,13 +41,15 @@ def resize(client: discord.Client, message: discord.Message,
     with an optional extension. """
     # Make sure the URL is valid
     try:
-        image_bytes, headers = yield from utils.download_file(url)
+        headers = yield from utils.retrieve_headers(url)
     except ValueError:
         yield from client.say(message, "The given URL is invalid.")
         return
 
     match = extension_regex.search(headers["CONTENT-TYPE"])
     assert match, "The given url is not an image."
+
+    image_bytes = yield from utils.download_file(url)
 
     # Create some metadata
     image_format = extension or match.group("ext")

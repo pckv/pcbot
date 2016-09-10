@@ -448,7 +448,7 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
         else "#{0:02x}{1:02x}{2:02x}".format(*member.color.to_tuple())
 
     # Download and upload the signature
-    signature, _ = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
+    signature = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
                                                   colour=color, uname=user_id, pp=True,
                                                   countryrank=True, xpbar=True, mode=mode.value)
     yield from client.send_file(message.channel, signature, filename="sig.png")
@@ -546,7 +546,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
         try:
             beatmap = yield from api.beatmap_from_url(beatmap_url)
         except SyntaxError as e:  # URL is invalid, perhaps it's a .osu file?
-            beatmap_file, headers = yield from utils.download_file(beatmap_url)
+            headers = yield from utils.retrieve_headers(beatmap_url)
 
             # Try finding out if this is a valid .osu file
             if not ("text/plain" in headers.get("Content-Type", "")
@@ -554,6 +554,8 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
                 yield from client.say(message, e)
                 return
 
+            # Download the file and set our last beatmap URL.
+            beatmap_file = yield from utils.download_file(beatmap_url)
             beatmap = dict(beatmap_url=beatmap_url)
         except Exception as e:
             yield from client.say(message, e)
@@ -562,7 +564,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
             beatmap["beatmap_url"] = beatmap_url
 
             # Download the beatmap though the osu! website
-            beatmap_file, _ = yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+            beatmap_file= yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
 
         # Save the beatmap pp_map.osu
         with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
