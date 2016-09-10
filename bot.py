@@ -307,11 +307,13 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
     """ Try finding a command """
     command = plugins.get_sub_command(command, cmd_args[1:])
     cmd_args = cmd_args[command.depth:]
+    send_help = False
 
     # If the last argument ends with the help argument, skip parsing and display help
     if cmd_args[-1] in config.help_arg or (command.disabled_pm and message.channel.is_private):
         complete = False
         args, kwargs = [], {}
+        send_help = True
     else:
         # Parse the command and return the parsed arguments
         args, kwargs, complete = parse_command_args(command, cmd_args, message)
@@ -323,7 +325,7 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
         if command.disabled_pm and message.channel.is_private:
             yield from client.say(message, "This command can not be executed in a private message.")
         else:
-            if command.error and len(cmd_args) > 1:
+            if command.error and len(cmd_args) > 1 and not send_help:
                 yield from client.say(message, command.error)
             else:
                 yield from client.say(message, utils.format_help(command))

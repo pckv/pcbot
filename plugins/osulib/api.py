@@ -27,14 +27,14 @@ class GameMode(IntEnum):
     """ Enum for gamemodes. """
     Standard = 0
     Taiko = 1
-    CTB = 2
+    Catch = 2
     Mania = 3
 
     @classmethod
     def get_mode(cls, mode: str):
         """ Return the mode with the specified lowered string. """
         for enum in cls:
-            if enum.name.lower().startswith(mode):
+            if enum.name.lower().startswith(mode.lower()):
                 return enum
 
         return None
