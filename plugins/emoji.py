@@ -85,6 +85,7 @@ def parse_emoji(text: str):
         # If the emoji is in the list, update the index and reset the length, with the updated index
         if "-".join(sliced_chars) in emoji.keys():
             yield "-".join(sliced_chars)
+
             chars = chars[length:]
             chars_remaining = length = len(chars)
             continue
@@ -114,7 +115,7 @@ def format_emotes(text: str, server: discord.Server):
 
     # The size will be emote size if any custom emotes are specified
     size = emote_size if emotes else default_size
-    parsed_emoji = [parse_emoji(text)]
+    parsed_emoji = list(parse_emoji(text))
 
     # When the size of all emoji next to each other is greater than the max width,
     # divide the size to properly fit the max_width at all times
