@@ -73,8 +73,6 @@ def get_emote(emote_id: str, server: discord.Server):
 
 def parse_emoji(text: str):
     """ Go through and return all emoji in the given string. """
-    parsed_emoji = []
-
     # Convert all characters in the given text to hex format strings.
     # Also don't add any characters with a lower index than 1000, considering they would never be emoji anyway
     chars = [hex(ord(c))[2:] for c in text if ord(c) > 1000]
@@ -86,7 +84,7 @@ def parse_emoji(text: str):
 
         # If the emoji is in the list, update the index and reset the length, with the updated index
         if "-".join(sliced_chars) in emoji.keys():
-            parsed_emoji.append("-".join(sliced_chars))
+            yield "-".join(sliced_chars)
             chars = chars[length:]
             chars_remaining = length = len(chars)
             continue
@@ -100,8 +98,6 @@ def parse_emoji(text: str):
             chars_remaining = length = len(chars)
         elif length < 1:
             break
-
-    return parsed_emoji
 
 
 @asyncio.coroutine
@@ -118,7 +114,7 @@ def format_emotes(text: str, server: discord.Server):
 
     # The size will be emote size if any custom emotes are specified
     size = emote_size if emotes else default_size
-    parsed_emoji = parse_emoji(text)
+    parsed_emoji = [parse_emoji(text)]
 
     # When the size of all emoji next to each other is greater than the max width,
     # divide the size to properly fit the max_width at all times

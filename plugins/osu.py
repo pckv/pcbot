@@ -52,8 +52,8 @@ def calculate_acc(mode: api.GameMode, score: dict):
     c300, c100, c50 = int(score["count300"]), int(score["count100"]), int(score["count50"])
     miss, katu, geki = int(score["countmiss"]), int(score["countkatu"]), int(score["countgeki"])
 
-    # CTB accuracy is done a tad bit differently, so we calculate that by itself
-    if mode is api.GameMode.CTB:
+    # Catch accuracy is done a tad bit differently, so we calculate that by itself
+    if mode is api.GameMode.Catch:
         total_numbers_of_fruits_caught = c50 + c100 + c300
         total_numbers_of_fruits = miss + c50 + c100 + c300 + katu
         return total_numbers_of_fruits_caught / total_numbers_of_fruits
@@ -120,7 +120,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         title=beatmap["title"].replace("*", "\*").replace("_", "\_"),
         version=beatmap["version"],
         stars=float(beatmap["difficultyrating"]),
-        max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.CTB) else "",
+        max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.Catch) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
         live="\n**Watch live @** <{}>".format(stream_url) if stream_url else "",
         **score
