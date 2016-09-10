@@ -233,7 +233,7 @@ def download_json(url, **params):
         except ValueError:
             json = None
 
-    return json, response.headers
+    return json
 
 
 def find_member(server: discord.Server, name, steps=3, mention=True):
