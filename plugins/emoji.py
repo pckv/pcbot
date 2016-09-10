@@ -11,12 +11,13 @@ import os
 import re
 from io import BytesIO
 
+import asyncio
 import discord
-import cairosvg
+# import cairosvg
 from PIL import Image
 
 import plugins
-from pcbot import Annotate
+from pcbot import Annotate, utils
 
 
 emoji_path = "plugins/twemoji21lib/"
@@ -24,6 +25,10 @@ default_size = 1024
 max_width = 2048
 max_emoji = 64
 emoji = {}
+
+emote_regex = re.compile(r"<:(?P<name>\w+):(?P<id>\d+)>")
+emote_cache = {}  # Cache for all custom emotes/emoji
+emote_size = 112
 
 
 def init_emoji():
@@ -51,12 +56,28 @@ def get_emoji(chars: str, size=default_size):
     return cairosvg.svg2png(emoji_bytes)
 
 
+@asyncio.coroutine
+def get_emote(emote_id: str, server: discord.Server):
+    """ Return the image of a custom emote. """
+    emote = discord.Emoji(id=emote_id, server=server)
+
+    # Return the cached version if possible
+    if emote.id in emote_cache:
+        return emote_cache[emote.id]
+
+    # Otherwise, download the emote, store it in the cache and return
+    emote_bytes, _ = yield from utils.download_file(emote.url)
+    emote_cache[emote.id] = emote_bytes
+    return emote_bytes
+
+
 def parse_emoji(text: str):
     """ Go through and return all emoji in the given string. """
     parsed_emoji = []
 
-    # Convert all characters in the given text to hex format strings
-    chars = [hex(ord(c))[2:] for c in text if not c == " "]
+    # Convert all characters in the given text to hex format strings.
+    # Also don't add any characters with a lower index than 1000, considering they would never be emoji anyway
+    chars = [hex(ord(c))[2:] for c in text if ord(c) > 1000]
     chars_remaining = length = len(chars)
 
     # Try the entire string backwards, and reduce the length by one character until there'text a match
@@ -80,10 +101,28 @@ def parse_emoji(text: str):
         elif length < 1:
             break
 
-    size = default_size
+    return parsed_emoji
+
+
+@asyncio.coroutine
+def format_emotes(text: str, server: discord.Server):
+    """ Creates a list supporting both emoji and custom emotes. """
+    emotes = []
+
+    # Download and add all custom emotes to the emotes list and replace
+    # all custom emotes found in the text
+    for emote_name, emote_id in emote_regex.findall(text):
+        emote = yield from get_emote(emote_id, server)
+        emotes.append(emote)
+        text = text.replace("<:{}:{}>".format(emote_name, emote_id), "")
+
+    # The size will be emote size if any custom emotes are specified
+    size = emote_size if emotes else default_size
+    parsed_emoji = parse_emoji(text)
 
     # When the size of all emoji next to each other is greater than the max width,
     # divide the size to properly fit the max_width at all times
+    # TODO: change the size of custom emotes when this part is in effect
     if size * len(parsed_emoji) > max_width:
         scale = 1 / ((size * len(parsed_emoji) - 1) // max_width + 1)
         size *= scale
@@ -95,15 +134,15 @@ def parse_emoji(text: str):
 def greater(client: discord.Client, message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
-    parsed_emoji = parse_emoji(text)
+    parsed_emoji = yield from format_emotes(text, message.server)
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
-    # We now want to combine the images if there are multiples
-    # If there is no need to combine the images, send just the one
+    # Combine multiple images if necessary, otherwise send just the one
     if len(parsed_emoji) == 1:
         yield from client.send_file(message.channel, parsed_emoji[0], filename="emoji.png")
         return
 
+    # Generate image objects for all our byte-like objects, and find the size
     image_objects = [Image.open(BytesIO(b)) for b in parsed_emoji]
     size, _ = image_objects[0].size
     width, height = size * len(image_objects), size
