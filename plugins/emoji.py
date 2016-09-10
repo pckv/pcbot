@@ -13,7 +13,7 @@ from io import BytesIO
 
 import asyncio
 import discord
-# import cairosvg
+import cairosvg
 from PIL import Image
 
 import plugins
