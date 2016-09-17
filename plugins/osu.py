@@ -173,8 +173,9 @@ def update_user_data(client: discord.Client):
         mode = get_mode(member_id).value
         user_data = yield from api.get_user(u=profile, type="id", m=mode)
 
-        # Just in case something goes wrong, we skip this member (these things are usually one-time occurances)
+        # Just in case something goes wrong, we skip this member (these things are usually one-time occurrences)
         if user_data is None:
+            logging.info("Could not retrieve osu! info from {}".format(profile))
             continue
 
         # User is already tracked
