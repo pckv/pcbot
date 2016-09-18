@@ -3,13 +3,12 @@
 
 import re
 from collections import defaultdict
-import random
 
 import discord
 import asyncio
 import markovify
 
-from pcbot import utils, Annotate
+from pcbot import utils, Annotate, config
 import plugins
 
 # The messages stored per session, where every key is a channel id
@@ -101,7 +100,12 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
     if phrase:
         message_content = [s for s in message_content if phrase.lower() in s.lower()]
 
+    # Clean up by removing all commands from the summaries
+    message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
+
     model = DiscordText(message_content, state_size=1)
 
     for i in range(num):
-        yield from client.say(message, model.make_sentence(tries=10000, max_overlap_ratio=1))
+        sentence = model.make_sentence(tries=10000, max_overlap_ratio=1)
+        yield from client.say(message, sentence or
+                              "**I was unable to construct a summary, {0.name}.**".format(message.author))
