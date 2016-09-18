@@ -21,6 +21,8 @@ valid_num = re.compile(r"\*(?P<num>\d+)")
 valid_member = utils.member_mention_regex
 valid_channel = utils.channel_mention_regex
 
+on_fail = "**I was unable to construct a summary, {0.author.name}.**"
+
 
 class DiscordText(markovify.Text):
     """ Tries it's best to markovify discord/chat text. """
@@ -102,10 +104,10 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
 
     # Clean up by removing all commands from the summaries
     message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
+    assert message_content, on_fail.format(message)
 
     model = DiscordText(message_content, state_size=1)
 
     for i in range(num):
         sentence = model.make_sentence(tries=10000, max_overlap_ratio=1)
-        yield from client.say(message, sentence or
-                              "**I was unable to construct a summary, {0.name}.**".format(message.author))
+        yield from client.say(message, sentence or on_fail.format(message))
