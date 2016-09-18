@@ -95,9 +95,9 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
 
     # Split the messages into content and filter member and phrase
     if member:
-        message_content = [m.content for m in stored_messages[channel.id] if m.author == member]
+        message_content = [m.clean_content for m in stored_messages[channel.id] if m.author == member]
     else:
-        message_content = [m.content for m in stored_messages[channel.id]]
+        message_content = [m.clean_content for m in stored_messages[channel.id]]
     if phrase:
         message_content = [s for s in message_content if phrase.lower() in s.lower()]
 
