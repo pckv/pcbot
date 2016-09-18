@@ -276,9 +276,32 @@ def on_channel_delete(client: discord.Client, channel: discord.Channel):
 
     # Differ between voice channels and text channels
     if channel.type == discord.ChannelType.text:
-        yield from client.send_message(changelog_channel, "Channel #{0.name} was deleted.".format(channel))
+        yield from client.send_message(changelog_channel, "Channel **#{0.name}** was deleted.".format(channel))
     else:
         yield from client.send_message(changelog_channel, "Voice channel **{0.name}** was deleted.".format(channel))
+
+
+@plugins.event()
+def on_channel_update(client: discord.Client, before: discord.Channel, after: discord.Channel):
+    """ Update the changelog when a channel changes name. """
+    if after.is_private:
+        return
+
+    changelog_channel = get_changelog_channel(after.server)
+    if not changelog_channel:
+        return
+
+    # We only want to update when a name change is performed
+    if before.name == after.name:
+        return
+
+    # Differ between voice channels and text channels
+    if after.type == discord.ChannelType.text:
+        yield from client.send_message(
+            changelog_channel, "Channel **#{0.name}** changed name to {1.mention}, **{1.name}**.".format(before, after))
+    else:
+        yield from client.send_message(
+            changelog_channel, "Voice channel **{0.name}** changed name to **{1.name}**.".format(before, after))
 
 
 @plugins.event()
@@ -303,7 +326,7 @@ def on_member_remove(client: discord.Client, member: discord.Member):
 
 @plugins.event()
 def on_member_update(client: discord.Client, before: discord.Member, after: discord.Member):
-    """ Update the changelog with any changed names. """
+    """ Update the changelog with any changed names and roles. """
     name_change = not before.name == after.name
     nick_change = not before.nick == after.nick
     role_change = not before.roles == after.roles
