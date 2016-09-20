@@ -13,7 +13,7 @@ import plugins
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(list)
-logs_from_limit = 500
+logs_from_limit = 5000
 max_summaries = 5
 
 # Define some regexes for option checking in "summary" command
