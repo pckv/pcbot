@@ -107,12 +107,12 @@ def markov_messages(messages, coherent=False):
     return " ".join(imitated)
 
 
-@plugins.command(usage="[*<num>] [@<user>] [#<channel>] [phrase ...]", pos_check=is_valid_option,
+@plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [phrase ...]", pos_check=is_valid_option,
                  error="Please make a better decision next time.")
 def summary(client: discord.Client, message: discord.Message, *options, phrase: Annotate.LowerContent=None):
     """ Perform a summary! """
     # This dict stores all parsed options as keywords
-    member, channel, num = None, None, None
+    member, channel, num = [], None, None
     for value in options:
         num_match = valid_num.match(value)
         if num_match:
@@ -156,7 +156,7 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
         message_content = [s for s in message_content if phrase.lower() in s.lower()]
 
     # Clean up by removing all commands from the summaries
-    if phrase is not None and not phrase.startswith(config.command_prefix):
+    if phrase is None or not phrase.startswith(config.command_prefix):
         message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
 
     # Check if we even have any messages
