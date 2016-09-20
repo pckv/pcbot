@@ -156,7 +156,7 @@ def update_user_data(client: discord.Client):
                 return False
 
             # See if the member is playing
-            if m.game and ("osu" in m.game.name.lower() or rank_regex.search(m.game.name)):
+            if getattr(m.game, "name", None) and ("osu" in m.game.name.lower() or rank_regex.search(m.game.name)):
                 return True
 
             return False
