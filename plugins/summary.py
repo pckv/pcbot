@@ -1,19 +1,19 @@
 """ Plugin for generating markov text, or a summary if you will. """
 
 
+import random
 import re
 from collections import defaultdict
 
-import discord
 import asyncio
-import markovify
+import discord
 
 from pcbot import utils, Annotate, config
 import plugins
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(list)
-logs_from_limit = 5000
+logs_from_limit = 500
 max_summaries = 5
 
 # Define some regexes for option checking in "summary" command
@@ -21,14 +21,8 @@ valid_num = re.compile(r"\*(?P<num>\d+)")
 valid_member = utils.member_mention_regex
 valid_channel = utils.channel_mention_regex
 
+on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
-
-
-class DiscordText(markovify.Text):
-    """ Tries it's best to markovify discord/chat text. """
-    def sentence_split(self, text: list):
-        """ Takes a list, meaning it would already be split. """
-        return text
 
 
 @asyncio.coroutine
@@ -52,6 +46,65 @@ def is_valid_option(arg: str):
         return True
 
     return False
+
+
+def markov_messages(messages, coherent=False):
+    """ Generate some kind of markov chain that somehow works with discord.
+    I found this makes better results than markovify would. """
+    imitated = []
+    word = "@"
+
+    # First word
+    while (word.startswith("@") or "@" in word) or (word.startswith("http") or "http" in word):
+        m_split = random.choice(messages).split()
+        if not m_split:
+            continue
+
+        # Choose the first word in the sentence to simulate a markov chain
+        word = m_split[0]
+
+    # Add the first word
+    imitated.append(word)
+
+    # Next words
+    while True:
+        # Set the last word and find all messages with the last word in it
+        im = imitated[-1].lower()
+        valid = [m for m in messages if im in m.lower().split()]
+
+        # Add a word from the message found
+        if valid:
+            m = random.choice(valid).split()  # Choose one of the matched messages and split it into a list
+            m_indexes = [i for i, s in enumerate(m) if im == s.lower()]  # Get the indexes of all matched words
+            m_index = random.choice(m_indexes)  # Choose a random index
+            m_from = m[m_index:]
+
+            # Are there more than the matched word in the message (is it not the last word?)
+            if len(m_from) > 1:
+                imitated.append(m_from[1])  # Then we'll add the next word
+                continue
+            else:
+                # Have the chance of breaking be 1/4 at start and 1/1 when imitated approaches 150 words
+                # unless the entire summary should be coherent
+                chance = 0 if coherent else int(-0.02 * len(imitated) + 3)
+                chance = chance if chance >= 0 else 0
+
+                if random.randint(0, chance) == 0:
+                    break
+
+        # Add a random word
+        while True:
+            seq = random.choice(messages).split()
+
+            if seq:
+                word = random.choice(seq)
+                imitated.append(word)
+                break
+
+    # Remove links after, because you know
+    imitated = [s for s in imitated if not s.startswith("http")]
+
+    return " ".join(imitated)
 
 
 @plugins.command(usage="[*<num>] [@<user>] [#<channel>] [phrase ...]", pos_check=is_valid_option,
@@ -103,11 +156,13 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
         message_content = [s for s in message_content if phrase.lower() in s.lower()]
 
     # Clean up by removing all commands from the summaries
-    message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
-    assert message_content, on_fail.format(message)
+    if phrase is not None and not phrase.startswith(config.command_prefix):
+        message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
 
-    model = DiscordText(message_content, state_size=1)
+    # Check if we even have any messages
+    assert message_content, on_no_messages.format(message)
 
+    # Generate the summary, or num summaries
     for i in range(num):
-        sentence = model.make_sentence(tries=10000, max_overlap_ratio=1)
+        sentence = markov_messages(message_content)
         yield from client.say(message, sentence or on_fail.format(message))
