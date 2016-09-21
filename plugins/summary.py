@@ -128,8 +128,7 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
 
         member_match = valid_member.match(value)
         if member_match:
-            assert not member
-            member = utils.find_member(message.server, member_match.group())
+            member.append(utils.find_member(message.server, member_match.group()))
             continue
 
         channel_match = valid_channel.match(value)
@@ -149,7 +148,7 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
 
     # Split the messages into content and filter member and phrase
     if member:
-        message_content = [m.clean_content for m in stored_messages[channel.id] if m.author == member]
+        message_content = [m.clean_content for m in stored_messages[channel.id] if m.author in member]
     else:
         message_content = [m.clean_content for m in stored_messages[channel.id]]
     if phrase:
