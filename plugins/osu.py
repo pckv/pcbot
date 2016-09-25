@@ -103,7 +103,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
     """ Format any osu!Standard score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
-        "set a new best (`#{pos}/{limit} +{diff}`) on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
+        "set a new best (`#{pos}/{limit} +{diff:.2f}pp`) on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
         "**{pp}pp, {rank} {scoreboard_rank}+{mods}**"
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
