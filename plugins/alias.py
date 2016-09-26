@@ -107,8 +107,8 @@ def on_message(client: discord.Client, message: discord.Message):
                 success = True
 
     # See if the user spelled definitely wrong
-    for word in message.clean_content:
-        if get_close_matches(word.lower(), ["definitely"], n=1, cutoff=0.80):
+    for word in message.clean_content.split():
+        if get_close_matches(word.lower(), ["definitely"], n=1, cutoff=0.80) and not word.lower == "definitely":
             yield from client.send_message(message.channel, "http://www.d-e-f-i-n-i-t-e-l-y.com/")
             success = True
 
