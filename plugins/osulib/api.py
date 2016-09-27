@@ -153,12 +153,14 @@ get_user_recent = def_section("get_user_recent")
 get_match = def_section("get_match", first_element=True)
 get_replay = def_section("get_replay")
 
+beatmap_url_regex = re.compile(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)")
+
 
 @asyncio.coroutine
 def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
     """ Takes a url and returns the beatmap in the specified gamemode.
     If a url for a submission is given, it will find the most difficult map. """
-    match = re.match(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)", url)
+    match = beatmap_url_regex.match(url)
 
     # If there was no match, the operation was unsuccessful
     if not match:
@@ -183,6 +185,35 @@ def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
             beatmap, highest = diff, stars
 
     return beatmap
+
+
+@asyncio.coroutine
+def beatmapset_from_url(url: str):
+    """ Takes a url and returns the beatmapset of the specified beatmap. """
+    match = beatmap_url_regex.match(url)
+
+    # If there was no match, the operation was unsuccessful
+    if not match:
+        raise SyntaxError("The given URL is invalid.")
+
+    if match.group("type") == "b":
+        difficulty = yield from get_beatmaps(b=match.group("id"), limit=1)
+
+        # If the beatmap doesn't exist, the operation was unsuccessful
+        if not difficulty:
+            raise LookupError("The beatmap with the given URL was not found.")
+
+        beatmapset_id = difficulty[0]["beatmapset_id"]
+    else:
+        beatmapset_id = match.group("id")
+
+    beatmapset = yield from get_beatmaps(s=beatmapset_id)
+
+    # Also make sure we get the beatmap
+    if not beatmapset:
+        raise LookupError("The beatmap with the given URL was not found.")
+
+    return beatmapset
 
 
 def lookup_beatmap(beatmaps: list, **lookup):

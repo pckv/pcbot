@@ -610,6 +610,19 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
 osu.command(name="pp")(pp_)
 
 
+@osu.command(aliases="map")
+def mapinfo(client: discord.Client, message: discord.Message, beatmap_url: str):
+    """ Display simple info on a beatmap. """
+    try:
+        beatmapset = yield from api.beatmapset_from_url(beatmap_url)
+    except Exception as e:
+        yield from client.say(message, e)
+        return
+
+    header = "**{artist} - {title}** submitted by **{creator}**".format(**beatmapset[0])
+    yield from client.say(message, header + format_beatmapset_diffs(beatmapset))
+
+
 def init_server_config(server: discord.Server):
     """ Initializes the config when it's not already set. """
     if server.id not in osu_config.data["server"]:
