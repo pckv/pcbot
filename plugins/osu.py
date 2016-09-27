@@ -612,7 +612,7 @@ osu.command(name="pp")(pp_)
 
 @osu.command(aliases="map")
 def mapinfo(client: discord.Client, message: discord.Message, beatmap_url: str):
-    """ Display simple info on a beatmap. """
+    """ Display simple beatmap information. """
     try:
         beatmapset = yield from api.beatmapset_from_url(beatmap_url)
     except Exception as e:

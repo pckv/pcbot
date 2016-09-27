@@ -102,7 +102,7 @@ def markov_messages(messages, coherent=False):
                 break
 
     # Remove links after, because you know
-    imitated = [s for s in imitated if not s.startswith("http")]
+    imitated = [s for s in imitated if "http://" not in s and "https://" not in s]
 
     return " ".join(imitated)
 
