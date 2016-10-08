@@ -91,15 +91,15 @@ def markov_messages(messages, coherent=False):
 
                 if random.randint(0, chance) == 0:
                     break
-        else:
-            # Add a random word
-            while True:
-                seq = random.choice(messages).split()
 
-                if seq:
-                    word = random.choice(seq)
-                    imitated.append(word)
-                    break
+        # Add a random word
+        while True:
+            seq = random.choice(messages).split()
+
+            if seq:
+                word = random.choice(seq)
+                imitated.append(word)
+                break
 
     # Remove links after, because you know
     imitated = [s for s in imitated if "http://" not in s and "https://" not in s]
