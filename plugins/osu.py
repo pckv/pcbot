@@ -194,7 +194,7 @@ def get_mode(member_id: str):
 def get_update_mode(member_id: str):
     """ Return the member's update mode. """
     if member_id not in osu_config.data["update_mode"]:
-        return UpdateModes.Disabled
+        return UpdateModes.Full
 
     return UpdateModes.get_mode(osu_config.data["update_mode"][member_id])
 
