@@ -19,6 +19,7 @@ import os
 import platform
 import re
 from datetime import datetime
+from enum import Enum
 from traceback import print_exc
 
 import asyncio
@@ -28,14 +29,23 @@ import plugins
 from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods
 
-osu_config = Config("osu", data=dict(key="change to your api key", profiles={}, mode={}, server={}))
+
+# Configuration data for this plugin, including settings for members and the API key
+osu_config = Config("osu", data=dict(
+    key="change to your api key",
+    profiles={},
+    mode={},
+    server={},
+    update_mode={}
+))
+
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
 update_interval = 30  # The pause time in seconds between updates
 time_elapsed = 0  # The registered time it takes to process all information between updates (changes each update)
 logging_interval = 30  # The time it takes before posting logging information to the console. TODO: setup logging
 rank_regex = re.compile(r"#\d+")
 
-pp_threshold = 0.15
+pp_threshold = 0.13
 score_request_limit = 100
 member_timeout = 2  # How long to wait before removing a member from the register (update_interval * value seconds)
 max_diff_length = 32
@@ -44,6 +54,24 @@ api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
 oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
 last_calc_beatmap = dict(beatmap_url="---")  # The last calculated beatmap info
+
+
+class UpdateModes(Enum):
+    """ Enums for the various notification update modes.
+    Values are valid names in a tuple. """
+    Full = ("full", "on", "enabled", "f", "e")
+    Minimal = ("minimal", "quiet", "m")
+    PP = ("pp", "diff", "p")
+    Disabled = ("none", "off", "disabled", "n", "d")
+
+    @classmethod
+    def get_mode(cls, mode: str):
+        """ Return the mode with the specified name. """
+        for enum in cls:
+            if mode.lower() in enum.value:
+                return enum
+
+        return None
 
 
 def calculate_acc(mode: api.GameMode, score: dict):
@@ -100,7 +128,7 @@ def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int
 
 
 def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None):
-    """ Format any osu!Standard score. There should be a member name/mention in front of this string. """
+    """ Format any score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
         "set a new best (`#{pos}/{limit} +{diff:.2f}pp`) on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
@@ -127,6 +155,28 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
     )
 
 
+def format_minimal_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None):
+    """ Format any osu! score with minimal content.
+    There should be a member name/mention in front of this string. """
+    acc = calculate_acc(mode, score)
+    return (
+        "set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
+        "**{pp}pp, {rank} {acc:.2%} {scoreboard_rank}+{mods}**\n"
+        "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>"
+        "{live}"
+    ).format(
+        mods=Mods.format_mods(int(score["enabled_mods"])),
+        acc=acc,
+        artist=beatmap["artist"].replace("*", "\*").replace("_", "\_"),
+        title=beatmap["title"].replace("*", "\*").replace("_", "\_"),
+        version=beatmap["version"],
+        stars=float(beatmap["difficultyrating"]),
+        scoreboard_rank="#{} ".format(rank) if rank else "",
+        live="\n**Watch live @** <{}>".format(stream_url) if stream_url else "",
+        **score
+    )
+
+
 def updates_per_log():
     """ Returns the amount of updates needed before logging interval is met. """
     return logging_interval // (update_interval / 60)
@@ -141,6 +191,14 @@ def get_mode(member_id: str):
     return api.GameMode(value)
 
 
+def get_update_mode(member_id: str):
+    """ Return the member's update mode. """
+    if member_id not in osu_config.data["update_mode"]:
+        return UpdateModes.Disabled
+
+    return UpdateModes.get_mode(osu_config.data["update_mode"][member_id])
+
+
 @asyncio.coroutine
 def update_user_data(client: discord.Client):
     """ Go through all registered members playing osu!, and update their data. """
@@ -153,6 +211,10 @@ def update_user_data(client: discord.Client):
             """ Check if a member has "osu!" in their Game name. """
             # The member doesn't even match
             if not m.id == member_id:
+                return False
+
+            # The member has disabled these features
+            if get_update_mode(member_id) is UpdateModes.Disabled:
                 return False
 
             # See if the member is playing
@@ -196,7 +258,6 @@ def get_new_score(member_id: str):
     """ Compare old user scores with new user scores and return the discovered
     new score if there is any. When a score is returned, it's position in the
     player's top plays can be retrieved with score["pos"]. """
-
     # Download a list of the user's scores
     profile = osu_config.data["profiles"][member_id]
     scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value)
@@ -259,11 +320,17 @@ def notify_pp(client: discord.Client, member_id: str, data: dict):
     country_rank_diff = get_diff(old, new, "pp_country_rank") * -1
     accuracy_diff = get_diff(old, new, "accuracy")  # Percent points difference
 
-    # Since the user got pp they probably have a new score in their own top 100
-    # If there is a score, there is also a beatmap
-    score = yield from get_new_score(member_id)
     member = data["member"]
     mode = get_mode(member_id)
+    update_mode = get_update_mode(member_id)
+    m = "{} " + "(`{}`) ".format(new["username"])
+
+    # Since the user got pp they probably have a new score in their own top 100
+    # If there is a score, there is also a beatmap
+    if update_mode is UpdateModes.PP:
+        score = None
+    else:
+        score = yield from get_new_score(member_id)
 
     # If a new score was found, format the score
     if score:
@@ -271,12 +338,11 @@ def notify_pp(client: discord.Client, member_id: str, data: dict):
         beatmap = api.lookup_beatmap(beatmap_search)
         scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
         stream_url = member.game.url if member.game is not None else None
-        m = "{} " + "(`{}`) ".format(new["username"]) + \
-            format_new_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
 
-    # There was not enough pp to get a top score, so add the name without mention
-    else:
-        m = "{} " + "(`{}`) ".format(new["username"])
+        if update_mode is UpdateModes.Minimal:
+            m += format_minimal_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
+        else:
+            m += format_new_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
 
     # Always add the difference in pp along with the ranks
     m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
@@ -291,8 +357,8 @@ def notify_pp(client: discord.Client, member_id: str, data: dict):
 
         for i, channel in enumerate(channels):
             try:
-                yield from client.send_message(channel, m.format(member.mention) if i == 0 and score else
-                                                        m.format("**" + member.display_name + "**"))
+                yield from client.send_message(
+                    channel, m.format(member.mention) if i == 0 else m.format("**" + member.display_name + "**"))
             except discord.errors.Forbidden:
                 pass
 
@@ -325,10 +391,10 @@ def format_beatmapset_diffs(beatmapset: dict):
     return m + "```"
 
 
-def format_map_status(member_name: str, status_format: str, beatmapset: dict):
+def format_map_status(member_name: str, status_format: str, beatmapset: dict, minimal: bool):
     """ Format the status update of a beatmap"""
     return status_format.format(name=member_name, **beatmapset[0]) + \
-           format_beatmapset_diffs(beatmapset) + \
+           (format_beatmapset_diffs(beatmapset) if not minimal else "\n") + \
            "**Beatmap**: <{}s/{}>".format(host, beatmapset[0]["beatmapset_id"])
 
 
@@ -395,9 +461,12 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
                 continue
 
             for channel in channels:
+                # Do not format difficulties when minimal (or pp) information is specified
+                update_mode = get_update_mode(member_id)
+                m = format_map_status(member.display_name, status_format, beatmapset,
+                                      update_mode is UpdateModes.Minimal or update_mode is UpdateModes.PP)
                 try:
-                    yield from client.send_message(channel,
-                                                   format_map_status(member.display_name, status_format, beatmapset))
+                    yield from client.send_message(channel, m)
                 except discord.errors.Forbidden:
                     pass
 
@@ -506,7 +575,7 @@ gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
 @osu.command(aliases="mode m", error="The specified gamemode does not exist.", doc_args=dict(modes=gamemodes))
 def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
-    """ Set the gamemode for the specified member.
+    """ Sets the command executor's gamemode.
 
     Gamemodes are: `{modes}`. """
     assert message.author.id in osu_config.data["profiles"], \
@@ -520,6 +589,28 @@ def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMod
         del osu_tracking[message.author.id]
 
     yield from client.say(message, "Set your gamemode to **{}**.".format(mode.name))
+
+
+doc_modes = ", ".join(m.name.lower() for m in UpdateModes)
+
+
+@osu.command(aliases="n updatemode", error="The specified update mode does not exist", doc_args=dict(modes=doc_modes))
+def notify(client: discord.Client, message: discord.Message, mode: UpdateModes.get_mode):
+    """ Sets the command executor's update notification mode. This changes
+    how much text is in each update, or if you want to disable them completely.
+
+    Update modes are: `{modes}`. """
+    assert message.author.id in osu_config.data["profiles"], \
+        "No osu! profile assigned to **{}**!".format(message.author.name)
+
+    osu_config.data["update_mode"][message.author.id] = mode.name
+    osu_config.save()
+
+    # Clear the scores when disabling mode
+    if message.author.id in osu_tracking and mode == UpdateModes.Disabled:
+        del osu_tracking[message.author.id]
+
+    yield from client.say(message, "Set your update notification mode to **{}**.".format(mode.name.lower()))
 
 
 @osu.command()
@@ -555,7 +646,10 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
         try:
             beatmap = yield from api.beatmap_from_url(beatmap_url)
         except SyntaxError as e:  # URL is invalid, perhaps it's a .osu file?
-            headers = yield from utils.retrieve_headers(beatmap_url)
+            try:
+                headers = yield from utils.retrieve_headers(beatmap_url)
+            except ValueError as e:  # URL is not a URL
+                raise AssertionError(e)
 
             # Try finding out if this is a valid .osu file
             if not ("text/plain" in headers.get("Content-Type", "")
