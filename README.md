@@ -1,17 +1,9 @@
 # PCBOT
 WIP discord bot using [discord.py]. 
 
-PCBOT should be supported by all python versions above 3.4.2. It is however only tested and developed in python
-3.4.4, so please give me a yell if something is unsupported.
+**This branch is no longer in development, and should support python 3.4.2 and higher.**
 
 [discord.py]: https://github.com/Rapptz/discord.py
-
-## BotéMon
-**For those who have arrived from BotéMon and wish to contribute/have a look/access the resources**, the libraries used are found in `plugins/pokedex.py` and `plugins/pokedexlib/`!
-
-Currently, I only host BotéMon for public use. **If you wish to add the bot to your server, check [it's bots.discord.pw entry!][botemon]**
-
-[botemon]: https://bots.discord.pw/bots/203868728884985857
 
 ## Installing
 The bot itself requires no extra python modules, although `prank` plugin needs Pillow. To install the bot, 
