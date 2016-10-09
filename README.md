@@ -11,11 +11,13 @@ one can clone the repo:
 
 ```
 git clone https://github.com/PcBoy111/PCBOT.git
+cd PCBOT
+git checkout deprecated-py3.4
 ```
 
 *Or*, just simply [download the repo as ZIP][zip].
 
-[zip]: https://github.com/PcBoy111/PC-BOT-V2/archive/3.4.zip
+[zip]: https://github.com/PcBoy111/PCBOT/archive/deprecated-py3.4.zip
 
 ## Running
 Running the bot is simple. Go to the root directory of the bot, and run bot.py:
@@ -34,7 +36,7 @@ python bot.py --email EMAIL
 The bot will prompt for a password the first time you login with an email. For more information, 
 see [Command-line arguments][cmd]
 
-[cmd]: https://github.com/PcBoy111/PCBOT/blob/master/README.md#assigning-ownership
+[cmd]: https://github.com/PcBoy111/PCBOT/blob/master/README.md#command-line-arguments
 
 ## Assigning ownership
 After running the bot for the first time, you want to make sure you're assigned the owner account. 
@@ -55,7 +57,7 @@ bot owner.
 Execute `python bot.py -h` to see a list of supported command-line arguments.
 
 ## Plugins
-PCBOT has a folder based plugin system. **The documentation for creating these plugins might come along soon**, although if you wish to make one, a good example is found in `pcbot/builtin.py`.
+PCBOT has a folder based plugin system. If you wish to make one, a good example is found in `pcbot/builtin.py`.
 
 **To remove an unwanted plugin from the bot**, simply remove it from the `plugins/` folder. You are also free to remove any accompanying library folder.
 
