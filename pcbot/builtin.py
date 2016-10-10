@@ -120,12 +120,13 @@ async def do(client: discord.Client, message: discord.Message, python_code: Anno
 
     # Create an async function so that we can await it using the result of eval
     python_code = "async def do_session():\n    " + "\n    ".join(line for line in python_code.split("\n"))
-    exec(python_code, code_globals)
+    try:
+        exec(python_code, code_globals)
+    except SyntaxError as e:
+        await client.say(message, "```" + utils.format_syntax_error(e) + "```")
 
     try:
         await eval("do_session()", code_globals)
-    except SyntaxError as e:
-        await client.say(message, "```" + utils.format_syntax_error(e) + "```")
     except Exception as e:
         await client.say(message, "```" + utils.format_exception(e) + "```")
 
@@ -425,19 +426,21 @@ async def on_message(client: discord.Client, message: discord.Message):
 
         # Create an async function so that we can await it using the result of eval
         python_code = "async def lambda_session():\n    " + "\n    ".join(line for line in python_code.split("\n"))
-        exec(python_code, code_globals)
-
-        # Execute the command
         try:
-            await eval("lambda_session()", code_globals)
-        except AssertionError as e:  # Send assertion errors to the core module
-            raise AssertionError(e)
+            exec(python_code, code_globals)
         except SyntaxError as e:
             if utils.is_owner(message.author):
                 await client.say(message, "```" + utils.format_syntax_error(e) + "```")
             else:
                 logging.warn("An exception occurred when parsing lambda command:"
                              "\n{}".format(utils.format_syntax_error(e)))
+            return
+
+        # Execute the command
+        try:
+            await eval("lambda_session()", code_globals)
+        except AssertionError as e:  # Send assertion errors to the core module
+            raise AssertionError(e)
         except Exception as e:
             if utils.is_owner(message.author):
                 await client.say(message, "```" + utils.format_exception(e) + "```")
