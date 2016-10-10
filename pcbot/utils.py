@@ -8,7 +8,6 @@ import re
 import shlex
 from enum import Enum
 from functools import wraps
-from io import BytesIO
 
 import discord
 import aiohttp
@@ -199,7 +198,7 @@ async def download_file(url, **params):
     :return: The byte-like file """
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
-            return BytesIO(await response.read())
+            return await response.read()
 
 
 async def download_json(url, **params):

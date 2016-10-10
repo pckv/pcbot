@@ -20,6 +20,7 @@ import platform
 import re
 from datetime import datetime
 from enum import Enum
+from io import BytesIO
 from traceback import print_exc
 
 import asyncio
@@ -537,7 +538,7 @@ async def osu(client: discord.Client, message: discord.Message, member: Annotate
     signature = await utils.download_file("http://lemmmy.pw/osusig/sig.php",
                                           colour=color, uname=user_id, pp=True,
                                           countryrank=True, xpbar=True, mode=mode.value, **dark)
-    await client.send_file(message.channel, signature, filename="sig.png",
+    await client.send_file(message.channel, BytesIO(signature), filename="sig.png",
                            content="<https://osu.ppy.sh/u/{}>".format(user_id))
 
 
@@ -622,7 +623,7 @@ async def notify(client: discord.Client, message: discord.Message, mode: UpdateM
 
 @osu.command()
 async def url(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
-        section: str.lower=None):
+              section: str.lower=None):
     """ Display the member's osu! profile URL. """
     # Member might not be registered
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
