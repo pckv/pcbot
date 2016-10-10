@@ -24,6 +24,7 @@ from traceback import print_exc
 
 import asyncio
 import discord
+from aiohttp.errors import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate
@@ -232,7 +233,13 @@ async def update_user_data(client: discord.Client):
             continue
 
         mode = get_mode(member_id).value
-        user_data = await api.get_user(u=profile, type="id", m=mode)
+        try:
+            user_data = await api.get_user(u=profile, type="id", m=mode)
+        except ServerDisconnectedError:
+            continue
+
+        # Sleep after using get_user as to not put too much strain on the API at once
+        await asyncio.sleep(.2)
 
         # Just in case something goes wrong, we skip this member (these things are usually one-time occurrences)
         if user_data is None:
@@ -667,7 +674,7 @@ async def pp_(client: discord.Client, message: discord.Message, beatmap_url: str
             beatmap["beatmap_url"] = beatmap_url
 
             # Download the beatmap though the osu! website
-            beatmap_file= await utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+            beatmap_file = await utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
 
         # Save the beatmap pp_map.osu
         with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:

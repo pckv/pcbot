@@ -15,6 +15,8 @@ import plugins
 stored_messages = defaultdict(list)
 logs_from_limit = 5000
 max_summaries = 5
+update_task = asyncio.Event()
+update_task.set()
 
 # Define some regexes for option checking in "summary" command
 valid_num = re.compile(r"\*(?P<num>\d+)")
@@ -28,16 +30,21 @@ on_fail = "**I was unable to construct a summary, {0.author.name}.**"
 async def update_messages(client: discord.Client, channel: discord.Channel):
     """ Get or update messages. """
     messages = stored_messages[channel.id]
+    logged_messages = []
+    update_task.clear()
 
     if messages:
         # If we have already stored some messages we will update with any new messages
-        logged_messages = await client.logs_from(channel, after=messages[-1])
+        async for m in client.logs_from(channel, after=messages[-1]):
+            logged_messages.append(m)
     else:
         # For our first time we want logs_from_limit messages
-        logged_messages = await client.logs_from(channel, limit=logs_from_limit)
+        async for m in client.logs_from(channel, limit=logs_from_limit):
+            logged_messages.append(m)
 
     # Add a reversed version of the logged messages, since they're logged backwards
     stored_messages[channel.id].extend(reversed(list(logged_messages)))
+    update_task.set()
 
 
 def is_valid_option(arg: str):
@@ -143,6 +150,7 @@ async def summary(client: discord.Client, message: discord.Message, *options, ph
         channel = message.channel
 
     await client.send_typing(message.channel)
+    await update_task.wait()
     await update_messages(client, channel)
 
     # Split the messages into content and filter member and phrase
