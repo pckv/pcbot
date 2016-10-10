@@ -11,7 +11,6 @@ import os
 import re
 from io import BytesIO
 
-import asyncio
 import discord
 import cairosvg
 from PIL import Image

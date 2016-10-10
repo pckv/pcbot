@@ -377,12 +377,12 @@ def format_beatmapset_diffs(beatmapset: dict):
     elif diff_length < len("version"):
         diff_length = len("version")
 
-    m = "```xl\n" \
+    m = "```elm\n" \
         "mode  {version: <{diff_len}}  |  stars   cs   ar   od   hp   drain".format(
         version="version", diff_len=diff_length)
 
     for diff in sorted(beatmapset, key=lambda d: float(d["difficultyrating"])):
-        diff_name = diff["version"].replace("'", "`")
+        diff_name = diff["version"]
         m += "\n{gamemode: <6}{name: <{diff_len}}  |  " \
              "{stars: <8}{diff_size: <5}{diff_approach: <5}{diff_overall: <5}{diff_drain: <5}{drain}".format(
             gamemode=api.GameMode(int(diff["mode"])).name[0],

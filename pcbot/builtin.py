@@ -365,7 +365,7 @@ async def bot_info(client: discord.Client, message: discord.Message):
     """ Display basic information. """
     app_info = await client.application_info()
 
-    await client.say(message, "**{ver}** - **{name}** ```xl\n"
+    await client.say(message, "**{ver}** - **{name}** ```elm\n"
                               "Owner   : {owner}\n"
                               "Up      : {up} UTC\n"
                               "Servers : {servers}```"
