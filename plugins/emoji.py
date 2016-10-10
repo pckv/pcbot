@@ -134,7 +134,7 @@ async def greater(client: discord.Client, message: discord.Message, text: Annota
 
     # Combine multiple images if necessary, otherwise send just the one
     if len(parsed_emoji) == 1:
-        await client.send_file(message.channel, parsed_emoji[0], filename="emoji.png")
+        await client.send_file(message.channel, BytesIO(parsed_emoji[0]), filename="emoji.png")
         return
 
     # Generate image objects for all our byte-like objects, and find the size
