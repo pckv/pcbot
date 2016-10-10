@@ -115,7 +115,8 @@ async def stream(client: discord.Client, message: discord.Message, url: str, tit
 async def do(client: discord.Client, message: discord.Message, python_code: Annotate.Code):
     """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
         to send a message, optionally to a channel. Eg: `say("Hello!")`. """
-    code_globals.update(dict(message=message, client=client))
+    code_globals.update(dict(message=message, client=client,
+                             author=message.author, server=message.server, channel=message.channel))
 
     # Create an async function so that we can await it using the result of eval
     python_code = "async def do_session():\n    " + "\n    ".join(line for line in python_code.split("\n"))
@@ -133,7 +134,8 @@ async def do(client: discord.Client, message: discord.Message, python_code: Anno
 @utils.owner
 async def eval_(client: discord.Client, message: discord.Message, python_code: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one line that returns something. """
-    code_globals.update(dict(message=message, client=client))
+    code_globals.update(dict(message=message, client=client,
+                             author=message.author, server=message.server, channel=message.channel))
 
     try:
         result = eval(python_code, code_globals)
@@ -417,7 +419,8 @@ async def on_message(client: discord.Client, message: discord.Message):
             else:
                 return default
 
-        code_globals.update(dict(arg=arg, args=args, message=message, client=client))
+        code_globals.update(dict(arg=arg, args=args, message=message, client=client,
+                                 author=message.author, server=message.server, channel=message.channel))
         python_code = lambdas.data[args[0]]
 
         # Create an async function so that we can await it using the result of eval
