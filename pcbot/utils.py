@@ -95,11 +95,11 @@ def format_usage(command):
     return "\n".join(s for s in usage if s is not None) if usage else None
 
 
-def format_help(command):
+def format_help(command, no_subcommand=False):
     """ Format the help string of the given command as a message to be sent.
 
     :param command: type plugins.Command """
-    usage = format_usage(command)
+    usage = command.usage if no_subcommand else format_usage(command)
 
     # If there is no usage, the command isn't supposed to be displayed as such
     # Therefore, we switch to using the parent command instead

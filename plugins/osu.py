@@ -580,7 +580,7 @@ async def unlink(client: discord.Client, message: discord.Message, member: Annot
 gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
 
-@osu.command(aliases="mode m", error="The specified gamemode does not exist.", doc_args=dict(modes=gamemodes))
+@osu.command(aliases="mode m", error="Valid gamemodes: `{}`".format(gamemodes), doc_args=dict(modes=gamemodes))
 async def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
     """ Sets the command executor's gamemode.
 
@@ -601,7 +601,7 @@ async def gamemode(client: discord.Client, message: discord.Message, mode: api.G
 doc_modes = ", ".join(m.name.lower() for m in UpdateModes)
 
 
-@osu.command(aliases="n updatemode", error="The specified update mode does not exist", doc_args=dict(modes=doc_modes))
+@osu.command(aliases="n updatemode", error="Valid modes: `{}`".format(doc_modes), doc_args=dict(modes=doc_modes))
 async def notify(client: discord.Client, message: discord.Message, mode: UpdateModes.get_mode):
     """ Sets the command executor's update notification mode. This changes
     how much text is in each update, or if you want to disable them completely.

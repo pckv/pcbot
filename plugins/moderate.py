@@ -185,7 +185,7 @@ async def check_nsfw(client: discord.Client, message: discord.Message):
 
         if nsfw_channel:
             await client.say(message, "{0.mention}: **Please post NSFW content in {1.mention}**".format(
-                message.author, nsfw_channel) )
+                message.author, nsfw_channel))
 
         return True
 

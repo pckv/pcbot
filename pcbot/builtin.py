@@ -154,17 +154,23 @@ async def plugin_(client: discord.Client, message: discord.Message):
     await client.say(message, "**Plugins:** ```{}```".format(", ".join(plugins.all_keys())))
 
 
-@plugin_.command(aliases="r")
+@plugin_.command(aliases="r", pos_check=False)
 @utils.owner
-async def reload(client: discord.Client, message: discord.Message, name: str.lower=None):
+async def reload(client: discord.Client, message: discord.Message, *names: str.lower):
     """ Reloads all plugins or the specified plugin. """
-    if name:
-        assert plugins.get_plugin(name), "`{}` is not a plugin".format(name)
+    if names:
+        reloaded = []
+        for name in names:
+            if not plugins.get_plugin(name):
+                await client.say(message, "`{}` is not a plugin".format(name))
+                continue
 
-        # The plugin entered is valid so we reload it
-        await plugins.save_plugin(name)
-        plugins.reload_plugin(name)
-        await client.say(message, "Reloaded plugin `{}`.".format(name))
+            # The plugin entered is valid so we reload it
+            await plugins.save_plugin(name)
+            plugins.reload_plugin(name)
+            reloaded.append(name)
+
+        await client.say(message, "Reloaded plugin{} `{}`.".format("s" if len(names) > 1 else "", ", ".join(reloaded)))
     else:
         # Reload all plugins
         await plugins.save_plugins()

@@ -322,7 +322,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
             if command.error and len(cmd_args) > 1 and not send_help:
                 await client.say(message, command.error)
             else:
-                await client.say(message, utils.format_help(command))
+                await client.say(message, utils.format_help(command, no_subcommand=False if send_help else True))
 
         command = None
 
