@@ -12,7 +12,7 @@ a look/access the resources**, the libraries used are found in
 
 Currently, BotéMon is the only version of PCBOT I host for public use. 
 **If you wish to add the bot to your server, check 
-[it's bots.discord.pw entry!][botemon]**
+[its bots.discord.pw entry!][botemon]**
 
 [botemon]: https://bots.discord.pw/bots/203868728884985857
 
@@ -26,12 +26,12 @@ git clone https://github.com/PcBoy111/PCBOT.git
 *Or*, just simply [download the repo as ZIP][zip].
 
 Several plugins require additional modules. You can figure out which
-modules you need by running the bot.
+modules you're missing by running the bot.
 
 [zip]: https://github.com/PcBoy111/PCBOT/archive/master.zip
 
 ## Running
-Running the bot is simple. Go to the root directory of the bot, 
+Running the bot is simple. Go to the root directory 
 and run bot.py:
 
 ```
@@ -75,18 +75,14 @@ arguments.
 ## Plugins
 PCBOT has a folder based plugin system. **The documentation for 
 creating these plugins might come along soon**, although if you wish to 
-make one, a good example is found in `pcbot/builtin.py`.
+make a plugin, a good example is found in `pcbot/builtin.py`.
 
 **To remove an unwanted plugin from the bot**, simply remove it from 
 the `plugins/` folder. You are also free to remove any accompanying 
 library folder.
 
-Currently, the owner can reload, unload and load plugins with the 
+The owner can reload, unload and load plugins with the 
 `!plugin` command.
-
-When building plugins, make sure you're using syntax supported by your 
-version of python. Considering the bot is built for version 3.4.2+, 
-the best would be to follow this syntax. 
 
 ## Licence
 The MIT License (MIT)
