@@ -28,7 +28,7 @@ class Client(discord.Client):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.time_started = datetime.utcnow()
-        self.last_deleted_message = None
+        self.last_deleted_messages = []
 
     async def _handle_event(self, func, event, *args, **kwargs):
         """ Handle the event dispatched. """
@@ -75,8 +75,13 @@ class Client(discord.Client):
 
     async def delete_message(self, message):
         """ Override to add info on the last deleted message. """
-        self.last_deleted_message = message
+        self.last_deleted_messages = [message]
         await super().delete_message(message)
+
+    async def delete_messages(self, messages):
+        """ Override to add info on the last deleted messages. """
+        self.last_deleted_messages = list(messages)
+        await super().delete_messages(messages)
 
     @staticmethod
     async def say(message: discord.Message, content: str):

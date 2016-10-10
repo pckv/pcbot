@@ -165,6 +165,29 @@ async def timeout(client: discord.Client, message: discord.Message, *members: An
     await manage_mute(client, message, client.remove_roles, *muted_members)
 
 
+@plugins.command()
+async def purge(client: discord.Client, message: discord.Message, num: utils.int_range(1, 100),
+                *members: Annotate.Member):
+    """ Purge the given amount of messages from the specified members or all.
+    `num` is a number from 1 to 100. """
+    to_delete = []
+
+    async for m in client.logs_from(message.channel, limit=100, before=message):
+        if len(to_delete) >= num:
+            break
+
+        if not members or m.author in members:
+            to_delete.append(m)
+
+    deleted = len(to_delete)
+    if deleted > 1:
+        await client.delete_messages(to_delete)
+    elif deleted == 1:
+        await client.delete_message(to_delete[0])
+    
+    await client.say(message, "Purged **{}** message{}.".format(deleted, "" if deleted == 1 else "s"))
+
+
 async def check_nsfw(client: discord.Client, message: discord.Message):
     """ Check if the message is NSFW (very rough check). """
     # Check if this server has nsfwfilter enabled
@@ -227,8 +250,9 @@ async def on_message_delete(client: discord.Client, message: discord.Message):
     changelog_channel = get_changelog_channel(message.server)
 
     # Don't log any message the bot deleted
-    if message == client.last_deleted_message:
-        return
+    for m in client.last_deleted_messages:
+        if m.id == message.id:
+            return
 
     if not changelog_channel:
         return
