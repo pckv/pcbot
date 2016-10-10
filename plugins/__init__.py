@@ -92,10 +92,6 @@ def command(**options):
         doc_args    : dict        : Arguments to send to the docstring under formatting.
     """
     def decorator(func):
-        # The prefix might have changed since the bot started because of mess
-        if not asyncio.iscoroutine(func):
-            func = asyncio.coroutine(func)
-
         # Define all function stats
         name = options.get("name", func.__name__)
         aliases = options.get("aliases")
@@ -185,9 +181,6 @@ def event(name=None):
         if event_name == "on_ready":
             raise NameError("on_ready in plugins is reserved for bot initialization only (use it without the"
                             "event listener call).")
-
-        if not asyncio.iscoroutine(func):
-            func = asyncio.coroutine(func)
 
         # Register our event
         events[event_name].append(func)
@@ -300,22 +293,20 @@ def load_plugins():
             load_plugin(name)
 
 
-@asyncio.coroutine
-def save_plugin(name):
+async def save_plugin(name):
     """ Save a plugin's files if it has a save function. """
     if name in all_keys():
         plugin = get_plugin(name)
 
         if callable(getattr(plugin, "save", False)):
             try:
-                yield from plugin.save(plugins)
+                await plugin.save(plugins)
             except:
                 logging.error("An error occurred when saving plugin {}:\n{}".format(name, format_exc()))
 
 
-@asyncio.coroutine
-def save_plugins():
+async def save_plugins():
     """ Looks for any save function in a plugin and saves.
     Set up for saving on !stop and periodic saving every 30 minutes. """
     for name in all_keys():
-        yield from save_plugin(name)
+        await save_plugin(name)

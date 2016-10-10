@@ -78,10 +78,9 @@ class Cleverbot(object):
 
         # get the main page to get a cookie (see bug #13)
         self.session = aiohttp.ClientSession()
-        asyncio.async(self.session.get(Cleverbot.PROTOCOL + Cleverbot.HOST))
+        asyncio.ensure_future(self.session.get(Cleverbot.PROTOCOL + Cleverbot.HOST))
 
-    @asyncio.coroutine
-    def ask(self, question):
+    async def ask(self, question):
         """Asks Cleverbot a question.
 
         Maintains message history.
@@ -94,8 +93,8 @@ class Cleverbot(object):
         self.data['stimulus'] = question
 
         # Connect to Cleverbot's API and remember the response
-        resp = yield from self._send()
-        text = yield from resp.text()
+        resp = await self._send()
+        text = await resp.text()
 
         # Add the current question to the conversation log
         self.conversation.append(question)
@@ -111,8 +110,7 @@ class Cleverbot(object):
 
         return parsed['answer']
 
-    @asyncio.coroutine
-    def _send(self):
+    async def _send(self):
         """ POST the user's question and all required information to the
         Cleverbot API """
         # Set data as appropriate
@@ -131,7 +129,7 @@ class Cleverbot(object):
         self.data['icognocheck'] = token
 
         # POST the data to Cleverbot's API and return
-        resp = yield from self.session.post(Cleverbot.API_URL,
+        resp = await self.session.post(Cleverbot.API_URL,
                                             data=self.data,
                                             headers=Cleverbot.headers)
         return resp

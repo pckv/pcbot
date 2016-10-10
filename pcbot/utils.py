@@ -4,13 +4,13 @@ This module holds the owner data along with a handful of
 command specific functions and helpers.
 """
 
+import re
+import shlex
 from enum import Enum
 from functools import wraps
-import shlex
-import re
+from io import BytesIO
 
 import discord
-import asyncio
 import aiohttp
 
 from pcbot import Config, config
@@ -141,14 +141,10 @@ def is_owner(member):
 
 def owner(func):
     """ Decorator that runs the command only if the author is the owner. """
-    if not asyncio.iscoroutine(func):
-        func = asyncio.coroutine(func)
-
     @wraps(func)
-    @asyncio.coroutine
-    def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
+    async def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
         if is_owner(message.author):
-            yield from func(client, message, *args, **kwargs)
+            await func(client, message, *args, **kwargs)
 
     setattr(wrapped, "__owner__", True)
     return wrapped
@@ -158,16 +154,12 @@ def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
     perms must be a string matching any property of discord.Permissions. """
     def decorator(func):
-        if not asyncio.iscoroutine(func):
-            func = asyncio.coroutine(func)
-
         @wraps(func)
-        @asyncio.coroutine
-        def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
+        async def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
             member_perms = message.author.permissions_in(message.channel)
 
             if all(getattr(member_perms, perm, False) for perm in perms):
-                yield from func(client, message, *args, **kwargs)
+                await func(client, message, *args, **kwargs)
 
         return wrapped
     return decorator
@@ -177,63 +169,51 @@ def role(*roles: str):
     """ Decorator that runs the command only if the author has the specified Roles.
     roles must be a string representing a role's name. """
     def decorator(func):
-        if not asyncio.iscoroutine(func):
-            func = asyncio.coroutine(func)
-
         @wraps(func)
-        @asyncio.coroutine
-        def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
+        async def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
             member_roles = [r.name for r in message.author.roles[1:]]
 
             if any(r in member_roles for r in roles):
-                yield from func(client, message, *args, **kwargs)
+                await func(client, message, *args, **kwargs)
 
         return wrapped
     return decorator
 
 
-@asyncio.coroutine
-def retrieve_headers(url, **params):
+async def retrieve_headers(url, **params):
     """ Retrieve the headers from a URL.
 
     :param url: URL as str
     :param params: Any additional url parameters
     :return: Headers as a dict """
-    with aiohttp.ClientSession() as session:
-        response = yield from session.head(url, params=params)
+    async with aiohttp.ClientSession() as session:
+        async with session.head(url, params=params) as response:
+            return response.headers
 
-    return response.headers
 
-
-@asyncio.coroutine
-def download_file(url, **params):
+async def download_file(url, **params):
     """ Download and return a byte-like object of a file.
 
     :param url: Download url as str
     :param params: Any additional url parameters
     :return: The byte-like file """
-    with aiohttp.ClientSession() as session:
-        response = yield from session.get(url, params=params)
-        file = yield from response.read()
-
-    return file
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            return BytesIO(await response.read())
 
 
-@asyncio.coroutine
-def download_json(url, **params):
+async def download_json(url, **params):
     """ Download and return a json file.
 
     :param url: Download url as str
     :param params: Any additional url parameters
     :return: A JSON representation of the downloaded file """
-    with aiohttp.ClientSession() as session:
-        response = yield from session.get(url, params=params)
-        try:
-            json = yield from response.json()
-        except ValueError:
-            json = None
-
-    return json
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            try:
+                return await response.json()
+            except ValueError:
+                return None
 
 
 def find_member(server: discord.Server, name, steps=3, mention=True):
@@ -332,6 +312,12 @@ def get_member(client: discord.Client, member_id: str):
 def format_exception(e):
     """ Returns a formatted string of Exception: e """
     return type(e).__name__ + ": " + str(e)
+
+
+def format_syntax_error(e):
+    """ Returns a formatted string of a SyntaxError.
+    Stolen from https://github.com/Rapptz/RoboDanny/blob/master/cogs/repl.py#L24-L25 """
+    return "{0.text}\n{1:>{0.offset}}\n{2}: {0}".format(e, "^", type(e).__name__)
 
 
 def get_formatted_code(code):

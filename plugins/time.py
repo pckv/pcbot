@@ -30,15 +30,14 @@ def reverse_gmt(timezone: str):
     return timezone
 
 
-@asyncio.coroutine
-def init_dt(client: discord.Client, message: discord.Message, time: str, timezone: str):
+async def init_dt(client: discord.Client, message: discord.Message, time: str, timezone: str):
     """ Setup the datetime and timezone properly. """
     timezone = reverse_gmt(timezone)
 
     try:
         dt = pendulum.parse(time, tz=timezone)
     except ValueError:
-        yield from client.say(message, "Time format not recognized.")
+        await client.say(message, "Time format not recognized.")
         return None, None
 
     return dt, timezone
@@ -63,22 +62,22 @@ def format_when(dt: pendulum.Pendulum, timezone: str="UTC"):
 
 
 @plugins.command(aliases="timezone")
-def when(client: discord.Client, message: discord.Message, *time, timezone: tz_arg="UTC"):
+async def when(client: discord.Client, message: discord.Message, *time, timezone: tz_arg="UTC"):
     """ Convert time from specified timezone or UTC to formatted string of e.g.
     `2 hours from now`. """
     timezone_name = timezone
 
     if time:
-        dt, timezone = yield from init_dt(client, message, " ".join(time), timezone)
+        dt, timezone = await init_dt(client, message, " ".join(time), timezone)
         if dt is None or timezone is None:
             return
 
-        yield from client.say(message, format_when(dt, timezone_name))
+        await client.say(message, format_when(dt, timezone_name))
     else:
         timezone = reverse_gmt(timezone)
         dt = pendulum.now(tz=timezone)
 
-        yield from client.say(message, "`{} {}` is **UTC{}{}**.".format(
+        await client.say(message, "`{} {}` is **UTC{}{}**.".format(
             dt.format(dt_format), timezone_name,
             "-" if dt.offset_hours < 0 else ("+" if dt.offset_hours > 0 else ""),
             abs(dt.offset_hours) if dt.offset_hours else "",
@@ -92,7 +91,7 @@ def tag_arg(tag: str):
 
 
 @plugins.command(aliases="cd downcount")
-def countdown(client: discord.Client, message: discord.Message, tag: Annotate.Content):
+async def countdown(client: discord.Client, message: discord.Message, tag: Annotate.Content):
     """ Display a countdown with the specified tag. """
     tag = tag_arg(tag)
     assert tag in time_cfg.data["countdown"], "Countdown with tag `{}` does not exist.".format(tag)
@@ -101,27 +100,27 @@ def countdown(client: discord.Client, message: discord.Message, tag: Annotate.Co
     dt = pendulum.parse(cd["time"], tz=cd["tz"])
     timezone_name = cd["tz_name"]
 
-    yield from client.say(message, format_when(dt, timezone_name))
+    await client.say(message, format_when(dt, timezone_name))
 
 
 @countdown.command(aliases="add", pos_check=True)
-def create(client: discord.Client, message: discord.Message, tag: tag_arg, *time, timezone: tz_arg="UTC"):
+async def create(client: discord.Client, message: discord.Message, tag: tag_arg, *time, timezone: tz_arg="UTC"):
     """ Create a countdown with the specified tag, using the same format as `{pre}when`. """
     assert tag not in time_cfg.data["countdown"], "Countdown with tag `{}` already exists.".format(tag)
 
     timezone_name = timezone
-    dt, timezone = yield from init_dt(client, message, " ".join(time), timezone)
+    dt, timezone = await init_dt(client, message, " ".join(time), timezone)
 
     assert (dt - pendulum.utcnow()).seconds > 0, "A countdown has to be set in the future."
 
     time_cfg.data["countdown"][tag] = dict(time=dt.to_datetime_string(), tz=timezone, tz_name=timezone_name,
                                            author=message.author.id, channel=message.channel.id)
     time_cfg.save()
-    yield from client.say(message, "Added countdown with tag `{}`.".format(tag))
+    await client.say(message, "Added countdown with tag `{}`.".format(tag))
 
 
 @countdown.command(aliases="remove")
-def delete(client: discord.Client, message: discord.Message, tag: Annotate.Content):
+async def delete(client: discord.Client, message: discord.Message, tag: Annotate.Content):
     """ Remove a countdown with the specified tag. You need to be the author of a tag
     in order to remove it. """
     tag = tag_arg(tag)
@@ -133,11 +132,11 @@ def delete(client: discord.Client, message: discord.Message, tag: Annotate.Conte
 
     del time_cfg.data["countdown"][tag]
     time_cfg.save()
-    yield from client.say(message, "Countdown with tag `{}` removed.".format(tag))
+    await client.say(message, "Countdown with tag `{}` removed.".format(tag))
 
 
 @countdown.command(name="list")
-def cmd_list(client: discord.Client, message: discord.Message, author: Annotate.Member=None):
+async def cmd_list(client: discord.Client, message: discord.Message, author: Annotate.Member=None):
     """ List all countdowns or all countdowns by the specified author. """
     assert time_cfg.data["countdown"], "There are no countdowns created."
 
@@ -146,5 +145,5 @@ def cmd_list(client: discord.Client, message: discord.Message, author: Annotate.
     else:
         tags = (tag for tag in time_cfg.data["countdown"].keys())
 
-    yield from client.say(message, "**{}countdown tags**:```\n{}```".format(
+    await client.say(message, "**{}countdown tags**:```\n{}```".format(
         "{}'s ".format(author.name) if author else "", ", ".join(tags)))

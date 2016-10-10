@@ -26,7 +26,7 @@ aliases = Config("user_alias", data=defaultdict(str))
 
 
 @plugins.command(description=alias_desc, pos_check=lambda s: s.startswith("-"))
-def alias(client: discord.Client, message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
+async def alias(client: discord.Client, message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
     """ Assign an alias. Description is defined in alias_desc. """
     anywhere = "-anywhere" in options
     case_sensitive = "-case-sensitive" in options
@@ -41,21 +41,21 @@ def alias(client: discord.Client, message: discord.Message, *options: str.lower,
     )
     aliases.save()
 
-    yield from client.say(message, "Alias `{0}` set for **{1.name}**.".format(trigger, message.author))
+    await client.say(message, "Alias `{0}` set for **{1.name}**.".format(trigger, message.author))
 
 
 @alias.command(name="list")
-def list_(client: discord.Client, message: discord.Message):
+async def list_(client: discord.Client, message: discord.Message):
     """ List all user's aliases. """
     assert aliases.data.get(message.author.id, False), "No aliases registered for **{0.name}**.".format(message.author)
 
     # The user is registered so they must have aliases and we display them
     format_aliases = ", ".join(aliases.data[message.author.id].keys())
-    yield from client.say(message, "**Aliases for {0.name}:**```{1}```\n".format(message.author, format_aliases))
+    await client.say(message, "**Aliases for {0.name}:**```{1}```\n".format(message.author, format_aliases))
 
 
 @alias.command()
-def remove(client: discord.Client, message: discord.Message, trigger: Annotate.Content):
+async def remove(client: discord.Client, message: discord.Message, trigger: Annotate.Content):
     """ Remove user alias with the specified trigger. """
     # Check if the trigger is in the would be list (basically checks if trigger is in [] if user is not registered)
     assert trigger in aliases.data.get(message.author.id, []), \
@@ -64,11 +64,11 @@ def remove(client: discord.Client, message: discord.Message, trigger: Annotate.C
     # Trigger is an assigned alias, remove it
     aliases.data[message.author.id].pop(trigger)
     aliases.save()
-    yield from client.say(message, "Removed alias `{0}` for **{1.name}**.".format(trigger, message.author))
+    await client.say(message, "Removed alias `{0}` for **{1.name}**.".format(trigger, message.author))
 
 
 @plugins.event()
-def on_message(client: discord.Client, message: discord.Message):
+async def on_message(client: discord.Client, message: discord.Message):
     success = False
 
     # User alias check
@@ -99,9 +99,9 @@ def on_message(client: discord.Client, message: discord.Message):
             if execute:
                 if command.get("delete_message", False):
                     if message.server.me.permissions_in(message.channel).manage_messages:
-                        asyncio.async(client.delete_message(message))
+                        asyncio.ensure_future(client.delete_message(message))
 
-                yield from client.say(message, "**{0.display_name}**{1}: {2}".format(
+                await client.say(message, "**{0.display_name}**{1}: {2}".format(
                     message.author, mention, command["text"]))
 
                 success = True
@@ -109,7 +109,7 @@ def on_message(client: discord.Client, message: discord.Message):
     # See if the user spelled definitely wrong
     for word in message.clean_content.split():
         if get_close_matches(word.lower(), ["definitely"], n=1, cutoff=0.80) and not word.lower() == "definitely":
-            yield from client.send_message(message.channel, "http://www.d-e-f-i-n-i-t-e-l-y.com/")
+            await client.send_message(message.channel, "http://www.d-e-f-i-n-i-t-e-l-y.com/")
             success = True
 
     return success

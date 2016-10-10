@@ -44,8 +44,7 @@ def format_hint(hint):
     return "The word starts with `{0}`.".format(hint) if hint else ""
 
 
-@asyncio.coroutine
-def auto_word(count=1):
+async def auto_word(count=1):
     global wordsearch_words
 
     word = ""
@@ -56,10 +55,9 @@ def auto_word(count=1):
 
     # Download a list of words if not stored in memory
     if not wordsearch_words:
-        with aiohttp.ClientSession() as session:
-            response = yield from session.get(word_list_url)
-
-            wordsearch_words = yield from response.text() if response.status == 200 else ""
+        async with aiohttp.ClientSession() as session:
+            async with session.get(word_list_url) as response:
+                wordsearch_words = await response.text() if response.status == 200 else ""
 
         wordsearch_words = wordsearch_words.split("\n")
 
@@ -73,13 +71,12 @@ def stop_wordsearch(channel: discord.Channel):
     wordsearch.remove(channel.id)
 
 
-@asyncio.coroutine
-def start_wordsearch(client: discord.Client, channel: discord.Channel, host: discord.Member, word: str=None):
+async def start_wordsearch(client: discord.Client, channel: discord.Channel, host: discord.Member, word: str=None):
     if channel.id not in wordsearch:
         if not word:
-            yield from client.send_message(channel, "Waiting for {0.mention} to choose a word!".format(host))
+            await client.send_message(channel, "Waiting for {0.mention} to choose a word!".format(host))
     else:
-        yield from client.send_message(channel, "A wordsearch is already active in this channel!")
+        await client.send_message(channel, "A wordsearch is already active in this channel!")
         return
 
     # Initialize the wordsearch
@@ -87,34 +84,34 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
 
     # Wait for the user to enter a word
     if not word:
-        yield from client.send_message(host, "**Please enter a word!**\n"
+        await client.send_message(host, "**Please enter a word!**\n"
                                              "The word should be **maximum 32 characters long** and "
                                              "may **only** contain `letters A-Å` and *numbers*.")
-        reply = yield from client.wait_for_message(30, author=host, check=valid_word)
+        reply = await client.wait_for_message(30, author=host, check=valid_word)
 
         # Stop the wordsearch if the user spent more than 30 seconds writing a valid word
         if not reply:
             stop_wordsearch(channel)
-            yield from client.send_message(channel, "{0.mention} failed to enter a valid word.".format(host))
+            await client.send_message(channel, "{0.mention} failed to enter a valid word.".format(host))
             return
 
         # Start the wordsearch
         word = reply.content.lower()
-        yield from client.send_message(host, "Set the word to `{}`.".format(word))
-        yield from client.send_message(channel, "{0.mention} has entered a word! {1}".format(host, tutorial))
+        await client.send_message(host, "Set the word to `{}`.".format(word))
+        await client.send_message(channel, "{0.mention} has entered a word! {1}".format(host, tutorial))
     else:
-        yield from client.send_message(channel, "{0.mention} made me set a word! {1}".format(host, tutorial))
+        await client.send_message(channel, "{0.mention} made me set a word! {1}".format(host, tutorial))
 
     tries = 0
     hint = ""
 
     while channel.id in wordsearch:
-        reply = yield from client.wait_for_message(60 * 30, channel=channel, check=valid_guess)
+        reply = await client.wait_for_message(60 * 30, channel=channel, check=valid_guess)
 
         # Wordsearch expires after 30 minutes
         if not reply:
             stop_wordsearch(channel)
-            yield from client.send_message(channel, "**The wordsearch was cancelled after 30 minutes of inactivity.**\n"
+            await client.send_message(channel, "**The wordsearch was cancelled after 30 minutes of inactivity.**\n"
                                                     "The word was `{}`.".format(word))
             return
 
@@ -150,18 +147,18 @@ def start_wordsearch(client: discord.Client, channel: discord.Channel, host: dis
                                                                                                   word=word)
             stop_wordsearch(channel)
 
-        asyncio.async(client.send_message(channel, m))
+        asyncio.ensure_future(client.send_message(channel, m))
 
 
 @plugins.command(name="wordsearch")
-def wordsearch_(client: discord.Client, message: discord.Message):
+async def wordsearch_(client: discord.Client, message: discord.Message):
     """ Start a wordsearch! Enter *any word* ending with `!` to guess the word! """
     client.loop.create_task(start_wordsearch(client, message.channel, message.author))
 
 
 @wordsearch_.command()
-def auto(client: discord.Client, message: discord.Message, count: int=1):
+async def auto(client: discord.Client, message: discord.Message, count: int=1):
     """ Start an automatic wordsearch which sets a word for you. Default is one word,
     or enter up to 5 with `count`."""
-    word = yield from auto_word(count)
+    word = await auto_word(count)
     client.loop.create_task(start_wordsearch(client, message.channel, message.author, word))

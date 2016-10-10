@@ -56,8 +56,7 @@ def get_emoji(chars: str, size=default_size):
     return cairosvg.svg2png(emoji_bytes)
 
 
-@asyncio.coroutine
-def get_emote(emote_id: str, server: discord.Server):
+async def get_emote(emote_id: str, server: discord.Server):
     """ Return the image of a custom emote. """
     emote = discord.Emoji(id=emote_id, server=server)
 
@@ -66,7 +65,7 @@ def get_emote(emote_id: str, server: discord.Server):
         return emote_cache[emote.id]
 
     # Otherwise, download the emote, store it in the cache and return
-    emote_bytes = yield from utils.download_file(emote.url)
+    emote_bytes = await utils.download_file(emote.url)
     emote_cache[emote.id] = emote_bytes
     return emote_bytes
 
@@ -101,15 +100,14 @@ def parse_emoji(text: str):
             break
 
 
-@asyncio.coroutine
-def format_emotes(text: str, server: discord.Server):
+async def format_emotes(text: str, server: discord.Server):
     """ Creates a list supporting both emoji and custom emotes. """
     emotes = []
 
     # Download and add all custom emotes to the emotes list and replace
     # all custom emotes found in the text
     for emote_name, emote_id in emote_regex.findall(text):
-        emote = yield from get_emote(emote_id, server)
+        emote = await get_emote(emote_id, server)
         emotes.append(emote)
         text = text.replace("<:{}:{}>".format(emote_name, emote_id), "")
 
@@ -128,15 +126,15 @@ def format_emotes(text: str, server: discord.Server):
 
 
 @plugins.command()
-def greater(client: discord.Client, message: discord.Message, text: Annotate.CleanContent):
+async def greater(client: discord.Client, message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
-    parsed_emoji = yield from format_emotes(text, message.server)
+    parsed_emoji = await format_emotes(text, message.server)
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
     # Combine multiple images if necessary, otherwise send just the one
     if len(parsed_emoji) == 1:
-        yield from client.send_file(message.channel, parsed_emoji[0], filename="emoji.png")
+        await client.send_file(message.channel, parsed_emoji[0], filename="emoji.png")
         return
 
     # Generate image objects for all our byte-like objects, and find the size
@@ -153,7 +151,7 @@ def greater(client: discord.Client, message: discord.Message, text: Annotate.Cle
     buffer = BytesIO()
     image.save(buffer, "PNG")
     buffer.seek(0)
-    yield from client.send_file(message.channel, buffer, filename="emojies.png")
+    await client.send_file(message.channel, buffer, filename="emojies.png")
 
 
 init_emoji()

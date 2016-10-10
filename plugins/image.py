@@ -35,21 +35,21 @@ def parse_resolution(res: str):
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"))
-def resize(client: discord.Client, message: discord.Message,
-           url: str, resolution: parse_resolution, *options, extension: str=None):
+async def resize(client: discord.Client, message: discord.Message,
+                 url: str, resolution: parse_resolution, *options, extension: str=None):
     """ Resize an image with the given resolution formatted as `<width>x<height>`
     with an optional extension. """
     # Make sure the URL is valid
     try:
-        headers = yield from utils.retrieve_headers(url)
+        headers = await utils.retrieve_headers(url)
     except ValueError:
-        yield from client.say(message, "The given URL is invalid.")
+        await client.say(message, "The given URL is invalid.")
         return
 
     match = extension_regex.search(headers["CONTENT-TYPE"])
     assert match, "The given url is not an image."
 
-    image_bytes = yield from utils.download_file(url)
+    image_bytes = await utils.download_file(url)
 
     # Create some metadata
     image_format = extension or match.group("ext")
@@ -64,7 +64,7 @@ def resize(client: discord.Client, message: discord.Message,
     filename = "{}.{}".format(message.author.display_name, extension)
 
     # Open the image in Pillow
-    image = Image.open(BytesIO(image_bytes))
+    image = Image.open(image_bytes)
     image = image.resize(resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS)
 
     # Upload the image
@@ -72,11 +72,11 @@ def resize(client: discord.Client, message: discord.Message,
     try:
         image.save(buffer, image_format)
     except KeyError as e:
-        yield from client.say(message, "Image format `{}` is unsupported.".format(e))
+        await client.say(message, "Image format `{}` is unsupported.".format(e))
         return
     except Exception as e:
-        yield from client.say(message, str(e) + ".")
+        await client.say(message, str(e) + ".")
         return
     buffer.seek(0)
 
-    yield from client.send_file(message.channel, buffer, filename=filename)
+    await client.send_file(message.channel, buffer, filename=filename)

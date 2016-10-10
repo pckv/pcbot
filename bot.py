@@ -30,20 +30,19 @@ class Client(discord.Client):
         self.time_started = datetime.utcnow()
         self.last_deleted_message = None
 
-    @asyncio.coroutine
-    def _handle_event(self, func, event, *args, **kwargs):
+    async def _handle_event(self, func, event, *args, **kwargs):
         """ Handle the event dispatched. """
         try:
-            result = yield from func(self, *args, **kwargs)
+            result = await func(self, *args, **kwargs)
         except AssertionError as e:
             if not event == "message":
-                yield from self.on_error(event, *args, **kwargs)
+                await self.on_error(event, *args, **kwargs)
 
             # Find the message object and send the proper feedback
             message = args[0]
-            yield from self.send_message(message.channel, str(e))
+            await self.send_message(message.channel, str(e))
         except:
-            yield from self.on_error(event, *args, **kwargs)
+            await self.on_error(event, *args, **kwargs)
         else:
             if result is True and event == "message":
                 log_message(args[0], prefix="... ")
@@ -67,24 +66,22 @@ class Client(discord.Client):
             for func in plugins.events[method]:
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
 
-    @asyncio.coroutine
-    def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
+    async def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
         """ Override send_file to notify the server when an attachment could not be sent. """
         try:
-            yield from super().send_file(destination, fp, filename=filename, content=content, tts=tts)
+            await super().send_file(destination, fp, filename=filename, content=content, tts=tts)
         except discord.errors.Forbidden:
-            yield from self.send_message(destination, "*I don't have the permissions to send my attachment.*")
+            await self.send_message(destination, "*I don't have the permissions to send my attachment.*")
 
-    @asyncio.coroutine
-    def delete_message(self, message):
+    async def delete_message(self, message):
         """ Override to add info on the last deleted message. """
         self.last_deleted_message = message
-        yield from super().delete_message(message)
+        await super().delete_message(message)
 
-    @asyncio.coroutine
-    def say(self, message: discord.Message, content: str):
+    @staticmethod
+    async def say(message: discord.Message, content: str):
         """ Equivalent to client.send_message(message.channel, content) """
-        msg = yield from client.send_message(message.channel, content)
+        msg = await client.send_message(message.channel, content)
         return msg
 
 
@@ -93,12 +90,11 @@ client = Client()
 autosave_interval = 60 * 30
 
 
-@asyncio.coroutine
-def autosave():
+async def autosave():
     """ Sleep for set time (default 30 minutes) before saving. """
     while not client.is_closed:
-        yield from asyncio.sleep(autosave_interval)
-        yield from plugins.save_plugins()
+        await asyncio.sleep(autosave_interval)
+        await plugins.save_plugins()
         logging.debug("Plugins saved")
 
 
@@ -111,17 +107,16 @@ def log_message(message: discord.Message, prefix: str=""):
     )
 
 
-@asyncio.coroutine
-def execute_command(command: plugins.Command, message: discord.Message, *args, **kwargs):
+async def execute_command(command: plugins.Command, message: discord.Message, *args, **kwargs):
     """ Execute a command and send any AttributeError exceptions. """
-    app_info = yield from client.application_info()
+    app_info = await client.application_info()
 
     try:
-        yield from command.function(client, message, *args, **kwargs)
+        await command.function(client, message, *args, **kwargs)
     except AssertionError as e:
-        yield from client.say(message, str(e) or command.error or utils.format_help(command))
+        await client.say(message, str(e) or command.error or utils.format_help(command))
     except:
-        yield from client.say(message, "An error occurred while executing this command. If the error persists, "
+        await client.say(message, "An error occurred while executing this command. If the error persists, "
                                        "please send a PM to {}.".format(app_info.owner))
         print_exc()
 
@@ -302,8 +297,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
     return args, kwargs, complete
 
 
-@asyncio.coroutine
-def parse_command(command: plugins.Command, cmd_args: list, message: discord.Message):
+async def parse_command(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Try finding a command """
     command = plugins.get_sub_command(command, cmd_args[1:])
     cmd_args = cmd_args[command.depth:]
@@ -323,32 +317,32 @@ def parse_command(command: plugins.Command, cmd_args: list, message: discord.Mes
         log_message(message)  # Log the command
 
         if command.disabled_pm and message.channel.is_private:
-            yield from client.say(message, "This command can not be executed in a private message.")
+            await client.say(message, "This command can not be executed in a private message.")
         else:
             if command.error and len(cmd_args) > 1 and not send_help:
-                yield from client.say(message, command.error)
+                await client.say(message, command.error)
             else:
-                yield from client.say(message, utils.format_help(command))
+                await client.say(message, utils.format_help(command))
 
         command = None
 
     return command, args, kwargs
 
 
-@client.async_event
-def on_ready():
+@client.event
+async def on_ready():
     logging.info("Logged in as\n"
                  "{0.user} ({0.user.id})\n".format(client) +
                  "-" * len(client.user.id))
 
 
-@client.async_event
-def on_message(message: discord.Message):
+@client.event
+async def on_message(message: discord.Message):
     """ What to do on any message received.
 
     The bot will handle all commands in plugins and send on_message to plugins using it. """
     # Make sure the client is ready before processing commands
-    yield from client.wait_until_ready()
+    await client.wait_until_ready()
 
     start_time = datetime.now()
 
@@ -372,7 +366,7 @@ def on_message(message: discord.Message):
         command = plugins.get_command(plugin, cmd)
 
         if command:
-            parsed_command, args, kwargs = yield from parse_command(command, cmd_args, message)
+            parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
 
             if parsed_command:
                 log_message(message)  # Log the command
@@ -384,11 +378,10 @@ def on_message(message: discord.Message):
                 logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
 
 
-@asyncio.coroutine
-def add_tasks():
+async def add_tasks():
     """ Create any tasks for plugins' on_ready() coroutine and create task
     for autosaving. """
-    yield from client.wait_until_ready()
+    await client.wait_until_ready()
     logging.info("Setting up background tasks.")
 
     # Call any on_ready function in plugins

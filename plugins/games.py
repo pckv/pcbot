@@ -32,15 +32,13 @@ class Game:
         self.num = num if num >= self.minimum_participants else self.minimum_participants
         self.participants = []
 
-    @asyncio.coroutine
-    def on_start(self):
+    async def on_start(self):
         """ Notify the channel that the game has been initialized. """
-        yield from self.client.say(self.message,
+        await self.client.say(self.message,
                                    "{} has started a game of {}! To participate, say `I`! {} players needed.".format(
                                        self.message.author.mention, self.name, self.num))
 
-    @asyncio.coroutine
-    def get_participants(self):
+    async def get_participants(self):
         """ Wait for input and get all participants. """
         for i in range(self.num):
             def check(m):
@@ -50,10 +48,10 @@ class Game:
                 return False
 
             # Wait with a timeout of 2 minutes and check each message with check(m)
-            reply = yield from self.client.wait_for_message(timeout=120, channel=self.channel, check=check)
+            reply = await self.client.wait_for_message(timeout=120, channel=self.channel, check=check)
 
             if reply:  # A user replied with a valid check
-                asyncio.async(
+                asyncio.ensure_future(
                     self.client.say(self.message,
                                     "{} has entered! `{}/{}`. Type `I` to join!".format(
                                         reply.author.mention, i + 1, self.num))
@@ -62,33 +60,32 @@ class Game:
 
                 # Remove the message if bot has permissions
                 if self.member.permissions_in(self.channel).manage_messages:
-                    asyncio.async(self.client.delete_message(reply))
+                    asyncio.ensure_future(self.client.delete_message(reply))
             else:
                 # At this point we got no reply in time and thus, gathering participants failed
-                yield from self.client.say(self.message, "**The {} game failed to gather {} participants.**".format(
+                await self.client.say(self.message, "**The {} game failed to gather {} participants.**".format(
                     self.name, self.num))
                 started.pop(started.index(self.channel.id))
 
                 return False
 
-    @asyncio.coroutine
-    def prepare(self):
+    async def prepare(self):
         """ Prepare anything needed before starting the game. """
         pass
 
-    @asyncio.coroutine
-    def game(self):
+    async def game(self):
         """ Start playing the game. """
         pass
 
-    def start(self):
+    async def start(self):
         """ Run the entire game's cycle. """
-        yield from self.on_start()
-        valid = yield from self.get_participants()
+        await self.on_start()
+        valid = await self.get_participants()
+        await asyncio.sleep(1)
 
         if valid is not False:
-            yield from self.prepare()
-            yield from self.game()
+            await self.prepare()
+            await self.game()
 
 
 class Roulette(Game):
@@ -99,23 +96,21 @@ class Roulette(Game):
         super().__init__(client, message, num)
         self.bullets = []
 
-    @asyncio.coroutine
-    def prepare(self):
+    async def prepare(self):
         """ Shuffle the bullets. """
         self.bullets = [0] * len(self.participants)
         self.bullets[randint(0, len(self.participants) - 1)] = 1
 
-    @asyncio.coroutine
-    def game(self):
+    async def game(self):
         """ Start playing. """
         for i, participant in enumerate(self.participants):
             member = self.message.server.get_member(participant)
 
-            yield from self.client.send_message(
+            await self.client.send_message(
                 self.channel,
                 "{} is up next! Say `go` whenever you are ready.".format(member.mention)
             )
-            reply = yield from self.client.wait_for_message(timeout=15, channel=self.channel, author=member,
+            reply = await self.client.wait_for_message(timeout=15, channel=self.channel, author=member,
                                                             check=lambda m: "go" in m.content.lower())
 
             hit = ":dash:"
@@ -124,14 +119,14 @@ class Roulette(Game):
                 hit = ":boom:"
 
             if reply is None:
-                yield from self.client.send_message(self.channel, "*fuck you*")
+                await self.client.send_message(self.channel, "*fuck you*")
 
-            yield from self.client.send_message(self.channel, "{} {} :gun: ".format(member.mention, hit))
+            await self.client.send_message(self.channel, "{} {} :gun: ".format(member.mention, hit))
 
             if self.bullets[i] == 1:
                 break
 
-        yield from self.client.send_message(self.channel, "**GAME OVER**")
+        await self.client.send_message(self.channel, "**GAME OVER**")
 
         started.pop(started.index(self.channel.id))
 
@@ -150,8 +145,7 @@ class HotPotato(Game):
         if self.time_remaining > 0:
             Timer(1, self.timer).start()
 
-    @asyncio.coroutine
-    def game(self):
+    async def game(self):
         """ Start the game. No comments because I was stupid and now I'm too
         lazy to comment everything in. """
         self.time_remaining = randint(
@@ -176,7 +170,7 @@ class HotPotato(Game):
                 pass_to.append(choice(pass_from))
 
             if reply is not None:
-                yield from self.client.send_message(
+                await self.client.send_message(
                     self.channel,
                     "{} :bomb: got the bomb! Pass it to either {} or {}!".format(
                         member.mention,
@@ -193,22 +187,22 @@ class HotPotato(Game):
                 return False
 
             wait = (self.time_remaining - notify) if (self.time_remaining >= notify) else self.time_remaining
-            reply = yield from self.client.wait_for_message(timeout=wait, channel=self.channel, author=member,
+            reply = await self.client.wait_for_message(timeout=wait, channel=self.channel, author=member,
                                                             check=check)
 
             if reply:
                 participant = reply.mentions[0].id
                 pass_to = []
                 if self.member.permissions_in(self.channel).manage_messages:
-                    asyncio.async(self.client.delete_message(reply))
+                    asyncio.ensure_future(self.client.delete_message(reply))
             elif self.time_remaining == notify:
-                asyncio.async(self.client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
+                asyncio.ensure_future(self.client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
                 self.time_remaining -= 1
 
-        yield from self.client.send_message(self.channel, "{} :fire: :boom: :boom: :fire:".format(
+        await self.client.send_message(self.channel, "{} :fire: :boom: :boom: :fire:".format(
             self.message.server.get_member(participant).mention
         ))
-        yield from self.client.send_message(self.channel, "**GAME OVER**")
+        await self.client.send_message(self.channel, "**GAME OVER**")
 
         del started[started.index(self.channel.id)]
 
@@ -222,15 +216,13 @@ class Typing(Game):
         super().__init__(client, message, num)
         self.sentence = ""
 
-    @asyncio.coroutine
-    def prepare(self):
+    async def prepare(self):
         """ Get the sentence to send. """
         self.sentence = choice(self.sentences)
 
-    @asyncio.coroutine
-    def send_sentence(self):
+    async def send_sentence(self):
         """ Generate the function for sending the sentence. """
-        yield from self.client.send_message(self.channel, self.sentence)
+        await self.client.send_message(self.channel, self.sentence)
 
     def calculate_accuracy(self, content: str):
         """ Calculate the accuracy """
@@ -247,8 +239,7 @@ class Typing(Game):
         """ Calculate the timeout for this game. """
         words = self.sentence.split()
 
-    @asyncio.coroutine
-    def game(self):
+    async def game(self):
         """ Run the game. """
         started = datetime.now()
 
@@ -272,16 +263,16 @@ def init_game(client: discord.Client, message: discord.Message, game, num: int):
 
     # Start the game
     started.append(message.channel.id)
-    asyncio.async(game(client, message, num).start())
+    asyncio.ensure_future(game(client, message, num).start())
 
 
 @plugins.command(description=desc_template.format(game=Roulette))
-def roulette(client: discord.Client, message: discord.Message, participants: int=6):
+async def roulette(client: discord.Client, message: discord.Message, participants: int=6):
     """ The roulette command. Description is defined using a template. """
     init_game(client, message, Roulette, participants)
 
 
 @plugins.command(description=desc_template.format(game=HotPotato))
-def hotpotato(client: discord.Client, message: discord.Message, participants: int=4):
+async def hotpotato(client: discord.Client, message: discord.Message, participants: int=4):
     """ The hotpotato command. Description is defined using a template. """
     init_game(client, message, HotPotato, participants)

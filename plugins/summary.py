@@ -25,17 +25,16 @@ on_no_messages = "**There were no messages to generate a summary from, {0.author
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
 
 
-@asyncio.coroutine
-def update_messages(client: discord.Client, channel: discord.Channel):
+async def update_messages(client: discord.Client, channel: discord.Channel):
     """ Get or update messages. """
     messages = stored_messages[channel.id]
 
     if messages:
         # If we have already stored some messages we will update with any new messages
-        logged_messages = yield from client.logs_from(channel, after=messages[-1])
+        logged_messages = await client.logs_from(channel, after=messages[-1])
     else:
         # For our first time we want logs_from_limit messages
-        logged_messages = yield from client.logs_from(channel, limit=logs_from_limit)
+        logged_messages = await client.logs_from(channel, limit=logs_from_limit)
 
     # Add a reversed version of the logged messages, since they're logged backwards
     stored_messages[channel.id].extend(reversed(list(logged_messages)))
@@ -109,7 +108,7 @@ def markov_messages(messages, coherent=False):
 
 @plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [phrase ...]", pos_check=is_valid_option,
                  error="Please make a better decision next time.")
-def summary(client: discord.Client, message: discord.Message, *options, phrase: Annotate.LowerContent=None):
+async def summary(client: discord.Client, message: discord.Message, *options, phrase: Annotate.LowerContent=None):
     """ Perform a summary! """
     # This dict stores all parsed options as keywords
     member, channel, num = [], None, None
@@ -143,8 +142,8 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
     if not channel:
         channel = message.channel
 
-    yield from client.send_typing(message.channel)
-    yield from update_messages(client, channel)
+    await client.send_typing(message.channel)
+    await update_messages(client, channel)
 
     # Split the messages into content and filter member and phrase
     if member:
@@ -164,4 +163,4 @@ def summary(client: discord.Client, message: discord.Message, *options, phrase: 
     # Generate the summary, or num summaries
     for i in range(num):
         sentence = markov_messages(message_content)
-        yield from client.say(message, sentence or on_fail.format(message))
+        await client.say(message, sentence or on_fail.format(message))

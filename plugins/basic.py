@@ -20,27 +20,24 @@ cleverbot = Cleverbot()
 
 
 @plugins.command()
-def roll(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=100):
+async def roll(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=100):
     """ Roll a number from 1-100 if no second argument or second argument is not a number.
         Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, num)
-    yield from client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
+    await client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
 
 
 @plugins.command(aliases="whomentionedme")
-def mentioned(client: discord.Client, message: discord.Message):
+async def mentioned(client: discord.Client, message: discord.Message):
     """ Tries to find the first message which mentions you in the last 16 hours. """
-    after = datetime.utcnow() - timedelta(minutes=20)
-    log = yield from client.logs_from(message.channel, limit=5000, after=after)
-    print(len(list(log)))
-
-    for m in log:
+    after = datetime.utcnow() - timedelta(hours=16)
+    async for m in client.logs_from(message.channel, limit=5000, after=after):
         if message.author in m.mentions:
-            yield from client.say(message, "**{0.author.display_name} - {1}**\n{0.clean_content}".format(
+            await client.say(message, "**{0.author.display_name} - {1}**\n{0.clean_content}".format(
                 m, m.timestamp.strftime("%A, %d %B %Y %H:%M:%S")))
             break
     else:
-        yield from client.say(message, "Could not find a message mentioning you in the last 16 hours.")
+        await client.say(message, "Could not find a message mentioning you in the last 16 hours.")
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")
@@ -92,7 +89,7 @@ def plugin_in_req(plugin: str):
 
 
 @plugins.command()
-def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id=None):
+async def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id=None):
     """ Handle plugin feature requests where plugin is a plugin name. See `!plugin` for a list of plugins.
 
         `#feature_id` shows a plugin's feature request with the specified id.  /
@@ -104,18 +101,18 @@ def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_
         assert feature_exists(plugin, req_id), "There is no such feature."
 
         # The feature request the specified id exists, and we format and send the feature request
-        yield from client.say(message, "```diff\n" + format_req(plugin, req_id) + "```")
+        await client.say(message, "```diff\n" + format_req(plugin, req_id) + "```")
     else:
         format_list = "\n".join(format_req(plugin, req_id)
                                 for req_id in range(len(feature_reqs.data[plugin])))
         assert format_list, "This plugin has no feature requests!"
 
         # Format a list of all requests for the specified plugin when there are any
-        yield from client.say(message, "```diff\n{list}```".format(list=format_list))
+        await client.say(message, "```diff\n{list}```".format(list=format_list))
 
 
 @feature.command()
-def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req, content: Annotate.CleanContent):
+async def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req, content: Annotate.CleanContent):
     """ Add a new feature request to a plugin. """
     req_list = feature_reqs.data[plugin]
     content = content.replace("\n", " ")
@@ -125,12 +122,12 @@ def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req,
     # Add the feature request if an identical request does not exist
     feature_reqs.data[plugin].append(content)
     feature_reqs.save()
-    yield from client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
+    await client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
 
 
 @feature.command()
 @utils.owner
-def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
+async def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Toggles marking a feature request as complete. """
     # Test and reply if feature by requested id doesn't exist
     assert feature_exists(plugin, req_id), "There is no such feature."
@@ -141,16 +138,16 @@ def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req
     if not req.endswith("+++"):
         feature_reqs.data[plugin][req_id] += "+++"
         feature_reqs.save()
-        yield from client.say(message, "Marked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
+        await client.say(message, "Marked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
     else:
         feature_reqs.data[plugin][req_id] = req[:-3]
         feature_reqs.save()
-        yield from client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
+        await client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
 @feature.command()
 @utils.owner
-def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
+async def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Removes a feature request. """
     # Test and reply if feature by requested id doesn't exist
     assert feature_exists(plugin, req_id), "There is no such feature."
@@ -158,19 +155,18 @@ def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_r
     # Remove the feature
     del feature_reqs.data[plugin][req_id]
     feature_reqs.save()
-    yield from client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
+    await client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
 @plugins.event()
-def on_message(client: discord.Client, message: discord.Message):
+async def on_message(client: discord.Client, message: discord.Message):
     # Have cleverbot respond to our bot
     if not message.content.startswith("!") and client.user in message.mentions:
         # Start typing and remove the bot mention from the message.
-        yield from client.send_typing(message.channel)
+        await client.send_typing(message.channel)
         question = " ".join(word for word in message.content.split() if not word == message.server.me.mention)
 
         # Ask cleverbot the given question and send the response.
-        response = yield from cleverbot.ask(question)
-        yield from client.say(message, response)
+        await client.say(message, await cleverbot.ask(question))
 
         return True

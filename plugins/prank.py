@@ -21,7 +21,7 @@ image_width, image_height = image_base.size
 
 
 @plugins.command()
-def prank(client: discord.Client, message: discord.Message, phrase: Annotate.CleanContent="IT'S A"):
+async def prank(client: discord.Client, message: discord.Message, phrase: Annotate.CleanContent="IT'S A"):
     """ Prank! """
     phrase = phrase.upper()
 
@@ -65,4 +65,4 @@ def prank(client: discord.Client, message: discord.Message, phrase: Annotate.Cle
     buffer = BytesIO()
     image.save(buffer, "PNG")
     buffer.seek(0)
-    yield from client.send_file(message.channel, buffer, filename="pranked.png")
+    await client.send_file(message.channel, buffer, filename="pranked.png")

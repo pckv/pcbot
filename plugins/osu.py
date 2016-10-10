@@ -199,8 +199,7 @@ def get_update_mode(member_id: str):
     return UpdateModes.get_mode(osu_config.data["update_mode"][member_id])
 
 
-@asyncio.coroutine
-def update_user_data(client: discord.Client):
+async def update_user_data(client: discord.Client):
     """ Go through all registered members playing osu!, and update their data. """
     global osu_tracking
 
@@ -233,7 +232,7 @@ def update_user_data(client: discord.Client):
             continue
 
         mode = get_mode(member_id).value
-        user_data = yield from api.get_user(u=profile, type="id", m=mode)
+        user_data = await api.get_user(u=profile, type="id", m=mode)
 
         # Just in case something goes wrong, we skip this member (these things are usually one-time occurrences)
         if user_data is None:
@@ -246,21 +245,20 @@ def update_user_data(client: discord.Client):
             osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
         else:
             # If this is the first time, update the user's list of scores for later
-            scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit, m=mode)
+            scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=mode)
             osu_tracking[member_id] = dict(member=member, scores=scores)
 
         # Update the "new" data
         osu_tracking[member_id]["new"] = user_data
 
 
-@asyncio.coroutine
-def get_new_score(member_id: str):
+async def get_new_score(member_id: str):
     """ Compare old user scores with new user scores and return the discovered
     new score if there is any. When a score is returned, it's position in the
     player's top plays can be retrieved with score["pos"]. """
     # Download a list of the user's scores
     profile = osu_config.data["profiles"][member_id]
-    scores = yield from api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value)
+    scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value)
 
     # Compare the scores from top to bottom and try to find a new one
     for i, score in enumerate(scores):
@@ -296,8 +294,7 @@ def get_notify_channels(server: discord.Server, data_type: str):
             if server.get_channel(s)]
 
 
-@asyncio.coroutine
-def notify_pp(client: discord.Client, member_id: str, data: dict):
+async def notify_pp(client: discord.Client, member_id: str, data: dict):
     """ Notify any differences in pp and post the scores + rank/pp gained. """
     # Only update pp when there is actually a difference
     if "old" not in data:
@@ -330,11 +327,11 @@ def notify_pp(client: discord.Client, member_id: str, data: dict):
     if update_mode is UpdateModes.PP:
         score = None
     else:
-        score = yield from get_new_score(member_id)
+        score = await get_new_score(member_id)
 
     # If a new score was found, format the score
     if score:
-        beatmap_search = yield from api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1)
+        beatmap_search = await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1)
         beatmap = api.lookup_beatmap(beatmap_search)
         scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
         stream_url = member.game.url if member.game is not None else None
@@ -357,7 +354,7 @@ def notify_pp(client: discord.Client, member_id: str, data: dict):
 
         for i, channel in enumerate(channels):
             try:
-                yield from client.send_message(
+                await client.send_message(
                     channel, m.format(member.mention) if i == 0 else m.format("**" + member.display_name + "**"))
             except discord.errors.Forbidden:
                 pass
@@ -398,8 +395,7 @@ def format_map_status(member_name: str, status_format: str, beatmapset: dict, mi
            "**Beatmap**: <{}s/{}>".format(host, beatmapset[0]["beatmapset_id"])
 
 
-@asyncio.coroutine
-def notify_maps(client: discord.Client, member_id: str, data: dict):
+async def notify_maps(client: discord.Client, member_id: str, data: dict):
     """ Notify any map updates, such as update, resurrect and qualified. """
     # Only update when there is a difference
     if "old" not in data:
@@ -439,15 +435,15 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
             continue
 
         # We'll sleep a little bit to let the beatmap API catch up with the change
-        yield from asyncio.sleep(10)
+        await asyncio.sleep(10)
 
         # Try returning the beatmap info 3 times with a span of 20 seconds.
         # This might be needed when new maps are submitted.
         for _ in range(3):
-            beatmapset = yield from api.get_beatmaps(s=event["beatmapset_id"])
+            beatmapset = await api.get_beatmaps(s=event["beatmapset_id"])
             if beatmapset:
                 break
-            yield from asyncio.sleep(20)
+            await asyncio.sleep(20)
         else:
             # Oh well, false positive?
             continue
@@ -466,13 +462,12 @@ def notify_maps(client: discord.Client, member_id: str, data: dict):
                 m = format_map_status(member.display_name, status_format, beatmapset,
                                       update_mode is UpdateModes.Minimal or update_mode is UpdateModes.PP)
                 try:
-                    yield from client.send_message(channel, m)
+                    await client.send_message(channel, m)
                 except discord.errors.Forbidden:
                     pass
 
 
-@asyncio.coroutine
-def on_ready(client: discord.Client):
+async def on_ready(client: discord.Client):
     """ Handle every event. """
     global time_elapsed
 
@@ -482,20 +477,20 @@ def on_ready(client: discord.Client):
 
     while not client.is_closed:
         try:
-            yield from asyncio.sleep(update_interval)
+            await asyncio.sleep(update_interval)
             started = datetime.now()
 
             # First, update every user's data
-            yield from update_user_data(client)
+            await update_user_data(client)
 
             # Next, check for any differences in pp between the "old" and the "new" subsections
             # and notify any servers
             for member_id, data in osu_tracking.items():
-                asyncio.async(notify_pp(client, member_id, data))
+                asyncio.ensure_future(notify_pp(client, member_id, data))
 
             # Check for any differences in the users' events and post about map updates
             for member_id, data in osu_tracking.items():
-                asyncio.async(notify_maps(client, member_id, data))
+                asyncio.ensure_future(notify_maps(client, member_id, data))
         # We don't want to stop updating scores even if something breaks
         except:
             print_exc()
@@ -508,8 +503,8 @@ def on_ready(client: discord.Client):
 
 
 @plugins.command(aliases="circlesimulator eba")
-def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
-        mode: api.GameMode.get_mode=None):
+async def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
+              mode: api.GameMode.get_mode=None):
     """ Handle osu! commands.
 
     When your user is linked, this plugin will check if you are playing osu!
@@ -525,19 +520,24 @@ def osu(client: discord.Client, message: discord.Message, member: Annotate.Membe
     color = "pink" if member.color == discord.Color.default() \
         else "#{0:02x}{1:02x}{2:02x}".format(*member.color.to_tuple())
 
-    # Download and upload the signature
-    signature = yield from utils.download_file("http://lemmmy.pw/osusig/sig.php",
-                                                  colour=color, uname=user_id, pp=True,
-                                                  countryrank=True, xpbar=True, mode=mode.value)
-    yield from client.send_file(message.channel, signature, filename="sig.png")
+    # Calculate whether the header color should be black or white depending on the background color.
+    # Stupidly, the API doesn't accept True/False. It only looks for the &darkheaders keyword.
+    # The silly trick done here is extracting either the darkheader param or nothing.
+    r, g, b = member.color.to_tuple()
+    dark = dict(darkheader=True) if (r * 0.299 + g * 0.587 + b * 0.144) > 186 else {}
 
-    yield from client.say(message, "<https://osu.ppy.sh/u/{}>".format(user_id))
+    # Download and upload the signature
+    signature = await utils.download_file("http://lemmmy.pw/osusig/sig.php",
+                                          colour=color, uname=user_id, pp=True,
+                                          countryrank=True, xpbar=True, mode=mode.value, **dark)
+    await client.send_file(message.channel, signature, filename="sig.png",
+                           content="<https://osu.ppy.sh/u/{}>".format(user_id))
 
 
 @osu.command(aliases="set")
-def link(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
+async def link(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
     """ Tell the bot who you are on osu!. """
-    osu_user = yield from api.get_user(u=name)
+    osu_user = await api.get_user(u=name)
 
     # Check if the osu! user exists
     assert osu_user, "osu! user `{}` does not exist.".format(name)
@@ -550,11 +550,11 @@ def link(client: discord.Client, message: discord.Message, name: Annotate.LowerC
     osu_config.data["profiles"][message.author.id] = osu_user["user_id"]
     osu_config.data["mode"][message.author.id] = api.GameMode.Standard.value
     osu_config.save()
-    yield from client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
+    await client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
 
 
 @osu.command(aliases="unset")
-def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
+async def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Unlink your osu! account or unlink the member specified (**Owner only**). """
     # The message author is allowed to unlink himself
     # If a member is specified and the member is not the owner, set member to the author
@@ -567,14 +567,14 @@ def unlink(client: discord.Client, message: discord.Message, member: Annotate.Me
     # Unlink the given member (usually the message author)
     del osu_config.data["profiles"][member.id]
     osu_config.save()
-    yield from client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
+    await client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
 gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
 
 @osu.command(aliases="mode m", error="The specified gamemode does not exist.", doc_args=dict(modes=gamemodes))
-def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
+async def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
     """ Sets the command executor's gamemode.
 
     Gamemodes are: `{modes}`. """
@@ -588,14 +588,14 @@ def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMod
     if message.author.id in osu_tracking:
         del osu_tracking[message.author.id]
 
-    yield from client.say(message, "Set your gamemode to **{}**.".format(mode.name))
+    await client.say(message, "Set your gamemode to **{}**.".format(mode.name))
 
 
 doc_modes = ", ".join(m.name.lower() for m in UpdateModes)
 
 
 @osu.command(aliases="n updatemode", error="The specified update mode does not exist", doc_args=dict(modes=doc_modes))
-def notify(client: discord.Client, message: discord.Message, mode: UpdateModes.get_mode):
+async def notify(client: discord.Client, message: discord.Message, mode: UpdateModes.get_mode):
     """ Sets the command executor's update notification mode. This changes
     how much text is in each update, or if you want to disable them completely.
 
@@ -610,23 +610,23 @@ def notify(client: discord.Client, message: discord.Message, mode: UpdateModes.g
     if message.author.id in osu_tracking and mode == UpdateModes.Disabled:
         del osu_tracking[message.author.id]
 
-    yield from client.say(message, "Set your update notification mode to **{}**.".format(mode.name.lower()))
+    await client.say(message, "Set your update notification mode to **{}**.".format(mode.name.lower()))
 
 
 @osu.command()
-def url(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
+async def url(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
         section: str.lower=None):
     """ Display the member's osu! profile URL. """
     # Member might not be registered
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
     # Send the URL since the member is registered
-    yield from client.say(message, "**{0.display_name}'s profile:** <https://osu.ppy.sh/u/{1}{2}>".format(
+    await client.say(message, "**{0.display_name}'s profile:** <https://osu.ppy.sh/u/{1}{2}>".format(
         member, osu_config.data["profiles"][member.id], "#_{}".format(section) if section else ""))
 
 
 @plugins.command(name="pp")
-def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *options):
+async def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *options):
     """ Calculate and return the would be pp using `oppai`.
 
     Options are a parsed set of command-line arguments:  /
@@ -644,30 +644,30 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
     if not last_calc_beatmap["beatmap_url"] == beatmap_url:
         # Parse beatmap URL and download the beatmap .osu
         try:
-            beatmap = yield from api.beatmap_from_url(beatmap_url)
+            beatmap = await api.beatmap_from_url(beatmap_url)
         except SyntaxError as e:  # URL is invalid, perhaps it's a .osu file?
             try:
-                headers = yield from utils.retrieve_headers(beatmap_url)
+                headers = await utils.retrieve_headers(beatmap_url)
             except ValueError as e:  # URL is not a URL
                 raise AssertionError(e)
 
             # Try finding out if this is a valid .osu file
             if not ("text/plain" in headers.get("Content-Type", "")
                     and ".osu" in headers.get("Content-Disposition", "")):
-                yield from client.say(message, e)
+                await client.say(message, e)
                 return
 
             # Download the file and set our last beatmap URL.
-            beatmap_file = yield from utils.download_file(beatmap_url)
+            beatmap_file = await utils.download_file(beatmap_url)
             beatmap = dict(beatmap_url=beatmap_url)
         except Exception as e:
-            yield from client.say(message, e)
+            await client.say(message, e)
             return
         else:
             beatmap["beatmap_url"] = beatmap_url
 
             # Download the beatmap though the osu! website
-            beatmap_file= yield from utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
+            beatmap_file= await utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
 
         # Save the beatmap pp_map.osu
         with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
@@ -682,8 +682,8 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
     if options:
         command_args.extend(options)
 
-    process = yield from asyncio.create_subprocess_exec(*command_args, stdout=asyncio.subprocess.PIPE)
-    output, _ = yield from process.communicate()
+    process = await asyncio.create_subprocess_exec(*command_args, stdout=asyncio.subprocess.PIPE)
+    output, _ = await process.communicate()
     output = output.decode("utf-8")
 
     pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp", output)
@@ -696,7 +696,7 @@ def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *opt
     stars_match = re.search(r"([0-9.e+]+)\sstars", output)
 
     # We're done! Tell the user how much this score is worth.
-    yield from client.say(message, "*{name}* **[{version}] {1}** {stars}\u2605 would be worth `{0:,}pp`.".format(
+    await client.say(message, "*{name}* **[{version}] {1}** {stars}\u2605 would be worth `{0:,}pp`.".format(
         float(pp_match.group("pp")), " ".join(options),
         stars=stars_match.group(1), **data_match.groupdict()))
 
@@ -705,16 +705,16 @@ osu.command(name="pp")(pp_)
 
 
 @osu.command(aliases="map")
-def mapinfo(client: discord.Client, message: discord.Message, beatmap_url: str):
+async def mapinfo(client: discord.Client, message: discord.Message, beatmap_url: str):
     """ Display simple beatmap information. """
     try:
-        beatmapset = yield from api.beatmapset_from_url(beatmap_url)
+        beatmapset = await api.beatmapset_from_url(beatmap_url)
     except Exception as e:
-        yield from client.say(message, e)
+        await client.say(message, e)
         return
 
     header = "**{artist} - {title}** submitted by **{creator}**".format(**beatmapset[0])
-    yield from client.say(message, header + format_beatmapset_diffs(beatmapset))
+    await client.say(message, header + format_beatmapset_diffs(beatmapset))
 
 
 def init_server_config(server: discord.Server):
@@ -725,40 +725,40 @@ def init_server_config(server: discord.Server):
 
 
 @osu.command(aliases="configure cfg")
-def config(client, message, _: utils.placeholder):
+async def config(client, message, _: utils.placeholder):
     """ Manage configuration for this plugin. """
     pass
 
 
 @config.command(alias="score")
 @utils.permission("manage_server")
-def scores(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+async def scores(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
     """ Set which channels to post scores to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["score-channels"] = list(c.id for c in channels)
     osu_config.save()
-    yield from client.say(message, "**Notifying scores in {}.**".format(
+    await client.say(message, "**Notifying scores in {}.**".format(
         utils.format_objects(*channels) or "no channels"))
 
 
 @config.command(alias="map")
 @utils.permission("manage_server")
-def maps(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+async def maps(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
     """ Set which channels to post map updates to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["map-channels"] = list(c.id for c in channels)
     osu_config.save()
-    yield from client.say(message, "**Notifying map updates in {}.**".format(
+    await client.say(message, "**Notifying map updates in {}.**".format(
         utils.format_objects(*channels) or "no channels"))
 
 
 @osu.command()
 @utils.owner
-def debug(client: discord.Client, message: discord.Message):
+async def debug(client: discord.Client, message: discord.Message):
     """ Display some debug info. """
-    yield from client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
-                                   "Spent `{:.3f}` seconds last update.\n"
-                                   "Members registered for update: {}".format(
+    await client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
+                              "Spent `{:.3f}` seconds last update.\n"
+                              "Members registered for update: {}".format(
         api.requests_sent, client.time_started.ctime(),
         time_elapsed,
         utils.format_objects(*[d["member"] for d in osu_tracking.values()], dec="`")

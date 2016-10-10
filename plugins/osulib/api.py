@@ -6,8 +6,6 @@
 from enum import IntEnum
 import re
 
-import asyncio
-
 from pcbot import utils
 
 
@@ -114,15 +112,14 @@ class Mods(IntEnum):
 
 def def_section(api_name: str, first_element: bool=False):
     """ Add a section using a template to simplify adding API functions. """
-    @asyncio.coroutine
-    def template(**params):
+    async def template(**params):
         global requests_sent
 
         if "k" not in params:
             params["k"] = api_key
 
         # Download using a URL of the given API function name
-        json = yield from utils.download_json(api_url + api_name, **params)
+        json = await utils.download_json(api_url + api_name, **params)
         requests_sent += 1
 
         if json is None:
@@ -156,8 +153,7 @@ get_replay = def_section("get_replay")
 beatmap_url_regex = re.compile(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)")
 
 
-@asyncio.coroutine
-def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
+async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
     """ Takes a url and returns the beatmap in the specified gamemode.
     If a url for a submission is given, it will find the most difficult map. """
     match = beatmap_url_regex.match(url)
@@ -168,9 +164,9 @@ def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
 
     # Get the beatmap specified
     if match.group("type") == "b":
-        difficulties = yield from get_beatmaps(b=match.group("id"), m=mode.value, limit=1)
+        difficulties = await get_beatmaps(b=match.group("id"), m=mode.value, limit=1)
     else:
-        difficulties = yield from get_beatmaps(s=match.group("id"), m=mode.value)
+        difficulties = await get_beatmaps(s=match.group("id"), m=mode.value)
 
     # If the beatmap doesn't exist, the operation was unsuccessful
     if not difficulties:
@@ -187,8 +183,7 @@ def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
     return beatmap
 
 
-@asyncio.coroutine
-def beatmapset_from_url(url: str):
+async def beatmapset_from_url(url: str):
     """ Takes a url and returns the beatmapset of the specified beatmap. """
     match = beatmap_url_regex.match(url)
 
@@ -197,7 +192,7 @@ def beatmapset_from_url(url: str):
         raise SyntaxError("The given URL is invalid.")
 
     if match.group("type") == "b":
-        difficulty = yield from get_beatmaps(b=match.group("id"), limit=1)
+        difficulty = await get_beatmaps(b=match.group("id"), limit=1)
 
         # If the beatmap doesn't exist, the operation was unsuccessful
         if not difficulty:
@@ -207,7 +202,7 @@ def beatmapset_from_url(url: str):
     else:
         beatmapset_id = match.group("id")
 
-    beatmapset = yield from get_beatmaps(s=beatmapset_id)
+    beatmapset = await get_beatmaps(s=beatmapset_id)
 
     # Also make sure we get the beatmap
     if not beatmapset:

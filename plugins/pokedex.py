@@ -93,7 +93,7 @@ def format_type(types: list):
 
 
 @plugins.command(name="pokedex", aliases="pd pokemon")
-def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
+async def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
     """ Display some information of the given pokémon. """
     # Do some quick replacements for flexible parsing
     name_or_id = name_or_id.strip()
@@ -147,7 +147,7 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
     # Resize (if PIL is enabled) and upload the sprite
     if resize and not round(scale_factor, 2) == 1:
         sprite = resize_sprite(sprite, scale_factor)
-    yield from client.send_file(message.channel, sprite, filename="{}.png".format(name))
+    await client.send_file(message.channel, sprite, filename="{}.png".format(name))
 
     # Format Pokemon GO specific info
     pokemon_go_info = ""
@@ -178,11 +178,11 @@ def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annot
         **pokemon
     )
 
-    yield from client.say(message, formatted_message)
+    await client.say(message, formatted_message)
 
 
 @pokedex_.command()
-def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.LowerCleanContent):
+async def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.LowerCleanContent):
     """ Get the pokemon hatched from the specified egg_type
     (in distance, e.g. 2 or 5km) """
     # Strip any km suffix (or prefix, whatever)
@@ -191,7 +191,7 @@ def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.Low
     try:
         distance = int(float(egg_type))  # Using float for anyone willing to type 2.0km
     except ValueError:
-        yield from client.say(message, "The egg type **{}** is invalid.".format(egg_type))
+        await client.say(message, "The egg type **{}** is invalid.".format(egg_type))
         return
 
     pokemon_criteria = []
@@ -217,7 +217,7 @@ def egg(client: discord.Client, message: discord.Message, egg_type: Annotate.Low
         distance, ", ".join("{}km".format(s) for s in sorted(egg_types)))
 
     # Respond with the list of matching criteria
-    yield from client.say(message, "**The following Pokémon may hatch from a {}km egg**:```\n{}```".format(
+    await client.say(message, "**The following Pokémon may hatch from a {}km egg**:```\n{}```".format(
         distance, ", ".join(sorted(pokemon_criteria))))
 
 
@@ -269,7 +269,7 @@ def format_efficacy(types: list):
 
 
 @pokedex_.command(name="type", description="Show pokemon with the specified types. {}".format(types_str))
-def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lower, slot_2: str.lower=None):
+async def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lower, slot_2: str.lower=None):
     matched_pokemon = []
     assert_type(slot_1)
 
@@ -292,21 +292,21 @@ def filter_type(client: discord.Client, message: discord.Message, slot_1: str.lo
     # There might not be any pokemon with the specified types
     assert matched_pokemon, "Looks like there are no pokemon of type **{}**!".format(format_type(types))
 
-    yield from client.say(message, "**Pokemon with type {}**: ```\n{}```".format(
+    await client.say(message, "**Pokemon with type {}**: ```\n{}```".format(
         format_type(types), ", ".join(sorted(matched_pokemon))))
 
 
 @pokedex_.command(aliases="e",
                   description="Display type efficacy (effectiveness) of the specified type. {}".format(types_str))
-def effect(client: discord.Client, message: discord.Message, type: str.lower):
+async def effect(client: discord.Client, message: discord.Message, type: str.lower):
     assert_type(type)
 
-    yield from client.say(message, format_efficacy([type]))
+    await client.say(message, format_efficacy([type]))
 
 
 @permission("manage_server")
 @pokedex_.command(disabled_pm=True, aliases="sf")
-def scalefactor(client: discord.Client, message: discord.Message, factor: float=default_scale_factor):
+async def scalefactor(client: discord.Client, message: discord.Message, factor: float=default_scale_factor):
     """ Set the image scaling factor for your server. If no factor is given, the default is set. /
     **This command requires the `Manage Server` permission.**"""
     assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(
@@ -329,4 +329,4 @@ def scalefactor(client: discord.Client, message: discord.Message, factor: float=
         reply = "Pokédex image scale factor set to **{factor}**."
 
     pokedex_config.save()
-    yield from client.say(message, reply.format(factor=factor))
+    await client.say(message, reply.format(factor=factor))
