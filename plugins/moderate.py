@@ -166,6 +166,7 @@ async def timeout(client: discord.Client, message: discord.Message, *members: An
 
 
 @plugins.command()
+@utils.permission("manage_messages")
 async def purge(client: discord.Client, message: discord.Message, num: utils.int_range(1, 100),
                 *members: Annotate.Member):
     """ Purge the given amount of messages from the specified members or all.
