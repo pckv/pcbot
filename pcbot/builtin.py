@@ -124,11 +124,15 @@ async def do(client: discord.Client, message: discord.Message, python_code: Anno
         exec(python_code, code_globals)
     except SyntaxError as e:
         await client.say(message, "```" + utils.format_syntax_error(e) + "```")
+        return
 
     try:
-        await eval("do_session()", code_globals)
+        result = await eval("do_session()", code_globals)
     except Exception as e:
         await client.say(message, "```" + utils.format_exception(e) + "```")
+    else:
+        if result:
+            await client.say(message, "**Result:** \n```{}\n```".format(result))
 
 
 @plugins.command(name="eval")
