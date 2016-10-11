@@ -311,7 +311,7 @@ async def import_(client: discord.Client, message: discord.Message, module: str,
 
 
 @lambda_.command()
-async def source(client: discord.Client, message: discord.Message, trigger: str.lower):
+async def source(client: discord.Client, message: discord.Message, trigger: str):
     """ Disable source of a command """
     assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
 
