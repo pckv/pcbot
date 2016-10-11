@@ -30,14 +30,14 @@ async def roll(client: discord.Client, message: discord.Message, num: utils.int_
 @plugins.command(aliases="whomentionedme")
 async def mentioned(client: discord.Client, message: discord.Message):
     """ Tries to find the first message which mentions you in the last 16 hours. """
-    after = datetime.utcnow() - timedelta(hours=16)
+    after = datetime.utcnow() - timedelta(hours=24)
     async for m in client.logs_from(message.channel, limit=5000, after=after):
         if message.author in m.mentions:
             await client.say(message, "**{0.author.display_name} - {1}**\n{0.clean_content}".format(
                 m, m.timestamp.strftime("%A, %d %B %Y %H:%M:%S")))
             break
     else:
-        await client.say(message, "Could not find a message mentioning you in the last 16 hours.")
+        await client.say(message, "Could not find a message mentioning you in the last 24 hours.")
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")
