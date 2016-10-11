@@ -316,7 +316,7 @@ def format_exception(e):
 def format_syntax_error(e):
     """ Returns a formatted string of a SyntaxError.
     Stolen from https://github.com/Rapptz/RoboDanny/blob/master/cogs/repl.py#L24-L25 """
-    return "{0.text}\n{1:>{0.offset}}\n{2}: {0}".format(e, "^", type(e).__name__)
+    return "{0.text}\n{1:>{0.offset}}\n{2}: {0}".format(e, "^", type(e).__name__).replace("\n\n", "\n")
 
 
 def get_formatted_code(code):
