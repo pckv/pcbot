@@ -49,7 +49,7 @@ async def resize(client: discord.Client, message: discord.Message,
     match = extension_regex.search(headers["CONTENT-TYPE"])
     assert match, "The given url is not an image."
 
-    image_bytes = await utils.download_file(url)
+    image_bytes = BytesIO(await utils.download_file(url))
 
     # Create some metadata
     image_format = extension or match.group("ext")
