@@ -92,7 +92,7 @@ def format_type(types: list):
     return " | ".join(t.capitalize() for t in types)
 
 
-@plugins.command(name="pokedex", aliases="pd pokemon")
+@plugins.command(name="pokedex", aliases="pd pokemon dex")
 async def pokedex_(client: discord.Client, message: discord.Message, name_or_id: Annotate.LowerCleanContent):
     """ Display some information of the given pokémon. """
     # Do some quick replacements for flexible parsing
