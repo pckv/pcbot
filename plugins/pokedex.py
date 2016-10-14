@@ -147,6 +147,8 @@ async def pokedex_(client: discord.Client, message: discord.Message, name_or_id:
     # Resize (if PIL is enabled) and upload the sprite
     if resize and not round(scale_factor, 2) == 1:
         sprite = resize_sprite(sprite, scale_factor)
+    elif resize:
+        sprite = BytesIO(sprite)
     await client.send_file(message.channel, sprite, filename="{}.png".format(name))
 
     # Format Pokemon GO specific info

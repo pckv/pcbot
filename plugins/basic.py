@@ -31,6 +31,8 @@ async def roll(client: discord.Client, message: discord.Message, num: utils.int_
 async def mentioned(client: discord.Client, message: discord.Message):
     """ Tries to find the first message which mentions you in the last 16 hours. """
     after = datetime.utcnow() - timedelta(hours=24)
+    await client.send_typing(message.channel)
+
     async for m in client.logs_from(message.channel, limit=5000, after=after):
         if message.author in m.mentions:
             await client.say(message, "**{0.author.display_name} - {1}**\n{0.clean_content}".format(
