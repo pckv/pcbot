@@ -259,7 +259,11 @@ async def on_voice_state_update(before: discord.Member, after: discord.Member):
     # Leave the voice channel we're client_connected to when the only one here is the bot
     if server in voice_states and server.me.voice_channel == channel:
         if len(channel.voice_members) == 1:
-            await voice_states[server].voice.disconnect()
+            state = voice_states[server]
+            await state.voice.disconnect()
+            if state.is_playing():
+                state.queue.clear()
+                state.skip()
             del voice_states[server]
 
     # Connect to the voice channel when there are people in it but not us
