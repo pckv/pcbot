@@ -15,6 +15,7 @@ import asyncio
 
 from pcbot import utils, Config, Annotate, config
 import plugins
+client = plugins.client  # type: discord.Client
 
 
 lambdas = Config("lambdas", data={})
@@ -24,7 +25,7 @@ code_globals = {}
 
 
 @plugins.command(name="help", aliases="commands")
-async def help_(client: discord.Client, message: discord.Message, command: str.lower=None, *args):
+async def help_(message: discord.Message, command: str.lower=None, *args):
     """ Display commands or their usage and description. """
     # Display the specific command
     if command:
@@ -56,14 +57,14 @@ async def help_(client: discord.Client, message: discord.Message, command: str.l
 
         commands = ", ".join(sorted(commands))
 
-        m = "**Commands**:```{0}```Use `{1}help <command>`, `{1}<command> {2}` or " \
+        m = "**Commands**: ```{0}```Use `{1}help <command>`, `{1}<command> {2}` or " \
             "`{1}<command> {3}` for command specific help.".format(
             commands, config.command_prefix, *config.help_arg)
         await client.say(message, m)
 
 
 @plugins.command(hidden=True)
-async def setowner(client: discord.Client, message: discord.Message):
+async def setowner(message: discord.Message):
     """ Set the bot owner. Only works in private messages. """
     if not message.channel.is_private:
         return
@@ -87,7 +88,7 @@ async def setowner(client: discord.Client, message: discord.Message):
 
 @plugins.command()
 @utils.owner
-async def stop(client: discord.Client, message: discord.Message):
+async def stop(message: discord.Message):
     """ Stops the bot. """
     await client.say(message, ":boom: :gun:")
     await plugins.save_plugins()
@@ -96,23 +97,23 @@ async def stop(client: discord.Client, message: discord.Message):
 
 @plugins.command()
 @utils.owner
-async def game(client: discord.Client, message: discord.Message, name: Annotate.Content=None):
+async def game(message: discord.Message, name: Annotate.Content=None):
     """ Stop playing or set game to `name`. """
-    await client.change_status(discord.Game(name=name, type=0))
+    await client.change_presence(game=discord.Game(name=name, type=0))
     await client.say(message, "**Set the game to** `{}`.".format(name) if name else "**No longer playing.**")
 
 
 @game.command()
 @utils.owner
-async def stream(client: discord.Client, message: discord.Message, url: str, title: Annotate.Content):
+async def stream(message: discord.Message, url: str, title: Annotate.Content):
     """ Start streaming a game. """
-    await client.change_status(discord.Game(name=title, url=url, type=1))
+    await client.change_status(game=discord.Game(name=title, url=url, type=1))
     await client.say(message, "Started streaming **{}**.".format(title))
 
 
 @plugins.command()
 @utils.owner
-async def do(client: discord.Client, message: discord.Message, python_code: Annotate.Code):
+async def do(message: discord.Message, python_code: Annotate.Code):
     """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
         to send a message, optionally to a channel. Eg: `say("Hello!")`. """
     code_globals.update(dict(message=message, client=client,
@@ -137,7 +138,7 @@ async def do(client: discord.Client, message: discord.Message, python_code: Anno
 
 @plugins.command(name="eval")
 @utils.owner
-async def eval_(client: discord.Client, message: discord.Message, python_code: Annotate.Code):
+async def eval_(message: discord.Message, python_code: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one line that returns something. """
     code_globals.update(dict(message=message, client=client,
                              author=message.author, server=message.server, channel=message.channel))
@@ -155,7 +156,7 @@ async def eval_(client: discord.Client, message: discord.Message, python_code: A
 
 
 @plugins.command(name="plugin", hidden=True, aliases="pl")
-async def plugin_(client: discord.Client, message: discord.Message):
+async def plugin_(message: discord.Message):
     """ Manage plugins.
         **Owner command unless no argument is specified.** """
     await client.say(message, "**Plugins:** ```{}```".format(", ".join(plugins.all_keys())))
@@ -163,13 +164,13 @@ async def plugin_(client: discord.Client, message: discord.Message):
 
 @plugin_.command(aliases="r", pos_check=False)
 @utils.owner
-async def reload(client: discord.Client, message: discord.Message, *names: str.lower):
+async def reload(message: discord.Message, *names: str.lower):
     """ Reloads all plugins or the specified plugin. """
     if names:
         reloaded = []
         for name in names:
             if not plugins.get_plugin(name):
-                await client.say(message, "`{}` is not a plugin".format(name))
+                await client.say(message, "`{}` is not a plugin.".format(name))
                 continue
 
             # The plugin entered is valid so we reload it
@@ -177,7 +178,9 @@ async def reload(client: discord.Client, message: discord.Message, *names: str.l
             plugins.reload_plugin(name)
             reloaded.append(name)
 
-        await client.say(message, "Reloaded plugin{} `{}`.".format("s" if len(names) > 1 else "", ", ".join(reloaded)))
+        if reloaded:
+            await client.say(message, "Reloaded plugin{} `{}`.".format(
+                "s" if len(reloaded) > 1 else "", ", ".join(reloaded)))
     else:
         # Reload all plugins
         await plugins.save_plugins()
@@ -190,7 +193,7 @@ async def reload(client: discord.Client, message: discord.Message, *names: str.l
 
 @plugin_.command(error="You need to specify the name of the plugin to load.")
 @utils.owner
-async def load(client: discord.Client, message: discord.Message, name: str.lower):
+async def load(message: discord.Message, name: str.lower):
     """ Loads a plugin. """
     assert not plugins.get_plugin(name), "Plugin `{}` is already loaded.".format(name)
 
@@ -203,7 +206,7 @@ async def load(client: discord.Client, message: discord.Message, name: str.lower
 
 @plugin_.command(error="You need to specify the name of the plugin to unload.")
 @utils.owner
-async def unload(client: discord.Client, message: discord.Message, name: str.lower):
+async def unload(message: discord.Message, name: str.lower):
     """ Unloads a plugin. """
     assert plugins.get_plugin(name), "`{}` is not a loaded plugin.".format(name)
 
@@ -214,7 +217,7 @@ async def unload(client: discord.Client, message: discord.Message, name: str.low
 
 
 @plugins.command(name="lambda", hidden=True)
-async def lambda_(client: discord.Client, message: discord.Message):
+async def lambda_(message: discord.Message):
     """ Create commands. See `{pre}help do` for information on how the code works.
 
         **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
@@ -226,7 +229,7 @@ async def lambda_(client: discord.Client, message: discord.Message):
 
 @lambda_.command(aliases="a")
 @utils.owner
-async def add(client: discord.Client, message: discord.Message, trigger: str, python_code: Annotate.Code):
+async def add(message: discord.Message, trigger: str, python_code: Annotate.Code):
     """ Add a command that runs the specified python code. """
     lambdas.data[trigger] = python_code
     lambdas.save()
@@ -235,7 +238,7 @@ async def add(client: discord.Client, message: discord.Message, trigger: str, py
 
 @lambda_.command(aliases="r")
 @utils.owner
-async def remove(client: discord.Client, message: discord.Message, trigger: str):
+async def remove(message: discord.Message, trigger: str):
     """ Remove a command. """
     assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
 
@@ -247,7 +250,7 @@ async def remove(client: discord.Client, message: discord.Message, trigger: str)
 
 @lambda_.command()
 @utils.owner
-async def enable(client: discord.Client, message: discord.Message, trigger: str):
+async def enable(message: discord.Message, trigger: str):
     """ Enable a command. """
     # If the specified trigger is in the blacklist, we remove it
     if trigger in lambda_config.data["blacklist"]:
@@ -263,7 +266,7 @@ async def enable(client: discord.Client, message: discord.Message, trigger: str)
 
 @lambda_.command()
 @utils.owner
-async def disable(client: discord.Client, message: discord.Message, trigger: str):
+async def disable(message: discord.Message, trigger: str):
     """ Disable a command. """
     # If the specified trigger is not in the blacklist, we add it
     if trigger not in lambda_config.data["blacklist"]:
@@ -299,7 +302,7 @@ def import_module(module: str, attr: str=None):
 
 @lambda_.command(name="import")
 @utils.owner
-async def import_(client: discord.Client, message: discord.Message, module: str, attr: str=None):
+async def import_(message: discord.Message, module: str, attr: str=None):
     """ Import the specified module. Specifying `attr` will act like `from attr import module`. """
     try:
         import_module(module, attr)
@@ -315,7 +318,7 @@ async def import_(client: discord.Client, message: discord.Message, module: str,
 
 
 @lambda_.command()
-async def source(client: discord.Client, message: discord.Message, trigger: str):
+async def source(message: discord.Message, trigger: str):
     """ Disable source of a command """
     assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
 
@@ -324,7 +327,7 @@ async def source(client: discord.Client, message: discord.Message, trigger: str)
 
 
 @plugins.command(hidden=True)
-async def ping(client: discord.Client, message: discord.Message):
+async def ping(message: discord.Message):
     """ Tracks the time spent parsing the command and sending a message. """
     # Track the time it took to receive a message and send it.
     start_time = datetime.now()
@@ -365,7 +368,7 @@ async def get_changelog(num: int):
 
 
 @plugins.command(name=config.name.lower())
-async def bot_info(client: discord.Client, message: discord.Message):
+async def bot_info(message: discord.Message):
     """ Display basic information. """
     app_info = await client.application_info()
 
@@ -384,7 +387,7 @@ async def bot_info(client: discord.Client, message: discord.Message):
 
 
 @bot_info.command(name="changelog")
-async def changelog_(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=3):
+async def changelog_(message: discord.Message, num: utils.int_range(f=1)=3):
     """ Get `num` requests from the changelog. Defaults to 3. """
     await client.say(message, await get_changelog(num))
 
@@ -412,7 +415,7 @@ def init():
 
 
 @plugins.event()
-async def on_message(client: discord.Client, message: discord.Message):
+async def on_message(message: discord.Message):
     """ Perform lambda commands. """
     args = utils.split(message.content)
 

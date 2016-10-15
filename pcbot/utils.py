@@ -141,9 +141,9 @@ def is_owner(member):
 def owner(func):
     """ Decorator that runs the command only if the author is the owner. """
     @wraps(func)
-    async def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
+    async def wrapped(message: discord.Message, *args, **kwargs):
         if is_owner(message.author):
-            await func(client, message, *args, **kwargs)
+            await func(message, *args, **kwargs)
 
     setattr(wrapped, "__owner__", True)
     return wrapped
@@ -154,11 +154,11 @@ def permission(*perms: str):
     perms must be a string matching any property of discord.Permissions. """
     def decorator(func):
         @wraps(func)
-        async def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
+        async def wrapped(message: discord.Message, *args, **kwargs):
             member_perms = message.author.permissions_in(message.channel)
 
             if all(getattr(member_perms, perm, False) for perm in perms):
-                await func(client, message, *args, **kwargs)
+                await func(message, *args, **kwargs)
 
         return wrapped
     return decorator
@@ -169,11 +169,11 @@ def role(*roles: str):
     roles must be a string representing a role's name. """
     def decorator(func):
         @wraps(func)
-        async def wrapped(client: discord.Client, message: discord.Message, *args, **kwargs):
+        async def wrapped(message: discord.Message, *args, **kwargs):
             member_roles = [r.name for r in message.author.roles[1:]]
 
             if any(r in member_roles for r in roles):
-                await func(client, message, *args, **kwargs)
+                await func(message, *args, **kwargs)
 
         return wrapped
     return decorator
@@ -299,9 +299,9 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
     return channel
 
 
-def get_member(client: discord.Client, member_id: str):
+def get_member(members: list, member_id: str):
     """ Get a member from the specified ID. """
-    for member in client.get_all_members():
+    for member in members:
         if member.id == member_id:
             return member
 

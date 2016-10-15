@@ -12,6 +12,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 from pcbot import Annotate
 import plugins
+client = plugins.client  # type: discord.Client
+
 
 prank_path = "plugins/pranklib/"
 __commands = []
@@ -21,7 +23,7 @@ image_width, image_height = image_base.size
 
 
 @plugins.command()
-async def prank(client: discord.Client, message: discord.Message, phrase: Annotate.CleanContent="IT'S A"):
+async def prank(message: discord.Message, phrase: Annotate.CleanContent="IT'S A"):
     """ Prank! """
     phrase = phrase.upper()
 

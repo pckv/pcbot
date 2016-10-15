@@ -7,11 +7,11 @@ Commands:
 import discord
 
 from pcbot import Annotate, utils
-import plugins
+from plugins import command, client
 
 
-@plugins.command()
-async def define(client: discord.Client, message: discord.Message, term: Annotate.LowerCleanContent):
+@command()
+async def define(message: discord.Message, term: Annotate.LowerCleanContent):
     """ Defines a term using Urban Dictionary. """
     json = await utils.download_json("http://api.urbandictionary.com/v0/define", term=term)
     assert json["list"], "Could not define `{}`.".format(term)

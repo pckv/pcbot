@@ -7,6 +7,8 @@ import plugins
 from pcbot import Config, Annotate, get_member
 
 
+client = plugins.client  # type: discord.Client
+
 time_cfg = Config("time", data=dict(countdown={}, timezone={}))
 dt_format = "%A, %d %B %Y %H:%M:%S"
 
@@ -30,7 +32,7 @@ def reverse_gmt(timezone: str):
     return timezone
 
 
-async def init_dt(client: discord.Client, message: discord.Message, time: str, timezone: str):
+async def init_dt(message: discord.Message, time: str, timezone: str):
     """ Setup the datetime and timezone properly. """
     timezone = reverse_gmt(timezone)
 
@@ -62,13 +64,13 @@ def format_when(dt: pendulum.Pendulum, timezone: str="UTC"):
 
 
 @plugins.command(aliases="timezone")
-async def when(client: discord.Client, message: discord.Message, *time, timezone: tz_arg="UTC"):
+async def when(message: discord.Message, *time, timezone: tz_arg="UTC"):
     """ Convert time from specified timezone or UTC to formatted string of e.g.
     `2 hours from now`. """
     timezone_name = timezone
 
     if time:
-        dt, timezone = await init_dt(client, message, " ".join(time), timezone)
+        dt, timezone = await init_dt(message, " ".join(time), timezone)
         if dt is None or timezone is None:
             return
 
@@ -91,7 +93,7 @@ def tag_arg(tag: str):
 
 
 @plugins.command(aliases="cd downcount")
-async def countdown(client: discord.Client, message: discord.Message, tag: Annotate.Content):
+async def countdown(message: discord.Message, tag: Annotate.Content):
     """ Display a countdown with the specified tag. """
     tag = tag_arg(tag)
     assert tag in time_cfg.data["countdown"], "Countdown with tag `{}` does not exist.".format(tag)
@@ -104,12 +106,12 @@ async def countdown(client: discord.Client, message: discord.Message, tag: Annot
 
 
 @countdown.command(aliases="add", pos_check=True)
-async def create(client: discord.Client, message: discord.Message, tag: tag_arg, *time, timezone: tz_arg="UTC"):
+async def create(message: discord.Message, tag: tag_arg, *time, timezone: tz_arg="UTC"):
     """ Create a countdown with the specified tag, using the same format as `{pre}when`. """
     assert tag not in time_cfg.data["countdown"], "Countdown with tag `{}` already exists.".format(tag)
 
     timezone_name = timezone
-    dt, timezone = await init_dt(client, message, " ".join(time), timezone)
+    dt, timezone = await init_dt(message, " ".join(time), timezone)
 
     assert (dt - pendulum.utcnow()).seconds > 0, "A countdown has to be set in the future."
 
@@ -120,7 +122,7 @@ async def create(client: discord.Client, message: discord.Message, tag: tag_arg,
 
 
 @countdown.command(aliases="remove")
-async def delete(client: discord.Client, message: discord.Message, tag: Annotate.Content):
+async def delete(message: discord.Message, tag: Annotate.Content):
     """ Remove a countdown with the specified tag. You need to be the author of a tag
     in order to remove it. """
     tag = tag_arg(tag)
@@ -128,7 +130,7 @@ async def delete(client: discord.Client, message: discord.Message, tag: Annotate
 
     author_id = time_cfg.data["countdown"][tag]["author"]
     assert message.author.id == author_id, "You are not the author of this tag ({}).".format(
-        getattr(get_member(client, author_id), "name", None) or "~~Unknown~~")
+        getattr(get_member(client.get_all_members(), author_id), "name", None) or "~~Unknown~~")
 
     del time_cfg.data["countdown"][tag]
     time_cfg.save()
@@ -136,7 +138,7 @@ async def delete(client: discord.Client, message: discord.Message, tag: Annotate
 
 
 @countdown.command(name="list")
-async def cmd_list(client: discord.Client, message: discord.Message, author: Annotate.Member=None):
+async def cmd_list(message: discord.Message, author: Annotate.Member=None):
     """ List all countdowns or all countdowns by the specified author. """
     assert time_cfg.data["countdown"], "There are no countdowns created."
 

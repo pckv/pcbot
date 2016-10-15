@@ -20,6 +20,8 @@ import asyncio
 
 from pcbot import Config, utils, Annotate
 import plugins
+client = plugins.client  # type: discord.Client
+
 
 moderate = Config("moderate", data=defaultdict(dict))
 default_config = {}  # Used by add_setting helper function
@@ -40,7 +42,7 @@ def setup_default_config(server: discord.Server):
 
 
 @plugins.command(name="moderate")
-async def moderate_(client, message, _: utils.placeholder):
+async def moderate_(message, _: utils.placeholder):
     """ Change moderation settings. """
     pass
 
@@ -60,7 +62,7 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
     @moderate_.command(name=name,
                        description="Display current {} setting or enable/disable it.".format(setting),
                        usage="[on | off]")
-    async def display_setting(client: discord.Client, message: discord.Message):
+    async def display_setting(message: discord.Message):
         """ The command to display the current setting. """
         setup_default_config(message.server)
         current = moderate.data[message.server.id][name]
@@ -68,7 +70,7 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
 
     @display_setting.command(hidden=True, aliases="true set enable")
     @utils.permission(*permissions)
-    async def on(client: discord.Client, message: discord.Message):
+    async def on(message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[message.server.id][name] = True
         moderate.save()
@@ -76,7 +78,7 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
 
     @display_setting.command(hidden=True, aliases="false unset disable")
     @utils.permission(*permissions)
-    async def off(client: discord.Client, message: discord.Message):
+    async def off(message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[message.server.id][name] = False
         moderate.save()
@@ -87,7 +89,7 @@ add_setting("NSFW filter", permissions=["manage_server"])
 add_setting("Changelog", permissions=["manage_server"], default=False)
 
 
-async def manage_mute(client: discord.Client, message: discord.Message, function, *members: discord.Member):
+async def manage_mute(message: discord.Message, function, *members: discord.Member):
     """ Add or remove Muted role for given members.
 
     :param function: either client.add_roles or client.remove_roles
@@ -126,9 +128,9 @@ async def manage_mute(client: discord.Client, message: discord.Message, function
 
 @plugins.command(pos_check=True)
 @utils.permission("manage_messages")
-async def mute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
+async def mute(message: discord.Message, *members: Annotate.Member):
     """ Mute the specified members. """
-    muted_members = await manage_mute(client, message, client.add_roles, *members)
+    muted_members = await manage_mute(message, client.add_roles, *members)
 
     # Some members were muted, success!
     if muted_members:
@@ -137,9 +139,9 @@ async def mute(client: discord.Client, message: discord.Message, *members: Annot
 
 @plugins.command(pos_check=True)
 @utils.permission("manage_messages")
-async def unmute(client: discord.Client, message: discord.Message, *members: Annotate.Member):
+async def unmute(message: discord.Message, *members: Annotate.Member):
     """ Unmute the specified members. """
-    muted_members = await manage_mute(client, message, client.remove_roles, *members)
+    muted_members = await manage_mute(message, client.remove_roles, *members)
 
     # Some members were unmuted, success!
     if muted_members:
@@ -148,9 +150,9 @@ async def unmute(client: discord.Client, message: discord.Message, *members: Ann
 
 @plugins.command(pos_check=True)
 @utils.permission("manage_messages")
-async def timeout(client: discord.Client, message: discord.Message, *members: Annotate.Member, minutes: int):
+async def timeout(message: discord.Message, *members: Annotate.Member, minutes: int):
     """ Timeout the specified members for given minutes. """
-    muted_members = await manage_mute(client, message, client.add_roles, *members)
+    muted_members = await manage_mute(message, client.add_roles, *members)
 
     # Do not progress if the members were not successfully muted
     # At this point, manage_mute will have reported any errors
@@ -162,12 +164,12 @@ async def timeout(client: discord.Client, message: discord.Message, *members: An
 
     # Sleep for the given minutes and unmute the member
     await asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60
-    await manage_mute(client, message, client.remove_roles, *muted_members)
+    await manage_mute(message, client.remove_roles, *muted_members)
 
 
 @plugins.command()
 @utils.permission("manage_messages")
-async def purge(client: discord.Client, message: discord.Message, num: utils.int_range(1, 100),
+async def purge(message: discord.Message, num: utils.int_range(1, 100),
                 *members: Annotate.Member):
     """ Purge the given amount of messages from the specified members or all.
     `num` is a number from 1 to 100. """
@@ -189,7 +191,7 @@ async def purge(client: discord.Client, message: discord.Message, num: utils.int
     await client.say(message, "Purged **{}** message{}.".format(deleted, "" if deleted == 1 else "s"))
 
 
-async def check_nsfw(client: discord.Client, message: discord.Message):
+async def check_nsfw(message: discord.Message):
     """ Check if the message is NSFW (very rough check). """
     # Check if this server has nsfwfilter enabled
     if not moderate.data[message.server.id]["nsfwfilter"]:
@@ -215,7 +217,7 @@ async def check_nsfw(client: discord.Client, message: discord.Message):
 
 
 @plugins.event()
-async def on_message(client: discord.Client, message: discord.Message):
+async def on_message(message: discord.Message):
     """ Check plugin settings. """
     # Do not check in private messages
     if message.channel.is_private:
@@ -223,7 +225,7 @@ async def on_message(client: discord.Client, message: discord.Message):
 
     setup_default_config(message.server)
 
-    nsfw_success = await check_nsfw(client, message)
+    nsfw_success = await check_nsfw(message)
     if nsfw_success is True:
         return True
 
@@ -246,7 +248,7 @@ def get_changelog_channel(server: discord.Server):
 
 
 @plugins.event()
-async def on_message_delete(client: discord.Client, message: discord.Message):
+async def on_message_delete(message: discord.Message):
     """ Update the changelog with deleted messages. """
     changelog_channel = get_changelog_channel(message.server)
 
@@ -271,7 +273,7 @@ async def on_message_delete(client: discord.Client, message: discord.Message):
 
 
 @plugins.event()
-async def on_channel_create(client: discord.Client, channel: discord.Channel):
+async def on_channel_create(channel: discord.Channel):
     """ Update the changelog with created channels. """
     if channel.is_private:
         return
@@ -288,7 +290,7 @@ async def on_channel_create(client: discord.Client, channel: discord.Channel):
 
 
 @plugins.event()
-async def on_channel_delete(client: discord.Client, channel: discord.Channel):
+async def on_channel_delete(channel: discord.Channel):
     """ Update the changelog with deleted channels. """
     if channel.is_private:
         return
@@ -305,7 +307,7 @@ async def on_channel_delete(client: discord.Client, channel: discord.Channel):
 
 
 @plugins.event()
-async def on_channel_update(client: discord.Client, before: discord.Channel, after: discord.Channel):
+async def on_channel_update(before: discord.Channel, after: discord.Channel):
     """ Update the changelog when a channel changes name. """
     if after.is_private:
         return
@@ -328,7 +330,7 @@ async def on_channel_update(client: discord.Client, before: discord.Channel, aft
 
 
 @plugins.event()
-async def on_member_join(client: discord.Client, member: discord.Member):
+async def on_member_join(member: discord.Member):
     """ Update the changelog with members joined. """
     changelog_channel = get_changelog_channel(member.server)
     if not changelog_channel:
@@ -338,7 +340,7 @@ async def on_member_join(client: discord.Client, member: discord.Member):
 
 
 @plugins.event()
-async def on_member_remove(client: discord.Client, member: discord.Member):
+async def on_member_remove(member: discord.Member):
     """ Update the changelog with deleted channels. """
     changelog_channel = get_changelog_channel(member.server)
     if not changelog_channel:
@@ -348,7 +350,7 @@ async def on_member_remove(client: discord.Client, member: discord.Member):
 
 
 @plugins.event()
-async def on_member_update(client: discord.Client, before: discord.Member, after: discord.Member):
+async def on_member_update(before: discord.Member, after: discord.Member):
     """ Update the changelog with any changed names and roles. """
     name_change = not before.name == after.name
     nick_change = not before.nick == after.nick
@@ -385,7 +387,7 @@ async def on_member_update(client: discord.Client, before: discord.Member, after
 
 
 @plugins.event()
-async def on_member_ban(client: discord.Client, member: discord.Member):
+async def on_member_ban(member: discord.Member):
     """ Update the changelog with banned members. """
     changelog_channel = get_changelog_channel(member.server)
     if not changelog_channel:
@@ -396,7 +398,7 @@ async def on_member_ban(client: discord.Client, member: discord.Member):
 
 
 @plugins.event()
-async def on_member_unban(client: discord.Client, member: discord.Member):
+async def on_member_unban(member: discord.Member):
     """ Update the changelog with unbanned members. """
     changelog_channel = get_changelog_channel(member.server)
     if not changelog_channel:

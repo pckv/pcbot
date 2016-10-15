@@ -19,6 +19,8 @@ import plugins
 from pcbot import Annotate, utils
 
 
+client = plugins.client  # type: discord.Client
+
 emoji_path = "plugins/twemoji21lib/"
 default_size = 1024
 max_width = 2048
@@ -125,7 +127,7 @@ async def format_emotes(text: str, server: discord.Server):
 
 
 @plugins.command()
-async def greater(client: discord.Client, message: discord.Message, text: Annotate.CleanContent):
+async def greater(message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
     parsed_emoji = await format_emotes(text, message.server)

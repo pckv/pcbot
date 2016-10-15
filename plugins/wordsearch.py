@@ -12,6 +12,7 @@ import asyncio
 import aiohttp
 
 import plugins
+client = plugins.client  # type: discord.Client
 
 
 wordsearch = []
@@ -71,7 +72,7 @@ def stop_wordsearch(channel: discord.Channel):
     wordsearch.remove(channel.id)
 
 
-async def start_wordsearch(client: discord.Client, channel: discord.Channel, host: discord.Member, word: str=None):
+async def start_wordsearch(channel: discord.Channel, host: discord.Member, word: str=None):
     if channel.id not in wordsearch:
         if not word:
             await client.send_message(channel, "Waiting for {0.mention} to choose a word!".format(host))
@@ -151,14 +152,14 @@ async def start_wordsearch(client: discord.Client, channel: discord.Channel, hos
 
 
 @plugins.command(name="wordsearch")
-async def wordsearch_(client: discord.Client, message: discord.Message):
+async def wordsearch_(message: discord.Message):
     """ Start a wordsearch! Enter *any word* ending with `!` to guess the word! """
-    client.loop.create_task(start_wordsearch(client, message.channel, message.author))
+    client.loop.create_task(start_wordsearch(message.channel, message.author))
 
 
 @wordsearch_.command()
-async def auto(client: discord.Client, message: discord.Message, count: int=1):
+async def auto(message: discord.Message, count: int=1):
     """ Start an automatic wordsearch which sets a word for you. Default is one word,
     or enter up to 5 with `count`."""
     word = await auto_word(count)
-    client.loop.create_task(start_wordsearch(client, message.channel, message.author, word))
+    client.loop.create_task(start_wordsearch(message.channel, message.author, word))

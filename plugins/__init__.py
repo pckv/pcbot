@@ -9,7 +9,7 @@ from collections import namedtuple, defaultdict
 from functools import partial
 from traceback import format_exc
 
-import asyncio
+import discord
 
 from pcbot.utils import Annotate, format_exception
 from pcbot import config
@@ -22,6 +22,14 @@ Command = namedtuple("Command", "name name_prefix  aliases "
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
                        Annotate.LowerCleanContent, Annotate.Code)
 argument_format = "{open}{name}{suffix}{close}"
+
+client = None  # The client. This variable holds the bot client and is to be used by plugins
+
+
+def set_client(c: discord.Client):
+    """ Sets the client. Should be used before any plugins are loaded. """
+    global client
+    client = c
 
 
 def get_plugin(name):
@@ -53,7 +61,7 @@ def _format_usage(func, pos_check):
     usage = []
 
     for i, param in enumerate(signature.parameters.values()):
-        if i in (0, 1):
+        if i == 0:
             continue
 
         # If there is a placeholder annotation, this command is a group and should not have a formatted usage
@@ -92,6 +100,12 @@ def command(**options):
         doc_args    : dict        : Arguments to send to the docstring under formatting.
     """
     def decorator(func):
+        # Make sure the first parameter in the function is a message object
+        params = inspect.signature(func).parameters
+        param = params[list(params.keys())[0]]  # The first parameter
+        if not param.name == "message" and param.annotation is not discord.Message:
+            raise SyntaxError("Second command parameter must be named message or be of type discord.Message")
+
         # Define all function stats
         name = options.get("name", func.__name__)
         aliases = options.get("aliases")

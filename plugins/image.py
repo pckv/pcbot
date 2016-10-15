@@ -12,6 +12,8 @@ import plugins
 from pcbot import utils
 
 
+client = plugins.client  # type: discord.Client
+
 extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
 
 
@@ -35,7 +37,7 @@ def parse_resolution(res: str):
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"))
-async def resize(client: discord.Client, message: discord.Message,
+async def resize(message: discord.Message,
                  url: str, resolution: parse_resolution, *options, extension: str=None):
     """ Resize an image with the given resolution formatted as `<width>x<height>`
     with an optional extension. """

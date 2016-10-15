@@ -33,7 +33,7 @@ class Client(discord.Client):
     async def _handle_event(self, func, event, *args, **kwargs):
         """ Handle the event dispatched. """
         try:
-            result = await func(self, *args, **kwargs)
+            result = await func(*args, **kwargs)
         except AssertionError as e:
             if not event == "message":
                 await self.on_error(event, *args, **kwargs)
@@ -117,7 +117,7 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
     app_info = await client.application_info()
 
     try:
-        await command.function(client, message, *args, **kwargs)
+        await command.function(message, *args, **kwargs)
     except AssertionError as e:
         await client.say(message, str(e) or command.error or utils.format_help(command))
     except:
@@ -182,6 +182,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
     command's function. """
     signature = inspect.signature(command.function)
     args, kwargs = [], {}
+
     index = -1
     start_index = command.depth  # The index would be the position in the group
     num_kwargs = sum(1 for param in signature.parameters.values() if param.kind is param.KEYWORD_ONLY)
@@ -196,22 +197,13 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
     for param in signature.parameters.values():
         index += 1
 
-        if index == 0:  # Param #1 should be the client
-            if not param.name == "client":
-                if param.annotation is not discord.Client:
-                    raise SyntaxError("First command parameter must be named client or be of type discord.Client")
-
-            continue
-        elif index == 1:  # Param #1 should be the message
-            if not param.name == "message":
-                if param.annotation is not discord.Message:
-                    raise SyntaxError("Second command parameter must be named client or be of type discord.Message")
-
+        # Skip the first argument, as this is a message.
+        if index == 0:
             continue
 
         # Any argument to fetch
-        if index <= len(cmd_args):  # If there is an argument passed
-            cmd_arg = cmd_args[index - 1]
+        if index + 1 <= len(cmd_args):  # If there is an argument passed
+            cmd_arg = cmd_args[index]
         else:
             if param.default is not param.empty:
                 if param.kind is param.POSITIONAL_OR_KEYWORD:
@@ -229,7 +221,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
                 break  # We're done when there is no default argument and none passed
 
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
-            tmp_arg = parse_annotation(param, param.default, cmd_arg, (index - 1) + start_index, message)
+            tmp_arg = parse_annotation(param, param.default, cmd_arg, index + start_index, message)
 
             if tmp_arg is not None:
                 args.append(tmp_arg)
@@ -240,7 +232,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
             # It also seems to break some flexibility when parsing commands with positional arguments
             # followed by a keyword argument with it's default being anything but None.
             default = param.default if type(param.default) is utils.Annotate else None
-            tmp_arg = parse_annotation(param, default, cmd_arg, (index - 1) + start_index, message)
+            tmp_arg = parse_annotation(param, default, cmd_arg, index + start_index, message)
 
             if tmp_arg is not None:
                 kwargs[param.name] = tmp_arg
@@ -262,7 +254,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
                 end_search = -num_kwargs
             pos_param = param
 
-            for cmd_arg in cmd_args[index - 1:end_search]:
+            for cmd_arg in cmd_args[index:end_search]:
                 # Do not register the positional argument if it does not meet the optional criteria
                 if type(command.pos_check) is not bool:
                     if not command.pos_check(cmd_arg):
@@ -281,13 +273,13 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
 
     # Number of required arguments are: signature variables - client and message
     # If there are no positional arguments, subtract one from the required arguments
-    num_args = len(signature.parameters.items()) - 2
+    num_args = len(signature.parameters.items()) - 1
     if not num_required_kwargs:
         num_args -= (num_kwargs - num_given_kwargs)
     if has_pos:
         num_args -= int(not bool(num_pos_args))
 
-    num_given = index - 1  # Arguments parsed
+    num_given = index  # Arguments parsed
     if has_pos:
         num_given -= (num_pos_args - 1) if not num_pos_args == 0 else 0
 
@@ -327,6 +319,8 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
             if command.error and len(cmd_args) > 1 and not send_help:
                 await client.say(message, command.error)
             else:
+                if len(cmd_args) == 1:
+                    send_help = True
                 await client.say(message, utils.format_help(command, no_subcommand=False if send_help else True))
 
         command = None
@@ -392,7 +386,7 @@ async def add_tasks():
     # Call any on_ready function in plugins
     for plugin in plugins.all_values():
         if hasattr(plugin, "on_ready"):
-            client.loop.create_task(plugin.on_ready(client))
+            client.loop.create_task(plugin.on_ready())
 
     client.loop.create_task(autosave())
 
@@ -431,6 +425,9 @@ def main():
     ))
     config.name = bot_meta.data["name"]
     config.command_prefix = bot_meta.data["command_prefix"]
+
+    # Set the client for the plugins to use
+    plugins.set_client(client)
 
     # Load plugin for builtin commands
     plugins.load_plugin("builtin", "pcbot")

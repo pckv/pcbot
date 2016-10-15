@@ -13,6 +13,7 @@ import discord
 
 from pcbot import utils, Config, Annotate, Cleverbot
 import plugins
+client = plugins.client  # type: discord.Client
 
 
 feature_reqs = Config(filename="feature_requests", data={})
@@ -20,7 +21,7 @@ cleverbot = Cleverbot()
 
 
 @plugins.command()
-async def roll(client: discord.Client, message: discord.Message, num: utils.int_range(f=1)=100):
+async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
     """ Roll a number from 1-100 if no second argument or second argument is not a number.
         Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, num)
@@ -28,7 +29,7 @@ async def roll(client: discord.Client, message: discord.Message, num: utils.int_
 
 
 @plugins.command(aliases="whomentionedme")
-async def mentioned(client: discord.Client, message: discord.Message):
+async def mentioned(message: discord.Message):
     """ Tries to find the first message which mentions you in the last 16 hours. """
     after = datetime.utcnow() - timedelta(hours=24)
     await client.send_typing(message.channel)
@@ -91,14 +92,9 @@ def plugin_in_req(plugin: str):
 
 
 @plugins.command()
-async def feature(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id=None):
-    """ Handle plugin feature requests where plugin is a plugin name. See `!plugin` for a list of plugins.
-
-        `#feature_id` shows a plugin's feature request with the specified id.  /
-        `new <feature>` is used to request a new plugin feature.  /
-        `mark <#feature_id>` marks a feature as complete. **Owner command.**  /
-        `remove <#feature_id>` removes a requested feature from the list entirely. **Owner command.**"""
-
+async def feature(message: discord.Message, plugin: plugin_in_req, req_id: get_req_id=None):
+    """ Handle plugin feature requests where plugin is a plugin name.
+    See `{pre}plugin` for a list of plugins. """
     if req_id is not None:
         assert feature_exists(plugin, req_id), "There is no such feature."
 
@@ -114,8 +110,9 @@ async def feature(client: discord.Client, message: discord.Message, plugin: plug
 
 
 @feature.command()
-async def new(client: discord.Client, message: discord.Message, plugin: plugin_in_req, content: Annotate.CleanContent):
-    """ Add a new feature request to a plugin. """
+async def new(message: discord.Message, plugin: plugin_in_req, content: Annotate.CleanContent):
+    """ Add a new feature request to a plugin.
+    See `{pre}plugin` for a list of plugins. """
     req_list = feature_reqs.data[plugin]
     content = content.replace("\n", " ")
 
@@ -129,8 +126,9 @@ async def new(client: discord.Client, message: discord.Message, plugin: plugin_i
 
 @feature.command()
 @utils.owner
-async def mark(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
-    """ Toggles marking a feature request as complete. """
+async def mark(message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
+    """ Toggles marking a feature request as complete.
+    See `{pre}plugin` for a list of plugins. """
     # Test and reply if feature by requested id doesn't exist
     assert feature_exists(plugin, req_id), "There is no such feature."
 
@@ -149,8 +147,9 @@ async def mark(client: discord.Client, message: discord.Message, plugin: plugin_
 
 @feature.command()
 @utils.owner
-async def remove(client: discord.Client, message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
-    """ Removes a feature request. """
+async def remove(message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
+    """ Removes a feature request.
+    See `{pre}plugin` for a list of plugins. """
     # Test and reply if feature by requested id doesn't exist
     assert feature_exists(plugin, req_id), "There is no such feature."
 
@@ -161,7 +160,7 @@ async def remove(client: discord.Client, message: discord.Message, plugin: plugi
 
 
 @plugins.event()
-async def on_message(client: discord.Client, message: discord.Message):
+async def on_message(message: discord.Message):
     # Have cleverbot respond to our bot
     if not message.content.startswith("!") and client.user in message.mentions:
         # Start typing and remove the bot mention from the message.

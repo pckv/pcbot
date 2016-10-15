@@ -10,6 +10,8 @@ import discord
 
 from pcbot import utils, Annotate, config
 import plugins
+client = plugins.client  # type: discord.Client
+
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(list)
@@ -27,7 +29,7 @@ on_no_messages = "**There were no messages to generate a summary from, {0.author
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
 
 
-async def update_messages(client: discord.Client, channel: discord.Channel):
+async def update_messages(channel: discord.Channel):
     """ Get or update messages. """
     messages = stored_messages[channel.id]
     logged_messages = []
@@ -115,7 +117,7 @@ def markov_messages(messages, coherent=False):
 
 @plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [phrase ...]", pos_check=is_valid_option,
                  error="Please make a better decision next time.")
-async def summary(client: discord.Client, message: discord.Message, *options, phrase: Annotate.LowerContent=None):
+async def summary(message: discord.Message, *options, phrase: Annotate.LowerContent=None):
     """ Perform a summary! """
     # This dict stores all parsed options as keywords
     member, channel, num = [], None, None
@@ -151,7 +153,7 @@ async def summary(client: discord.Client, message: discord.Message, *options, ph
 
     await client.send_typing(message.channel)
     await update_task.wait()
-    await update_messages(client, channel)
+    await update_messages(channel)
 
     # Split the messages into content and filter member and phrase
     if member:

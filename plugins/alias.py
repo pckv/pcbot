@@ -12,6 +12,8 @@ import asyncio
 
 from pcbot import Config, Annotate
 import plugins
+client = plugins.client  # type: discord.Client
+
 
 alias_desc = \
     "Assign an alias command, where trigger is the command in it's entirety: `{pre}cmd` or `>cmd` or `cmd`.\n" \
@@ -26,7 +28,7 @@ aliases = Config("user_alias", data=defaultdict(str))
 
 
 @plugins.command(description=alias_desc, pos_check=lambda s: s.startswith("-"))
-async def alias(client: discord.Client, message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
+async def alias(message: discord.Message, *options: str.lower, trigger: str, text: Annotate.Content):
     """ Assign an alias. Description is defined in alias_desc. """
     anywhere = "-anywhere" in options
     case_sensitive = "-case-sensitive" in options
@@ -45,7 +47,7 @@ async def alias(client: discord.Client, message: discord.Message, *options: str.
 
 
 @alias.command(name="list")
-async def list_(client: discord.Client, message: discord.Message):
+async def list_(message: discord.Message):
     """ List all user's aliases. """
     assert aliases.data.get(message.author.id, False), "No aliases registered for **{0.name}**.".format(message.author)
 
@@ -55,7 +57,7 @@ async def list_(client: discord.Client, message: discord.Message):
 
 
 @alias.command()
-async def remove(client: discord.Client, message: discord.Message, trigger: Annotate.Content):
+async def remove(message: discord.Message, trigger: Annotate.Content):
     """ Remove user alias with the specified trigger. """
     # Check if the trigger is in the would be list (basically checks if trigger is in [] if user is not registered)
     assert trigger in aliases.data.get(message.author.id, []), \
@@ -68,7 +70,7 @@ async def remove(client: discord.Client, message: discord.Message, trigger: Anno
 
 
 @plugins.event()
-async def on_message(client: discord.Client, message: discord.Message):
+async def on_message(message: discord.Message):
     success = False
 
     # User alias check

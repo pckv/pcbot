@@ -13,6 +13,7 @@ import asyncio
 import discord
 
 import plugins
+client = plugins.client  # type: discord.Client
 
 
 # List containing all channels playing a game
@@ -23,8 +24,7 @@ class Game:
     name = "Unnamed Game"
     minimum_participants = 1
 
-    def __init__(self, client: discord.Client, message: discord.Message, num: int):
-        self.client = client
+    def __init__(self, message: discord.Message, num: int):
         self.message = message
         self.channel = message.channel
         self.member = message.server.me
@@ -34,7 +34,7 @@ class Game:
 
     async def on_start(self):
         """ Notify the channel that the game has been initialized. """
-        await self.client.say(self.message,
+        await client.say(self.message,
                                    "{} has started a game of {}! To participate, say `I`! {} players needed.".format(
                                        self.message.author.mention, self.name, self.num))
 
@@ -48,11 +48,11 @@ class Game:
                 return False
 
             # Wait with a timeout of 2 minutes and check each message with check(m)
-            reply = await self.client.wait_for_message(timeout=120, channel=self.channel, check=check)
+            reply = await client.wait_for_message(timeout=120, channel=self.channel, check=check)
 
             if reply:  # A user replied with a valid check
                 asyncio.ensure_future(
-                    self.client.say(self.message,
+                    client.say(self.message,
                                     "{} has entered! `{}/{}`. Type `I` to join!".format(
                                         reply.author.mention, i + 1, self.num))
                 )
@@ -60,10 +60,10 @@ class Game:
 
                 # Remove the message if bot has permissions
                 if self.member.permissions_in(self.channel).manage_messages:
-                    asyncio.ensure_future(self.client.delete_message(reply))
+                    asyncio.ensure_future(client.delete_message(reply))
             else:
                 # At this point we got no reply in time and thus, gathering participants failed
-                await self.client.say(self.message, "**The {} game failed to gather {} participants.**".format(
+                await client.say(self.message, "**The {} game failed to gather {} participants.**".format(
                     self.name, self.num))
                 started.pop(started.index(self.channel.id))
 
@@ -92,8 +92,8 @@ class Roulette(Game):
     """ A game of Roulette. """
     name = "Russian Roulette"
 
-    def __init__(self, client: discord.Client, message: discord.Message, num: int):
-        super().__init__(client, message, num)
+    def __init__(self, message: discord.Message, num: int):
+        super().__init__(message, num)
         self.bullets = []
 
     async def prepare(self):
@@ -106,11 +106,11 @@ class Roulette(Game):
         for i, participant in enumerate(self.participants):
             member = self.message.server.get_member(participant)
 
-            await self.client.send_message(
+            await client.send_message(
                 self.channel,
                 "{} is up next! Say `go` whenever you are ready.".format(member.mention)
             )
-            reply = await self.client.wait_for_message(timeout=15, channel=self.channel, author=member,
+            reply = await client.wait_for_message(timeout=15, channel=self.channel, author=member,
                                                             check=lambda m: "go" in m.content.lower())
 
             hit = ":dash:"
@@ -119,14 +119,14 @@ class Roulette(Game):
                 hit = ":boom:"
 
             if reply is None:
-                await self.client.send_message(self.channel, "*fuck you*")
+                await client.send_message(self.channel, "*fuck you*")
 
-            await self.client.send_message(self.channel, "{} {} :gun: ".format(member.mention, hit))
+            await client.send_message(self.channel, "{} {} :gun: ".format(member.mention, hit))
 
             if self.bullets[i] == 1:
                 break
 
-        await self.client.send_message(self.channel, "**GAME OVER**")
+        await client.send_message(self.channel, "**GAME OVER**")
 
         started.pop(started.index(self.channel.id))
 
@@ -135,8 +135,8 @@ class HotPotato(Game):
     name = "Hot Potato"
     minimum_participants = 3
 
-    def __init__(self, client: discord.Client, message: discord.Message, num: int):
-        super().__init__(client, message, num)
+    def __init__(self, message: discord.Message, num: int):
+        super().__init__(message, num)
         self.time_remaining = 0
 
     def timer(self):
@@ -170,7 +170,7 @@ class HotPotato(Game):
                 pass_to.append(choice(pass_from))
 
             if reply is not None:
-                await self.client.send_message(
+                await client.send_message(
                     self.channel,
                     "{} :bomb: got the bomb! Pass it to either {} or {}!".format(
                         member.mention,
@@ -187,22 +187,22 @@ class HotPotato(Game):
                 return False
 
             wait = (self.time_remaining - notify) if (self.time_remaining >= notify) else self.time_remaining
-            reply = await self.client.wait_for_message(timeout=wait, channel=self.channel, author=member,
+            reply = await client.wait_for_message(timeout=wait, channel=self.channel, author=member,
                                                             check=check)
 
             if reply:
                 participant = reply.mentions[0].id
                 pass_to = []
                 if self.member.permissions_in(self.channel).manage_messages:
-                    asyncio.ensure_future(self.client.delete_message(reply))
+                    asyncio.ensure_future(client.delete_message(reply))
             elif self.time_remaining == notify:
-                asyncio.ensure_future(self.client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
+                asyncio.ensure_future(client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
                 self.time_remaining -= 1
 
-        await self.client.send_message(self.channel, "{} :fire: :boom: :boom: :fire:".format(
+        await client.send_message(self.channel, "{} :fire: :boom: :boom: :fire:".format(
             self.message.server.get_member(participant).mention
         ))
-        await self.client.send_message(self.channel, "**GAME OVER**")
+        await client.send_message(self.channel, "**GAME OVER**")
 
         del started[started.index(self.channel.id)]
 
@@ -212,8 +212,8 @@ class Typing(Game):
     sentences = ["I am PC.", "PC is me.", "How very polite to be a tree."]
     minimum_wpm = 35
 
-    def __init__(self, client: discord.Client, message: discord.Message, num: int):
-        super().__init__(client, message, num)
+    def __init__(self, message: discord.Message, num: int):
+        super().__init__(message, num)
         self.sentence = ""
 
     async def prepare(self):
@@ -222,7 +222,7 @@ class Typing(Game):
 
     async def send_sentence(self):
         """ Generate the function for sending the sentence. """
-        await self.client.send_message(self.channel, self.sentence)
+        await client.send_message(self.channel, self.sentence)
 
     def calculate_accuracy(self, content: str):
         """ Calculate the accuracy """
@@ -249,7 +249,7 @@ desc_template = "Starts a game of {game.name}. To participate, say `I` in the ch
                 "`{game.minimum_participants}` is the minimum."
 
 
-def init_game(client: discord.Client, message: discord.Message, game, num: int):
+def init_game(message: discord.Message, game, num: int):
     """ Initialize a game.
 
     :param game: A Game object.
@@ -263,16 +263,16 @@ def init_game(client: discord.Client, message: discord.Message, game, num: int):
 
     # Start the game
     started.append(message.channel.id)
-    asyncio.ensure_future(game(client, message, num).start())
+    asyncio.ensure_future(game(message, num).start())
 
 
 @plugins.command(description=desc_template.format(game=Roulette))
-async def roulette(client: discord.Client, message: discord.Message, participants: int=6):
+async def roulette(message: discord.Message, participants: int=6):
     """ The roulette command. Description is defined using a template. """
-    init_game(client, message, Roulette, participants)
+    init_game(message, Roulette, participants)
 
 
 @plugins.command(description=desc_template.format(game=HotPotato))
-async def hotpotato(client: discord.Client, message: discord.Message, participants: int=4):
+async def hotpotato(message: discord.Message, participants: int=4):
     """ The hotpotato command. Description is defined using a template. """
-    init_game(client, message, HotPotato, participants)
+    init_game(message, HotPotato, participants)

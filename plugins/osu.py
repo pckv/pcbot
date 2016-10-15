@@ -32,6 +32,8 @@ from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods
 
 
+client = plugins.client  # type: discord.Client
+
 # Configuration data for this plugin, including settings for members and the API key
 osu_config = Config("osu", data=dict(
     key="change to your api key",
@@ -201,7 +203,7 @@ def get_update_mode(member_id: str):
     return UpdateModes.get_mode(osu_config.data["update_mode"][member_id])
 
 
-async def update_user_data(client: discord.Client):
+async def update_user_data():
     """ Go through all registered members playing osu!, and update their data. """
     global osu_tracking
 
@@ -302,7 +304,7 @@ def get_notify_channels(server: discord.Server, data_type: str):
             if server.get_channel(s)]
 
 
-async def notify_pp(client: discord.Client, member_id: str, data: dict):
+async def notify_pp(member_id: str, data: dict):
     """ Notify any differences in pp and post the scores + rank/pp gained. """
     # Only update pp when there is actually a difference
     if "old" not in data:
@@ -403,7 +405,7 @@ def format_map_status(member_name: str, status_format: str, beatmapset: dict, mi
            "**Beatmap**: <{}s/{}>".format(host, beatmapset[0]["beatmapset_id"])
 
 
-async def notify_maps(client: discord.Client, member_id: str, data: dict):
+async def notify_maps(member_id: str, data: dict):
     """ Notify any map updates, such as update, resurrect and qualified. """
     # Only update when there is a difference
     if "old" not in data:
@@ -475,7 +477,7 @@ async def notify_maps(client: discord.Client, member_id: str, data: dict):
                     pass
 
 
-async def on_ready(client: discord.Client):
+async def on_ready():
     """ Handle every event. """
     global time_elapsed
 
@@ -489,16 +491,16 @@ async def on_ready(client: discord.Client):
             started = datetime.now()
 
             # First, update every user's data
-            await update_user_data(client)
+            await update_user_data()
 
             # Next, check for any differences in pp between the "old" and the "new" subsections
             # and notify any servers
             for member_id, data in osu_tracking.items():
-                asyncio.ensure_future(notify_pp(client, member_id, data))
+                asyncio.ensure_future(notify_pp(member_id, data))
 
             # Check for any differences in the users' events and post about map updates
             for member_id, data in osu_tracking.items():
-                asyncio.ensure_future(notify_maps(client, member_id, data))
+                asyncio.ensure_future(notify_maps(member_id, data))
         # We don't want to stop updating scores even if something breaks
         except:
             print_exc()
@@ -511,7 +513,7 @@ async def on_ready(client: discord.Client):
 
 
 @plugins.command(aliases="circlesimulator eba")
-async def osu(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
+async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
               mode: api.GameMode.get_mode=None):
     """ Handle osu! commands.
 
@@ -543,7 +545,7 @@ async def osu(client: discord.Client, message: discord.Message, member: Annotate
 
 
 @osu.command(aliases="set")
-async def link(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
+async def link(message: discord.Message, name: Annotate.LowerContent):
     """ Tell the bot who you are on osu!. """
     osu_user = await api.get_user(u=name)
 
@@ -562,7 +564,7 @@ async def link(client: discord.Client, message: discord.Message, name: Annotate.
 
 
 @osu.command(aliases="unset")
-async def unlink(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self):
+async def unlink(message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Unlink your osu! account or unlink the member specified (**Owner only**). """
     # The message author is allowed to unlink himself
     # If a member is specified and the member is not the owner, set member to the author
@@ -582,7 +584,7 @@ gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
 
 @osu.command(aliases="mode m", error="Valid gamemodes: `{}`".format(gamemodes), doc_args=dict(modes=gamemodes))
-async def gamemode(client: discord.Client, message: discord.Message, mode: api.GameMode.get_mode):
+async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
     """ Sets the command executor's gamemode.
 
     Gamemodes are: `{modes}`. """
@@ -603,7 +605,7 @@ doc_modes = ", ".join(m.name.lower() for m in UpdateModes)
 
 
 @osu.command(aliases="n updatemode", error="Valid modes: `{}`".format(doc_modes), doc_args=dict(modes=doc_modes))
-async def notify(client: discord.Client, message: discord.Message, mode: UpdateModes.get_mode):
+async def notify(message: discord.Message, mode: UpdateModes.get_mode):
     """ Sets the command executor's update notification mode. This changes
     how much text is in each update, or if you want to disable them completely.
 
@@ -622,7 +624,7 @@ async def notify(client: discord.Client, message: discord.Message, mode: UpdateM
 
 
 @osu.command()
-async def url(client: discord.Client, message: discord.Message, member: Annotate.Member=Annotate.Self,
+async def url(message: discord.Message, member: Annotate.Member=Annotate.Self,
               section: str.lower=None):
     """ Display the member's osu! profile URL. """
     # Member might not be registered
@@ -634,7 +636,7 @@ async def url(client: discord.Client, message: discord.Message, member: Annotate
 
 
 @plugins.command(name="pp")
-async def pp_(client: discord.Client, message: discord.Message, beatmap_url: str, *options):
+async def pp_(message: discord.Message, beatmap_url: str, *options):
     """ Calculate and return the would be pp using `oppai`.
 
     Options are a parsed set of command-line arguments:  /
@@ -713,7 +715,7 @@ osu.command(name="pp")(pp_)
 
 
 @osu.command(aliases="map")
-async def mapinfo(client: discord.Client, message: discord.Message, beatmap_url: str):
+async def mapinfo(message: discord.Message, beatmap_url: str):
     """ Display simple beatmap information. """
     try:
         beatmapset = await api.beatmapset_from_url(beatmap_url)
@@ -733,14 +735,14 @@ def init_server_config(server: discord.Server):
 
 
 @osu.command(aliases="configure cfg")
-async def config(client, message, _: utils.placeholder):
+async def config(message, _: utils.placeholder):
     """ Manage configuration for this plugin. """
     pass
 
 
 @config.command(alias="score")
 @utils.permission("manage_server")
-async def scores(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+async def scores(message: discord.Message, *channels: Annotate.Channel):
     """ Set which channels to post scores to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["score-channels"] = list(c.id for c in channels)
@@ -751,7 +753,7 @@ async def scores(client: discord.Client, message: discord.Message, *channels: An
 
 @config.command(alias="map")
 @utils.permission("manage_server")
-async def maps(client: discord.Client, message: discord.Message, *channels: Annotate.Channel):
+async def maps(message: discord.Message, *channels: Annotate.Channel):
     """ Set which channels to post map updates to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["map-channels"] = list(c.id for c in channels)
@@ -762,7 +764,7 @@ async def maps(client: discord.Client, message: discord.Message, *channels: Anno
 
 @osu.command()
 @utils.owner
-async def debug(client: discord.Client, message: discord.Message):
+async def debug(message: discord.Message):
     """ Display some debug info. """
     await client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
                               "Spent `{:.3f}` seconds last update.\n"

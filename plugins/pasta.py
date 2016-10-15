@@ -12,12 +12,14 @@ import asyncio
 
 from pcbot import Config, Annotate
 import plugins
+client = plugins.client  # type: discord.Client
+
 
 pastas = Config("pastas", data={})
 
 
 @plugins.command(aliases="paste")
-async def pasta(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
+async def pasta(message: discord.Message, name: Annotate.LowerContent):
     """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
         pasta action. You also need quotes around `<name>` if it has any spaces. """
     # Display a random pasta
@@ -35,7 +37,7 @@ async def pasta(client: discord.Client, message: discord.Message, name: Annotate
 
 
 @pasta.command(aliases="a")
-async def add(client: discord.Client, message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
+async def add(message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
     """ Add a pasta with the specified content. """
     # When creating pastas we don't use spaces either!
     parsed_name = name.replace(" ", "")
@@ -49,7 +51,7 @@ async def add(client: discord.Client, message: discord.Message, name: str.lower,
 
 
 @pasta.command(aliases="r")
-async def remove(client: discord.Client, message: discord.Message, name: Annotate.LowerContent):
+async def remove(message: discord.Message, name: Annotate.LowerContent):
     """ Remove a pasta with the specified name. """
     # We don't even use spaces when removing pastas!
     parsed_name = name.replace(" ", "")
@@ -63,11 +65,11 @@ async def remove(client: discord.Client, message: discord.Message, name: Annotat
 
 
 @plugins.event()
-async def on_message(client: discord.Client, message: discord.Message):
+async def on_message(message: discord.Message):
     """ Use shorthand |<pasta ...> for displaying pastas and remove the user's message. """
     if message.content.startswith("|"):
         if message.channel.permissions_for(message.server.me).manage_messages:
             asyncio.ensure_future(client.delete_message(message))
-        await pasta(client, message, message.content[1:].lower())
+        await pasta(message, message.content[1:].lower())
 
         return True
