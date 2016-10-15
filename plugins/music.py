@@ -10,6 +10,7 @@ Commands:
 from collections import namedtuple, deque
 from typing import Dict
 
+import asyncio
 import discord
 
 import plugins
@@ -35,15 +36,15 @@ if not discord.opus.is_loaded():
 Song = namedtuple("Song", "channel player requester")
 
 
-def format_song(song: Song):
+def format_song(song: Song, url=True):
     """ Format a song request. """
     # The player duration is given in seconds; convert it to h:mm
     duration = ""
     if song.player.duration:
         duration = " / **{0}:{1:02}**".format(*divmod(int(song.player.duration), 60))
 
-    return "**{0.title}** requested by **{1.display_name}**{2}\n" \
-           "**URL**: <{0.url}>".format(song.player, song.requester, duration)
+    return "**{0.title}** requested by **{1.display_name}**{2}".format(song.player, song.requester, duration) \
+           + ("\n**URL**: <{0.url}>".format(song.player) if url else "")
 
 
 class VoiceState:
@@ -99,7 +100,8 @@ class VoiceState:
 
 @plugins.command(aliases="m", disabled_pm=True)
 async def music(message, _: utils.placeholder):
-    """ The music group command. """
+    """ Manage music. If a music channel is assigned, the bot will join
+    whenever someone joins it. """
     pass
 
 
@@ -203,6 +205,19 @@ async def playing(message: discord.Message):
     assert_connected(message.author)
     state = voice_states[message.server]
     await client.say(message, "Playing: " + state.format_playing())
+
+
+@music.command(aliases="q list l")
+async def queue(message: discord.Message):
+    """ Return a list of the queued songs. """
+    assert_connected(message.author)
+    state = voice_states[message.server]
+    assert state.queue, "**There are no songs queued.**"
+
+    msg = await client.say(message, "```elm\n{}```".format(
+        "\n".join(format_song(s, url=False).replace("**", "") for s in state.queue)))
+    await asyncio.sleep(20)
+    await client.delete_message(msg)
 
 
 @music.command()
