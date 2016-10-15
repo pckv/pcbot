@@ -149,7 +149,8 @@ async def play(message: discord.Message, song: Annotate.CleanContent):
         return
 
     # Make sure the song isn't too long
-    assert player.duration and player.duration < max_song_length, "**The requested song is too long.**"
+    if player.duration:
+        assert player.duration < max_song_length, "**The requested song is too long.**"
 
     player.volume = state.volume
     song = Song(player=player, requester=message.author, channel=message.channel)
