@@ -74,8 +74,8 @@ def markov_messages(messages, coherent=False):
         # Choose the first word in the sentence to simulate a markov chain
         word = m_split[0]
 
-        if word.startswith("@") or word.startswith("http"):
-            continue
+        if not word.startswith("@") and not word.startswith("http"):
+            break
 
     # Add the first word
     imitated.append(word)
