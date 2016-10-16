@@ -36,7 +36,7 @@ async def pasta(message: discord.Message, name: Annotate.LowerContent):
     await client.say(message, pastas.data[parsed_name])
 
 
-@pasta.command(aliases="a")
+@pasta.command(aliases="a create set")
 async def add(message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
     """ Add a pasta with the specified content. """
     # When creating pastas we don't use spaces either!
@@ -50,7 +50,7 @@ async def add(message: discord.Message, name: str.lower, copypasta: Annotate.Cle
     await client.say(message, "Pasta `{}` set.".format(name))
 
 
-@pasta.command(aliases="r")
+@pasta.command(aliases="r delete")
 async def remove(message: discord.Message, name: Annotate.LowerContent):
     """ Remove a pasta with the specified name. """
     # We don't even use spaces when removing pastas!

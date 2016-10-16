@@ -60,16 +60,22 @@ def markov_messages(messages, coherent=False):
     """ Generate some kind of markov chain that somehow works with discord.
     I found this makes better results than markovify would. """
     imitated = []
-    word = "@"
+    word = ""
+
+    if all(True if s.startswith("@") or s.startswith("http") else False for s in messages):
+        return "**The given phrase would crash the bot.**"
 
     # First word
-    while (word.startswith("@") or "@" in word) or (word.startswith("http") or "http" in word):
+    while True:
         m_split = random.choice(messages).split()
         if not m_split:
             continue
 
         # Choose the first word in the sentence to simulate a markov chain
         word = m_split[0]
+
+        if word.startswith("@") or word.startswith("http"):
+            continue
 
     # Add the first word
     imitated.append(word)
