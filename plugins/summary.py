@@ -36,8 +36,8 @@ async def update_messages(channel: discord.Channel):
     update_task.clear()
 
     if messages:
-        # If we have already stored some messages we will update with any new messages
-        async for m in client.logs_from(channel, after=messages[-1]):
+        # If we have already stored some messages we will log from any new messages
+        async for m in client.logs_from(channel, after=messages[-1], limit=logs_from_limit):
             logged_messages.append(m)
     else:
         # For our first time we want logs_from_limit messages
