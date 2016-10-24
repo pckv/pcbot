@@ -3,7 +3,8 @@
 
 import random
 import re
-from collections import defaultdict
+from collections import defaultdict, deque
+from functools import partial
 
 import asyncio
 import discord
@@ -14,7 +15,7 @@ client = plugins.client  # type: discord.Client
 
 
 # The messages stored per session, where every key is a channel id
-stored_messages = defaultdict(list)
+stored_messages = defaultdict(partial(deque, maxlen=10000))
 logs_from_limit = 5000
 max_summaries = 5
 update_task = asyncio.Event()
@@ -31,21 +32,23 @@ on_fail = "**I was unable to construct a summary, {0.author.name}.**"
 
 async def update_messages(channel: discord.Channel):
     """ Get or update messages. """
-    messages = stored_messages[channel.id]
-    logged_messages = []
+    messages = stored_messages[channel.id]  # type: deque
     update_task.clear()
 
+    # If we have already stored some messages we will log from any new messages
     if messages:
-        # If we have already stored some messages we will log from any new messages
+        index = len(messages)
         async for m in client.logs_from(channel, after=messages[-1], limit=logs_from_limit):
-            logged_messages.append(m)
-    else:
-        # For our first time we want logs_from_limit messages
-        async for m in client.logs_from(channel, limit=logs_from_limit):
-            logged_messages.append(m)
+            # We have a list of messages and the loop goes from newest to oldest; we want the oldest
+            # message to be index -1. Therefore we insert at the endpoint of the last chunk of messages
+            messages.insert(index, m)
 
-    # Add a reversed version of the logged messages, since they're logged backwards
-    stored_messages[channel.id].extend(reversed(list(logged_messages)))
+    # For our first time we want logs_from_limit messages
+    else:
+        async for m in client.logs_from(channel, limit=logs_from_limit):
+            # We have no messages, so appending left is the same as inserting at index 0 (length of empty deque)
+            messages.appendleft(m)
+
     update_task.set()
 
 
@@ -54,6 +57,31 @@ def is_valid_option(arg: str):
         return True
 
     return False
+
+
+def indexes_of_word(words: list, word: str):
+    """ Return a list of indexes with the given word. """
+    return [i for i, s in enumerate(words) if s.lower() == word]
+
+
+def random_with_bias(messages: list, word: str):
+    """ Go through all the messages and try to choose the ones where the given word is
+    not at the end of the string. """
+    last_word_messages = []
+    non_last_word_messages = []
+    for m in messages:
+        words = m.split()
+        if words[-1].lower() == word:
+            last_word_messages.append(m)
+        else:
+            non_last_word_messages.append(m)
+
+    if not last_word_messages:
+        return random.choice(non_last_word_messages)
+    elif not non_last_word_messages:
+        return random.choice(last_word_messages)
+    else:
+        return random.choice(last_word_messages if random.randint(0, 5) == 0 else non_last_word_messages)
 
 
 def markov_messages(messages, coherent=False):
@@ -88,8 +116,9 @@ def markov_messages(messages, coherent=False):
 
         # Add a word from the message found
         if valid:
-            m = random.choice(valid).split()  # Choose one of the matched messages and split it into a list
-            m_indexes = [i for i, s in enumerate(m) if im == s.lower()]  # Get the indexes of all matched words
+            # # Choose one of the matched messages and split it into a list or words
+            m = random_with_bias(valid, im).split()
+            m_indexes = indexes_of_word(m, im)
             m_index = random.choice(m_indexes)  # Choose a random index
             m_from = m[m_index:]
 
@@ -100,20 +129,17 @@ def markov_messages(messages, coherent=False):
             else:
                 # Have the chance of breaking be 1/4 at start and 1/1 when imitated approaches 150 words
                 # unless the entire summary should be coherent
-                chance = 0 if coherent else int(-0.02 * len(imitated) + 3)
+                chance = 0 if coherent else int(-0.02 * len(imitated) + 4)
                 chance = chance if chance >= 0 else 0
 
                 if random.randint(0, chance) == 0:
                     break
 
-        # Add a random word
-        while True:
+        # Add a random word if all valid messages are one word or there are less than 2 messages
+        if len(valid) <= 1 or all(len(m.split()) <= 1 for m in valid):
             seq = random.choice(messages).split()
-
-            if seq:
-                word = random.choice(seq)
-                imitated.append(word)
-                break
+            word = random.choice(seq)
+            imitated.append(word)
 
     # Remove links after, because you know
     imitated = [s for s in imitated if "http://" not in s and "https://" not in s]
