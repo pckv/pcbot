@@ -41,12 +41,18 @@ async def update_messages(channel: discord.Channel):
         async for m in client.logs_from(channel, after=messages[-1], limit=logs_from_limit):
             # We have a list of messages and the loop goes from newest to oldest; we want the oldest
             # message to be index -1. Therefore we insert at the endpoint of the last chunk of messages
+            if not m.content:
+                continue
+
             messages.insert(index, m)
 
     # For our first time we want logs_from_limit messages
     else:
         async for m in client.logs_from(channel, limit=logs_from_limit):
             # We have no messages, so appending left is the same as inserting at index 0 (length of empty deque)
+            if not m.content:
+                continue
+
             messages.appendleft(m)
 
     update_task.set()
@@ -107,12 +113,14 @@ def markov_messages(messages, coherent=False):
 
     # Add the first word
     imitated.append(word)
+    valid = []
 
     # Next words
     while True:
         # Set the last word and find all messages with the last word in it
-        im = imitated[-1].lower()
-        valid = [m for m in messages if im in m.lower().split()]
+        if not im == imitated[-1].lower():
+            im = imitated[-1].lower()
+            valid = [m for m in messages if im in m.lower().split()]
 
         # Add a word from the message found
         if valid:
