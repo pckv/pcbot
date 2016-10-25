@@ -114,6 +114,7 @@ def markov_messages(messages, coherent=False):
     # Add the first word
     imitated.append(word)
     valid = []
+    im = ""
 
     # Next words
     while True:
