@@ -37,19 +37,20 @@ async def update_messages(channel: discord.Channel):
 
     # If we have already stored some messages we will log from any new messages
     if messages:
-        index = len(messages)
+        new = []
         async for m in client.logs_from(channel, after=messages[-1], limit=logs_from_limit):
-            # We have a list of messages and the loop goes from newest to oldest; we want the oldest
-            # message to be index -1. Therefore we insert at the endpoint of the last chunk of messages
             if not m.content:
                 continue
 
-            messages.insert(index, m)
+            new.append(m)
+
+        # Add the reversed list of messages to the end
+        messages.extend(reversed(new))
 
     # For our first time we want logs_from_limit messages
     else:
         async for m in client.logs_from(channel, limit=logs_from_limit):
-            # We have no messages, so appending left is the same as inserting at index 0 (length of empty deque)
+            # We have no messages, so insert each from the left, leaving us with the oldest at index -1
             if not m.content:
                 continue
 
