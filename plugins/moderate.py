@@ -148,22 +148,33 @@ async def unmute(message: discord.Message, *members: Annotate.Member):
         await client.say(message, "Unmuted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
-@plugins.command(pos_check=True)
+@plugins.command()
 @utils.permission("manage_messages")
-async def timeout(message: discord.Message, *members: Annotate.Member, minutes: int):
-    """ Timeout the specified members for given minutes. """
-    muted_members = await manage_mute(message, client.add_roles, *members)
+async def timeout(message: discord.Message, member: Annotate.Member, minutes: float, reason: Annotate.Content):
+    """ Timeout a user in minutes (will accept decimal numbers), send them
+    the reason for being timed out and post the reason in the server's
+    changelog if it has one. """
+    client.loop.create_task(client.delete_message(message))
+    muted_members = await manage_mute(message, client.add_roles, member)
 
     # Do not progress if the members were not successfully muted
     # At this point, manage_mute will have reported any errors
     if not muted_members:
         return
 
-    await client.say(message, "Timed out {} for `{}` minutes.".format(
-        utils.format_objects(*muted_members, dec="`"), minutes))
+    changelog_channel = get_changelog_channel(message.server)
 
-    # Sleep for the given minutes and unmute the member
-    await asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60
+    # Tell the member and post in the changelog
+    m = "You were timed out from **{}** for **{} minutes**. \n**Reason:** {}".format(message.server, minutes, reason)
+    await client.send_message(member, m)
+
+    if changelog_channel:
+        await client.send_message(changelog_channel, "{} Timed out {} for **{} minutes**. **Reason:** {}".format(
+            message.author.mention, member.mention, minutes, reason
+        ))
+
+    # Sleep for the given hours and unmute the member
+    await asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60^2
     await manage_mute(message, client.remove_roles, *muted_members)
 
 
@@ -371,11 +382,19 @@ async def on_member_update(before: discord.Member, after: discord.Member):
         else:
             m = "{0.mention} (previously **{0.nick}**) got the nickname **{1.nick}**."
     elif role_change:
+        muted_role = discord.utils.get(after.server.roles, name="Muted")
+
         if len(before.roles) > len(after.roles):
             role = [r for r in before.roles if r not in after.roles][0]
+            if role == muted_role:
+                return
+
             m = "{0.mention} lost the role **{1.name}**".format(after, role)
         else:
             role = [r for r in after.roles if r not in before.roles][0]
+            if role == muted_role:
+                return
+
             m = "{0.mention} received the role **{1.name}**".format(after, role)
     else:
         return
