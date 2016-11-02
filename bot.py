@@ -55,8 +55,6 @@ class Client(discord.Client):
                 return
             if not message.content:
                 return
-            if message.author.bot:
-                return
 
         super().dispatch(event, *args, **kwargs)
 
@@ -82,6 +80,14 @@ class Client(discord.Client):
         """ Override to add info on the last deleted messages. """
         self.last_deleted_messages = list(messages)
         await super().delete_messages(messages)
+
+    async def wait_for_message(self, timeout=None, *, author=None, channel=None, content=None, check=None, bot=False):
+        """ Override the check with the bot keyword: if bot=False, the function
+        won't accept messages from bot accounts, where if bot=True it doesn't care. """
+        def new_check(message: discord.Message):
+            return check(message) and (True if bot else not message.author.bot)
+
+        return await super().wait_for_message(timeout, author=author, channel=channel, content=content, check=new_check)
 
     @staticmethod
     async def say(message: discord.Message, content: str):
@@ -347,6 +353,10 @@ async def on_message(message: discord.Message):
 
     # We don't care about channels we can't write in as the bot usually sends feedback
     if not message.channel.is_private and not message.server.me.permissions_in(message.channel).send_messages:
+        return
+
+    # Don't accept commands from bot accounts
+    if message.author.bot:
         return
 
     # Split content into arguments by space (surround with quotes for spaces)
