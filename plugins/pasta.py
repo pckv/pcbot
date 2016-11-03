@@ -72,5 +72,7 @@ async def on_message(message: discord.Message):
             asyncio.ensure_future(client.delete_message(message))
         try:
             await pasta(message, message.content[1:].lower())
+        except AssertionError as e:
+            await client.say(message, e)
         finally:
             return True

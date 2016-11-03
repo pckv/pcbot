@@ -6,6 +6,7 @@ Commands:
 """
 
 from datetime import datetime
+from difflib import SequenceMatcher
 from random import randint, choice
 from threading import Timer
 
@@ -34,15 +35,15 @@ class Game:
 
     async def on_start(self):
         """ Notify the channel that the game has been initialized. """
-        await client.say(self.message,
-                                   "{} has started a game of {}! To participate, say `I`! {} players needed.".format(
-                                       self.message.author.mention, self.name, self.num))
+        m = "{} has started a game of {}! To participate, say `I`! {} players needed.".format(
+            self.message.author.mention, self.name, self.num)
+        await client.say(self.message, m)
 
     async def get_participants(self):
         """ Wait for input and get all participants. """
         for i in range(self.num):
             def check(m):
-                if m.content.lower().strip() == "i" and m.author.id not in self.participants:
+                if m.content.lower().strip() == "i" and m.author not in self.participants:
                     return True
 
                 return False
@@ -56,7 +57,7 @@ class Game:
                                     "{} has entered! `{}/{}`. Type `I` to join!".format(
                                         reply.author.mention, i + 1, self.num))
                 )
-                self.participants.append(reply.author.id)
+                self.participants.append(reply.author)
 
                 # Remove the message if bot has permissions
                 if self.member.permissions_in(self.channel).manage_messages:
@@ -68,6 +69,8 @@ class Game:
                 started.pop(started.index(self.channel.id))
 
                 return False
+
+        return True
 
     async def prepare(self):
         """ Prepare anything needed before starting the game. """
@@ -81,11 +84,13 @@ class Game:
         """ Run the entire game's cycle. """
         await self.on_start()
         valid = await self.get_participants()
-        await asyncio.sleep(1)
 
-        if valid is not False:
+        if valid:
+            await asyncio.sleep(1)
             await self.prepare()
             await self.game()
+
+            del started[started.index(self.channel.id)]
 
 
 class Roulette(Game):
@@ -103,9 +108,7 @@ class Roulette(Game):
 
     async def game(self):
         """ Start playing. """
-        for i, participant in enumerate(self.participants):
-            member = self.message.server.get_member(participant)
-
+        for i, member in enumerate(self.participants):
             await client.send_message(
                 self.channel,
                 "{} is up next! Say `go` whenever you are ready.".format(member.mention)
@@ -127,8 +130,6 @@ class Roulette(Game):
                 break
 
         await client.send_message(self.channel, "**GAME OVER**")
-
-        started.pop(started.index(self.channel.id))
 
 
 class HotPotato(Game):
@@ -153,15 +154,13 @@ class HotPotato(Game):
             int(pow(30 * len(self.participants), 0.8))
         )
 
-        participant = choice(self.participants)
+        member = choice(self.participants)
         Timer(1, self.timer).start()
         reply = True
         pass_to = []
         notify = randint(2, int(self.time_remaining / 2))
 
         while self.time_remaining > 0:
-            member = self.message.server.get_member(participant)
-
             if not pass_to:
                 pass_from = list(self.participants)
                 pass_from.pop(pass_from.index(member.id))
@@ -191,7 +190,7 @@ class HotPotato(Game):
                                                             check=check)
 
             if reply:
-                participant = reply.mentions[0].id
+                member = reply.mentions[0]
                 pass_to = []
                 if self.member.permissions_in(self.channel).manage_messages:
                     asyncio.ensure_future(client.delete_message(reply))
@@ -199,18 +198,16 @@ class HotPotato(Game):
                 asyncio.ensure_future(client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
                 self.time_remaining -= 1
 
-        await client.send_message(self.channel, "{} :fire: :boom: :boom: :fire:".format(
-            self.message.server.get_member(participant).mention
-        ))
+        await client.send_message(self.channel, "{0.mention} :fire: :boom: :boom: :fire:".format(member))
         await client.send_message(self.channel, "**GAME OVER**")
-
-        del started[started.index(self.channel.id)]
 
 
 class Typing(Game):
     name = "Typing"
-    sentences = ["I am PC.", "PC is me.", "How very polite to be a tree."]
-    minimum_wpm = 35
+
+    sentences = ["Skallebarn du skallebarn, GID a ANGRY"]
+    reply = "{member.mention} finished in **{time:.0f} seconds** / **{wpm:.0f}wpm** / **{accuracy:.02%}**"
+    minimum_wpm = 40
 
     def __init__(self, message: discord.Message, num: int):
         super().__init__(message, num)
@@ -222,26 +219,67 @@ class Typing(Game):
 
     async def send_sentence(self):
         """ Generate the function for sending the sentence. """
-        await client.send_message(self.channel, self.sentence)
+        await client.send_message(self.channel, "**Type**: " + self.sentence)
+
+    def total_estimated_words(self):
+        """ Return the estimated words in our sentence. """
+        return len(self.sentence) / 5
 
     def calculate_accuracy(self, content: str):
-        """ Calculate the accuracy """
+        """ Calculate the accuracy. """
+        return SequenceMatcher(a=self.sentence, b=content).ratio()
 
-    def calculate_wpm(self, content: str, delta_seconds: int):
-        """ Calculate the gross WPM from the given timedelta.
-        This function will return a wpm where any 5 characters is considered a word.
-
-        :param delta_seconds: Seconds elapsed since start. """
-
-        minutes = delta_seconds * 60
+    def calculate_wpm(self, delta_seconds: int):
+        """ Calculate the gross WPM from the given timedelta. """
+        minutes = delta_seconds / 60
+        return self.total_estimated_words() / minutes
 
     def calculate_timeout(self):
-        """ Calculate the timeout for this game. """
-        words = self.sentence.split()
+        """ Calculate the timeout for this game. This is the same as calculate_wpm,
+        however it uses the same formula to calculate the time needed. """
+        return self.total_estimated_words() / self.minimum_wpm * 60
+
+    def is_participant(self, message: discord.Message):
+        """ Check when waiting for a message and remove them from our list. """
+        if message.author in self.participants:
+            self.participants.remove(message.author)
+            return True
+
+        return False
 
     async def game(self):
         """ Run the game. """
-        started = datetime.now()
+        await self.send_sentence()
+
+        checkpoint = time_started = datetime.now()
+        timeout = self.calculate_timeout()
+
+        # We'll wait for a message from all of our participants
+        for i in range(len(self.participants)):
+            reply = await client.wait_for_message(timeout=timeout, channel=self.channel, check=self.is_participant)
+            if not reply:
+                await client.send_message(self.channel, "**Time is up.**")
+                return
+
+            # Delete the member's reply in order to avoid cheating
+            asyncio.ensure_future(client.delete_message(reply))
+            now = datetime.now()
+
+            # Calculate the time elapsed since the game started
+            time_elapsed = (now - time_started).total_seconds()
+
+            # Calculate the accuracy, wpm and send the message
+            accuracy = self.calculate_accuracy(reply.clean_content)
+            wpm = self.calculate_wpm(time_elapsed)
+            m = self.reply.format(member=reply.author, time=time_elapsed, wpm=wpm, accuracy=accuracy)
+            asyncio.ensure_future(client.send_message(self.channel, m))
+
+            # Reduce the timeout by the current time elapsed and create a checkpoint for the next timeout calculation
+            timeout -= int((now - checkpoint).total_seconds())
+            checkpoint = now
+
+        await asyncio.sleep(1)
+        await client.send_message(self.channel, "**Everyone finished!**")
 
 
 desc_template = "Starts a game of {game.name}. To participate, say `I` in the chat.\n\n" \
@@ -249,7 +287,7 @@ desc_template = "Starts a game of {game.name}. To participate, say `I` in the ch
                 "`{game.minimum_participants}` is the minimum."
 
 
-def init_game(message: discord.Message, game, num: int):
+async def init_game(message: discord.Message, game, num: int):
     """ Initialize a game.
 
     :param game: A Game object.
@@ -263,16 +301,22 @@ def init_game(message: discord.Message, game, num: int):
 
     # Start the game
     started.append(message.channel.id)
-    asyncio.ensure_future(game(message, num).start())
+    await game(message, num).start()
 
 
 @plugins.command(description=desc_template.format(game=Roulette))
 async def roulette(message: discord.Message, participants: int=6):
     """ The roulette command. Description is defined using a template. """
-    init_game(message, Roulette, participants)
+    await init_game(message, Roulette, participants)
 
 
 @plugins.command(description=desc_template.format(game=HotPotato))
 async def hotpotato(message: discord.Message, participants: int=4):
     """ The hotpotato command. Description is defined using a template. """
-    init_game(message, HotPotato, participants)
+    await init_game(message, HotPotato, participants)
+
+
+@plugins.command(description=desc_template.format(game=Typing))
+async def typing(message: discord.Message, participants: int=2):
+    """ The typing command. Description is defined using a template. """
+    await init_game(message, Typing, participants)
