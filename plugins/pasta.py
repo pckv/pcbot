@@ -70,6 +70,7 @@ async def on_message(message: discord.Message):
     if message.content.startswith("|"):
         if message.channel.permissions_for(message.server.me).manage_messages:
             asyncio.ensure_future(client.delete_message(message))
-        await pasta(message, message.content[1:].lower())
-
-        return True
+        try:
+            await pasta(message, message.content[1:].lower())
+        finally:
+            return True

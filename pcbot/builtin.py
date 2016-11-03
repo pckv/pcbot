@@ -114,8 +114,7 @@ async def stream(message: discord.Message, url: str, title: Annotate.Content):
 @plugins.command()
 @utils.owner
 async def do(message: discord.Message, python_code: Annotate.Code):
-    """ Execute python code. Coroutines do not work, although you can run `say(msg, c=message.channel)`
-        to send a message, optionally to a channel. Eg: `say("Hello!")`. """
+    """ Execute python code. """
     code_globals.update(dict(message=message, client=client,
                              author=message.author, server=message.server, channel=message.channel))
 
@@ -139,7 +138,8 @@ async def do(message: discord.Message, python_code: Annotate.Code):
 @plugins.command(name="eval")
 @utils.owner
 async def eval_(message: discord.Message, python_code: Annotate.Code):
-    """ Evaluate a python expression. Can be any python code on one line that returns something. """
+    """ Evaluate a python expression. Can be any python code on one
+    line that returns something. Coroutine generators will by awaited. """
     code_globals.update(dict(message=message, client=client,
                              author=message.author, server=message.server, channel=message.channel))
 
@@ -441,7 +441,7 @@ async def on_message(message: discord.Message):
             else:
                 logging.warn("An exception occurred when parsing lambda command:"
                              "\n{}".format(utils.format_syntax_error(e)))
-            return
+            return True
 
         # Execute the command
         try:
@@ -454,8 +454,8 @@ async def on_message(message: discord.Message):
             else:
                 logging.warn("An exception occurred when parsing lambda command:"
                              "\n{}".format(utils.format_exception(e)))
-
-        return True
+        finally:
+            return True
 
 
 # Initialize the plugin's modules
