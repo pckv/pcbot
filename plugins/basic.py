@@ -32,15 +32,32 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
 async def mentioned(message: discord.Message):
     """ Tries to find the first message which mentions you in the last 16 hours. """
     after = datetime.utcnow() - timedelta(hours=24)
+    was_found = False
     await client.send_typing(message.channel)
 
-    async for m in client.logs_from(message.channel, limit=5000, after=after):
+    # Go through all messages since 24 hours ago
+    async for m in client.logs_from(message.channel, limit=5000, before=message, after=after):
         if message.author in m.mentions:
+            was_found = True
+
+            # Format the message when it's found
             await client.say(message, "**{0.author.display_name} - {1}**\n{0.clean_content}".format(
                 m, m.timestamp.strftime("%A, %d %B %Y %H:%M:%S")))
-            break
+
+            # The member will be able to search for another mention by typing next
+            next_message = await client.say(message, "Type `next` to expand your search.")
+            reply = await client.wait_for_message(timeout=30, author=message.author, channel=message.channel,
+                                                  content="next")
+
+            # Remove the previously sent help message and break if there was no response
+            await client.delete_message(next_message)
+            if reply is None:
+                break
+            else:
+                await client.send_typing(message.channel)
     else:
-        await client.say(message, "Could not find a message mentioning you in the last 24 hours.")
+        await client.say(message, "Could not find a message mentioning you in the last 24 hours." if not was_found else
+                                  "Found no more messages mentioning you in the last 24 hours.")
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")

@@ -85,7 +85,7 @@ class Client(discord.Client):
         """ Override the check with the bot keyword: if bot=False, the function
         won't accept messages from bot accounts, where if bot=True it doesn't care. """
         def new_check(message: discord.Message):
-            return check(message) and (True if bot else not message.author.bot)
+            return (check(message) if check is not None else True) and (True if bot else not message.author.bot)
 
         return await super().wait_for_message(timeout, author=author, channel=channel, content=content, check=new_check)
 
