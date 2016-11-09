@@ -85,7 +85,7 @@ def parse_emoji(chars: list):
             break
 
         # If this is a custom emote, yield it and progress
-        if type(sliced_emoji[0]) is Image.Image:
+        if isinstance(sliced_emoji[0], Image.Image):
             yield sliced_emoji[0]
 
             chars = chars[length:]
@@ -93,7 +93,7 @@ def parse_emoji(chars: list):
             continue
 
         # If the emoji is in the list, update the index and reset the length, with the updated index
-        if "-".join(e for e in sliced_emoji if type(e) is not Image.Image) in emoji.keys():
+        if "-".join(e for e in sliced_emoji if not isinstance(e, Image.Image)) in emoji.keys():
             yield "-".join(sliced_emoji)
 
             chars = chars[length:]
@@ -142,7 +142,7 @@ async def format_emoji(text: str, server: discord.Server):
             size *= scale
 
     # Return the list of emoji, and set the respective size (should be managed manually if needed)
-    return [e if type(e) is Image.Image else get_emoji(e, size=size) for e in parsed_emoji], has_custom
+    return [e if isinstance(e, Image.Image) else get_emoji(e, size=size) for e in parsed_emoji], has_custom
 
 
 @plugins.command(aliases="huge")
