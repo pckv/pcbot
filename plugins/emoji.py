@@ -63,7 +63,7 @@ async def get_emote(emote_id: str, server: discord.Server):
 
     # Return the cached version if possible
     if emote.id in emote_cache:
-        return emote_cache[emote.id]
+        return Image.open(BytesIO(emote_cache[emote.id]))
 
     # Otherwise, download the emote, store it in the cache and return
     emote_bytes = await utils.download_file(emote.url)
