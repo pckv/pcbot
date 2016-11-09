@@ -159,34 +159,29 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
         return
 
     # See if there's a need to rescale all images.
-    size = default_size
+    height = default_size
     for e in parsed_emoji:
-        width, height = e.size
+        if e.height < height:
+            height = e.height
 
-        # Set the size to the lowest dimensions
-        if width < size:
-            size = width
-        if height < size:
-            size = height
-
-    print(size)
+    print(height)
 
     # Resize all emoji (so that the height == size) when one doesn't match any of the predetermined sizes
     total_width = 0
-    if has_custom and not size == emote_size:
+    if has_custom and not height == emote_size:
         for e in parsed_emoji:
-            if e.height > size:
-                width = round(size / e.height)
+            if e.height > height:
+                width = round(height / e.height)
                 total_width += width
                 e.resize((width, e.height), Image.ANTIALIAS)
             else:
                 total_width += e.width
     else:
-        total_width = len(parsed_emoji) * size
+        total_width = len(parsed_emoji) * height
 
     # Stitch all the images together
     print(total_width)
-    image = Image.new("RGBA", (total_width, size))
+    image = Image.new("RGBA", (total_width, height))
     x = 0
     for image_object in parsed_emoji:
         image.paste(image_object, box=(x, 0))
