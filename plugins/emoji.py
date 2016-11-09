@@ -72,7 +72,8 @@ async def get_emote(emote_id: str, server: discord.Server):
 
 
 def parse_emoji(chars: list, size):
-    """ Go through and return all emoji in the given string. """
+    """ Go through and return all emoji in the given list of characters
+    (or Image objects). """
     # Convert all characters in the given list to hex format strings, and leave the Image objects alone
     chars = [hex(ord(c))[2:] if type(c) is str else c for c in chars]
     chars_remaining = length = len(chars)
@@ -80,6 +81,8 @@ def parse_emoji(chars: list, size):
     # Try the entire string backwards, and reduce the length by one character until there's a match
     while True:
         sliced_emoji = chars[:length]
+        if not sliced_emoji:
+            break
 
         # If this is a custom emote, yield it and progress
         if type(sliced_emoji[0]) is Image.Image:
@@ -104,8 +107,6 @@ def parse_emoji(chars: list, size):
         if length == 0 and chars_remaining > 1:
             chars = chars[1:]
             chars_remaining = length = len(chars)
-        elif length < 1:
-            break
 
 
 async def format_emoji(text: str, server: discord.Server):
