@@ -193,4 +193,4 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
     await client.send_file(message.channel, image_fp, filename="emojies.png")
 
 
-init
+init_emoji()
