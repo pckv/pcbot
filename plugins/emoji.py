@@ -171,6 +171,8 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
                 width = round(size / e.height)
                 total_width += width
                 e.resize((width, e.height), Image.ANTIALIAS)
+            else:
+                total_width += e.width
 
     # Stitch all the images together
     image = Image.new("RGBA", (total_width, size))
