@@ -171,8 +171,9 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
     if has_custom and not height == emote_size:
         for e in parsed_emoji:
             if e.height > height:
-                width = round(height / e.height)
+                width = round(e.width * (height / e.height))
                 total_width += width
+                print(width, e.height)
                 e.resize((width, e.height), Image.ANTIALIAS)
             else:
                 total_width += e.width
@@ -192,5 +193,4 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
     await client.send_file(message.channel, image_fp, filename="emojies.png")
 
 
-init_emoji()
-
+init
