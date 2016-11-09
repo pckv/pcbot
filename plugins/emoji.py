@@ -93,7 +93,7 @@ def parse_emoji(chars: list):
             continue
 
         # If the emoji is in the list, update the index and reset the length, with the updated index
-        if "-".join(sliced_emoji) in emoji.keys():
+        if "-".join(e for e in sliced_emoji if type(e) is not Image.Image) in emoji.keys():
             yield "-".join(sliced_emoji)
 
             chars = chars[length:]
