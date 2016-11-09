@@ -169,6 +169,8 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
         if height < size:
             size = height
 
+    print(size)
+
     # Resize all emoji (so that the height == size) when one doesn't match any of the predetermined sizes
     total_width = 0
     if has_custom and not size == emote_size:
@@ -183,6 +185,7 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
         total_width = len(parsed_emoji) * size
 
     # Stitch all the images together
+    print(total_width)
     image = Image.new("RGBA", (total_width, size))
     x = 0
     for image_object in parsed_emoji:
