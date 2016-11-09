@@ -37,10 +37,11 @@ client = plugins.client  # type: discord.Client
 # Configuration data for this plugin, including settings for members and the API key
 osu_config = Config("osu", data=dict(
     key="change to your api key",
-    profiles={},
-    mode={},
-    server={},
-    update_mode={}
+    profiles={},  # Profile setup as member_id: osu_id
+    mode={},  # Member's game mode as member_id: gamemode_value
+    server={},  # Server specific info for score- and map notification channels
+    update_mode={},  # Member's notification update mode as member_id: UpdateModes.name
+    primary_server={},  # Member's primary server; defines where they should be mentioned: member_id: server_id
 ))
 
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
@@ -358,14 +359,15 @@ async def notify_pp(member_id: str, data: dict):
     for server in client.servers:
         member = server.get_member(member_id)
         channels = get_notify_channels(server, "score")
+        mention = osu_config.data["primary_server"].get(member_id, server.id) == server.id
 
         if not member or not channels:
             continue
 
         for i, channel in enumerate(channels):
             try:
-                await client.send_message(
-                    channel, m.format(member.mention) if i == 0 else m.format("**" + member.display_name + "**"))
+                await client.send_message(channel, m.format(member.mention) if (mention and i == 0) else
+                                                   m.format("**" + member.display_name + "**"))
             except discord.errors.Forbidden:
                 pass
 
@@ -559,6 +561,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
     # Assign the user using their unique user_id
     osu_config.data["profiles"][message.author.id] = osu_user["user_id"]
     osu_config.data["mode"][message.author.id] = api.GameMode.Standard.value
+    osu_config.data["primary_server"][message.author.id] = message.server.id
     osu_config.save()
     await client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
 
