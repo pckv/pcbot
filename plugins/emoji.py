@@ -124,7 +124,7 @@ async def format_emoji(text: str, server: discord.Server):
             has_custom = True
 
             # Skip ahead in the iterator
-            for _ in range(len(match.group(0) - 1)):
+            for _ in range(len(match.group(0)) - 1):
                 next(text_iter)
         else:
             char_and_emotes.append(c)
@@ -173,6 +173,8 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
                 e.resize((width, e.height), Image.ANTIALIAS)
             else:
                 total_width += e.width
+    else:
+        total_width = len(parsed_emoji) * size
 
     # Stitch all the images together
     image = Image.new("RGBA", (total_width, size))
