@@ -88,7 +88,7 @@ def parse_emoji(chars: list):
         if isinstance(sliced_emoji[0], Image.Image):
             yield sliced_emoji[0]
 
-            chars = chars[length:]
+            chars = chars[1:]
             chars_remaining = length = len(chars)
             continue
 
