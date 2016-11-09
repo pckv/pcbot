@@ -129,15 +129,25 @@ async def format_emoji(text: str, server: discord.Server):
         else:
             char_and_emotes.append(c)
 
+    # When the size of all emoji next to each other is greater than the max width,
+    # divide the size to properly fit the max_width at all times
+    size = 0
+    if has_custom:
+        size = emote_size
+    else:
+        if size * len(char_and_emotes) > max_width:
+            scale = 1 / ((size * len(char_and_emotes) - 1) // max_width + 1)
+            size *= scale
+
     # Return the list of emoji, and set the respective size (should be managed manually if needed)
-    return list(parse_emoji(char_and_emotes, emote_size if has_custom else default_size))
+    return list(parse_emoji(char_and_emotes, emote_size if has_custom else size)), has_custom
 
 
 @plugins.command(aliases="huge")
 async def greater(message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
-    parsed_emoji = await format_emoji(text, message.server)
+    parsed_emoji, has_custom = await format_emoji(text, message.server)
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
     # Combine multiple images if necessary, otherwise send just the one
@@ -157,15 +167,9 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
         if height < size:
             size = height
 
-    # When the size of all emoji next to each other is greater than the max width,
-    # divide the size to properly fit the max_width at all times
-    if size * len(parsed_emoji) > max_width:
-        scale = 1 / ((size * len(parsed_emoji) - 1) // max_width + 1)
-        size *= scale
-
     # Resize all emoji (so that the height == size) when one doesn't match any of the predetermined sizes
     total_width = 0
-    if size not in (default_size, emote_size):
+    if has_custom and not size == emote_size:
         for e in parsed_emoji:
             if e.height > size:
                 width = round(size / e.height)
