@@ -135,8 +135,9 @@ async def format_emoji(text: str, server: discord.Server):
     if has_custom:
         size = emote_size
     else:
-        if size * len(char_and_emotes) > max_width:
-            scale = 1 / ((size * len(char_and_emotes) - 1) // max_width + 1)
+        number_emoji = sum(1 for e in char_and_emotes if type(e) is not Image.Image)
+        if size * number_emoji > max_width:
+            scale = 1 / ((size * number_emoji - 1) // max_width + 1)
             size *= scale
 
     # Return the list of emoji, and set the respective size (should be managed manually if needed)
