@@ -130,7 +130,7 @@ async def format_emoji(text: str, server: discord.Server):
             char_and_emotes.append(c)
 
     # Return the list of emoji, and set the respective size (should be managed manually if needed)
-    return list(parse_emoji(char_and_emotes, default_size if has_custom else emote_size))
+    return list(parse_emoji(char_and_emotes, emote_size if has_custom else default_size))
 
 
 @plugins.command(aliases="huge")
@@ -165,7 +165,7 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
 
     # Resize all emoji (so that the height == size) when one doesn't match any of the predetermined sizes
     total_width = 0
-    if not size == default_size and not size == emote_size:
+    if size not in (default_size, emote_size):
         for e in parsed_emoji:
             if e.height > size:
                 width = round(size / e.height)
