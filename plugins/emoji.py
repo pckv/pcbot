@@ -54,7 +54,7 @@ def get_emoji(chars: str, size=default_size):
     size_bytes = bytes(str(size), encoding="utf-8")
     emoji_bytes = emoji_bytes.replace(b"<svg ",
                                       b"<svg width=\"" + size_bytes + b"px\" height=\"" + size_bytes + b"px\" ")
-    return cairosvg.svg2png(emoji_bytes)
+    return Image.open(BytesIO(cairosvg.svg2png(emoji_bytes)))
 
 
 async def get_emote(emote_id: str, server: discord.Server):
@@ -68,23 +68,30 @@ async def get_emote(emote_id: str, server: discord.Server):
     # Otherwise, download the emote, store it in the cache and return
     emote_bytes = await utils.download_file(emote.url)
     emote_cache[emote.id] = emote_bytes
-    return emote_bytes
+    return Image.open(BytesIO(emote_bytes))
 
 
-def parse_emoji(text: str):
+def parse_emoji(chars: list, size):
     """ Go through and return all emoji in the given string. """
-    # Convert all characters in the given text to hex format strings.
-    # Also don't add any characters with a lower index than 1000, considering they would never be emoji anyway
-    chars = [hex(ord(c))[2:] for c in text if ord(c) > 1000]
+    # Convert all characters in the given list to hex format strings, and leave the Image objects alone
+    chars = [hex(ord(c))[2:] if type(c) is str else c for c in chars]
     chars_remaining = length = len(chars)
 
-    # Try the entire string backwards, and reduce the length by one character until there'text a match
+    # Try the entire string backwards, and reduce the length by one character until there's a match
     while True:
-        sliced_chars = chars[:length]
+        sliced_emoji = chars[:length]
+
+        # If this is a custom emote, yield it and progress
+        if type(sliced_emoji[0]) is Image.Image:
+            yield sliced_emoji[0]
+
+            chars = chars[length:]
+            chars_remaining = length = len(chars)
+            continue
 
         # If the emoji is in the list, update the index and reset the length, with the updated index
-        if "-".join(sliced_chars) in emoji.keys():
-            yield "-".join(sliced_chars)
+        if "-".join(sliced_emoji) in emoji.keys():
+            yield get_emoji("-".join(sliced_emoji), size=size)
 
             chars = chars[length:]
             chars_remaining = length = len(chars)
@@ -101,58 +108,79 @@ def parse_emoji(text: str):
             break
 
 
-async def format_emotes(text: str, server: discord.Server):
+async def format_emoji(text: str, server: discord.Server):
     """ Creates a list supporting both emoji and custom emotes. """
-    emotes = []
+    char_and_emotes = []
 
-    # Download and add all custom emotes to the emotes list and replace
-    # all custom emotes found in the text
-    for emote_name, emote_id in emote_regex.findall(text):
-        emote = await get_emote(emote_id, server)
-        emotes.append(emote)
-        text = text.replace("<:{}:{}>".format(emote_name, emote_id), "")
+    # Loop through each character and compare with custom emotes.
+    # Add characters to list, along with emote byte-strings
+    text_iter = iter(enumerate(text))
+    has_custom = False
+    for i, c in text_iter:
+        match = emote_regex.match(text[i:])
+        if match:
+            char_and_emotes.append(await get_emote(match.group("id"), server))
+            has_custom = True
 
-    # The size will be emote size if any custom emotes are specified
-    size = emote_size if emotes else default_size
-    parsed_emoji = list(parse_emoji(text))
+            # Skip ahead in the iterator
+            for _ in range(len(match.group(0) - 1)):
+                next(text_iter)
+        else:
+            char_and_emotes.append(c)
 
-    # When the size of all emoji next to each other is greater than the max width,
-    # divide the size to properly fit the max_width at all times
-    # TODO: change the size of custom emotes when this part is in effect
-    if size * len(parsed_emoji) > max_width:
-        scale = 1 / ((size * len(parsed_emoji) - 1) // max_width + 1)
-        size *= scale
-
-    return [get_emoji(c, size=size) for c in parsed_emoji] + emotes
+    # Return the list of emoji, and set the respective size (should be managed manually if needed)
+    return list(parse_emoji(char_and_emotes, default_size if has_custom else emote_size))
 
 
-@plugins.command()
+@plugins.command(aliases="huge")
 async def greater(message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
-    parsed_emoji = await format_emotes(text, message.server)
+    parsed_emoji = await format_emoji(text, message.server)
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
     # Combine multiple images if necessary, otherwise send just the one
     if len(parsed_emoji) == 1:
-        await client.send_file(message.channel, BytesIO(parsed_emoji[0]), filename="emoji.png")
+        image_fp = utils.convert_image_object(parsed_emoji[0])
+        await client.send_file(message.channel, image_fp, filename="emoji.png")
         return
 
-    # Generate image objects for all our byte-like objects, and find the size
-    image_objects = [Image.open(BytesIO(b)) for b in parsed_emoji]
-    size, _ = image_objects[0].size
-    width, height = size * len(image_objects), size
+    # See if there's a need to rescale all images.
+    size = default_size
+    for e in parsed_emoji:
+        width, height = e.size
+
+        # Set the size to the lowest dimensions
+        if width < size:
+            size = width
+        if height < size:
+            size = height
+
+    # When the size of all emoji next to each other is greater than the max width,
+    # divide the size to properly fit the max_width at all times
+    if size * len(parsed_emoji) > max_width:
+        scale = 1 / ((size * len(parsed_emoji) - 1) // max_width + 1)
+        size *= scale
+
+    # Resize all emoji (so that the height == size) when one doesn't match any of the predetermined sizes
+    total_width = 0
+    if not size == default_size and not size == emote_size:
+        for e in parsed_emoji:
+            if e.height > size:
+                width = round(size / e.height)
+                total_width += width
+                e.resize((width, e.height), Image.ANTIALIAS)
 
     # Stitch all the images together
-    image = Image.new("RGBA", (width, height))
-    for i, image_object in enumerate(image_objects):
-        image.paste(image_object, box=(i * size, 0))
+    image = Image.new("RGBA", (total_width, size))
+    x = 0
+    for image_object in parsed_emoji:
+        image.paste(image_object, box=(x, 0))
+        x += image_object.width
 
     # Upload the stitched image
-    buffer = BytesIO()
-    image.save(buffer, "PNG")
-    buffer.seek(0)
-    await client.send_file(message.channel, buffer, filename="emojies.png")
+    image_fp = utils.convert_image_object(image)
+    await client.send_file(message.channel, image_fp, filename="emojies.png")
 
 
 init_emoji()

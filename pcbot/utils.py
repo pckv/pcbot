@@ -8,6 +8,7 @@ import re
 import shlex
 from enum import Enum
 from functools import wraps
+from io import BytesIO
 
 import discord
 import aiohttp
@@ -213,6 +214,14 @@ async def download_json(url, **params):
                 return await response.json()
             except ValueError:
                 return None
+
+
+def convert_image_object(image):
+    """ Converts a PIL.Image.Image object into a buffer. """
+    buffer = BytesIO()
+    image.save(buffer, "PNG")
+    buffer.seek(0)
+    return buffer
 
 
 def find_member(server: discord.Server, name, steps=3, mention=True):
