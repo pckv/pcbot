@@ -131,7 +131,7 @@ async def format_emoji(text: str, server: discord.Server):
 
     # When the size of all emoji next to each other is greater than the max width,
     # divide the size to properly fit the max_width at all times
-    size = 0
+    size = default_size
     if has_custom:
         size = emote_size
     else:
