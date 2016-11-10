@@ -87,7 +87,7 @@ class Mods(IntEnum):
         mods = [cls(mod) for mod in mods_bin]
 
         # Manual checks for multiples
-        if Mods.DT and Mods.NC in mods:
+        if Mods.DT in mods and Mods.NC in mods:
             mods.remove(Mods.DT)
 
         return mods
