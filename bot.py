@@ -111,10 +111,11 @@ async def autosave():
 
 def log_message(message: discord.Message, prefix: str=""):
     """ Logs a command/message. """
-    logging.info("{prefix}@{0.author}{server} -> {0.content}".format(
-        message,
+    logging.info("{prefix}@{author}{server} -> {content}".format(
+        author=message.author,
+        content=message.content.split("\n")[0],
         server=" ({})".format(message.server.name) if not message.channel.is_private else "",
-        prefix=prefix)
+        prefix=prefix,)
     )
 
 
