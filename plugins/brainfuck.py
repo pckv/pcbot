@@ -105,7 +105,7 @@ def run_brainfuck(code: str, for_input: str=""):
 
         i += 1
         if i >= len(code):
-            return output
+            return output or "No output; current pointer value: {}".format(pointer.value)
 
         iterations += 1
         if iterations >= max_iterations:
