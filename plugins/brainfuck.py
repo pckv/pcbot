@@ -64,7 +64,7 @@ def find_loop_end(code: str, start: int):
         if nest == 0:
             return start + i
 
-    raise SyntaxError("Line {}: Loop never ends!".format(start))
+    raise SyntaxError("{}: Loop never ends!".format(start))
 
 
 def run_brainfuck(code: str, for_input: str=""):
@@ -105,7 +105,7 @@ def run_brainfuck(code: str, for_input: str=""):
 
         i += 1
         if i >= len(code):
-            return output or "No output; current pointer value: {}".format(pointer.value)
+            return output or "Pointer value: {}".format(pointer.value)
 
         iterations += 1
         if iterations >= max_iterations:
