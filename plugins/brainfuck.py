@@ -98,10 +98,11 @@ def run_brainfuck(code: str, for_input: str=""):
             if pointer.value == 0:
                 i = end
         elif char == "]":
-            if not pointer.value == 0:
-                i = loops[-1].start
-            else:
-                del loops[-1]
+            if loops:
+                if not pointer.value == 0:
+                    i = loops[-1].start
+                else:
+                    del loops[-1]
 
         i += 1
         if i >= len(code):
