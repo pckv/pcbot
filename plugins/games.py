@@ -163,20 +163,14 @@ class HotPotato(Game):
         while self.time_remaining > 0:
             if not pass_to:
                 pass_from = list(self.participants)
-                pass_from.pop(pass_from.index(member.id))
+                pass_from.pop(pass_from.index(member))
                 pass_to = [choice(pass_from)]
                 pass_from.pop(pass_from.index(pass_to[0]))
                 pass_to.append(choice(pass_from))
 
             if reply is not None:
-                await client.send_message(
-                    self.channel,
-                    "{} :bomb: got the bomb! Pass it to either {} or {}!".format(
-                        member.mention,
-                        self.message.server.get_member(pass_to[0]).mention,
-                        self.message.server.get_member(pass_to[1]).mention
-                    )
-                )
+                await client.send_message(self.channel, "{} :bomb: got the bomb! Pass it to either {} or {}!".format(
+                        member.mention, pass_to[0].mention, pass_to[1].mention))
 
             def check(m):
                 if len(m.mentions) > 0:
