@@ -174,7 +174,7 @@ class HotPotato(Game):
 
             def check(m):
                 if len(m.mentions) > 0:
-                    if m.mentions[0].id in pass_to:
+                    if m.mentions[0] in pass_to:
                         return True
 
                 return False
@@ -199,7 +199,7 @@ class HotPotato(Game):
 class Typing(Game):
     name = "Typing"
 
-    sentences = ["Skallebarn du skallebarn, GID a ANGRY"]
+    sentences = ["GID A ragte omg"]
     reply = "{member.mention} finished in **{time:.0f} seconds** / **{wpm:.0f}wpm** / **{accuracy:.02%}**"
     minimum_wpm = 40
 
