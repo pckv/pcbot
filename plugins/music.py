@@ -8,6 +8,7 @@ Commands:
 """
 
 from collections import namedtuple, deque
+from traceback import print_exc
 from typing import Dict
 
 import asyncio
@@ -148,6 +149,7 @@ async def play(message: discord.Message, song: Annotate.CleanContent):
         player = await state.voice.create_ytdl_player(song, ytdl_options=youtube_dl_options, after=state.play_next)
     except:
         await client.say(message, "**Could not add this song to the queue.**")
+        print_exc()
         return
 
     # Make sure the song isn't too long

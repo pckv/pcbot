@@ -485,7 +485,7 @@ async def on_ready():
 
     # Notify the owner when they have not set their API key
     if osu_config.data["key"] == "change to your api key":
-        logging.warning("osu! functionality is unavailable until an API key is provided")
+        logging.warning("osu! functionality is unavailable until an API key is provided (config/osu.json)")
 
     while not client.is_closed:
         try:
