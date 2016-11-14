@@ -3,7 +3,7 @@
     Adds Mods enums with raw value calculations and some
     request functions. """
 
-from enum import IntEnum
+from enum import Enum
 import re
 
 from pcbot import utils
@@ -21,7 +21,7 @@ def set_api_key(s: str):
     api_key = s
 
 
-class GameMode(IntEnum):
+class GameMode(Enum):
     """ Enum for gamemodes. """
     Standard = 0
     Taiko = 1
@@ -38,7 +38,7 @@ class GameMode(IntEnum):
         return None
 
 
-class Mods(IntEnum):
+class Mods(Enum):
     """ Enum for displaying mods. """
     NF = 0
     EZ = 1
@@ -74,7 +74,7 @@ class Mods(IntEnum):
 
     def __new__(cls, num):
         """ Convert the given value to 2^num. """
-        obj = int.__new__(cls)
+        obj = object.__new__(cls)
         obj._value_ = 2 ** num
         return obj
 
