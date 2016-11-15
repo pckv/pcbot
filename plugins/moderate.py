@@ -417,10 +417,10 @@ async def on_member_ban(member: discord.Member):
 
 
 @plugins.event()
-async def on_member_unban(member: discord.Member):
+async def on_member_unban(server: discord.Server, user: discord.Member):
     """ Update the changelog with unbanned members. """
-    changelog_channel = get_changelog_channel(member.server)
+    changelog_channel = get_changelog_channel(server)
     if not changelog_channel:
         return
 
-    await client.send_message(changelog_channel, "{0.mention} was unbanned from the server.".format(member))
+    await client.send_message(changelog_channel, "{0.mention} was unbanned from the server.".format(user))
