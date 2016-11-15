@@ -64,13 +64,13 @@ class Pointer:
 
     def right(self):
         self.cursor += 1
-        if self.cursor < 0:
-            self.cursor = self.cells
+        if self.cursor >= self.cells:
+            self.cursor = 0
 
     def left(self):
         self.cursor -= 1
-        if self.cursor > self.cells:
-            self.cursor = 0
+        if self.cursor < 0:
+            self.cursor = self.cells - 1
 
 
 def find_loop_end(code: str, start: int):
