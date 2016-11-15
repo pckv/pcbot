@@ -8,7 +8,7 @@ client = plugins.client  # type: discord.Client
 
 
 cfg = Config("brainfuck", data={})  # Keys are names and values are dict with author, code
-max_iterations = 2 ** 17
+max_iterations = 2 ** 20
 brainfuck_chars = "+-><][.,"
 
 
