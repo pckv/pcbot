@@ -1,7 +1,5 @@
 """ Plugin for compiling and executing brainfuck code. """
 
-from collections import namedtuple
-
 import discord
 
 import plugins
@@ -11,11 +9,30 @@ client = plugins.client  # type: discord.Client
 
 cfg = Config("brainfuck", data={})  # Keys are names and values are dict with author, code
 max_iterations = 2 ** 17
+brainfuck_chars = "+-><][.,"
 
-Loop = namedtuple("Loop", "start end")
+
+class Loop:
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+        self.pointer = None
+
+    def set_pointer(self, pointer):
+        self.pointer = (pointer.cursor, pointer.value)
+
+    def compare_pointer(self, pointer):
+        if self.pointer is None:
+            return False
+
+        return self.pointer == (pointer.cursor, pointer.value)
 
 
 class TooManyIterations(Exception):
+    pass
+
+
+class InfiniteLoop(Exception):
     pass
 
 
@@ -101,8 +118,12 @@ def run_brainfuck(code: str, for_input: str=""):
                 i = end
         elif char == "]":
             if loops:
+                if loops[-1].compare_pointer(pointer):
+                    raise InfiniteLoop("{}: Pointer value unchanged.".format(loops[-1].start))
+
                 if not pointer.value == 0:
                     i = loops[-1].start
+                    loops[-1].set_pointer(pointer)
                 else:
                     del loops[-1]
 
@@ -212,3 +233,10 @@ async def remove(message: discord.Message, name: snippet_name):
 async def list_entries(message: discord.Message):
     """ Display a list of all brainfuck entries. """
     await client.say(message, "**Entries:**```\n{}```".format(", ".join(cfg.data.keys())))
+
+
+@brainfuck.command(aliases="min reduce")
+async def minimize(message: discord.Message, code: Annotate.Code):
+    """ Minimize the given code by removing everything that is not recognized
+    brainfuck code. """
+    await client.say(message, "```\n{}```".format("".join(c for c in code if c in brainfuck_chars)))
