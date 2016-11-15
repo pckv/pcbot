@@ -8,7 +8,7 @@ client = plugins.client  # type: discord.Client
 
 
 cfg = Config("brainfuck", data={})  # Keys are names and values are dict with author, code
-max_iterations = 2 ** 20
+max_iterations = 2 ** 26
 brainfuck_chars = "+-><][.,"
 
 
@@ -111,6 +111,8 @@ def run_brainfuck(code: str, for_input: str=""):
         elif char == ",":
             pointer.value = input_pointer.value
             input_pointer.right()
+            if loops:
+                loops[-1].pointer = None
         elif char == "[":
             end = find_loop_end(code[i + 1:], i)
             loops.append(Loop(start=i, end=end))
