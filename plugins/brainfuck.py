@@ -10,6 +10,7 @@ client = plugins.client  # type: discord.Client
 
 
 cfg = Config("brainfuck", data={})  # Keys are names and values are dict with author, code
+max_iterations = 2 ** 17
 
 Loop = namedtuple("Loop", "start end")
 
@@ -74,7 +75,6 @@ def run_brainfuck(code: str, for_input: str=""):
     input_pointer = Pointer()
     input_pointer.array[:len(for_input)] = list(ord(c) for c in for_input)
     loops = []
-    max_iterations = 2 ** 16
 
     i, iterations = 0, 0
     output = ""
