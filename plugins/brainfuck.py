@@ -5,9 +5,11 @@ from collections import namedtuple
 import discord
 
 import plugins
-from pcbot import Annotate
+from pcbot import Annotate, Config
 client = plugins.client  # type: discord.Client
 
+
+cfg = Config("brainfuck", data={})  # Keys are names and values are dict with author, code
 
 Loop = namedtuple("Loop", "start end")
 
@@ -113,8 +115,23 @@ def run_brainfuck(code: str, for_input: str=""):
             raise TooManyIterations("Program exceeded maximum number of iterations ({})".format(max_iterations))
 
 
+async def brainfuck_in_channel(channel: discord.Channel, code, program_input):
+    try:
+        output = run_brainfuck(code, program_input)
+    except Exception as e:
+        await client.send_message(channel, "```\n{}: {}```".format(type(e).__name__, str(e)))
+    else:
+        assert len(output) <= 2000, "**The output was too long.**"
+        await client.send_message(channel, "```\n{}```".format(output))
+
+
 @plugins.command(aliases="bf")
 async def brainfuck(message: discord.Message, code: Annotate.Code):
+    """ Run the given brainfuck code and prompt for input if required.
+
+    This interpretation of brainfuck always returns a value with the , command,
+    which means that whenever there is no input to retrieve, a 0 would be inserted
+    in the pointer cell. """
     program_input = ""
     if "," in code:
         await client.say(message, "**Input required, please type:**")
@@ -123,10 +140,75 @@ async def brainfuck(message: discord.Message, code: Annotate.Code):
 
         program_input = reply.clean_content
 
+    await brainfuck_in_channel(message.channel, code, program_input)
+
+
+@plugins.argument()
+def snippet_name(name: str):
     try:
-        output = run_brainfuck(code, program_input)
-    except Exception as e:
-        await client.say(message, "```\n{}: {}```".format(type(e).__name__, str(e)))
-    else:
-        assert len(output) <= 2000, "**The output was too long.**"
-        await client.say(message, "```\n{}```".format(output))
+        name = str(name).lower()
+    except:
+        return None
+
+    return name.replace(" ", "")
+
+
+def assert_exists(name: str):
+    """ Check if the brainfuck entry exists. """
+    assert name in cfg.data, "No saved entry with name `{}`.".format(name)
+
+
+def assert_author(name: str, member: discord.Member):
+    """ Make sure that whoever is modifying a brainfuck entry
+    is the author of said entry. """
+    author = discord.utils.get(client.get_all_members(), id=cfg.data[name]["author"])
+    assert author == member, "You are not the author of this entry. **({})**".format(author or "Unknown author")
+
+
+@brainfuck.command(aliases="exec do load")
+async def run(message: discord.Message, name: snippet_name, args: Annotate.CleanContent=""):
+    """ Run an entry of brainfuck code. Explore entries with `{pre}brainfuck list`."""
+    assert_exists(name)
+
+    code = cfg.data[name]["code"]
+    await brainfuck_in_channel(message.channel, code, args)
+
+
+@brainfuck.command(aliases="create set")
+async def add(message: discord.Message, name: snippet_name, code: Annotate.Code):
+    """ Adds a brainfuck snippet entry with the given code. This code can be executed
+    with `{pre}brainfuck run`."""
+    assert name not in cfg.data, "Entry `{}` already exists.".format(name)
+
+    cfg.data[name] = dict(author=message.author.id, code=code)
+    cfg.save()
+    await client.say(message, "Entry `{}` created.".format(name))
+
+
+@brainfuck.command(aliases="extend more")
+async def append(message: discord.Message, name: snippet_name, code: Annotate.Code):
+    """ Appends brainfuck to the specified entry. Only the creator of said entry
+    can append to its code. """
+    assert_exists(name)
+    assert_author(name, message.author)
+
+    cfg.data[name]["code"] += code
+    cfg.save()
+    await client.say(message, "The given code was appended to `{}`.".format(name))
+
+
+@brainfuck.command(aliases="delete")
+async def remove(message: discord.Message, name: snippet_name):
+    """ Remove one of your brainfuck entries. """
+    assert_exists(name)
+    assert_author(name, message.author)
+
+    del cfg.data[name]
+    cfg.save()
+    await client.say(message, "Removed entry with name `{}`.".format(name))
+
+
+@brainfuck.command(name="list")
+async def list_entries(message: discord.Message):
+    """ Display a list of all brainfuck entries. """
+    await client.say(message, "**Entries:**```\n{}```".format(", ".join(cfg.data.keys())))
