@@ -93,7 +93,7 @@ The command prefix is **bot specific**, which means that servers can't
 set a custom command prefix. To change the bot prefix, head over to 
 `config/bot-meta.json`. The prefix can be any number of characters.
 
-# The info command
+### The info command
 PCBOT has a dedicated info command, by default `!pcbot`, which 
 displays info such as the name, owner, uptime, servers and the bot 
 application description. To change the name of the command to suit 
