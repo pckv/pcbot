@@ -1,5 +1,4 @@
 import discord
-import asyncio
 import pendulum
 from pytz import all_timezones
 

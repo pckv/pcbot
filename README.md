@@ -3,8 +3,6 @@ WIP discord bot using [discord.py].
 
 **PCBOT is only supported by python version 3.5.0 and newer.**
 
-[discord.py]: https://github.com/Rapptz/discord.py
-
 ## BotéMon
 **For those who have arrived from BotéMon and wish to contribute/have 
 a look/access the resources**, the libraries used are found in 
@@ -17,16 +15,44 @@ Currently, BotéMon is the only version of PCBOT I host for public use.
 [botemon]: https://bots.discord.pw/bots/203868728884985857
 
 ## Installing
+Before installing the bot, you must make sure you're running python 
+3.5.0+
+
+```
+$ python -V
+Python 3.5.2
+```
+
+The next step is installing the latest version of [discord.py]:
+
+```
+python -m pip install discord.py --update
+```
+
 To install the bot, one can clone the repo:
 
 ```
 git clone https://github.com/PcBoy111/PCBOT.git
 ```
 
-*Or*, just simply [download the repo as ZIP][zip].
+This is the best way to install as the bot is actively in development. 
+If you want to update the bot using git, run `git pull` and either 
+restart the bot or reload the updated plugins.
 
-Several plugins require additional modules. You can figure out which
-modules you're missing by running the bot.
+If you do not care about updates, you can 
+[download the repo as ZIP][zip].
+
+Several plugins require additional modules. These modules are not 
+required unless you want a specific plugin to work. Some features and 
+modules are only supported if you're using Linux. The bot will prompt 
+errors when modules are missing, although modules as of now are:
+
+| Module    | Notes                                             |
+| --------- | ------------------------------------------------- |
+| Pillow    | `pip install Pillow`                              |
+| pendulum  | `pip install pendulum`, might also need `pytz`    |
+| cairosvg  | `pip install cairosvg`, only supported for Linux  |
+| oppai     | Not a python module; see doc in `plugins/osu.py`  |
 
 [zip]: https://github.com/PcBoy111/PCBOT/archive/master.zip
 
@@ -38,17 +64,23 @@ and run bot.py:
 python bot.py
 ```
 
-You should get a prompt asking for your bot token. If you want to 
-login to a regular account, use the --email/-e token like so:
+You should get a prompt asking for your bot token. One can also use the
+--token / -t argument, in for instance a bash script:
+
+```sh
+#!bin/sh
+python bot.py -t TOKEN
+```
+
+If you want to login to a regular account, use the --email / -e 
+argument like so:
 
 ```
 python bot.py --email EMAIL
 ```
 
 The bot will prompt for a password the first time you login with an 
-email. For more information, see [Command-line arguments.][cmd]
-
-[cmd]: https://github.com/PcBoy111/PCBOT/blob/master/README.md#command-line-arguments
+email. For more command-line arguments, execute `python bot.py -h`.
 
 ## Assigning ownership
 After running the bot for the first time, you want to make sure you're 
@@ -68,10 +100,6 @@ CRITICAL [bot] 2016-04-24 23:03:49,138: Owner code for assignment: 263
 After sending the code in a private message, in this case `263`, 
 your account will be registered as the bot owner.
 
-## Command-line arguments
-Execute `python bot.py -h` to see a list of supported command-line 
-arguments.
-
 ## Plugins
 PCBOT has a folder based plugin system. **The documentation for 
 creating these plugins might come along soon**, although if you wish to 
@@ -83,6 +111,8 @@ library folder.
 
 The owner can reload, unload and load plugins with the 
 `!plugin` command.
+
+[discord.py]: https://github.com/Rapptz/discord.py
 
 ## Licence
 The MIT License (MIT)
