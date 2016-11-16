@@ -1,16 +1,30 @@
 """ Plugin for osu! commands
 
 This plugin will notify any registered user's pp difference and if they
-set a new best also post that. Keep in mind this plugin might send a lot
-of requests, so keep up to date with the "osu debug" command.
+set a new best also post that. It also includes many osu! features, such
+as a signature generator, pp calculation and user map updates.
 
-The pp command requires that you setup the "oppai" lib:
-https://github.com/Francesco149/oppai
+TUTORIAL:
+    A member with Manage Server permission must first assign one or more channels
+    that the bot should post scores or map updates in.
+    See: !help osu config
 
-The directory would be "/plugins/osulib/oppai/". It should be setup so that
-the bot can run "/plugins/osulib/oppai/oppai" as an executable. Note that
-because of limitations in discord.py's event loop, this command is only
-available for Linux users.
+    Members may link their osu! profile with `!osu link <name ...>`. The bot will
+    only keep track of players who either has `osu` in their playing name, e.g:
+        Playing osu!
+    or has their rank as #xxx, for instance:
+        Streaming Chill | #4 Norway
+
+    This plugin might send a lot of requests, so keep up to date with the
+    !osu debug command.
+
+    The pp command requires that you setup the "oppai" lib:
+    https://github.com/Francesco149/oppai
+
+    The directory would be "/plugins/osulib/oppai/". It should be setup so that
+    the bot can run "/plugins/osulib/oppai/oppai" as an executable. Note that
+    because of limitations in discord.py's event loop, this command is only
+    available for Linux users.
 
 Commands:
     osu

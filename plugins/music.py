@@ -3,6 +3,22 @@
 Some of the logic is very similar to the example at:
     https://github.com/Rapptz/discord.py/blob/master/examples/playlist.py
 
+TUTORIAL:
+    This module would require the bot to have ffmpeg installed and set in
+    PATH, so that one could run `ffmpeg` in the shell.
+    See: https://www.ffmpeg.org/
+
+    The bot owner can link a music channel to any voice channel in a server
+    using the !music link <voice channel ...> command. After doing this, the
+    bot should automatically join the linked channel whenever a member joins
+    it. The members in the channel can then manage music playing.
+
+ISSUES:
+    The music player seems to randomly start skipping songs, or rather
+    stopping them way too early. I have no solution to this issue and do not
+    know why it happens, but apparently I'm not the only bot creator who has
+    experienced said issue.
+
 Commands:
     music
 """

@@ -47,14 +47,17 @@ required unless you want a specific plugin to work. Some features and
 modules are only supported if you're using Linux. The bot will prompt 
 errors when modules are missing, although modules as of now are:
 
-| Module    | Notes                                             |
-| --------- | ------------------------------------------------- |
-| Pillow    | `pip install Pillow`                              |
-| pendulum  | `pip install pendulum`, might also need `pytz`    |
-| cairosvg  | `pip install cairosvg`, only supported for Linux  |
-| oppai     | Not a python module; see doc in `plugins/osu.py`  |
+| Module    | Notes                                                |
+| --------- | ---------------------------------------------------- |
+| Pillow    | `pip install Pillow`                                 |
+| pendulum  | `pip install pendulum`, might also need `pytz`       |
+| cairosvg  | `pip install cairosvg`, only supported for Linux     |
+| oppai     | Not a python module; see doc in [`plugins/osu.py`]   |
+| ffmpeg    | Not a python module; see doc in [`plugins/music.py`] |
 
 [zip]: https://github.com/PcBoy111/PCBOT/archive/master.zip
+[`plugins/osu.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/osu.py
+[`plugins/music.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/music.py
 
 ## Running
 Running the bot is simple. Go to the root directory 
@@ -76,13 +79,32 @@ If you want to login to a regular account, use the --email / -e
 argument like so:
 
 ```
-python bot.py --email EMAIL
+python bot.py -e EMAIL
 ```
 
 The bot will prompt for a password the first time you login with an 
-email. For more command-line arguments, execute `python bot.py -h`.
+email. 
 
-## Assigning ownership
+For more command-line arguments, execute `python bot.py -h`.
+
+## Configuration
+### Changing the command prefix
+The command prefix is **bot specific**, which means that servers can't
+set a custom command prefix. To change the bot prefix, head over to 
+`config/bot-meta.json`. The prefix can be any number of characters.
+
+# The info command
+PCBOT has a dedicated info command, by default `!pcbot`, which 
+displays info such as the name, owner, uptime, servers and the bot 
+application description. To change the name of the command to suit 
+your bot name, change the "name" key in `config/bot-meta.json`. This 
+name should avoid any non-alphanumeric characters, although you are
+free to include spaces in the name. 
+
+The info command will be named after this name, as lowercase and 
+without any spaces.
+
+### Assigning ownership
 After running the bot for the first time, you want to make sure you're 
 assigned the owner account. This process is very straight-forward and 
 requires that you have access to the bot log, and can respond to the 
@@ -100,17 +122,20 @@ CRITICAL [bot] 2016-04-24 23:03:49,138: Owner code for assignment: 263
 After sending the code in a private message, in this case `263`, 
 your account will be registered as the bot owner.
 
-## Plugins
-PCBOT has a folder based plugin system. **The documentation for 
-creating these plugins might come along soon**, although if you wish to 
-make a plugin, a good example is found in `pcbot/builtin.py`.
+### Plugins
+PCBOT has a folder based plugin system. If you wish to make a plugin, 
+check out [`pcbot/builtin.py`]. There are more features than showcased 
+in the builtin plugin, however there is no documentation for them yet.
 
 **To remove an unwanted plugin from the bot**, simply remove it from 
 the `plugins/` folder. You are also free to remove any accompanying 
-library folder.
+library folder. Keep in mind **they will be re-added** when updating 
+the bot using git.
 
-The owner can reload, unload and load plugins with the 
-`!plugin` command.
+The owner can manage plugins with the `!plugin` command. See
+`!help plugin` for more information.
+
+[`pcbot/builtin.py`]: https://github.com/PcBoy111/PCBOT/blob/master/pcbot/builtin.py
 
 [discord.py]: https://github.com/Rapptz/discord.py
 
