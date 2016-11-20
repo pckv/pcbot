@@ -242,3 +242,16 @@ async def minimize(message: discord.Message, code: Annotate.Code):
     """ Minimize the given code by removing everything that is not recognized
     brainfuck code. """
     await client.say(message, "```\n{}```".format("".join(c for c in code if c in brainfuck_chars)))
+
+
+@brainfuck.command(aliases="code")
+async def source(message: discord.message, name: snippet_name):
+    """ Display the source code of a brainfuck program. """
+    assert_exists(name)
+    code = cfg.data[name]["code"]
+
+    m = "```{}```".format(code)
+    if len(m) > 2000:
+        await client.say(message, "The code for this entry exceeds 2000 characters.")
+    else:
+        await client.say(message, m)
