@@ -716,7 +716,8 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
     output, _ = await process.communicate()
     output = output.decode("utf-8")
 
-    pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp", output)
+    # Search for the pp, which should be in the very end
+    pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp$", output)
 
     # The library did not return the pp. Perhaps the user did something wrong?
     assert pp_match, "A problem occurred when parsing the beatmap."
