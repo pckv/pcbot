@@ -35,28 +35,29 @@ async def update_messages(channel: discord.Channel):
     messages = stored_messages[channel.id]  # type: deque
     update_task.clear()
 
-    # If we have already stored some messages we will log from any new messages
-    if messages:
-        new = []
-        async for m in client.logs_from(channel, after=messages[-1], limit=logs_from_limit):
-            if not m.content:
-                continue
+    try:
+        # If we have already stored some messages we will log from any new messages
+        if messages:
+            new = []
+            async for m in client.logs_from(channel, after=messages[-1], limit=logs_from_limit):
+                if not m.content:
+                    continue
 
-            new.append(m)
+                new.append(m)
 
-        # Add the reversed list of messages to the end
-        messages.extend(reversed(new))
+            # Add the reversed list of messages to the end
+            messages.extend(reversed(new))
 
-    # For our first time we want logs_from_limit messages
-    else:
-        async for m in client.logs_from(channel, limit=logs_from_limit):
-            # We have no messages, so insert each from the left, leaving us with the oldest at index -1
-            if not m.content:
-                continue
+        # For our first time we want logs_from_limit messages
+        else:
+            async for m in client.logs_from(channel, limit=logs_from_limit):
+                # We have no messages, so insert each from the left, leaving us with the oldest at index -1
+                if not m.content:
+                    continue
 
-            messages.appendleft(m)
-
-    update_task.set()
+                messages.appendleft(m)
+    finally:
+        update_task.set()
 
 
 def is_valid_option(arg: str):
