@@ -192,7 +192,7 @@ async def skip(message: discord.Message):
 
     # We want to skip immediately when the requester skips their own song.
     if message.author == state.current.requester:
-        await client.say(message, "**Skipped song on behalf of the requester.**")
+        await client.say(message, "Skipped song on behalf of the requester.")
         state.skip()
         return
 
@@ -205,10 +205,24 @@ async def skip(message: discord.Message):
         await client.say(message, "**Skipped song.**")
         state.skip()
     else:
-        await client.say(message, "**Voted to skip the current song.** `{}/{}`".format(votes, needed_to_skip))
+        await client.say(message, "Voted to skip the current song. `{}/{}`".format(votes, needed_to_skip))
 
 
-@music.command(aliases="volume v")
+@music.command(aliases="u nvm fuck no")
+async def undo(message: discord.Message):
+    assert_connected(message.author)
+    state = voice_states[message.server]
+
+    for song in reversed(state.queue):
+        if song.requester == message.author:
+            await client.say(message, "Removed previous request **{0.title}** from the queue.".format(song.player))
+            state.queue.remove(song)
+            return
+
+    await client.say(message, "**You have nothing to undo.**")
+
+
+@music.command(aliases="v volume")
 async def vol(message: discord.Message, volume: int):
     """ Set the volume of the player. Volume should be a number in percent. """
     assert_connected(message.author)
@@ -225,7 +239,7 @@ async def playing(message: discord.Message):
     await client.say(message, "Playing: " + state.format_playing())
 
 
-@music.command(aliases="q list l")
+@music.command(aliases="q l list")
 async def queue(message: discord.Message):
     """ Return a list of the queued songs. """
     assert_connected(message.author)
