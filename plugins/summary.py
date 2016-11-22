@@ -185,6 +185,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.LowerCont
         channel_match = valid_channel.match(value)
         if channel_match:
             assert not channel
+            assert channel.permissions_for(message.server.me).read_message_history, "**I can't see this channel.**"
             channel = utils.find_channel(message.server, channel_match.group())
             continue
 
