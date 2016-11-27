@@ -242,29 +242,29 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     :param name: display_name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
     :param mention: bool, check for mentions. """
-    member = None;
+    member = None
 
     # Return a member from mention
-    found_mention = member_mention_regex.search(name);
+    found_mention = member_mention_regex.search(name)
     if found_mention and mention:
-        member = server.get_member(found_mention.group("id"));
+        member = server.get_member(found_mention.group("id"))
 
-    name = name.lower();
+    name = name.lower()
 
     if not member:
         # Steps to check, higher values equal more fuzzy checks
         checks = [lambda m: m.name.lower() == name or m.display_name.lower() == name,
                   lambda m: m.name.lower().startswith(name) or m.display_name.lower().startswith(name),
-                  lambda m: name in m.display_name.lower() or name in m.name.lower()];
+                  lambda m: name in m.display_name.lower() or name in m.name.lower()]
 
         for i in range(steps if steps <= len(checks) else len(checks)):
-            member = discord.utils.find(checks[i], server.members);
+            member = discord.utils.find(checks[i], server.members)
 
             if member:
-                break;
+                break
 
     # Return the found member or None
-    return member;
+    return member
 
 
 def find_channel(server: discord.Server, name, steps=3, mention=True):
