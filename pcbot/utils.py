@@ -241,30 +241,30 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     :param server: discord.Server to look through for members.
     :param name: display_name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
-    :param mention: check for mentions. """
-    member = None
+    :param mention: bool, check for mentions. """
+    member = None;
 
     # Return a member from mention
-    found_mention = member_mention_regex.search(name)
+    found_mention = member_mention_regex.search(name);
     if found_mention and mention:
-        member = server.get_member(found_mention.group("id"))
+        member = server.get_member(found_mention.group("id"));
 
-    name = name.lower()
+    name = name.lower();
 
     if not member:
         # Steps to check, higher values equal more fuzzy checks
         checks = [lambda m: m.display_name.lower() == name,
                   lambda m: m.display_name.lower().startswith(name),
-                  lambda m: name in m.display_name.lower()]
+                  lambda m: name in m.display_name.lower()];
 
         for i in range(steps if steps <= len(checks) else len(checks)):
-            member = discord.utils.find(checks[i], server.members)
+            member = discord.utils.find(checks[i], server.members);
 
             if member:
-                break
+                break;
 
     # Return the found member or None
-    return member
+    return member;
 
 
 def find_channel(server: discord.Server, name, steps=3, mention=True):
@@ -330,17 +330,17 @@ def format_syntax_error(e):
 
 def get_formatted_code(code):
     """ Format code from markdown format. This will filter out markdown code
-    and give the executable python code, or return a string that would raise
-    an error when it's executed by exec() or eval(). """
+    and give the executable python code, or raise an exception. """
     match = markdown_code_regex.match(code)
 
     if match:
         code = match.group("code")
 
+        # Try finding the code via match, and make sure it wasn't somehow corrupt before returning
         if not code == "`":
             return code
 
-    return "raise Exception(\"Could not format code.\")"
+    raise Exception("Could not format code.")
 
 
 def format_objects(*objects: tuple, attr=None, dec: str= "", sep: str= ", "):
@@ -363,38 +363,30 @@ def format_objects(*objects: tuple, attr=None, dec: str= "", sep: str= ", "):
     return sep.join(dec + getattr(m, attr) + dec for m in objects)
 
 
-def format_channels(*members: discord.Member, attr="mention", dec: str = "`", sep: str = ", "):
-    """ Return a formatted string of members (or member) using the given
-    decorator and the given separator.
-
-    :param attr: The attribute to get from the member. """
-    return sep.join(dec + getattr(m, attr) + dec for m in members)
-
-
 def split(string, maxsplit=-1):
     """ Split a string with shlex when possible, and add support for maxsplit. """
-    if maxsplit == -1:
-        try:
-            split_object = shlex.shlex(string, posix=True)
-            split_object.quotes = '"`'
-            split_object.whitespace_split = True
-            split_object.commenters = ""
-            return list(split_object)
-        except ValueError:
-            return string.split()
-
+    # Generate a shlex object for eventually splitting manually
     split_object = shlex.shlex(string, posix=True)
     split_object.quotes = '"`'
     split_object.whitespace_split = True
     split_object.commenters = ""
+
+    # When the maxsplit is disabled, return the entire split object
+    if maxsplit == -1:
+        try:
+            return list(split_object)
+        except ValueError:  # If there is a problem with quotes, use the regular split method
+            return string.split()
+
+    # Create a list for the following split keywords
     maxsplit_object = []
     splits = 0
 
+    # Split until we've reached the limit
     while splits < maxsplit:
         maxsplit_object.append(next(split_object))
-
         splits += 1
 
+    # Add any following text without splitting
     maxsplit_object.append(split_object.instream.read())
-
     return maxsplit_object
