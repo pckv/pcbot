@@ -253,9 +253,9 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
 
     if not member:
         # Steps to check, higher values equal more fuzzy checks
-        checks = [lambda m: m.display_name.lower() == name,
-                  lambda m: m.display_name.lower().startswith(name),
-                  lambda m: name in m.display_name.lower()];
+        checks = [lambda m: m.name.lower() == name or m.display_name.lower() == name,
+                  lambda m: m.name.lower().startswith(name) or m.display_name.lower().startswith(name),
+                  lambda m: name in m.display_name.lower() or name in m.name.lower()];
 
         for i in range(steps if steps <= len(checks) else len(checks)):
             member = discord.utils.find(checks[i], server.members);
