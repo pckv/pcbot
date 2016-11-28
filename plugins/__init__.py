@@ -217,22 +217,24 @@ def parent_attr(cmd: Command, attr: str):
     return getattr(cmd.parent, attr, False) or getattr(cmd, attr)
 
 
-def get_command(plugin, trigger: str):
+def get_command(trigger: str):
     """ Find and return a command function from a plugin.
 
-    :param plugin: plugin module to look through.
     :param trigger: a str representing the command name or alias. """
-    commands = getattr(plugin, "__commands", None)
+    for plugin in all_values():
+        commands = getattr(plugin, "__commands", None)
 
-    # Return None if the plugin doesn't have any commands
-    if not commands:
-        return None
+        # Skip any plugin with no commands
+        if not commands:
+            continue
 
-    for cmd in plugin.__commands:
-        if trigger == cmd.name or trigger in cmd.aliases:
-            return cmd
-    else:
-        return None
+        for cmd in plugin.__commands:
+            if trigger == cmd.name or trigger in cmd.aliases:
+                return cmd
+        else:
+            continue
+
+    return None
 
 
 def get_sub_command(cmd, args: list):

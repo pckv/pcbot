@@ -349,7 +349,6 @@ async def on_message(message: discord.Message):
     The bot will handle all commands in plugins and send on_message to plugins using it. """
     # Make sure the client is ready before processing commands
     await client.wait_until_ready()
-
     start_time = datetime.now()
 
     # We don't care about channels we can't write in as the bot usually sends feedback
@@ -364,28 +363,28 @@ async def on_message(message: discord.Message):
     cmd_args = utils.split(message.content)
 
     # Get command name
-    cmd = ""
     if cmd_args[0].startswith(config.command_prefix) and len(cmd_args[0]) > len(config.command_prefix):
         cmd = cmd_args[0][len(config.command_prefix):]
+    else:
+        return
 
-    # Handle commands
-    for plugin in plugins.all_values():
-        # If there was a command and the bot can send messages in the channel, parse the command
-        if not cmd:
-            continue
-        command = plugins.get_command(plugin, cmd)
+    # Try finding a command object
+    command = plugins.get_command(cmd)
+    if not command:
+        return
 
-        if command:
-            parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
+    # Parse the command with the user's arguments
+    parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
+    if not parsed_command:
+        return
 
-            if parsed_command:
-                log_message(message)  # Log the command
-                client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))  # Run command
+    log_message(message)  # Log the command
+    client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))  # Run command
 
-                # Log time spent parsing the command
-                stop_time = datetime.now()
-                time_elapsed = (stop_time - start_time).total_seconds() / 1000
-                logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
+    # Log time spent parsing the command
+    stop_time = datetime.now()
+    time_elapsed = (stop_time - start_time).total_seconds() / 1000
+    logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
 
 
 async def add_tasks():

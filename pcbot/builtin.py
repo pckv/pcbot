@@ -32,15 +32,13 @@ async def help_(message: discord.Message, command: str.lower=None, *args):
         if command.startswith(config.command_prefix):
             command = command[len(config.command_prefix):]
 
-        for plugin in plugins.all_values():
-            cmd = plugins.get_command(plugin, command)
-            if not cmd:
-                continue
+        cmd = plugins.get_command(command)
+        if not cmd:
+            return
 
-            # Get the specific command with arguments and send the help
-            cmd = plugins.get_sub_command(cmd, args)
-            await client.say(message, utils.format_help(cmd))
-            break
+        # Get the specific command with arguments and send the help
+        cmd = plugins.get_sub_command(cmd, args)
+        await client.say(message, utils.format_help(cmd))
 
     # Display every command
     else:
