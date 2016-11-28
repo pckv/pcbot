@@ -237,11 +237,11 @@ def get_command(trigger: str):
     return None
 
 
-def get_sub_command(cmd, args: list):
+def get_sub_command(cmd, *args: str):
     """ Go through all arguments and return any group command function.
 
     :param cmd: type plugins.Command
-    :param args: a list of arguments *following* the command trigger. """
+    :param args: str of arguments following the command trigger. """
     for arg in args:
         for sub_cmd in cmd.sub_commands:
             if arg == sub_cmd.name or arg in sub_cmd.aliases:
@@ -251,6 +251,25 @@ def get_sub_command(cmd, args: list):
             break
 
     return cmd
+
+
+async def execute(cmd, message: discord.Message, *args, **kwargs):
+    """ Execute a command specified by name, alias or command object.
+    This is really only useful as a shortcut for other commands.
+
+    :param cmd: either plugins.Command or str
+    :param message: required message object in order to execute a command
+    :param args, kwargs: any arguments passed into the command.
+
+    :raises: NameError when command does not exist. """
+    # Get the command object if the given command represents a name
+    if type(cmd) is str:
+        cmd = get_command(cmd)
+
+    try:
+        await cmd.function(message, *args, **kwargs)
+    except AttributeError:
+        raise NameError("Not a command".format(cmd))
 
 
 def load_plugin(name: str, package: str="plugins"):

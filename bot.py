@@ -303,7 +303,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
 
 async def parse_command(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Try finding a command """
-    command = plugins.get_sub_command(command, cmd_args[1:])
+    command = plugins.get_sub_command(command, *cmd_args[1:])
     cmd_args = cmd_args[command.depth:]
     send_help = False
 

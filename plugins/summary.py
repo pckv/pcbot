@@ -31,33 +31,36 @@ on_fail = "**I was unable to construct a summary, {0.author.name}.**"
 
 
 async def update_messages(channel: discord.Channel):
-    """ Get or update messages. """
+    """ Download messages. """
     messages = stored_messages[channel.id]  # type: deque
+
+    # We only want to log messages when there are none
+    # Any messages after this logging will be logged in the on_message event
+    if messages:
+        return
+
+    # Make sure not to download messages twice by setting this handy task
     update_task.clear()
 
+    # Download logged messages
     try:
-        # If we have already stored some messages we will log from any new messages
-        if messages:
-            new = []
-            async for m in client.logs_from(channel, after=messages[-1], limit=logs_from_limit):
-                if not m.content:
-                    continue
+        async for m in client.logs_from(channel, limit=logs_from_limit):
+            if not m.content:
+                continue
 
-                new.append(m)
-
-            # Add the reversed list of messages to the end
-            messages.extend(reversed(new))
-
-        # For our first time we want logs_from_limit messages
-        else:
-            async for m in client.logs_from(channel, limit=logs_from_limit):
-                # We have no messages, so insert each from the left, leaving us with the oldest at index -1
-                if not m.content:
-                    continue
-
-                messages.appendleft(m)
-    finally:
+            # We have no messages, so insert each from the left, leaving us with the oldest at index -1
+            messages.appendleft(m)
+    except:  # When something goes wrong, clear the messages
+        messages.clear()
+    finally:  # Really have to make sure we clear this task in all cases
         update_task.set()
+
+
+@plugins.event()
+async def on_message(message: discord.Message):
+    """ Whenever a message is sent, see if we can update in one of the channels. """
+    if message.channel.id in stored_messages:
+        stored_messages[message.channel.id].append(message)
 
 
 def is_valid_option(arg: str):

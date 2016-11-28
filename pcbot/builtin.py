@@ -37,7 +37,7 @@ async def help_(message: discord.Message, command: str.lower=None, *args):
             return
 
         # Get the specific command with arguments and send the help
-        cmd = plugins.get_sub_command(cmd, args)
+        cmd = plugins.get_sub_command(cmd, *args)
         await client.say(message, utils.format_help(cmd))
 
     # Display every command
