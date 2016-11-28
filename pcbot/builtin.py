@@ -90,7 +90,7 @@ async def setowner(message: discord.Message):
 @utils.owner
 async def stop(message: discord.Message):
     """ Stops the bot. """
-    await client.say(message, ":boom: :gun:")
+    await client.say(message, "\N{COLLISION SYMBOL}\N{PISTOL}")
     await plugins.save_plugins()
     await client.logout()
 

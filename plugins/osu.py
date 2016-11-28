@@ -130,8 +130,8 @@ def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int
     formatted = "\u2139`{} {}pp {:+.2f}pp`".format(mode.name, data["pp_raw"], pp)
     formatted += (" \U0001f30d`#{:,}{}`".format(int(data["pp_rank"]),
                                                 "" if int(rank) == 0 else " {:+}".format(int(rank))))
-    formatted += (" :flag_{}:`#{:,}{}`".format(iso.lower(), int(data["pp_country_rank"]),
-                                               "" if int(country_rank) == 0 else " {:+}".format(int(country_rank))))
+    formatted += (" {}`#{:,}{}`".format(utils.text_to_emoji(iso), int(data["pp_country_rank"]),
+                                        "" if int(country_rank) == 0 else " {:+}".format(int(country_rank))))
     rounded_acc = round(accuracy, 3)
     if rounded_acc > 0:
         formatted += " \U0001f4c8"  # Graph with upwards trend

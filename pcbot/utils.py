@@ -363,6 +363,13 @@ def format_objects(*objects: tuple, attr=None, dec: str= "", sep: str= ", "):
     return sep.join(dec + getattr(m, attr) + dec for m in objects)
 
 
+def text_to_emoji(text: str):
+    """ Convert text to a string of regional emoji.
+    Text must only contain characters in the alphabet from A-Z. """
+    regional_offset = 127397  # This number + capital letter = regional letter
+    return "".join(chr(ord(c) + regional_offset) for c in text.upper())
+
+
 def split(string, maxsplit=-1):
     """ Split a string with shlex when possible, and add support for maxsplit. """
     # Generate a shlex object for eventually splitting manually
