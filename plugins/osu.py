@@ -559,7 +559,7 @@ async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
     signature = await utils.retrieve_page("http://lemmmy.pw/osusig/sig.php",
                                           colour=color, uname=user_id, pp=True,
                                           countryrank=True, xpbar=True, mode=mode.value, **dark)
-    embed = discord.Embed(title=message.author.display_name, color=member.color, url=host + "/u/" + user_id)
+    embed = discord.Embed(title=member.display_name, color=member.color, url=host + "/u/" + user_id)
     embed.set_image(url=signature.url)
     await client.send_message(message.channel, embed=embed)
 
