@@ -168,15 +168,19 @@ def markov_messages(messages, coherent=False):
 def filter_messages(message_content: list, phrase: str, regex: bool=False, case: bool=False):
     """ Filter messages by searching and yielding each message. """
     for content in message_content:
-        if regex and re.search(phrase, content, 0 if case else re.IGNORECASE):
-            yield content
+        if regex:
+            try:
+                if re.search(phrase, content, 0 if case else re.IGNORECASE):
+                    yield content
+            except:  # Return error message when regex does not work
+                raise AssertionError("**Invalid regex.**")
         elif not regex and phrase.lower() in content.lower():
             yield content
 
 
 @plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [+re(gex)] [+case] [phrase ...]",
                  pos_check=is_valid_option)
-async def summary(message: discord.Message, *options, phrase: Annotate.LowerContent=None):
+async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
     """ Perform a summary! """
     # This dict stores all parsed options as keywords
     member, channel, num, regex, case = [], None, None, False, False
