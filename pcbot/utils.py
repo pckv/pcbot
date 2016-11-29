@@ -191,6 +191,17 @@ async def retrieve_headers(url, **params):
             return response.headers
 
 
+async def retrieve_page(url, **params):
+    """ Download and return a website with aiohttp.
+
+    :param url: Download url as str
+    :param params: Any additional url parameters
+    :return: The byte-like file """
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            return response
+
+
 async def download_file(url, **params):
     """ Download and return a byte-like object of a file.
 

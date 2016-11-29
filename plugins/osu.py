@@ -556,11 +556,12 @@ async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
     dark = dict(darkheader=True) if (r * 0.299 + g * 0.587 + b * 0.144) > 186 else {}
 
     # Download and upload the signature
-    signature = await utils.download_file("http://lemmmy.pw/osusig/sig.php",
+    signature = await utils.retrieve_page("http://lemmmy.pw/osusig/sig.php",
                                           colour=color, uname=user_id, pp=True,
                                           countryrank=True, xpbar=True, mode=mode.value, **dark)
-    await client.send_file(message.channel, BytesIO(signature), filename="sig.png",
-                           content="<https://osu.ppy.sh/u/{}>".format(user_id))
+    embed = discord.Embed(title=message.author.display_name, color=member.color, url=host + "/u/" + user_id)
+    embed.set_image(url=signature.url)
+    await client.send_message(message.channel, embed=embed)
 
 
 @osu.command(aliases="set")
