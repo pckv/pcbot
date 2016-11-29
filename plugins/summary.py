@@ -16,7 +16,7 @@ client = plugins.client  # type: discord.Client
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(partial(deque, maxlen=10000))
-logs_from_limit = 5000
+logs_from_limit = 50
 max_summaries = 5
 update_task = asyncio.Event()
 update_task.set()
@@ -25,6 +25,7 @@ update_task.set()
 valid_num = re.compile(r"\*(?P<num>\d+)")
 valid_member = utils.member_mention_regex
 valid_channel = utils.channel_mention_regex
+valid_options = ("+re", "+regex")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
@@ -65,6 +66,9 @@ async def on_message(message: discord.Message):
 
 def is_valid_option(arg: str):
     if valid_num.match(arg) or valid_member.match(arg) or valid_channel.match(arg):
+        return True
+
+    if arg.lower() in valid_options:
         return True
 
     return False
@@ -161,12 +165,20 @@ def markov_messages(messages, coherent=False):
     return " ".join(imitated)
 
 
-@plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [phrase ...]", pos_check=is_valid_option,
-                 error="Please make a better decision next time.")
+def filter_messages(message_content: list, phrase: str, regex: bool):
+    """ Filter messages by searching and yielding each message. """
+    for content in message_content:
+        if regex and re.search(phrase, content):
+            yield content
+        elif not regex and phrase.lower() in content.lower():
+            yield content
+
+
+@plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [+re(gex)] [phrase ...]", pos_check=is_valid_option)
 async def summary(message: discord.Message, *options, phrase: Annotate.LowerContent=None):
     """ Perform a summary! """
     # This dict stores all parsed options as keywords
-    member, channel, num = [], None, None
+    member, channel, num, regex = [], None, None, False
     for value in options:
         num_match = valid_num.match(value)
         if num_match:
@@ -192,6 +204,10 @@ async def summary(message: discord.Message, *options, phrase: Annotate.LowerCont
             assert channel.permissions_for(message.server.me).read_message_history, "**I can't see this channel.**"
             continue
 
+        if value in valid_options:
+            if value == "+re" or value == "+regex":
+                regex = True
+
     # Assign defaults
     if not num:
         num = 1
@@ -208,7 +224,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.LowerCont
     else:
         message_content = [m.clean_content for m in stored_messages[channel.id]]
     if phrase:
-        message_content = [s for s in message_content if phrase.lower() in s.lower()]
+        message_content = list(filter_messages(message_content, phrase, regex))
 
     # Clean up by removing all commands from the summaries
     if phrase is None or not phrase.startswith(config.command_prefix):
