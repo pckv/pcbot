@@ -165,7 +165,7 @@ def markov_messages(messages, coherent=False):
     return " ".join(imitated)
 
 
-def filter_messages(message_content: list, phrase: str, regex: bool=False, case: bool=True):
+def filter_messages(message_content: list, phrase: str, regex: bool=False, case: bool=False):
     """ Filter messages by searching and yielding each message. """
     for content in message_content:
         if regex and re.search(phrase, content, 0 if case else re.IGNORECASE):
@@ -208,7 +208,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.LowerCont
         if value in valid_options:
             if value == "+re" or value == "+regex":
                 regex = True
-            if regex and value == "+case":
+            if value == "+case":
                 case = True
 
     # Assign defaults
