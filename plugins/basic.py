@@ -64,12 +64,10 @@ async def mentioned(message: discord.Message):
 def get_req_id(feature_id: str):
     """ Return the id matched in an id string.
     Format should be similar to #24 """
-    req_id = match("^#([0-9])+$", feature_id)
+    req_id = match("^#?([0-9])+$", feature_id)
+    assert req_id, "**Feature request id's must either be a number or follow `#<id>`**"
 
-    if req_id:
-        return int(req_id.group(1)) - 1
-
-    return None
+    return int(req_id.group(1)) - 1
 
 
 def format_req(plugin, req_id: int):

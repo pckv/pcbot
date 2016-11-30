@@ -44,13 +44,13 @@ def init_emoji():
             emoji[emoji_name] = emoji_bytes
 
 
-def get_emoji(chars: str, size=default_size):
+def get_emoji(char: str, size=default_size):
     """ Return the emoji with the specified character and optionally
     with the given size. """
-    if chars not in emoji:
+    if char not in emoji:
         return None
 
-    emoji_bytes = emoji[chars]
+    emoji_bytes = emoji[char]
     size_bytes = bytes(str(size), encoding="utf-8")
     emoji_bytes = emoji_bytes.replace(b"<svg ",
                                       b"<svg width=\"" + size_bytes + b"px\" height=\"" + size_bytes + b"px\" ")

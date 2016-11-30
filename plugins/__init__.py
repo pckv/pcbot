@@ -203,10 +203,11 @@ def event(name=None):
     return decorator
 
 
-def argument(format=argument_format):
+def argument(format=argument_format, *, pass_message=False):
     """ Decorator for easily setting custom argument usage formats. """
     def decorator(func):
         func.argument = format
+        func.pass_message = pass_message
         return func
 
     return decorator

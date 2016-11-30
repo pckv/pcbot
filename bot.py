@@ -35,12 +35,11 @@ class Client(discord.Client):
         try:
             result = await func(*args, **kwargs)
         except AssertionError as e:
-            if not event == "message":
+            if event == "message":  # Find the message object and send the proper feedback
+                message = args[0]
+                await self.send_message(message.channel, str(e))
+            else:
                 await self.on_error(event, *args, **kwargs)
-
-            # Find the message object and send the proper feedback
-            message = args[0]
-            await self.send_message(message.channel, str(e))
         except:
             await self.on_error(event, *args, **kwargs)
         else:
@@ -144,7 +143,7 @@ def default_self(anno, default, message: discord.Message):
     return default
 
 
-def parse_annotation(param: inspect.Parameter, default, arg: str, index: int, message: discord.Message):
+async def parse_annotation(param: inspect.Parameter, default, arg: str, index: int, message: discord.Message):
     """ Parse annotations and return the command to use.
 
     index is basically the arg's index in shelx.split(message.content) """
@@ -174,17 +173,28 @@ def parse_annotation(param: inspect.Parameter, default, arg: str, index: int, me
                 return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
 
         try:  # Try running as a method
-            result = anno(arg)
+            # Pass the message if the argument has this specified
+            if getattr(anno, "pass_message", False):
+                result = anno(message, arg)
+            else:
+                result = anno(arg)
+
+            # The function can be a coroutine
+            if inspect.isawaitable(result):
+                result = await result
+
             return result if result is not None else default
         except TypeError:
-            raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate or a callable")
+            raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate, a callable or a coroutine")
+        except AssertionError as e:  # raise the error in order to catch it at a lower level
+            raise AssertionError(e)
         except:  # On error, eg when annotation is int and given argument is str
             return None
 
     return str(arg) or default  # Return str of arg if there was no annotation
 
 
-def parse_command_args(command: plugins.Command, cmd_args: list, message: discord.Message):
+async def parse_command_args(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Parse commands from chat and return args and kwargs to pass into the
     command's function. """
     signature = inspect.signature(command.function)
@@ -228,7 +238,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
                 break  # We're done when there is no default argument and none passed
 
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
-            tmp_arg = parse_annotation(param, param.default, cmd_arg, index + start_index, message)
+            tmp_arg = await parse_annotation(param, param.default, cmd_arg, index + start_index, message)
 
             if tmp_arg is not None:
                 args.append(tmp_arg)
@@ -239,14 +249,14 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
             # It also seems to break some flexibility when parsing commands with positional arguments
             # followed by a keyword argument with it's default being anything but None.
             default = param.default if type(param.default) is utils.Annotate else None
-            tmp_arg = parse_annotation(param, default, cmd_arg, index + start_index, message)
+            tmp_arg = await parse_annotation(param, default, cmd_arg, index + start_index, message)
 
             if tmp_arg is not None:
                 kwargs[param.name] = tmp_arg
                 num_given_kwargs += 1
             else:  # It didn't work, so let's try parsing it as an optional argument
                 if type(command.pos_check) is bool and pos_param:
-                    tmp_arg = parse_annotation(pos_param, None, cmd_arg, index + start_index, message)
+                    tmp_arg = await parse_annotation(pos_param, None, cmd_arg, index + start_index, message)
 
                     if tmp_arg is not None:
                         args.append(tmp_arg)
@@ -267,7 +277,7 @@ def parse_command_args(command: plugins.Command, cmd_args: list, message: discor
                     if not command.pos_check(cmd_arg):
                         break
 
-                tmp_arg = parse_annotation(param, None, cmd_arg, index + start_index, message)
+                tmp_arg = await parse_annotation(param, None, cmd_arg, index + start_index, message)
 
                 # Add an option if it's not None. Since positional arguments are optional,
                 # it will not matter that we don't pass it.
@@ -314,7 +324,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
         send_help = True
     else:
         # Parse the command and return the parsed arguments
-        args, kwargs, complete = parse_command_args(command, cmd_args, message)
+        args, kwargs, complete = await parse_command_args(command, cmd_args, message)
 
     # If command parsing failed, display help for the command or the error message
     if not complete:
@@ -374,7 +384,12 @@ async def on_message(message: discord.Message):
         return
 
     # Parse the command with the user's arguments
-    parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
+    try:
+        parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
+    except AssertionError as e:  # Return any feedback given from the command via AssertionError
+        await client.send_message(message.channel, e)
+        return
+
     if not parsed_command:
         return
 
