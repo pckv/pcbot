@@ -25,7 +25,7 @@ update_task.set()
 valid_num = re.compile(r"\*(?P<num>\d+)")
 valid_member = utils.member_mention_regex
 valid_channel = utils.channel_mention_regex
-valid_options = ("+re", "+regex", "+case")
+valid_options = ("+re", "+regex", "+case", "+tts)")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
@@ -174,7 +174,7 @@ def filter_messages(message_content: list, phrase: str, regex: bool=False, case:
                     yield content
             except:  # Return error message when regex does not work
                 raise AssertionError("**Invalid regex.**")
-        elif not regex and phrase.lower() in content.lower():
+        elif not regex and (phrase in content if case else phrase.lower() in content.lower()):
             yield content
 
 
@@ -183,7 +183,9 @@ def filter_messages(message_content: list, phrase: str, regex: bool=False, case:
 async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
     """ Perform a summary! """
     # This dict stores all parsed options as keywords
-    member, channel, num, regex, case = [], None, None, False, False
+    member, channel, num = [], None, None
+    regex, case, tts = False, False, False
+
     for value in options:
         num_match = valid_num.match(value)
         if num_match:
@@ -214,6 +216,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
                 regex = True
             if value == "+case":
                 case = True
+            if value == "+tts":
+                tts = True
 
     # Assign defaults
     if not num:
@@ -243,4 +247,4 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     # Generate the summary, or num summaries
     for i in range(num):
         sentence = markov_messages(message_content)
-        await client.say(message, sentence or on_fail.format(message))
+        await client.send_message(message.channel, sentence or on_fail.format(message), tts=tts)
