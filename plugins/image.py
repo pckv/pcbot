@@ -36,7 +36,7 @@ async def image(message: discord.Message, url_or_emoji: str):
         assert not url_only, "`{}` **is not a valid URL.**".format(url_or_emoji)
 
         # There was no image to get, so let's see if it's an emoji
-        char = hex(ord(url_or_emoji[0]))[2:]  # Convert to a hex string
+        char = "-".join(hex(ord(c))[2:] for c in url_or_emoji)  # Convert to a hex string
         image_object = get_emoji(char)
         if image_object:
             return ImageArg(object=image_object, format="PNG")
