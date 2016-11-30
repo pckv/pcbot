@@ -120,3 +120,18 @@ async def resize(message: discord.Message, image_arg: image, resolution: parse_r
 
     # Upload the image
     await send_image(message.channel, image_object, filename, image_format)
+
+
+@plugins.command(pos_check=lambda s: s.startswith("-"), aliases="tilt")
+async def rotate(message: discord.Message, image_arg: image, degrees: int, *options, extension: str=None):
+    """ Rotate an image clockwise using the given degrees. """
+    # Set the image upload format, extension and filename
+    image_format, extension = clean_format(image_arg.format, image_arg.format.lower() or extension)
+    filename = "{}.{}".format(message.author.display_name, extension)
+
+    # Rotate the image
+    image_object = image_arg.object.rotate(-degrees, Image.NEAREST if "-nearest" in options else Image.BICUBIC,
+                                           expand=True)
+
+    # Upload the image
+    await send_image(message.channel, image_object, filename, image_format)
