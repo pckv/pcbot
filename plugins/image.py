@@ -26,7 +26,7 @@ extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
 ImageArg = namedtuple("ImageArg", "object format")
 
 
-@plugins.argument("{open}image" + ("" if url_only else "or emoji") + "{suffix}{close}", pass_message=True)
+@plugins.argument("{open}url" + ("" if url_only else " or emoji") + "{suffix}{close}", pass_message=True)
 async def image(message: discord.Message, url_or_emoji: str):
     """ Parse a url or emoji and return an ImageArg object. """
     # Check if the given string is a url and save the headers for later
