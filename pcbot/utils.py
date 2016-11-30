@@ -180,26 +180,27 @@ def role(*roles: str):
     return decorator
 
 
-async def retrieve_headers(url, **params):
-    """ Retrieve the headers from a URL.
-
-    :param url: URL as str
-    :param params: Any additional url parameters
-    :return: Headers as a dict """
-    async with aiohttp.ClientSession() as session:
-        async with session.head(url, params=params) as response:
-            return response.headers
-
-
-async def retrieve_page(url, **params):
+async def retrieve_page(url, head=False, **params):
     """ Download and return a website with aiohttp.
 
     :param url: Download url as str
     :param params: Any additional url parameters
     :return: The byte-like file """
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
+        coro = session.head if head else session.get
+
+        async with coro(url, params=params) as response:
             return response
+
+
+async def retrieve_headers(url, **params):
+    """ Retrieve the headers from a URL.
+
+    :param url: URL as str
+    :param params: Any additional url parameters
+    :return: Headers as a dict """
+    head = await retrieve_page(url, head=True, **params)
+    return head.headers
 
 
 async def download_file(url, **params):
