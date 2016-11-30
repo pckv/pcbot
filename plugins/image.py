@@ -91,47 +91,52 @@ def clean_format(image_format: str, extension: str):
     if image_format.lower() == "jpg":
         image_format = "JPEG"
 
-    return extension, image_format
+    return image_format, extension
 
 
-async def send_image(channel: discord.Channel, image_object: Image, filename: str, format: str):
+async def send_image(message: discord.Message, image_object: Image, format: str, extension: str):
     """ Send an image. """
     try:
         image_fp = utils.convert_image_object(image_object, format)
     except KeyError as e:
-        await client.send_message(channel, "Image format `{}` is unsupported.".format(e))
+        await client.send_message(message.channel, "Image format `{}` is unsupported.".format(e))
     except Exception as e:
-        await client.send_message(channel, str(e) + ".")
+        await client.send_message(message.channel, str(e) + ".")
     else:
-        await client.send_file(channel, image_fp, filename=filename)
+        await client.send_file(message.channel, image_fp, filename="{}.{}".format(message.author.display_name, extension))
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"))
 async def resize(message: discord.Message, image_arg: image, resolution: parse_resolution, *options,
-                 extension: str=None):
+                 extension: str.lower=None):
     """ Resize an image with the given resolution formatted as `<width>x<height>`
     with an optional extension. """
     # Set the image upload format, extension and filename
-    image_format, extension = clean_format(image_arg.format, image_arg.format.lower() or extension)
-    filename = "{}.{}".format(message.author.display_name, extension)
+    image_format, extension = clean_format(image_arg.format, extension or image_arg.format.lower())
 
     # Resize the image
     image_object = image_arg.object.resize(resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS)
 
     # Upload the image
-    await send_image(message.channel, image_object, filename, image_format)
+    await send_image(message, image_object, image_format, extension)
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"), aliases="tilt")
 async def rotate(message: discord.Message, image_arg: image, degrees: int, *options, extension: str=None):
     """ Rotate an image clockwise using the given degrees. """
     # Set the image upload format, extension and filename
-    image_format, extension = clean_format(image_arg.format, image_arg.format.lower() or extension)
-    filename = "{}.{}".format(message.author.display_name, extension)
+    image_format, extension = clean_format(image_arg.format, extension or image_arg.format.lower())
 
     # Rotate the image
     image_object = image_arg.object.rotate(-degrees, Image.NEAREST if "-nearest" in options else Image.BICUBIC,
                                            expand=True)
 
     # Upload the image
-    await send_image(message.channel, image_object, filename, image_format)
+    await send_image(message, image_object, image_format, extension)
+
+
+@plugins.command()
+async def convert(message: discord.Message, image_arg: image, extension: str.lower):
+    """ Convert an image to a specified extension. """
+    image_format, extension = clean_format(extension.upper(), extension)
+    await send_image(message, image_arg.object, image_format, extension)
