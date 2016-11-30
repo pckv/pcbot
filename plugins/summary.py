@@ -25,7 +25,7 @@ update_task.set()
 valid_num = re.compile(r"\*(?P<num>\d+)")
 valid_member = utils.member_mention_regex
 valid_channel = utils.channel_mention_regex
-valid_options = ("+re", "+regex", "+case", "+tts)")
+valid_options = ("+re", "+regex", "+case", "+tts")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
