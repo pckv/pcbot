@@ -37,7 +37,7 @@ async def image(message: discord.Message, url_or_emoji: str):
 
         # There was no image to get, so let's see if it's an emoji
         char = "-".join(hex(ord(c))[2:] for c in url_or_emoji)  # Convert to a hex string
-        image_object = get_emoji(char)
+        image_object = get_emoji(char, size=256)
         if image_object:
             return ImageArg(object=image_object, format="PNG")
 
