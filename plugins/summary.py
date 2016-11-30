@@ -178,7 +178,7 @@ def filter_messages(message_content: list, phrase: str, regex: bool=False, case:
             yield content
 
 
-@plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [+re(gex)] [+case] [phrase ...]",
+@plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [+re(gex)] [+case] [+tts] [phrase ...]",
                  pos_check=is_valid_option)
 async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
     """ Perform a summary! """
@@ -217,6 +217,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
             if value == "+case":
                 case = True
             if value == "+tts":
+                assert message.author.permissions_in(message.channel).send_tts_messages, \
+                    "**You don't have permissions to send tts messages in this channel.**"
                 tts = True
 
     # Assign defaults
