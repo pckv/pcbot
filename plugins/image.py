@@ -1,29 +1,74 @@
-""" This plugin is designed for various image utility ccommands.
+""" This plugin is designed for various image utility commands.
 
 Commands:
     resize """
 import re
-from collections import namedtuple
 from io import BytesIO
 
-from PIL import Image
+from PIL import Image, ImageSequence
 import discord
 
 import plugins
 from pcbot import utils
 
+url_only, gif_support = True, True
+
+# See if we can convert emoji using the emoji.py plugin
 try:
     from .emoji import get_emote, get_emoji, emote_regex
 except:
-    url_only = True
-else:
     url_only = False
+
+# See if we can create gifs using imageio
+try:
+    import imageio
+except:
+    gif_support = False
 
 
 client = plugins.client  # type: discord.Client
 
 extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
-ImageArg = namedtuple("ImageArg", "object format")
+
+
+class ImageArg:
+    def __init__(self, image_object: Image.Image, format: str):
+        self.object = image_object
+        self.format = format
+        self.extension = format.lower()
+        self.clean_format()
+
+        # Figure out if this is a gif by looking for the duration argument. Might only work for gifs
+        self.gif = bool(self.object.info.get("duration"))
+        self.gif_bytes = None   # For easier upload of gifs, store the bytes in memory
+
+    def clean_format(self):
+        """ Return working options of JPG images. """
+        if self.extension.lower() == "jpeg":
+            self.extension = "jpg"
+        if self.format.lower() == "jpg":
+            self.format = "JPEG"
+
+    def set_extension(self, ext: str):
+        self.extension = ext
+        self.clean_format()
+
+    def modify(self, function, *args, **kwargs):
+        """ Modify the image object using the given Image function.
+        This function supplies sequence support. """
+        if not gif_support or not self.gif:
+            self.object = function(self.object, *args, **kwargs)
+        else:
+            frames = []
+            duration = self.object.info.get("duration") / 1000
+            for frame in ImageSequence.Iterator(self.object):
+                frame_bytes = utils.convert_image_object(function(frame, *args, **kwargs))
+                frames.append(imageio.imread(frame_bytes))
+
+            # Save the image as bytes and recreate the image object
+            image_bytes = imageio.mimwrite(imageio.RETURN_BYTES, frames, format=self.format, duration=duration)
+            self.object = Image.open(BytesIO(image_bytes))
+            self.gif_bytes = image_bytes
 
 
 @plugins.argument("{open}url" + ("" if url_only else " or emoji") + "{suffix}{close}", pass_message=True)
@@ -39,14 +84,14 @@ async def image(message: discord.Message, url_or_emoji: str):
         char = "-".join(hex(ord(c))[2:] for c in url_or_emoji)  # Convert to a hex string
         image_object = get_emoji(char, size=256)
         if image_object:
-            return ImageArg(object=image_object, format="PNG")
+            return ImageArg(image_object, format="PNG")
 
         # Not an emoji, so perhaps it's an emote
         match = emote_regex.match(url_or_emoji)
         if match:
             image_object = await get_emote(match.group("id"), message)
             if image_object:
-                return ImageArg(object=image_object, format="PNG")
+                return ImageArg(image_object, format="PNG")
 
         # Alright, we're out of ideas
         raise AssertionError("`{}` **is neither a URL or an emoji.**".format(url_or_emoji))
@@ -59,7 +104,7 @@ async def image(message: discord.Message, url_or_emoji: str):
     image_bytes = BytesIO(await utils.download_file(url_or_emoji))
     image_object = Image.open(image_bytes)
     image_format = match.group("ext")
-    return ImageArg(object=image_object, format=image_format)
+    return ImageArg(image_object, format=image_format)
 
 
 @plugins.argument("{open}width{suffix}{close}x{open}height{suffix}{close}")
@@ -94,16 +139,18 @@ def clean_format(image_format: str, extension: str):
     return image_format, extension
 
 
-async def send_image(message: discord.Message, image_object: Image, format: str, extension: str):
+async def send_image(message: discord.Message, image_arg: ImageArg):
     """ Send an image. """
     try:
-        image_fp = utils.convert_image_object(image_object, format)
+        if image_arg.gif and gif_support:
+            image_fp = BytesIO(image_arg.gif_bytes)
+        else:
+            image_fp = utils.convert_image_object(image_arg.object, image_arg.format)
     except KeyError as e:
         await client.send_message(message.channel, "Image format `{}` is unsupported.".format(e))
-    except Exception as e:
-        await client.send_message(message.channel, str(e) + ".")
     else:
-        await client.send_file(message.channel, image_fp, filename="{}.{}".format(message.author.display_name, extension))
+        await client.send_file(message.channel, image_fp,
+                               filename="{}.{}".format(message.author.display_name, image_arg.extension))
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"))
@@ -111,32 +158,29 @@ async def resize(message: discord.Message, image_arg: image, resolution: parse_r
                  extension: str.lower=None):
     """ Resize an image with the given resolution formatted as `<width>x<height>`
     with an optional extension. """
-    # Set the image upload format, extension and filename
-    image_format, extension = clean_format(image_arg.format, extension or image_arg.format.lower())
+    if extension:
+        image_arg.set_extension(extension)
 
-    # Resize the image
-    image_object = image_arg.object.resize(resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS)
-
-    # Upload the image
-    await send_image(message, image_object, image_format, extension)
+    # Resize and upload the image
+    image_arg.modify(Image.Image.resize, resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS)
+    await send_image(message, image_arg)
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"), aliases="tilt")
 async def rotate(message: discord.Message, image_arg: image, degrees: int, *options, extension: str=None):
     """ Rotate an image clockwise using the given degrees. """
     # Set the image upload format, extension and filename
-    image_format, extension = clean_format(image_arg.format, extension or image_arg.format.lower())
+    if extension:
+        image_arg.set_extension(extension)
 
-    # Rotate the image
-    image_object = image_arg.object.rotate(-degrees, Image.NEAREST if "-nearest" in options else Image.BICUBIC,
-                                           expand=True)
-
-    # Upload the image
-    await send_image(message, image_object, image_format, extension)
+    # Rotate and upload the image
+    image_arg.modify(Image.Image.rotate, -degrees, Image.NEAREST if "-nearest" in options else Image.BICUBIC,
+                     expand=True)
+    await send_image(message, image_arg)
 
 
 @plugins.command()
 async def convert(message: discord.Message, image_arg: image, extension: str.lower):
     """ Convert an image to a specified extension. """
-    image_format, extension = clean_format(extension.upper(), extension)
-    await send_image(message, image_arg.object, image_format, extension)
+    image_arg.set_extension(extension)
+    await send_image(message, image_arg)

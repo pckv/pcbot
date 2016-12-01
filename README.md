@@ -47,17 +47,19 @@ required unless you want a specific plugin to work. Some features and
 modules are only supported if you're using Linux. The bot will prompt 
 errors when modules are missing, although modules as of now are:
 
-| Module    | Notes                                                |
-| --------- | ---------------------------------------------------- |
-| Pillow    | `pip install Pillow`                                 |
-| pendulum  | `pip install pendulum`, might also need `pytz`       |
-| cairosvg  | `pip install cairosvg`, only supported for Linux     |
-| oppai     | Not a python module; see doc in [`plugins/osu.py`]   |
-| ffmpeg    | Not a python module; see doc in [`plugins/music.py`] |
+| Module    | Notes                                                     |
+| --------- | --------------------------------------------------------- |
+| Pillow    | `pip install Pillow`                                      |
+| pendulum  | `pip install pendulum`, might also need `pytz`            |
+| cairosvg  | `pip install cairosvg`, only supported for Linux          |
+| oppai     | Not a python module; see doc in [`plugins/osu.py`]        |
+| ffmpeg    | Not a python module; see doc in [`plugins/music.py`]      |
+| imageio   | `pip install imageio`, support gif in [`plugins/image.py`]|
 
 [zip]: https://github.com/PcBoy111/PCBOT/archive/master.zip
 [`plugins/osu.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/osu.py
 [`plugins/music.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/music.py
+[`plugins/image.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/image.py
 
 ## Running
 Running the bot is simple. Go to the root directory 
