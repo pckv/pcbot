@@ -11,13 +11,13 @@ import discord
 import plugins
 from pcbot import utils
 
-url_only, gif_support = True, True
+url_only, gif_support = False, True
 
 # See if we can convert emoji using the emoji.py plugin
 try:
     from .emoji import get_emote, get_emoji, emote_regex
 except:
-    url_only = False
+    url_only = True
 
 # See if we can create gifs using imageio
 try:
@@ -29,6 +29,8 @@ except:
 client = plugins.client  # type: discord.Client
 
 extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
+max_bytes = 1024 ** 2  # 1 MB
+max_gif_bytes = max_bytes // 8  # 128kb
 
 
 class ImageArg:
@@ -41,6 +43,7 @@ class ImageArg:
         # Figure out if this is a gif by looking for the duration argument. Might only work for gifs
         self.gif = bool(self.object.info.get("duration"))
         self.gif_bytes = None   # For easier upload of gifs, store the bytes in memory
+
 
     def clean_format(self):
         """ Return working options of JPG images. """
@@ -99,11 +102,17 @@ async def image(message: discord.Message, url_or_emoji: str):
     # The URL was valid so let's make sure it's an image
     match = extension_regex.search(headers["CONTENT-TYPE"])
     assert match, "**The given URL is not an image.**"
+    image_format = match.group("ext")
+
+    # Make sure the image is not too big
+    size = headers["CONTENT-LENGTH"]
+    max_size = max_gif_bytes if image_format.lower() == "gif" else max_bytes
+    assert int(size) <= max_size, \
+        "**This image exceeds the maximum size of `{}kb` for this format.**".format(max_size // 1024)
 
     # Download the image and create the object
-    image_bytes = BytesIO(await utils.download_file(url_or_emoji))
-    image_object = Image.open(image_bytes)
-    image_format = match.group("ext")
+    image_bytes = await utils.download_file(url_or_emoji)
+    image_object = Image.open(BytesIO(image_bytes))
     return ImageArg(image_object, format=image_format)
 
 

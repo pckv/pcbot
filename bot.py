@@ -388,12 +388,13 @@ async def on_message(message: discord.Message):
         parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
     except AssertionError as e:  # Return any feedback given from the command via AssertionError
         await client.send_message(message.channel, e)
+        log_message(message)
         return
 
     if not parsed_command:
         return
 
-    log_message(message)  # Log the command
+    log_message(message)
     client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))  # Run command
 
     # Log time spent parsing the command
