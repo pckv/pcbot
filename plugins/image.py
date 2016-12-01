@@ -63,7 +63,7 @@ class ImageArg:
             duration = self.object.info.get("duration") / 1000
             for frame in ImageSequence.Iterator(self.object):
                 frame_bytes = utils.convert_image_object(function(frame, *args, **kwargs))
-                frames.append(imageio.imread(frame_bytes))
+                frames.append(imageio.imread(frame_bytes, format="PNG"))
 
             # Save the image as bytes and recreate the image object
             image_bytes = imageio.mimwrite(imageio.RETURN_BYTES, frames, format=self.format, duration=duration)
