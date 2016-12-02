@@ -77,8 +77,11 @@ class ImageArg:
 @plugins.argument("{open}url" + ("" if url_only else " or emoji") + "{suffix}{close}", pass_message=True)
 async def image(message: discord.Message, url_or_emoji: str):
     """ Parse a url or emoji and return an ImageArg object. """
-    # Check if the given string is a url and save the headers for later
-    try:
+    # Remove <> if the link looks like a URL, to allow for embed escaped links.
+    if "http://" in url_or_emoji or "https://" in url_or_emoji:
+        url_or_emoji = url_or_emoji.strip("<>")
+
+    try:  # Check if the given string is a url and save the headers for later
         headers = await utils.retrieve_headers(url_or_emoji)
     except ValueError:  # Not a valid url, figure out if we support emoji
         assert not url_only, "`{}` **is not a valid URL.**".format(url_or_emoji)
