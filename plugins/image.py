@@ -29,8 +29,8 @@ except:
 client = plugins.client  # type: discord.Client
 
 extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
-max_bytes = 1024 ** 2  # 1 MB
-max_gif_bytes = max_bytes // 8  # 128kb
+max_bytes = 4096 ** 2  # 4 MB
+max_gif_bytes = 1024 * 128  # 128kB
 
 
 class ImageArg:
@@ -53,7 +53,7 @@ class ImageArg:
             self.format = "JPEG"
 
     def set_extension(self, ext: str):
-        self.extension = ext
+        self.extension = self.format = ext
         self.clean_format()
 
     def modify(self, function, *args, **kwargs):
@@ -105,10 +105,14 @@ async def image(message: discord.Message, url_or_emoji: str):
     image_format = match.group("ext")
 
     # Make sure the image is not too big
-    size = headers["CONTENT-LENGTH"]
-    max_size = max_gif_bytes if image_format.lower() == "gif" else max_bytes
-    assert int(size) <= max_size, \
-        "**This image exceeds the maximum size of `{}kb` for this format.**".format(max_size // 1024)
+    gif = image_format.lower() == "gif"
+    if "CONTENT-LENGTH" in headers:
+        size = headers["CONTENT-LENGTH"]
+        max_size = max_gif_bytes if gif else max_bytes
+        assert int(size) <= max_size, \
+            "**This image exceeds the maximum size of `{}kB` for this format.**".format(max_size // 1024)
+    elif gif:  # If there is no information on the size of the file, we'll refuse if the image is a gif
+        raise AssertionError("**The size of this GIF is unknown and was therefore rejected.**")
 
     # Download the image and create the object
     image_bytes = await utils.download_file(url_or_emoji)
@@ -148,13 +152,13 @@ def clean_format(image_format: str, extension: str):
     return image_format, extension
 
 
-async def send_image(message: discord.Message, image_arg: ImageArg):
+async def send_image(message: discord.Message, image_arg: ImageArg, **params):
     """ Send an image. """
     try:
         if image_arg.gif and gif_support:
             image_fp = BytesIO(image_arg.gif_bytes)
         else:
-            image_fp = utils.convert_image_object(image_arg.object, image_arg.format)
+            image_fp = utils.convert_image_object(image_arg.object, image_arg.format, **params)
     except KeyError as e:
         await client.send_message(message.channel, "Image format `{}` is unsupported.".format(e))
     else:
@@ -193,3 +197,11 @@ async def convert(message: discord.Message, image_arg: image, extension: str.low
     """ Convert an image to a specified extension. """
     image_arg.set_extension(extension)
     await send_image(message, image_arg)
+
+
+@plugins.command(aliases="jpg")
+async def jpeg(message: discord.Message, image_arg: image, quality: utils.int_range(f=0, t=100)=5):
+    """ Give an image some proper jpeg artifacting. """
+    assert not image_arg.gif, "**JPEG saving only works on images.**"
+    image_arg.set_extension("jpg")
+    await send_image(message, image_arg, quality=quality)

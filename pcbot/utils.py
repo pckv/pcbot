@@ -228,10 +228,10 @@ async def download_json(url, **params):
                 return None
 
 
-def convert_image_object(image, format="PNG", save_all=False):
+def convert_image_object(image, format="PNG", save_all=False, **params):
     """ Converts a PIL.Image.Image object into a buffer. """
     buffer = BytesIO()
-    image.save(buffer, format, save_all=save_all)
+    image.save(buffer, format, save_all=save_all, **params)
     buffer.seek(0)
     return buffer
 
