@@ -201,9 +201,9 @@ async def purge(message: discord.Message, num: utils.int_range(1, 100),
     
     m = await client.say(message, "Purged **{}** message{}.".format(deleted, "" if deleted == 1 else "s"))
 
-    # Remove the message after 5 seconds
+    # Remove both the command message and the feedback after 5 seconds
     await asyncio.sleep(5)
-    await client.delete_message(m)
+    await client.delete_messages([m, message])
 
 
 async def check_nsfw(message: discord.Message):
