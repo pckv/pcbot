@@ -24,7 +24,7 @@ class Cleverbot(object):
     """ Handles a conversation with Cleverbot. """
     HOST = "www.cleverbot.com"
     PROTOCOL = "http://"
-    RESOURCE = "/webservicemin?uc=165&"
+    RESOURCE = "/webservicemin?uc=321&"
     API_URL = PROTOCOL + HOST + RESOURCE
 
     headers = {
