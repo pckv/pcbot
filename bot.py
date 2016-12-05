@@ -127,12 +127,12 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
     except AssertionError as e:
         await client.say(message, str(e) or command.error or utils.format_help(command))
     except:
-        await client.say(message, "An error occurred while executing this command. If the error persists, "
-                                       "please send a PM to {}.".format(app_info.owner))
+        traceback.print_exc()
         if utils.is_owner(message.author):
             await client.say(message, utils.format_code(traceback.format_exc()))
         else:
-            traceback.print_exc()
+            await client.say(message, "An error occurred while executing this command. If the error persists, "
+                                       "please send a PM to {}.".format(app_info.owner))
 
 
 def default_self(anno, default, message: discord.Message):
