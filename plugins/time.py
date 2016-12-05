@@ -3,7 +3,7 @@ import pendulum
 from pytz import all_timezones
 
 import plugins
-from pcbot import Config, Annotate, get_member
+from pcbot import Config, Annotate
 
 
 client = plugins.client  # type: discord.Client
