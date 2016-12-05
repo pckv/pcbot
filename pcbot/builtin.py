@@ -49,7 +49,7 @@ async def help_(message: discord.Message, command: str.lower=None, *args):
                 commands.extend(
                     cmd.name_prefix.split()[0] for cmd in plugin.__commands
                     if not cmd.hidden and
-                    (not getattr(getattr(cmd, "function"), "__owner__", False) or
+                    (not getattr(getattr(cmd, "function"), "owner", False) or
                      utils.is_owner(message.author))
                 )
 

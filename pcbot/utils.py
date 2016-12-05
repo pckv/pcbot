@@ -39,7 +39,8 @@ def int_range(f: int=None, t: int=None):
     """ Return a helper function for checking if a str converted to int is in the
     specified range, f (from) - t (to).
 
-    If either f or t is None, they will be treated as -inf +inf respectively. """
+    :param f: From: where the range starts. -inf if omitted.
+    :param t: To: where the range ends. +inf if omitted. """
     def wrapped(arg: str):
         # Convert to int and return None if unsuccessful
         try:
@@ -57,15 +58,18 @@ def int_range(f: int=None, t: int=None):
     return wrapped
 
 
-def choice(*options, ignore_case: bool=True):
-    """ Return a helper function for checking if the argument is either of the given
-    options. """
+def choice(*options: str, ignore_case: bool=True):
+    """ Return a helper function for checking if the argument is either of the
+    given options.
+
+    :param options: Any number of strings to choose from.
+    :param ignore_case: Do not compare case-sensitively. """
     def wrapped(arg: str):
         # Compare lowercased version
         if ignore_case:
             return arg if arg.lower() in [s.lower() for s in options] else None
-
-        return arg if arg in options else None
+        else:
+            return arg if arg in options else None
 
     return wrapped
 
@@ -80,7 +84,8 @@ def format_usage(command):
     """ Format the usage string of the given command. Places any usage
     of a sub command on a newline.
 
-    :param command: type plugins.Command """
+    :param command: Type plugins.Command
+    :returns: str: formatted usage. """
     if command.hidden and command.parent is not None:
         return
 
@@ -95,10 +100,12 @@ def format_usage(command):
     return "\n".join(s for s in usage if s is not None) if usage else None
 
 
-def format_help(command, no_subcommand=False):
+def format_help(command, no_subcommand: bool=False):
     """ Format the help string of the given command as a message to be sent.
 
-    :param command: type plugins.Command """
+    :param command: Type plugins.Command
+    :param no_subcommand: Use only the given command's usage.
+    :returns: str: help message"""
     usage = command.usage if no_subcommand else format_usage(command)
 
     # If there is no usage, the command isn't supposed to be displayed as such
@@ -109,7 +116,7 @@ def format_help(command, no_subcommand=False):
     desc = command.description
 
     # Notify the user when a command is owner specific
-    if getattr(command.function, "__owner__", False):
+    if getattr(command.function, "owner", False):
         desc += "\n:information_source:`Only the bot owner can execute this command.`"
 
     # Format aliases
@@ -126,14 +133,17 @@ def format_help(command, no_subcommand=False):
     return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
 
 
-def is_owner(member):
+def is_owner(user):
     """ Return true if user/member is the assigned bot owner.
 
-    :param member: discord.User, discord.Member or a str representing the member's ID. """
-    if type(member) is not str:
-        member = member.id
+    :param user: discord.User, discord.Member or a str representing the user's ID.
+    :raises: TypeError: user is wrong type. """
+    if isinstance(user, discord.User):
+        user = user.id
+    elif type(user) is not str:
+        raise TypeError("member must be an instance of discord.User or a str representing the user's ID.")
 
-    if member == owner_cfg.data:
+    if user == owner_cfg.data:
         return True
 
     return False
@@ -146,7 +156,8 @@ def owner(func):
         if is_owner(message.author):
             await func(message, *args, **kwargs)
 
-    setattr(wrapped, "__owner__", True)
+    # Owner commands receive an owner attribute
+    setattr(wrapped, "owner", True)
     return wrapped
 
 
@@ -183,9 +194,9 @@ def role(*roles: str):
 async def retrieve_page(url, head=False, **params):
     """ Download and return a website with aiohttp.
 
-    :param url: Download url as str
-    :param params: Any additional url parameters
-    :return: The byte-like file """
+    :param url: Download url as str.
+    :param params: Any additional url parameters.
+    :returns: The byte-like file. """
     async with aiohttp.ClientSession() as session:
         coro = session.head if head else session.get
 
@@ -196,9 +207,9 @@ async def retrieve_page(url, head=False, **params):
 async def retrieve_headers(url, **params):
     """ Retrieve the headers from a URL.
 
-    :param url: URL as str
-    :param params: Any additional url parameters
-    :return: Headers as a dict """
+    :param url: URL as str.
+    :param params: Any additional url parameters.
+    :returns: Headers as a dict. """
     head = await retrieve_page(url, head=True, **params)
     return head.headers
 
@@ -206,9 +217,9 @@ async def retrieve_headers(url, **params):
 async def download_file(url, **params):
     """ Download and return a byte-like object of a file.
 
-    :param url: Download url as str
-    :param params: Any additional url parameters
-    :return: The byte-like file """
+    :param url: Download url as str.
+    :param params: Any additional url parameters.
+    :returns: The byte-like file. """
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
             return await response.read()
@@ -217,9 +228,9 @@ async def download_file(url, **params):
 async def download_json(url, **params):
     """ Download and return a json file.
 
-    :param url: Download url as str
-    :param params: Any additional url parameters
-    :return: A JSON representation of the downloaded file """
+    :param url: Download url as str.
+    :param params: Any additional url parameters.
+    :returns: A JSON representation of the downloaded file. """
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
             try:
@@ -228,10 +239,16 @@ async def download_json(url, **params):
                 return None
 
 
-def convert_image_object(image, format="PNG", save_all=False, **params):
-    """ Converts a PIL.Image.Image object into a buffer. """
+def convert_image_object(image, format: str="PNG", **params):
+    """ Saves a PIL.Image.Image object to BytesIO buffer. Effectively
+    returns the byte-like object for sending through discord.Client.send_file.
+    
+    :param image: PIL.Image.Image: object to convert.
+    :param format: The image format, defaults to PNG.
+    :param params: Any additional parameters sent to the writer.
+    :returns: BytesIO: the image object in bytes. """
     buffer = BytesIO()
-    image.save(buffer, format, save_all=save_all, **params)
+    image.save(buffer, format, **params)
     buffer.seek(0)
     return buffer
 
@@ -253,7 +270,8 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     :param server: discord.Server to look through for members.
     :param name: display_name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
-    :param mention: bool, check for mentions. """
+    :param mention: bool, check for mentions.
+    :returns: discord.Member """
     member = None
 
     # Return a member from mention
@@ -296,7 +314,8 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
         :param server: discord.Server to look through for channels.
         :param name: name as a string or mention to find.
         :param steps: int from 0-3 to specify search depth.
-        :param mention: check for mentions. """
+        :param mention: check for mentions.
+        :returns: discord.Channel """
     channel = None
 
     # Return a member from mention
@@ -320,46 +339,26 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
     return channel
 
 
-def get_member(members: list, member_id: str):
-    """ Get a member from the specified ID. """
-    for member in members:
-        if member.id == member_id:
-            return member
-
-    return None
-
-
-def format_exception(e):
-    """ Returns a formatted string of Exception: e """
+def format_exception(e: Exception):
+    """ Returns a formatted string as Exception: e """
     return type(e).__name__ + ": " + str(e)
 
 
-def format_syntax_error(e):
+def format_syntax_error(e: Exception):
     """ Returns a formatted string of a SyntaxError.
     Stolen from https://github.com/Rapptz/RoboDanny/blob/master/cogs/repl.py#L24-L25 """
     return "{0.text}\n{1:>{0.offset}}\n{2}: {0}".format(e, "^", type(e).__name__).replace("\n\n", "\n")
 
 
-def get_formatted_code(code):
-    """ Format code from markdown format. This will filter out markdown code
-    and give the executable python code, or raise an exception. """
-    match = markdown_code_regex.match(code)
-
-    if match:
-        code = match.group("code")
-
-        # Try finding the code via match, and make sure it wasn't somehow corrupt before returning
-        if not code == "`":
-            return code
-
-    raise Exception("Could not format code.")
-
-
-def format_objects(*objects: tuple, attr=None, dec: str= "", sep: str= ", "):
+def format_objects(*objects, attr=None, dec: str= "", sep: str= ", "):
     """ Return a formatted string of objects (User, Member, Channel or Server) using
     the given decorator and the given separator.
 
-    :param attr: The attribute to get from the member. """
+    :param objects: Any object with attributes, preferably User, Member, Channel or Server.
+    :param attr: The attribute to get from any object. Defaults to object names.
+    :param dec: String to decorate around each object.
+    :param sep: Separator between each argument.
+    :return: str: the formatted objects. """
     if not objects:
         return
 
@@ -375,17 +374,55 @@ def format_objects(*objects: tuple, attr=None, dec: str= "", sep: str= ", "):
     return sep.join(dec + getattr(m, attr) + dec for m in objects)
 
 
+def get_formatted_code(code: str):
+    """ Format code from markdown format. This will filter out markdown code
+    and give the executable python code, or raise an exception.
+
+    :param code: code formatted in markdown.
+    :returns: str: code from formatted markdown. """
+    code = code.strip(" \n")
+    match = markdown_code_regex.match(code)
+
+    if match:
+        code = match.group("code")
+
+        # Try finding the code via match, and make sure it wasn't somehow corrupt before returning
+        if not code == "`":
+            return code
+
+    raise Exception("Could not format code.")
+
+
+def format_code(code: str, language: str=None, *, simple: bool=False):
+    """ Format markdown code.
+
+    :param language: Optional syntax highlighting language.
+    :param simple: Use single quotes, e.g `"Hello!"`
+    :returns: str of markdown code """
+    if simple:
+        return "`{}`".format(code)
+    else:
+        return "```{}\n{}```".format(language or "", code)
+
+
 def text_to_emoji(text: str):
     """ Convert text to a string of regional emoji.
-    Text must only contain characters in the alphabet from A-Z. """
+    Text must only contain characters in the alphabet from A-Z.
+
+    :param text: text of characters in the alphabet from A-Z.
+    :returns: str: formatted emoji unicode. """
     regional_offset = 127397  # This number + capital letter = regional letter
     return "".join(chr(ord(c) + regional_offset) for c in text.upper())
 
 
-def split(string, maxsplit=-1):
-    """ Split a string with shlex when possible, and add support for maxsplit. """
+def split(text: str, maxsplit: int=-1):
+    """ Split a string with shlex when possible, and add support for maxsplit.
+
+    :param text: Text to split.
+    :param maxsplit: Number of times to split. The rest is returned without splitting.
+    :returns: list: split text. """
     # Generate a shlex object for eventually splitting manually
-    split_object = shlex.shlex(string, posix=True)
+    split_object = shlex.shlex(text, posix=True)
     split_object.quotes = '"`'
     split_object.whitespace_split = True
     split_object.commenters = ""
@@ -395,7 +432,7 @@ def split(string, maxsplit=-1):
         try:
             return list(split_object)
         except ValueError:  # If there is a problem with quotes, use the regular split method
-            return string.split()
+            return text.split()
 
     # Create a list for the following split keywords
     maxsplit_object = []

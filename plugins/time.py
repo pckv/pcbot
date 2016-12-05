@@ -129,7 +129,7 @@ async def delete(message: discord.Message, tag: Annotate.Content):
 
     author_id = time_cfg.data["countdown"][tag]["author"]
     assert message.author.id == author_id, "You are not the author of this tag ({}).".format(
-        getattr(get_member(client.get_all_members(), author_id), "name", None) or "~~Unknown~~")
+        getattr(discord.utils.get(client.get_all_members(), id=author_id), "name", None) or "~~Unknown~~")
 
     del time_cfg.data["countdown"][tag]
     time_cfg.save()

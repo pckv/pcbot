@@ -7,10 +7,10 @@ that would be executed.
 import logging
 import inspect
 import os
+import traceback
 from datetime import datetime
 from getpass import getpass
 from argparse import ArgumentParser
-from traceback import print_exc
 
 import discord
 import asyncio
@@ -129,7 +129,10 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
     except:
         await client.say(message, "An error occurred while executing this command. If the error persists, "
                                        "please send a PM to {}.".format(app_info.owner))
-        print_exc()
+        if utils.is_owner(message.author):
+            await client.say(message, utils.format_code(traceback.format_exc()))
+        else:
+            traceback.print_exc()
 
 
 def default_self(anno, default, message: discord.Message):
