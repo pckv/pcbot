@@ -291,7 +291,7 @@ def import_module(module: str, attr: str=None):
             if hasattr(imported, attr):
                 code_globals[attr] = getattr(imported, attr)
             else:
-                e = "Module {} has no attribute {}.".format(module, attr)
+                e = "Module {} has no attribute {}".format(module, attr)
                 logging.error(e)
                 raise KeyError(e)
         else:
@@ -403,13 +403,18 @@ def init():
 
     # Import modules for "do", "eval" and "lambda" commands
     for module, attr in lambda_config.data["imports"]:
-        # Remove any already imported modules
-        if (attr or module) in code_globals:
-            lambda_config.data["imports"].remove([module, attr])
-            lambda_config.save()
-            continue
+        # Let's not import any already existing modules
+        if (attr or module) not in code_globals:
+            try:
+                import_module(module, attr)
+            except (KeyError, ImportError):  # The module doesn't work, so we skip it
+                pass
+            else:
+                continue
 
-        import_module(module, attr)
+        # Something went wrong and we'll remove the module from the config
+        lambda_config.data["imports"].remove([module, attr])
+        lambda_config.save()
 
 
 @plugins.event()
