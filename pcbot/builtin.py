@@ -280,6 +280,13 @@ async def disable(message: discord.Message, trigger: str):
 
 def import_module(module: str, attr: str=None):
     """ Remotely import a module or attribute from module into code_globals. """
+    # The name of the module in globals
+    # If attr starts with :, it defines a new name for the module as whatever follows the colon
+    # When nothing follows this colon, the name is set to the last subcommand in the given module
+    name = attr or module
+    if attr and attr.startswith(":"):
+        name = attr[1:] or module.split(".")[-1].replace(" ", "")
+
     try:
         imported = importlib.import_module(module)
     except ImportError:
@@ -287,23 +294,29 @@ def import_module(module: str, attr: str=None):
         logging.error(e)
         raise ImportError(e)
     else:
-        if attr:
+        if attr and not attr.startswith(":"):
             if hasattr(imported, attr):
-                code_globals[attr] = getattr(imported, attr)
+                code_globals[name] = getattr(imported, attr)
             else:
                 e = "Module {} has no attribute {}".format(module, attr)
                 logging.error(e)
                 raise KeyError(e)
         else:
-            code_globals[module] = imported
+            code_globals[name] = imported
+
+    return name
 
 
 @lambda_.command(name="import")
 @utils.owner
 async def import_(message: discord.Message, module: str, attr: str=None):
-    """ Import the specified module. Specifying `attr` will act like `from attr import module`. """
+    """ Import the specified module. Specifying `attr` will act like `from attr import module`.
+
+    If the given attribute starts with a colon :, the name for the module will be defined as
+    whatever follows the colon character. If nothing follows, the last subcommand in the module
+    is used. """
     try:
-        import_module(module, attr)
+        name = import_module(module, attr)
     except ImportError:
         await client.say(message, "Unable to import `{}`.".format(module))
     except KeyError:
@@ -312,7 +325,7 @@ async def import_(message: discord.Message, module: str, attr: str=None):
         # There were no errors when importing, so we add the name to our startup imports
         lambda_config.data["imports"].append((module, attr))
         lambda_config.save()
-        await client.say(message, "Imported and setup `{}` for import.".format(attr or module))
+        await client.say(message, "Imported and setup `{}` for import.".format(name))
 
 
 @lambda_.command()
