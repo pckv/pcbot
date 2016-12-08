@@ -2,7 +2,7 @@
 and the default plugin with default commands.
 
 This module does not load the builtin plugin as that is handled by
-the plugin manager (plugins.__init__.py)
+the plugin manager (plugins.__init__.py), and loaded in bot.py
 """
 
 from .config import *

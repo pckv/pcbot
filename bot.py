@@ -68,7 +68,7 @@ class Client(discord.Client):
         try:
             await super().send_file(destination, fp, filename=filename, content=content, tts=tts)
         except discord.errors.Forbidden:
-            await self.send_message(destination, "*I don't have the permissions to send my attachment.*")
+            await self.send_message(destination, "**I don't have the permissions to send my attachment.**")
 
     async def delete_message(self, message):
         """ Override to add info on the last deleted message. """
@@ -136,7 +136,7 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
 
 
 def default_self(anno, default, message: discord.Message):
-    """ A silly function to make Annotate.Self work."""
+    """ A silly function to make Annotate.Self work. """
     if default is utils.Annotate.Self:
         if anno is utils.Annotate.Member:
             return message.author

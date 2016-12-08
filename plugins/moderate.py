@@ -180,8 +180,7 @@ async def timeout(message: discord.Message, member: Annotate.Member, minutes: fl
 
 @plugins.command()
 @utils.permission("manage_messages")
-async def purge(message: discord.Message, num: utils.int_range(1, 100),
-                *members: Annotate.Member):
+async def purge(message: discord.Message, *members: Annotate.Member, num: utils.int_range(1, 100)):
     """ Purge the given amount of messages from the specified members or all.
     `num` is a number from 1 to 100. """
     to_delete = []
