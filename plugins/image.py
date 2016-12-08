@@ -203,8 +203,17 @@ async def convert(message: discord.Message, image_arg: image, extension: str.low
 
 
 @plugins.command(aliases="jpg")
-async def jpeg(message: discord.Message, image_arg: image, quality: utils.int_range(f=0, t=100)=5):
-    """ Give an image some proper jpeg artifacting. """
+async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice("small"),
+               quality: utils.int_range(f=0, t=100)=5):
+    """ Give an image some proper jpeg artifacting.
+
+    Valid effects are: `small` """
     assert not image_arg.gif, "**JPEG saving only works on images.**"
     image_arg.set_extension("jpg")
+
+    if effect:
+        if "small" in effect:
+            w, h = image_arg.object.size
+            image_arg.modify(Image.Image.resize, (w // 3, h // 3))
+
     await send_image(message, image_arg, quality=quality)
