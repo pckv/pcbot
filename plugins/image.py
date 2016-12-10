@@ -29,6 +29,7 @@ except:
 client = plugins.client  # type: discord.Client
 
 extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
+mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
 max_bytes = 4096 ** 2  # 4 MB
 max_gif_bytes = 1024 * 128  # 128kB
 
@@ -83,7 +84,15 @@ async def image(message: discord.Message, url_or_emoji: str):
 
     try:  # Check if the given string is a url and save the headers for later
         headers = await utils.retrieve_headers(url_or_emoji)
-    except ValueError:  # Not a valid url, figure out if we support emoji
+    except ValueError:  # Not a valid url, let's see if it's a mention
+        match = mention_regex.match(url_or_emoji)
+        if match:
+            member = message.server.get_member(match.group("id"))
+            image_bytes = await utils.download_file(member.avatar_url)
+            image_object = Image.open(BytesIO(image_bytes))
+            return ImageArg(image_object, format="PNG")
+
+        # Nope, not a mention. If we support emoji, we can progress further
         assert not url_only, "`{}` **is not a valid URL.**".format(url_or_emoji)
 
         # There was no image to get, so let's see if it's an emoji
@@ -92,7 +101,7 @@ async def image(message: discord.Message, url_or_emoji: str):
         if image_object:
             return ImageArg(image_object, format="PNG")
 
-        # Not an emoji, so perhaps it's an emote
+        # Not an emoji, perhaps it's an emote
         match = emote_regex.match(url_or_emoji)
         if match:
             image_object = await get_emote(match.group("id"), message)
