@@ -67,6 +67,9 @@ async def remove(message: discord.Message, name: Annotate.LowerContent):
 @plugins.event()
 async def on_message(message: discord.Message):
     """ Use shorthand |<pasta ...> for displaying pastas and remove the user's message. """
+    if message.author.bot:
+        return
+
     if message.content.startswith("|"):
         if message.channel.permissions_for(message.server.me).manage_messages:
             asyncio.ensure_future(client.delete_message(message))
