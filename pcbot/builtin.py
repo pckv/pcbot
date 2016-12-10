@@ -407,11 +407,9 @@ def init():
     """ Import any imports for lambdas. """
     # Add essential globals for "do", "eval" and "lambda" commands
     code_globals.update(dict(
-        utils=utils,
-        datetime=datetime,
-        random=random,
-        asyncio=asyncio,
-        plugins=plugins
+        utils=utils, datetime=datetime, random=random, asyncio=asyncio,
+        plugins=plugins, plugin=plugins.get_plugin, command=plugins.get_command,
+        execute=plugins.execute
     ))
 
     # Import modules for "do", "eval" and "lambda" commands
