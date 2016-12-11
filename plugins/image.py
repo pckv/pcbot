@@ -88,7 +88,7 @@ class ImageArg:
         self.object = background
 
 
-@plugins.argument("{open}url" + ("" if url_only else " or emoji") + "{suffix}{close}", pass_message=True)
+@plugins.argument("{open}url/@user" + ("" if url_only else "/emoji") + "{suffix}{close}", pass_message=True)
 async def image(message: discord.Message, url_or_emoji: str):
     """ Parse a url or emoji and return an ImageArg object. """
     # Remove <> if the link looks like a URL, to allow for embed escaped links.
@@ -106,7 +106,7 @@ async def image(message: discord.Message, url_or_emoji: str):
             return ImageArg(image_object, format="PNG")
 
         # Nope, not a mention. If we support emoji, we can progress further
-        assert not url_only, "`{}` **is not a valid URL.**".format(url_or_emoji)
+        assert not url_only, "`{}` **is not a valid URL or user mention.**".format(url_or_emoji)
 
         # There was no image to get, so let's see if it's an emoji
         char = "-".join(hex(ord(c))[2:] for c in url_or_emoji)  # Convert to a hex string
@@ -122,7 +122,7 @@ async def image(message: discord.Message, url_or_emoji: str):
                 return ImageArg(image_object, format="PNG")
 
         # Alright, we're out of ideas
-        raise AssertionError("`{}` **is neither a URL or an emoji.**".format(url_or_emoji))
+        raise AssertionError("`{}` **is neither a URL, a mention nor an emoji.**".format(url_or_emoji))
 
     # The URL was valid so let's make sure it's an image
     match = extension_regex.search(headers["CONTENT-TYPE"])
