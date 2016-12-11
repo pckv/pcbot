@@ -79,6 +79,9 @@ class ImageArg:
 
     def to_rgb(self):
         """ Convert to RGB using solution from http://stackoverflow.com/questions/9166400/ """
+        if not self.object.mode == "RGBA":
+            return
+
         self.object.load()
         background = Image.new("RGB", self.object.size, (0, 0, 0))
         background.paste(self.object, mask=self.object.split()[3])
