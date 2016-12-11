@@ -5,7 +5,7 @@ Commands:
 import re
 from io import BytesIO
 
-from PIL import Image, ImageSequence
+from PIL import Image, ImageSequence, ImageOps
 import discord
 
 import plugins
@@ -53,6 +53,9 @@ class ImageArg:
         if self.format.lower() == "jpg":
             self.format = "JPEG"
 
+        if self.format == "JPEG":
+            self.to_rgb()
+
     def set_extension(self, ext: str):
         self.extension = self.format = ext
         self.clean_format()
@@ -73,6 +76,13 @@ class ImageArg:
             image_bytes = imageio.mimwrite(imageio.RETURN_BYTES, frames, format=self.format, duration=duration)
             self.object = Image.open(BytesIO(image_bytes))
             self.gif_bytes = image_bytes
+
+    def to_rgb(self):
+        """ Convert to RGB using solution from http://stackoverflow.com/questions/9166400/ """
+        self.object.load()
+        background = Image.new("RGB", self.object.size, (0, 0, 0))
+        background.paste(self.object, mask=self.object.split()[3])
+        self.object = background
 
 
 @plugins.argument("{open}url" + ("" if url_only else " or emoji") + "{suffix}{close}", pass_message=True)
@@ -192,9 +202,8 @@ async def resize(message: discord.Message, image_arg: image, resolution: parse_r
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"), aliases="tilt")
-async def rotate(message: discord.Message, image_arg: image, degrees: int, *options, extension: str=None):
+async def rotate(message: discord.Message, image_arg: image, degrees: int, *options, extension: str.lower=None):
     """ Rotate an image clockwise using the given degrees. """
-    # Set the image upload format, extension and filename
     if extension:
         image_arg.set_extension(extension)
 
@@ -226,3 +235,42 @@ async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice
             image_arg.modify(Image.Image.resize, (w // 3, h // 3))
 
     await send_image(message, image_arg, quality=quality)
+
+
+@plugins.command()
+async def invert(message: discord.Message, image_arg: image):
+    """ Invert the colors of an image. """
+    image_arg.set_extension("jpg")
+
+    # This function only works in images because of PIL limitations
+    assert not image_arg.gif, "**This command does not support GIF files.**"
+
+    # Invert the colors and upload the image
+    image_arg.modify(ImageOps.invert)
+    await send_image(message, image_arg)
+
+
+@plugins.command()
+async def flip(message: discord.Message, image_arg: image, extension: str.lower=None):
+    """ Flip an image in the y-axis. """
+    if extension:
+        image_arg.set_extension(extension)
+
+    # Flip the image
+    image_arg.modify(Image.Image.transpose, Image.FLIP_TOP_BOTTOM)
+    try:
+        await send_image(message, image_arg)
+    except IOError:
+        await client.say(message, "**The image format is not supported (must be L or RGB)**")
+
+
+@plugins.command()
+async def mirror(message: discord.Message, image_arg: image, extension: str.lower=None):
+    """ Mirror an image along the x-axis. """
+    if extension:
+        image_arg.set_extension(extension)
+
+    # Mirror the image
+    image_arg.modify(Image.Image.transpose, Image.FLIP_LEFT_RIGHT)
+    await send_image(message, image_arg)
+
