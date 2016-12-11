@@ -247,7 +247,7 @@ async def invert(message: discord.Message, image_arg: image):
 
     # Invert the colors and upload the image
     image_arg.modify(ImageOps.invert)
-    await send_image(message, image_arg)
+    await send_image(message, image_arg, quality=100)
 
 
 @plugins.command()
