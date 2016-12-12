@@ -145,26 +145,35 @@ async def image(message: discord.Message, url_or_emoji: str):
     return ImageArg(image_object, format=image_format)
 
 
-@plugins.argument("{open}width{suffix}{close}x{open}height{suffix}{close}")
+@plugins.argument("({open}width{close}x{open}height{close} or *{open}scale{close})")
 def parse_resolution(res: str):
-    """ Parse a resolution string. """
-    # Show help when the format is incorrect
-    if not res.count("x") == 1:
+    """ Parse a resolution string.
+
+    If the y value is zero, the x value is the number to scale the image with. """
+    # Check what type of input we're parsing
+    if res.count("x") == 1:
+        # Try parsing the numbers in the resolution
+        x, y = res.split("x")
+        try:
+            x = int(x)
+            y = int(y)
+        except ValueError:
+            raise AssertionError("**Width or height are not integers.**")
+
+        # Assign a maximum and minimum size
+        assert 1 <= x <= 3000 and 1 <= y <= 3000, "**Width and height must be between 1 and 3000.**"
+        return x, y
+    elif res.startswith("*"):
+        try:
+            scale = float(res[1:])
+        except ValueError:
+            raise AssertionError("**Characters following \* must be a number, not `{}`**".format(res[1:]))
+
+        # Make sure the scale isn't less than 0. Whatever uses this argument will have to manually check for max size
+        assert scale > 0, "**Scale must be greater than 0.**"
+        return scale, 0
+    else:
         return None
-
-    # Try parsing the numbers in the resolution
-    x, y = res.split("x")
-    try:
-        x = int(x)
-        y = int(y)
-    except ValueError:
-        return None
-
-    # Assign a maximum and minimum size
-    if not (1 <= x <= 3000 and 1 <= y <= 3000):
-        raise AssertionError("**Width and height must be between 1 and 3000.**")
-
-    return x, y
 
 
 def clean_format(image_format: str, extension: str):
@@ -195,9 +204,16 @@ async def send_image(message: discord.Message, image_arg: ImageArg, **params):
 async def resize(message: discord.Message, image_arg: image, resolution: parse_resolution, *options,
                  extension: str.lower=None):
     """ Resize an image with the given resolution formatted as `<width>x<height>`
-    with an optional extension. """
+    or `*<scale>` with an optional extension. """
     if extension:
         image_arg.set_extension(extension)
+
+    # Generate a new image based on the scale
+    if resolution[1] == 0:
+        w, h = image_arg.object.size
+        scale = resolution[0]
+        assert w * scale < 3000 and h * scale < 3000, "**The result image must be less than 3000 pixels in each axis.**"
+        resolution = (int(w * scale), int(h * scale))
 
     # Resize and upload the image
     image_arg.modify(Image.Image.resize, resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS)
