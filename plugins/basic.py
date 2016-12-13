@@ -174,7 +174,7 @@ async def remove(message: discord.Message, plugin: plugin_in_req, req_id: get_re
     await client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
-@plugins.event()
+@plugins.event(bot=True)
 async def on_message(message: discord.Message):
     # Have cleverbot respond to our bot
     if not message.content.startswith("!") and client.user in message.mentions:

@@ -187,7 +187,7 @@ def command(**options):
     return decorator
 
 
-def event(name=None):
+def event(name=None, bot=False):
     """ Decorator to add event listeners in plugins. """
     def decorator(func):
         event_name = name or func.__name__
@@ -195,6 +195,9 @@ def event(name=None):
         if event_name == "on_ready":
             raise NameError("on_ready in plugins is reserved for bot initialization only (use it without the"
                             "event listener call).")
+
+        # Set the bot attribute, which determines whether the function will be triggered by messages from bot accounts
+        setattr(func, "bot", bot)
 
         # Register our event
         events[event_name].append(func)

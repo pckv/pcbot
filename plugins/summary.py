@@ -57,10 +57,10 @@ async def update_messages(channel: discord.Channel):
         update_task.set()
 
 
-@plugins.event()
+@plugins.event(bot=True)
 async def on_message(message: discord.Message):
     """ Whenever a message is sent, see if we can update in one of the channels. """
-    if message.channel.id in stored_messages:
+    if message.channel.id in stored_messages and message.content:
         stored_messages[message.channel.id].append(message)
 
 
