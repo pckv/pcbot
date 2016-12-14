@@ -35,7 +35,7 @@ class Game:
 
     async def on_start(self):
         """ Notify the channel that the game has been initialized. """
-        m = "{} has started a game of {}! To participate, say `I`! **{} players needed.**".format(
+        m = "**{}** has started a game of {}! To participate, say `I`! **{} players needed.**".format(
             self.message.author.display_name, self.name, self.num)
         await client.say(self.message, m)
 
@@ -288,7 +288,7 @@ async def init_game(message: discord.Message, game, num: int):
     :param num: The specified participants
     """
     if num > message.server.member_count:
-        num = sum(1 for m in message.server.members if not m.bot)
+        num = sum(1 for m in message.server.members if not m.bot and m.status is not discord.Status.offline)
 
     # The channel should not be playing two games at once
     assert message.channel.id not in started, "**This channel is already playing.**"
