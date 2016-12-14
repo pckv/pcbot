@@ -99,8 +99,8 @@ class UpdateModes(Enum):
 def calculate_acc(mode: api.GameMode, score: dict):
     """ Calculate the accuracy using formulas from https://osu.ppy.sh/wiki/Accuracy """
     # Parse data from the score: 50s, 100s, 300s, misses, katu and geki
-    c300, c100, c50 = int(score["count300"]), int(score["count100"]), int(score["count50"])
-    miss, katu, geki = int(score["countmiss"]), int(score["countkatu"]), int(score["countgeki"])
+    keys = ("count300", "count100", "count50", "countmiss", "countkatu", "countgeki")
+    c300, c100, c50, miss, katu, geki = map(int, (score[key] for key in keys))
 
     # Catch accuracy is done a tad bit differently, so we calculate that by itself
     if mode is api.GameMode.Catch:
@@ -117,7 +117,7 @@ def calculate_acc(mode: api.GameMode, score: dict):
         total_points_of_hits = (miss * 0 + c100 * 0.5 + c300 * 1) * 300
         total_number_of_hits = miss + c100 + c300
     elif mode is api.GameMode.Mania:
-        # In mania, katu is 200s and geki is MAXes
+        # In mania, katu is 200s and geki is MAX
         total_points_of_hits = c50 * 50 + c100 * 100 + katu * 200 + (c300 + geki) * 300
         total_number_of_hits = miss + c50 + c100 + katu + c300 + geki
 
