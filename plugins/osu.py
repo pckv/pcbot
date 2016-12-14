@@ -328,21 +328,16 @@ async def notify_pp(member_id: str, data: dict):
     if "old" not in data:
         return
 
+    # Get the difference in pp since the old data
     old, new = data["old"], data["new"]
-
-    # At this point, there is a difference in pp and we want to notify this
     pp_diff = get_diff(old, new, "pp_raw")
 
-    # There is no difference in pp, therefore we move on to the next member
-    if pp_diff == 0:
+    # If the difference is too small or nothing, move on
+    if pp_threshold > pp_diff > -pp_threshold:
         return
 
-    # If the difference is too small, move on
-    if pp_threshold > pp_diff > pp_threshold * -1:
-        return
-
-    rank_diff = get_diff(old, new, "pp_rank") * -1
-    country_rank_diff = get_diff(old, new, "pp_country_rank") * -1
+    rank_diff = -get_diff(old, new, "pp_rank")
+    country_rank_diff = -get_diff(old, new, "pp_country_rank")
     accuracy_diff = get_diff(old, new, "accuracy")  # Percent points difference
 
     member = data["member"]
