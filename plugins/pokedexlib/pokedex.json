@@ -2575,10 +2575,12 @@
                     "clefable"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 14,
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Star Shape",
+            "hatches_from": 2,
             "height": 0.3,
             "id": 173,
             "locale_name": "Cleffa",
@@ -4289,10 +4291,12 @@
                     "electivire"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 60,
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Electric",
+            "hatches_from": 10,
             "height": 0.6,
             "id": 239,
             "locale_name": "Elekid",
@@ -7117,10 +7121,12 @@
                     "wigglytuff"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 16,
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Balloon",
+            "hatches_from": 2,
             "height": 0.3,
             "id": 174,
             "locale_name": "Igglybuff",
@@ -8888,10 +8894,12 @@
                     "magmortar"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 61,
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Live Coal",
+            "hatches_from": 10,
             "height": 0.7,
             "id": 240,
             "locale_name": "Magby",
@@ -11231,10 +11239,12 @@
                     "raichu"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 10,
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Tiny Mouse",
+            "hatches_from": 5,
             "height": 0.3,
             "id": 172,
             "locale_name": "Pichu",
@@ -14143,10 +14153,12 @@
                     "jynx"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 59,
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Kiss",
+            "hatches_from": 10,
             "height": 0.4,
             "id": 238,
             "locale_name": "Smoochum",
@@ -15548,10 +15560,12 @@
                     "togekiss"
                 ]
             ],
+            "evolution_cost": 50,
             "evolution_id": 87,
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Spike Ball",
+            "hatches_from": 5,
             "height": 0.3,
             "id": 175,
             "locale_name": "Togepi",
