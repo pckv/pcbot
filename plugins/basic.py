@@ -184,11 +184,4 @@ async def on_message(message: discord.Message):
 
         # Ask cleverbot the given question and send the response.
         await client.say(message, await cleverbot.ask(question))
-
         return True
-
-    # See if the user spelled definitely wrong
-    for word in message.clean_content.split():
-        if get_close_matches(word.lower(), ["definitely"], n=1, cutoff=0.80) and not word.lower() == "definitely":
-            await client.send_message(message.channel, "http://www.d-e-f-i-n-i-t-e-l-y.com/")
-            return True
