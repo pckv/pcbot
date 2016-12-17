@@ -28,7 +28,7 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
     await client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
 
 
-@plugins.command(aliases="whomentionedme")
+@plugins.command(aliases="mentions")
 async def mentioned(message: discord.Message):
     """ Tries to find the first message which mentions you in the last 16 hours. """
     after = datetime.utcnow() - timedelta(hours=24)
@@ -37,24 +37,33 @@ async def mentioned(message: discord.Message):
 
     # Go through all messages since 24 hours ago
     async for m in client.logs_from(message.channel, limit=5000, before=message, after=after):
-        if message.author in m.mentions:
-            was_found = True
+        if message.author not in m.mentions:
+            continue
 
-            # Format the message when it's found
-            await client.say(message, "**{0.author.display_name} - {1}**\n{0.clean_content}".format(
-                m, m.timestamp.strftime("%A, %d %B %Y %H:%M:%S")))
+        was_found = True
 
-            # The member will be able to search for another mention by typing next
-            next_message = await client.say(message, "Type `next` to expand your search.")
-            reply = await client.wait_for_message(timeout=30, author=message.author, channel=message.channel,
-                                                  content="next")
+        # Format the message when it's found, along with messages from prior 15 seconds and latter 15 seconds
+        after = m.timestamp - timedelta(seconds=15)
+        message_content = []
+        async for nm in client.logs_from(message.channel, limit=50, after=after, before=after + timedelta(seconds=30)):
+            if nm.author == m.author:
+                message_content.append(nm.clean_content)
 
-            # Remove the previously sent help message and break if there was no response
-            await client.delete_message(next_message)
-            if reply is None:
-                break
-            else:
-                await client.send_typing(message.channel)
+        found_message = await client.say(message, "**{} - {}**```\n{}```".format(
+            m.author.display_name, after.strftime("%A, %d %B %Y %H:%M"), "\n".join(reversed(message_content))))
+
+        # The member will be able to search for another mention by typing next
+        next_message = await client.say(message, "Type `next` to expand your search.")
+        reply = await client.wait_for_message(timeout=30, author=message.author, channel=message.channel,
+                                              content="next")
+
+        # Remove the previously sent help message and break if there was no response
+        await client.delete_message(next_message)
+        if reply is None:
+            break
+        else:
+            await client.delete_message(found_message)
+            await client.send_typing(message.channel)
     else:
         await client.say(message, "Could not find a message mentioning you in the last 24 hours." if not was_found else
                                   "Found no more messages mentioning you in the last 24 hours.")
