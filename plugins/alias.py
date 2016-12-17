@@ -10,17 +10,16 @@ from difflib import get_close_matches
 import discord
 import asyncio
 
-from pcbot import Config, Annotate
+from pcbot import Config, Annotate, utils
 import plugins
 client = plugins.client  # type: discord.Client
 
 
 alias_desc = \
     "Assign an alias command, where trigger is the command in it's entirety: `{pre}cmd` or `>cmd` or `cmd`.\n" \
-    "Feel free to use spaces in a **trigger** by *enclosing it with quotes*, like so: `\"{pre}my cmd\"`.\n" \
-    "The **text** parameter can be anything, from a link to a paragraph. *Multiple spaces " \
-    "requires quotes:* `\"this is my alias command\"`.\n" \
-    "`-anywhere`: alias triggers anywhere in text you write.\n" \
+    "Feel free to use spaces in a **trigger** by *enclosing it with quotes*, like so: `\"{pre}my cmd\"`.\n\n" \
+    "**Options**:\n" \
+    "`-anywhere` makes the alias trigger anywhere in a message, and not just the start of a message.\n" \
     "`-case-sensitive` ensures that you *need* to follow the same casing.\n" \
     "`-delete-message` removes the original message. This option can not be mixed with the `-anywhere` option.\n" \
 
@@ -43,17 +42,18 @@ async def alias(message: discord.Message, *options: str.lower, trigger: str, tex
     )
     aliases.save()
 
-    await client.say(message, "Alias `{0}` set for **{1.name}**.".format(trigger, message.author))
+    m = "**Alias assigned.** Type `{}`{} to trigger the alias."
+    await client.say(message, m.format(trigger, " anywhere in a message" if anywhere else ""))
 
 
 @alias.command(name="list")
-async def list_(message: discord.Message):
+async def list_aliases(message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ List all user's aliases. """
-    assert aliases.data.get(message.author.id, False), "No aliases registered for **{0.name}**.".format(message.author)
+    assert message.author.id in aliases.data, "**{} has no aliases.**".format(member.display_name)
 
     # The user is registered so they must have aliases and we display them
     format_aliases = ", ".join(aliases.data[message.author.id].keys())
-    await client.say(message, "**Aliases for {0.name}:**```{1}```\n".format(message.author, format_aliases))
+    await client.say(message, "**Aliases for {}:**```\n{}```\n".format(member.display_name, format_aliases))
 
 
 @alias.command()
@@ -61,12 +61,12 @@ async def remove(message: discord.Message, trigger: Annotate.Content):
     """ Remove user alias with the specified trigger. """
     # Check if the trigger is in the would be list (basically checks if trigger is in [] if user is not registered)
     assert trigger in aliases.data.get(message.author.id, []), \
-        "No alias `{0}` registered for **{1.name}**.".format(trigger, message.author)
+        "**Alias `{}` has never been set. Check `{}`.".format(trigger, list_aliases.cmd.name_prefix)
 
     # Trigger is an assigned alias, remove it
     aliases.data[message.author.id].pop(trigger)
     aliases.save()
-    await client.say(message, "Removed alias `{0}` for **{1.name}**.".format(trigger, message.author))
+    await client.say(message, "**Alias `{}` removed.**".format(trigger, message.author))
 
 
 @plugins.event()
@@ -107,11 +107,5 @@ async def on_message(message: discord.Message):
                     message.author, mention, command["text"]))
 
                 success = True
-
-    # See if the user spelled definitely wrong
-    for word in message.clean_content.split():
-        if get_close_matches(word.lower(), ["definitely"], n=1, cutoff=0.80) and not word.lower() == "definitely":
-            await client.send_message(message.channel, "http://www.d-e-f-i-n-i-t-e-l-y.com/")
-            success = True
 
     return success

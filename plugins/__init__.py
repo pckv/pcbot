@@ -139,10 +139,12 @@ def command(**options):
             for line in description.split("\n"):
                 line = line.strip()
 
-                if line.endswith("/"):
+                if line == "/":
+                    new_desc += "\n\n"
+                elif line.endswith("/"):
                     new_desc += line[:-1] + "\n"
                 elif line == "":
-                    new_desc += "\n\n"
+                    new_desc += "\n"
                 else:
                     new_desc += line + " "
 
@@ -177,8 +179,11 @@ def command(**options):
         # Update the plugin's __commands attribute
         setattr(plugin, "__commands", commands)
 
-        # Create a command attribute for the command function that automatically assigns the parent
+        # Create a decorator for the command function that automatically assigns the parent
         setattr(func, "command", partial(command, parent=cmd))
+
+        # Add the cmd attribute to this function, in order to get the command assigned to the function
+        setattr(func, "cmd", cmd)
 
         logging.debug("Registered {} {} from plugin {}".format("subcommand" if parent else "command",
                                                                name, plugin.__name__))
