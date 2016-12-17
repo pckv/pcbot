@@ -96,7 +96,9 @@ def format_type(types: list):
 
 @plugins.command(name="pokedex", aliases="pd pokemon dex")
 async def pokedex_(message: discord.Message, name_or_id: Annotate.LowerCleanContent):
-    """ Display some information of the given pokémon. """
+    """ Display some information of the given pokémon.
+
+    **Examples**: <http://imgur.com/a/lqG9c> """
     # Do some quick replacements for flexible parsing
     name_or_id = name_or_id.strip()
 

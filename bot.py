@@ -371,7 +371,7 @@ async def on_message(message: discord.Message):
     start_time = datetime.now()
 
     # We don't care about channels we can't write in as the bot usually sends feedback
-    if not message.channel.is_private and not message.server.me.permissions_in(message.channel).send_messages:
+    if message.server and not message.server.me.permissions_in(message.channel).send_messages:
         return
 
     # Don't accept commands from bot accounts
