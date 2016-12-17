@@ -37,8 +37,8 @@ import platform
 import re
 from datetime import datetime
 from enum import Enum
-from io import BytesIO
 from traceback import print_exc
+from typing import List
 
 import asyncio
 import discord
@@ -124,7 +124,7 @@ def calculate_acc(mode: api.GameMode, score: dict):
     return total_points_of_hits / (total_number_of_hits * 300)
 
 
-def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: str):
+def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: dict):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
     formatted = "\u2139`{} {}pp {:+.2f}pp`".format(mode.name, data["pp_raw"], pp)
@@ -273,8 +273,8 @@ async def update_user_data():
             osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
         else:
             # If this is the first time, update the user's list of scores for later
-            scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=mode)
-            osu_tracking[member_id] = dict(member=member, scores=scores)
+            user_scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=mode)
+            osu_tracking[member_id] = dict(member=member, scores=user_scores)
 
         # Update the "new" data
         osu_tracking[member_id]["new"] = user_data
@@ -286,17 +286,17 @@ async def get_new_score(member_id: str):
     player's top plays can be retrieved with score["pos"]. """
     # Download a list of the user's scores
     profile = osu_config.data["profiles"][member_id]
-    scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value)
+    user_scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value)
 
     # Compare the scores from top to bottom and try to find a new one
-    for i, score in enumerate(scores):
+    for i, score in enumerate(user_scores):
         if score not in osu_tracking[member_id]["scores"]:
-            osu_tracking[member_id]["scores"] = scores
+            osu_tracking[member_id]["scores"] = user_scores
 
             # Calculate the difference in pp from the score below
             if i < 98:
                 pp = float(score["pp"])
-                diff = pp - float(scores[i + 1]["pp"])
+                diff = pp - float(user_scores[i + 1]["pp"])
             else:
                 diff = 0
 
@@ -336,8 +336,8 @@ async def notify_pp(member_id: str, data: dict):
     if pp_threshold > pp_diff > -pp_threshold:
         return
 
-    rank_diff = -get_diff(old, new, "pp_rank")
-    country_rank_diff = -get_diff(old, new, "pp_country_rank")
+    rank_diff = -int(get_diff(old, new, "pp_rank"))
+    country_rank_diff = -int(get_diff(old, new, "pp_country_rank"))
     accuracy_diff = get_diff(old, new, "accuracy")  # Percent points difference
 
     member = data["member"]
@@ -433,13 +433,12 @@ async def notify_maps(member_id: str, data: dict):
         return
 
     # Get the new events
-    events = []
+    events = []  # type: List[dict]
     for event in new:
         if event in old:
             break
 
-        # Since the events are displayed on the profile from newest to oldest,
-        # we want to post the oldest first
+        # Since the events are displayed on the profile from newest to oldest, we want to post the oldest first
         events.insert(0, event)
 
     # Format and post the events
@@ -475,7 +474,7 @@ async def notify_maps(member_id: str, data: dict):
         # Send the message to all servers
         for server in client.servers:
             member = server.get_member(member_id)
-            channels = get_notify_channels(server, "map")
+            channels = get_notify_channels(server, "map")  # type: list
 
             if not member or not channels:
                 continue

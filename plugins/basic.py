@@ -28,45 +28,48 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
     await client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
 
 
-@plugins.command(aliases="mentions")
-async def mentioned(message: discord.Message):
-    """ Tries to find the first message which mentions you in the last 16 hours. """
+@plugins.command(description="Finds messages mentioning you in the last 24 hours.", aliases="mentions")
+async def mentioned(message: discord.Message, member: Annotate.Member=Annotate.Self):
+    """ Looks for member mentions. The description is in the decorator solely to
+    correctly specify the type of member, so that PyCharm doesn't get cross.
+    :type message: discord.Message
+    :type member: discord.Member """
     after = datetime.utcnow() - timedelta(hours=24)
     was_found = False
     await client.send_typing(message.channel)
 
     # Go through all messages since 24 hours ago
-    async for m in client.logs_from(message.channel, limit=5000, before=message, after=after):
-        if message.author not in m.mentions:
+    async for mention_message in client.logs_from(message.channel, limit=5000, before=message, after=after):
+        if member not in mention_message.mentions:
             continue
 
         was_found = True
 
         # Format the message when it's found, along with messages from prior 15 seconds and latter 15 seconds
-        after = m.timestamp - timedelta(seconds=15)
+        after = mention_message.timestamp - timedelta(seconds=15)
         message_content = []
         async for nm in client.logs_from(message.channel, limit=50, after=after, before=after + timedelta(seconds=30)):
-            if nm.author == m.author:
-                message_content.append(nm.clean_content)
+            if nm.author == mention_message.author:
+                # Add an invisible separator and some spaces for an indent effect
+                message_content.append("\N{INVISIBLE SEPARATOR}" + " " * 4 + nm.clean_content)
 
-        found_message = await client.say(message, "**{} - {}**```\n{}```".format(
-            m.author.display_name, after.strftime("%A, %d %B %Y %H:%M"), "\n".join(reversed(message_content))))
+        found_message = await client.say(message, "**{0} - {1:%A, %d %B %Y %H:%M}**\n{2}".format(
+            mention_message.author.display_name, after, "\n".join(reversed(message_content))))
 
         # The member will be able to search for another mention by typing next
         next_message = await client.say(message, "Type `next` to expand your search.")
-        reply = await client.wait_for_message(timeout=30, author=message.author, channel=message.channel,
-                                              content="next")
+        reply = await client.wait_for_message(timeout=30, author=member, channel=message.channel, content="next")
 
         # Remove the previously sent help message and break if there was no response
-        await client.delete_message(next_message)
         if reply is None:
+            await client.delete_message(next_message)
             break
-        else:
-            await client.delete_message(found_message)
-            await client.send_typing(message.channel)
+
+        await client.delete_messages([found_message, reply, next_message])
+        await client.send_typing(message.channel)
     else:
-        await client.say(message, "Could not find a message mentioning you in the last 24 hours." if not was_found else
-                                  "Found no more messages mentioning you in the last 24 hours.")
+        await client.say(message, "{} mentioning you in the last 24 hours.".format(
+            "Found no more messages" if was_found else "Could not find a message"))
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")
@@ -80,6 +83,7 @@ def get_req_id(feature_id: str):
 
 
 def format_req(plugin, req_id: int):
+    """ Format a request as checked or not checked, also displaying its ID. """
     req_list = feature_reqs.data[plugin]
 
     if 0 <= req_id < len(req_list):
@@ -185,7 +189,7 @@ async def remove(message: discord.Message, plugin: plugin_in_req, req_id: get_re
 
 @plugins.event(bot=True)
 async def on_message(message: discord.Message):
-    # Have cleverbot respond to our bot
+    """ Have cleverbot respond to our bot. """
     if not message.content.startswith(config.command_prefix) and client.user in message.mentions:
         # Start typing and remove the bot mention from the message.
         await client.send_typing(message.channel)
