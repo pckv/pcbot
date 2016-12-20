@@ -14,7 +14,7 @@ api_key = ""
 requests_sent = 0
 
 ripple_url = "https://ripple.moe/api/"
-ripple_regex = re.compile(r"ripple:(?P<data>.+)")
+ripple_regex = re.compile(r"ripple:\s*(?P<data>.+)")
 
 
 def set_api_key(s: str):
