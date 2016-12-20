@@ -243,7 +243,7 @@ def lookup_beatmap(beatmaps: list, **lookup):
         return None
 
 
-def rank_from_events(events: list, beatmap_id: str):
+def rank_from_events(events: dict, beatmap_id: str):
     """ Return the rank of the first score of given beatmap_id from a
     list of events gathered via get_user() or None. """
     for event in events:
