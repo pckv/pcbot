@@ -127,7 +127,7 @@ def calculate_acc(mode: api.GameMode, score: dict):
 def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: dict):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = "\u2139`{} {}pp {:+.2f}pp`".format(mode.name, data["pp_raw"], pp)
+    formatted = "\u2139`{} {}pp {:+.2f}pp`".format(("RIPPLE:" if data["ripple"] else "") + mode.name, data["pp_raw"], pp)
     formatted += (" \U0001f30d`#{:,}{}`".format(int(data["pp_rank"]),
                                                 "" if int(rank) == 0 else " {:+}".format(int(rank))))
     formatted += (" {}`#{:,}{}`".format(utils.text_to_emoji(iso), int(data["pp_country_rank"]),
@@ -172,6 +172,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         stars=float(beatmap["difficultyrating"]),
         max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.Catch) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
+        profile_url="https://ripple.moe/u/" if score["ripple"] else host + "u/",
         live="\n**Watch live @** <{}>".format(stream_url) if stream_url else "",
         **score
     )
@@ -278,6 +279,7 @@ async def update_user_data():
 
         # Update the "new" data
         osu_tracking[member_id]["new"] = user_data
+        osu_tracking[member_id]["new"]["ripple"] = True if api.ripple_regex.match(profile) else False
 
 
 async def get_new_score(member_id: str):
@@ -362,6 +364,9 @@ async def notify_pp(member_id: str, data: dict):
         scoreboard_rank = None
         if new["events"]:
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
+
+        # Add ripple info to the score
+        score["ripple"] = new["ripple"]
 
         if update_mode is UpdateModes.Minimal:
             m += format_minimal_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
