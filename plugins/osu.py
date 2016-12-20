@@ -358,9 +358,9 @@ async def notify_pp(member_id: str, data: dict):
         beatmap = api.lookup_beatmap(beatmap_search)
         stream_url = member.game.url if member.game is not None else None
 
-        # The API might not support events (ripple perhaps)
+        # There might not be any events
         scoreboard_rank = None
-        if "events" in new:
+        if new["events"]:
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
 
         if update_mode is UpdateModes.Minimal:
