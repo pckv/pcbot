@@ -13,6 +13,9 @@ api_url = "https://osu.ppy.sh/api/"
 api_key = ""
 requests_sent = 0
 
+ripple_url = "https://ripple.moe/api/"
+ripple_regex = re.compile(r"ripple:(?P<data>.+)")
+
 
 def set_api_key(s: str):
     """ Set the osu! API key. This simplifies every API function as they
@@ -112,14 +115,20 @@ class Mods(Enum):
 
 def def_section(api_name: str, first_element: bool=False):
     """ Add a section using a template to simplify adding API functions. """
-    async def template(**params):
+    async def template(url=api_url, **params):
         global requests_sent
 
-        if "k" not in params:
+        if "u" in params:
+            ripple = ripple_regex.match(params["u"])
+            if ripple:
+                params["u"] = ripple.group("data")
+                url = ripple_url
+
+        if url == api_url and "k" not in params:
             params["k"] = api_key
 
         # Download using a URL of the given API function name
-        json = await utils.download_json(api_url + api_name, **params)
+        json = await utils.download_json(url + api_name, **params)
         requests_sent += 1
 
         if json is None:

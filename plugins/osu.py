@@ -561,7 +561,9 @@ async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
 
 @osu.command(aliases="set")
 async def link(message: discord.Message, name: Annotate.LowerContent):
-    """ Tell the bot who you are on osu!. """
+    """ Tell the bot who you are on osu!.
+
+    If you're using ripple, type ripple:<name>. """
     osu_user = await api.get_user(u=name)
 
     # Check if the osu! user exists
@@ -571,8 +573,13 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
     if message.author.id in osu_tracking:
         del osu_tracking[message.author.id]
 
+    # Convert their user_id to a ripple id
+    user_id = osu_user["user_id"]
+    if api.ripple_regex.match(name):
+        user_id = "ripple:" + user_id
+
     # Assign the user using their unique user_id
-    osu_config.data["profiles"][message.author.id] = osu_user["user_id"]
+    osu_config.data["profiles"][message.author.id] = user_id
     osu_config.data["mode"][message.author.id] = api.GameMode.Standard.value
     osu_config.data["primary_server"][message.author.id] = message.server.id
     osu_config.save()
