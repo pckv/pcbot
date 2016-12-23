@@ -29,6 +29,7 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
 
 
 @plugins.command(description="Finds messages mentioning you in the last 24 hours.", aliases="mentions")
+@utils.role("Stupid")
 async def mentioned(message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Looks for member mentions. The description is in the decorator solely to
     correctly specify the type of member, so that PyCharm doesn't get cross.
