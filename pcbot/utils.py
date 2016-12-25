@@ -214,15 +214,17 @@ async def retrieve_headers(url, **params):
     return head.headers
 
 
-async def download_file(url, **params):
+async def download_file(url, bytesio=False, **params):
     """ Download and return a byte-like object of a file.
 
     :param url: Download url as str.
+    :param bytesio: Convert this object to BytesIO before returning.
     :param params: Any additional url parameters.
     :returns: The byte-like file. """
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
-            return await response.read()
+            file_bytes = await response.read()
+            return BytesIO(file_bytes) if bytesio else file_bytes
 
 
 async def download_json(url, **params):
