@@ -140,8 +140,8 @@ async def image(message: discord.Message, url_or_emoji: str):
         raise AssertionError("**The size of this GIF is unknown and was therefore rejected.**")
 
     # Download the image and create the object
-    image_bytes = await utils.download_file(url_or_emoji)
-    image_object = Image.open(BytesIO(image_bytes))
+    image_bytes = await utils.download_file(url_or_emoji, bytesio=True)
+    image_object = Image.open(image_bytes)
     return ImageArg(image_object, format=image_format)
 
 
