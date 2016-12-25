@@ -97,7 +97,7 @@ async def stop(message: discord.Message):
 @utils.owner
 async def update(message: discord.Message):
     """ Update the bot by running `git pull`."""
-    process = sub.create_subprocess_exec("git", "pull", stdout=sub.PIPE)
+    process = await sub.create_subprocess_exec("git", "pull", stdout=sub.PIPE)
     result, _ = process.communicate()
     await client.say(message, "```diff\n{}```".format(result.decode("utf-8")))
 
