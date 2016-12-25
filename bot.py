@@ -134,7 +134,7 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
         await client.say(message, str(e) or command.error or utils.format_help(command))
     except:
         traceback.print_exc()
-        if utils.is_owner(message.author):
+        if utils.is_owner(message.author) and config.owner_error:
             await client.say(message, utils.format_code(traceback.format_exc()))
         else:
             await client.say(message, "An error occurred while executing this command. If the error persists, "
@@ -456,10 +456,12 @@ def main():
     # Setup some config for more customization
     bot_meta = config.Config("bot_meta", pretty=True, data=dict(
         name="PCBOT",
-        command_prefix=config.command_prefix
+        command_prefix=config.command_prefix,
+        display_owner_error_in_chat=False
     ))
     config.name = bot_meta.data["name"]
     config.command_prefix = bot_meta.data["command_prefix"]
+    config.owner_error = bot_meta.data["display_owner_error_in_chat"]
 
     # Set the client for the plugins to use
     plugins.set_client(client)

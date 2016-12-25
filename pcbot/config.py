@@ -14,6 +14,7 @@ command_prefix = "!"
 help_arg = ("?", "help")
 version = ""
 name = "PCBOT"  # Placebo name, should be changed on_ready
+owner_error = False  # Whether the bot owner should receive error messages in chat
 
 
 def set_version(ver: str):

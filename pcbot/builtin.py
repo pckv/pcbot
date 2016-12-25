@@ -9,7 +9,6 @@ import logging
 import random
 from datetime import datetime, timedelta
 
-
 import discord
 import asyncio
 
@@ -18,6 +17,7 @@ import plugins
 client = plugins.client  # type: discord.Client
 
 
+sub = asyncio.subprocess
 lambdas = Config("lambdas", data={})
 lambda_config = Config("lambda-config", data=dict(imports=[], blacklist=[]))
 
@@ -91,6 +91,15 @@ async def stop(message: discord.Message):
     await client.say(message, "\N{COLLISION SYMBOL}\N{PISTOL}")
     await plugins.save_plugins()
     await client.logout()
+
+
+@plugins.command()
+@utils.owner
+async def update(message: discord.Message):
+    """ Update the bot by running `git pull`."""
+    process = sub.create_subprocess_exec("git", "pull", stdout=sub.PIPE)
+    result, _ = process.communicate()
+    await client.say(message, "```diff\n{}```".format(result.decode("utf-8")))
 
 
 @plugins.command()
@@ -407,9 +416,9 @@ def init():
     """ Import any imports for lambdas. """
     # Add essential globals for "do", "eval" and "lambda" commands
     code_globals.update(dict(
-        utils=utils, datetime=datetime, random=random, asyncio=asyncio,
-        plugins=plugins, plugin=plugins.get_plugin, command=plugins.get_command,
-        execute=plugins.execute
+        utils=utils, datetime=datetime, timedelta=timedelta,
+        random=random, asyncio=asyncio, plugins=plugins,
+        plugin=plugins.get_plugin, command=plugins.get_command, execute=plugins.execute
     ))
 
     # Import modules for "do", "eval" and "lambda" commands
@@ -453,8 +462,8 @@ async def on_message(message: discord.Message):
             if utils.is_owner(message.author):
                 await client.say(message, "```" + utils.format_syntax_error(e) + "```")
             else:
-                logging.warn("An exception occurred when parsing lambda command:"
-                             "\n{}".format(utils.format_syntax_error(e)))
+                logging.warning("An exception occurred when parsing lambda command:"
+                                "\n{}".format(utils.format_syntax_error(e)))
             return True
 
         # Execute the command
@@ -466,8 +475,8 @@ async def on_message(message: discord.Message):
             if utils.is_owner(message.author):
                 await client.say(message, "```" + utils.format_exception(e) + "```")
             else:
-                logging.warn("An exception occurred when parsing lambda command:"
-                             "\n{}".format(utils.format_exception(e)))
+                logging.warning("An exception occurred when parsing lambda command:"
+                                "\n{}".format(utils.format_exception(e)))
         finally:
             return True
 

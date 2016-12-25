@@ -63,12 +63,12 @@ async def get_emote(emote_id: str, server: discord.Server):
 
     # Return the cached version if possible
     if emote.id in emote_cache:
-        return Image.open(BytesIO(emote_cache[emote.id]))
+        return Image.open(emote_cache[emote.id])
 
     # Otherwise, download the emote, store it in the cache and return
-    emote_bytes = await utils.download_file(emote.url)
+    emote_bytes = await utils.download_file(emote.url, bytesio=True)
     emote_cache[emote.id] = emote_bytes
-    return Image.open(BytesIO(emote_bytes))
+    return Image.open(emote_bytes)
 
 
 def parse_emoji(chars: list):

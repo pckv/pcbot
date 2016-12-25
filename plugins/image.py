@@ -45,7 +45,6 @@ class ImageArg:
         self.gif = bool(self.object.info.get("duration"))
         self.gif_bytes = None   # For easier upload of gifs, store the bytes in memory
 
-
     def clean_format(self):
         """ Return working options of JPG images. """
         if self.extension.lower() == "jpeg":
@@ -57,6 +56,7 @@ class ImageArg:
             self.to_rgb()
 
     def set_extension(self, ext: str):
+        """ Change the extension of an image. """
         self.extension = self.format = ext
         self.clean_format()
 
@@ -101,8 +101,8 @@ async def image(message: discord.Message, url_or_emoji: str):
         match = mention_regex.match(url_or_emoji)
         if match:
             member = message.server.get_member(match.group("id"))
-            image_bytes = await utils.download_file(member.avatar_url)
-            image_object = Image.open(BytesIO(image_bytes))
+            image_bytes = await utils.download_file(member.avatar_url, bytesio=True)
+            image_object = Image.open(image_bytes)
             return ImageArg(image_object, format="PNG")
 
         # Nope, not a mention. If we support emoji, we can progress further
@@ -117,7 +117,7 @@ async def image(message: discord.Message, url_or_emoji: str):
         # Not an emoji, perhaps it's an emote
         match = emote_regex.match(url_or_emoji)
         if match:
-            image_object = await get_emote(match.group("id"), message)
+            image_object = await get_emote(match.group("id"), message.server)
             if image_object:
                 return ImageArg(image_object, format="PNG")
 
@@ -292,4 +292,3 @@ async def mirror(message: discord.Message, image_arg: image, extension: str.lowe
     # Mirror the image
     image_arg.modify(Image.Image.transpose, Image.FLIP_LEFT_RIGHT)
     await send_image(message, image_arg)
-
