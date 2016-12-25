@@ -28,6 +28,14 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
     await client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
 
 
+@plugins.command()
+async def avatar(message: discord.Message, member: Annotate.Member=Annotate.Self):
+    """ Display your or another member's avatar. """
+    e = discord.Embed(color=member.color)
+    e = e.set_image(url=member.avatar_url).set_author(name=member.display_name, icon_url=member.avatar_url)
+    await client.send_message(message.channel, embed=e)
+
+
 @plugins.command(description="Finds messages mentioning you in the last 24 hours.", aliases="mentions")
 @utils.role("Stupid")
 async def mentioned(message: discord.Message, member: Annotate.Member=Annotate.Self):
