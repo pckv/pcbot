@@ -465,6 +465,7 @@ def main():
 
     # Set the client for the plugins to use
     plugins.set_client(client)
+    utils.set_client(client)
 
     # Load plugin for builtin commands
     plugins.load_plugin("builtin", "pcbot")

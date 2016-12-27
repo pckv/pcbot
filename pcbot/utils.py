@@ -10,8 +10,8 @@ from enum import Enum
 from functools import wraps
 from io import BytesIO
 
-import discord
 import aiohttp
+import discord
 
 from pcbot import Config, config
 
@@ -20,6 +20,14 @@ member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_regex = re.compile(r"<#(?P<id>\d+)>")
 markdown_code_regex = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
 identifier_prefix = re.compile(r"[a-zA-Z_]")
+
+client = None  # Declare the Client. For python 3.6: client: discord.Client
+
+
+def set_client(c: discord.Client):
+    """ Assign the client to a variable. """
+    global client
+    client = c
 
 
 class Annotate(Enum):
@@ -191,20 +199,21 @@ def role(*roles: str):
     return decorator
 
 
-async def retrieve_page(url, head=False, **params):
+async def retrieve_page(url: str, head=False, **params):
     """ Download and return a website with aiohttp.
 
     :param url: Download url as str.
+    :param head: Whether or not to head the function.
     :param params: Any additional url parameters.
     :returns: The byte-like file. """
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(loop=client.loop) as session:
         coro = session.head if head else session.get
 
         async with coro(url, params=params) as response:
             return response
 
 
-async def retrieve_headers(url, **params):
+async def retrieve_headers(url: str, **params):
     """ Retrieve the headers from a URL.
 
     :param url: URL as str.
@@ -214,26 +223,26 @@ async def retrieve_headers(url, **params):
     return head.headers
 
 
-async def download_file(url, bytesio=False, **params):
+async def download_file(url: str, bytesio=False, **params):
     """ Download and return a byte-like object of a file.
 
     :param url: Download url as str.
     :param bytesio: Convert this object to BytesIO before returning.
     :param params: Any additional url parameters.
     :returns: The byte-like file. """
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(loop=client.loop) as session:
         async with session.get(url, params=params) as response:
             file_bytes = await response.read()
             return BytesIO(file_bytes) if bytesio else file_bytes
 
 
-async def download_json(url, **params):
+async def download_json(url: str, **params):
     """ Download and return a json file.
 
     :param url: Download url as str.
     :param params: Any additional url parameters.
     :returns: A JSON representation of the downloaded file. """
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(loop=client.loop) as session:
         async with session.get(url, params=params) as response:
             try:
                 return await response.json()
@@ -380,8 +389,8 @@ def get_formatted_code(code: str):
     """ Format code from markdown format. This will filter out markdown code
     and give the executable python code, or raise an exception.
 
-    :param code: code formatted in markdown.
-    :returns: str: code from formatted markdown. """
+    :param code: Code formatted in markdown.
+    :returns: str: Code. """
     code = code.strip(" \n")
     match = markdown_code_regex.match(code)
 
@@ -398,6 +407,7 @@ def get_formatted_code(code: str):
 def format_code(code: str, language: str=None, *, simple: bool=False):
     """ Format markdown code.
 
+    :param code: Code formatted in markdown.
     :param language: Optional syntax highlighting language.
     :param simple: Use single quotes, e.g `"Hello!"`
     :returns: str of markdown code """
