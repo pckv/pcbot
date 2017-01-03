@@ -4,7 +4,6 @@ Commands:
 alias
 """
 
-from collections import defaultdict
 from difflib import get_close_matches
 
 import discord
@@ -23,7 +22,7 @@ alias_desc = \
     "`-case-sensitive` ensures that you *need* to follow the same casing.\n" \
     "`-delete-message` removes the original message. This option can not be mixed with the `-anywhere` option.\n" \
 
-aliases = Config("user_alias", data=defaultdict(str))
+aliases = Config("user_alias", data={})
 
 
 @plugins.command(description=alias_desc, pos_check=lambda s: s.startswith("-"))
@@ -32,6 +31,9 @@ async def alias(message: discord.Message, *options: str.lower, trigger: str, tex
     anywhere = "-anywhere" in options
     case_sensitive = "-case-sensitive" in options
     delete_message = not anywhere and "-delete-message" in options
+
+    if message.author.id not in aliases.data:
+        aliases.data[message.author.id] = {}
 
     # Set options
     aliases.data[message.author.id][trigger if case_sensitive else trigger.lower()] = dict(
