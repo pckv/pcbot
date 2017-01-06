@@ -92,19 +92,12 @@ async def on_message(message: discord.Message):
                 if msg.startswith(name):
                     execute = True
 
-            # Add any mentions to the alias
-            mention = ""
-            if message.mentions:
-                mentions = [member.mention for member in message.mentions]
-                mention = " =>(" + ", ".join(mentions) + ")"
-
             if execute:
                 if command.get("delete_message", False):
                     if message.server.me.permissions_in(message.channel).manage_messages:
                         asyncio.ensure_future(client.delete_message(message))
 
-                await client.say(message, "**{0.display_name}**{1}: {2}".format(
-                    message.author, mention, command["text"]))
+                await client.say(message, command["text"])
 
                 success = True
 
