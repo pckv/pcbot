@@ -9,7 +9,7 @@ from functools import partial
 import asyncio
 import discord
 
-from pcbot import utils, Annotate, config
+from pcbot import utils, Annotate, config, Config
 import plugins
 client = plugins.client  # type: discord.Client
 
@@ -29,6 +29,8 @@ valid_options = ("+re", "+regex", "+case", "+tts")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
+
+summary_options = Config("summary_options", data=dict(no_bot=False, no_self=False), pretty=True)
 
 
 async def update_messages(channel: discord.Channel):
@@ -233,18 +235,29 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
 
     # Split the messages into content and filter member and phrase
     if member:
-        message_content = [m.clean_content for m in stored_messages[channel.id] if m.author in member]
+        messages = [m for m in stored_messages[channel.id] if m.author in member]
     else:
-        message_content = [m.clean_content for m in stored_messages[channel.id]]
+        messages = [m for m in stored_messages[channel.id]]
+
+    # Filter bot messages or own messages if the option is enabled in the config
+    if summary_options.data["no_bot"]:
+        messages = [m for m in messages if not m.author.bot]
+    elif summary_options.data["no_self"]:
+        messages = [m for m in messages if not m.author.id == client.user.id]
+
+    # Convert all messages to content
+    message_content = [m.clean_content for m in messages]
+
+    # Filter looking for phrases if specified
     if phrase:
-        message_content = list(filter_messages(message_content, phrase, regex, case))
+        message_content = list(filter_messages(messages, phrase, regex, case))
 
     # Clean up by removing all commands from the summaries
     if phrase is None or not phrase.startswith(config.command_prefix):
         message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
 
     # Check if we even have any messages
-    assert message_content, on_no_messages.format(message)
+    assert messages, on_no_messages.format(message)
 
     # Generate the summary, or num summaries
     for i in range(num):
