@@ -43,7 +43,7 @@ youtube_dl_options = dict(
 )
 
 max_songs_queued = 2  # How many songs each member are allowed in the queue at once
-max_song_length = 60 * 37  # The maximum song length in seconds
+max_song_length = 60 * 120  # The maximum song length in seconds
 default_volume = .6
 
 if not discord.opus.is_loaded():

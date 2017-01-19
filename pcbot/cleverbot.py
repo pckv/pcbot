@@ -1,6 +1,5 @@
-""" A port of https://github.com/folz/cleverbot.py to asynchronous python.
+""" A port of https://github.com/folz/cleverbot.py to asynchronous python. """
 
-"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from builtins import str  # pylint: disable=redefined-builtin
@@ -19,28 +18,49 @@ import aiohttp
 entity_parser = parser.HTMLParser()
 
 
-# noinspection PyArgumentList
 class Cleverbot(object):
-    """ Handles a conversation with Cleverbot. """
+    """Handles a conversation with Cleverbot.
+    Example usage:
+       >>> from cleverbot import Cleverbot
+       >>> cb = Cleverbot('my-example-bot')
+       >>> cb.ask("Hi. How are you?")
+       "I'm good, thanks. How are you?"
+    """
+
     HOST = "www.cleverbot.com"
     PROTOCOL = "http://"
-    RESOURCE = "/webservicemin?uc=321&"
-    API_URL = PROTOCOL + HOST + RESOURCE
+    RESOURCE = "/webservicemin"
 
-    headers = {
-        'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)',
-        'Accept': 'text/html,application/xhtml+xml,'
-                  'application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
-        'Accept-Language': 'en-us,en;q=0.8,en-us;q=0.5,en;q=0.3',
-        'Cache-Control': 'no-cache',
-        'Host': HOST,
-        'Referer': PROTOCOL + HOST + '/',
-        'Pragma': 'no-cache'
-    }
+    def __init__(self, botapi, uc='3210'):
+        """Cleverbot requests that bots identify themselves when
+        connecting to the service. You must pass an identifying string
+        for your bot when you create the connection.
+        For example:
+        >> cb = Cleverbot('my-app')
+        and *not*:
+        >> cb = Cleverbot()
+        See: http://www.cleverbot.com/apis
+        """
 
-    def __init__(self):
-        """ The data that will get passed to Cleverbot's web API """
+        self.botapi = botapi
+        self.uc = uc
+
+        self.SERVICE_URL = self.PROTOCOL + self.HOST + self.RESOURCE + \
+                           "?uc=" + self.uc + "&botapi=" + self.botapi
+
+        self.headers = {
+            'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)',
+            'Accept': 'text/html,application/xhtml+xml,'
+                      'application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+            'Accept-Language': 'en-us,en;q=0.8,en-us;q=0.5,en;q=0.3',
+            'Cache-Control': 'no-cache',
+            'Host': self.HOST,
+            'Referer': self.PROTOCOL + self.HOST + '/',
+            'Pragma': 'no-cache'
+        }
+
+        """ The data that will get passed to Cleverbot """
         self.data = collections.OrderedDict(
             (
                 # must be the first pairs
@@ -82,9 +102,7 @@ class Cleverbot(object):
 
     async def ask(self, question):
         """Asks Cleverbot a question.
-
         Maintains message history.
-
         :param question: The question to ask
         :return Cleverbot's answer
         """
@@ -92,7 +110,7 @@ class Cleverbot(object):
         # Set the current question
         self.data['stimulus'] = question
 
-        # Connect to Cleverbot's API and remember the response
+        # Connect to Cleverbot and remember the response
         resp = await self._send()
         text = await resp.text()
 
@@ -108,11 +126,15 @@ class Cleverbot(object):
         # Add Cleverbot's reply to the conversation log
         self.conversation.append(parsed['answer'])
 
-        return parsed['answer']
+        return parsed['answer'].encode('latin-1').decode('utf-8')
 
     async def _send(self):
-        """ POST the user's question and all required information to the
-        Cleverbot API """
+        """POST the user's question and all required information to the
+        Cleverbot service
+        Cleverbot obfuscates how it generates the 'icognocheck' token. The token
+        is currently the md5 checksum of the 10th through 36th characters of the
+        encoded data. This may change in the future.
+        """
         # Set data as appropriate
         if self.conversation:
             linecount = 1
@@ -128,15 +150,16 @@ class Cleverbot(object):
         token = hashlib.md5(digest_txt.encode('utf-8')).hexdigest()
         self.data['icognocheck'] = token
 
-        # POST the data to Cleverbot's API and return
-        resp = await self.session.post(Cleverbot.API_URL,
-                                            data=self.data,
-                                            headers=Cleverbot.headers)
+        # POST the data to Cleverbot and return
+        resp = await self.session.post(self.SERVICE_URL,
+                                       data=self.data,
+                                       headers=self.headers)
+
         return resp
 
     @staticmethod
     def _parse(resp_text):
-        """ Parses Cleverbot's response """
+        """Parses Cleverbot's response"""
         resp_text = entity_parser.unescape(resp_text)
 
         parsed = [
@@ -144,7 +167,7 @@ class Cleverbot(object):
             ]
 
         if parsed[0][1] == 'DENIED':
-            raise CleverbotAPIError()
+            raise CleverbotServiceError()
 
         parsed_dict = {
             'answer': parsed[0][0],
@@ -157,5 +180,5 @@ class Cleverbot(object):
         return parsed_dict
 
 
-class CleverbotAPIError(Exception):
-    """ Cleverbot returned an error (it probably recognized us as a bot) """
+class CleverbotServiceError(Exception):
+    """The Cleverbot service returned an error"""
