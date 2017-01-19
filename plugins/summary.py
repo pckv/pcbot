@@ -250,14 +250,14 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
 
     # Filter looking for phrases if specified
     if phrase:
-        message_content = list(filter_messages(messages, phrase, regex, case))
+        message_content = list(filter_messages(message_content, phrase, regex, case))
 
     # Clean up by removing all commands from the summaries
     if phrase is None or not phrase.startswith(config.command_prefix):
         message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
 
     # Check if we even have any messages
-    assert messages, on_no_messages.format(message)
+    assert message_content, on_no_messages.format(message)
 
     # Generate the summary, or num summaries
     for i in range(num):
