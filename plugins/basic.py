@@ -17,7 +17,7 @@ client = plugins.client  # type: discord.Client
 
 
 feature_reqs = Config(filename="feature_requests", data={})
-cleverbot = Cleverbot(client.user.name.lower().replace(" ", "_") + "-discord-bot")
+cleverbot = Cleverbot(config.name.replace(" ", "_") + "-discord-bot")
 
 
 @plugins.command()
