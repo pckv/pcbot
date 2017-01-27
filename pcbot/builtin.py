@@ -411,7 +411,7 @@ async def bot_info(message: discord.Message):
         owner=str(app_info.owner),
         up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"),
         servers=len(client.servers),
-        desc=app_info.description
+        desc=app_info.description.replace("\\n", "\n")
     ))
 
 
