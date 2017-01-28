@@ -317,6 +317,14 @@ def reload_plugin(name: str):
                     events[event_name].remove(func)
 
         plugins[name] = importlib.reload(plugins[name])
+
+        # See if the plugin has an on_reload() function, and call that
+        if hasattr(plugins[name], "on_reload"):
+            if callable(plugins[name].on_reload):
+                result = plugins[name].on_reload()
+                if inspect.isawaitable(result):
+                    client.loop.create_task(result)
+
         logging.debug("Reloaded plugin {}".format(name))
 
 
