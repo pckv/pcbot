@@ -45,20 +45,20 @@ class ImageArg:
         self.gif = bool(self.object.info.get("duration"))
         self.gif_bytes = None   # For easier upload of gifs, store the bytes in memory
 
-    def clean_format(self):
+    def clean_format(self, real_convert=True):
         """ Return working options of JPG images. """
         if self.extension.lower() == "jpeg":
             self.extension = "jpg"
         if self.format.lower() == "jpg":
             self.format = "JPEG"
 
-        if self.format == "JPEG":
+        if self.format == "JPEG" and real_convert:
             self.to_rgb()
 
-    def set_extension(self, ext: str):
+    def set_extension(self, ext: str, real_jpg=True):
         """ Change the extension of an image. """
         self.extension = self.format = ext
-        self.clean_format()
+        self.clean_format(real_convert=real_jpg)
 
     def modify(self, function, *args, **kwargs):
         """ Modify the image object using the given Image function.
@@ -240,13 +240,13 @@ async def convert(message: discord.Message, image_arg: image, extension: str.low
 
 
 @plugins.command(aliases="jpg")
-async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice("small"),
+async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice("small", "meme"),
                quality: utils.int_range(f=0, t=100)=5):
     """ Give an image some proper jpeg artifacting.
 
     Valid effects are: `small` """
     assert not image_arg.gif, "**JPEG saving only works on images.**"
-    image_arg.set_extension("jpg")
+    image_arg.set_extension("jpg", real_jpg=False if "meme" in effect else True)
 
     if effect:
         if "small" in effect:
