@@ -101,7 +101,10 @@ async def image(message: discord.Message, url_or_emoji: str):
         match = mention_regex.match(url_or_emoji)
         if match:
             member = message.server.get_member(match.group("id"))
-            image_bytes = await utils.download_file(member.avatar_url, bytesio=True)
+            avatar_headers = await utils.retrieve_headers(member.avatar_url)
+            assert not avatar_headers["CONTENT-TYPE"].endswith("gif"), "**GIF avatars are currently unsupported.**"
+
+            image_bytes = await utils.download_file(member.avatar_url.replace(".webp", ".png"), bytesio=True)
             image_object = Image.open(image_bytes)
             return ImageArg(image_object, format="PNG")
 
