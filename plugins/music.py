@@ -254,16 +254,15 @@ async def queue(message: discord.Message):
 
 @music.command()
 @utils.owner
-async def link(message: discord.Message, channel: Annotate.Channel):
-    """ Link the Music bot to a channel in a server. """
-    assert channel.type is discord.ChannelType.voice, "**The given channel is not a voice channel.**"
-    assert channel.id not in music_channels.data, "**This voice channel is already linked.**"
+async def link(message: discord.Message, voice_channel: Annotate.VoiceChannel):
+    """ Link the Music bot to a voice channel in a server. """
+    assert voice_channel.id not in music_channels.data, "**This voice channel is already linked.**"
     assert get_server_channel(message.server) is None, "**A voice channel is already linked to this server.**"
 
     # Link the channel
-    music_channels.data.append(channel.id)
+    music_channels.data.append(voice_channel.id)
     music_channels.save()
-    await client.say(message, "Voice channel **{0.name}** is now the music channel.".format(channel))
+    await client.say(message, "Voice channel **{0.name}** is now the music channel.".format(voice_channel))
 
 
 @music.command()

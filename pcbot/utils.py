@@ -39,8 +39,9 @@ class Annotate(Enum):
     LowerCleanContent = 4  # Same as above but returns the contents in lowercase
     User = Member = 5  # Return a member (uses utils.find_member with steps=3)
     Channel = 6  # Return a channel (uses utils.find_channel with steps=3)
-    Self = 7  # Used as a default for Member/Channel annotations and returns the message.author/message.channel
-    Code = 8  # Get formatted code (like Content but extracts any code)
+    VoiceChannel = 7  # Return a voice channel (uses utils.find_channel with steps=3 and channel_type="voice")
+    Self = 8  # Used as a default for Member/Channel annotations and returns the message.author/message.channel
+    Code = 9  # Get formatted code (like Content but extracts any code)
 
 
 def int_range(f: int=None, t: int=None):
@@ -308,7 +309,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     return member
 
 
-def find_channel(server: discord.Server, name, steps=3, mention=True):
+def find_channel(server: discord.Server, name, steps=3, mention=True, channel_type="text"):
     """ Find any channel by its name or a formatted mention.
         Steps define the depth at which to search. More steps equal
         less accurate checks.
@@ -326,13 +327,26 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
         :param name: name as a string or mention to find.
         :param steps: int from 0-3 to specify search depth.
         :param mention: check for mentions.
+        :param channel_type: what type of channel we're looking for. Can be str or discord.ChannelType.
         :returns: discord.Channel """
     channel = None
+
+    # We want to allow both str and discord.ChannelType, so try converting str and handle exceptions
+    if type(channel_type) is str:
+        try:
+            channel_type = getattr(discord.ChannelType, channel_type)
+        except AttributeError:
+            raise TypeError("channel_type (str) must be an attribute of discord.ChannelType")
+    elif type(channel_type) is not discord.ChannelType:
+        raise TypeError("channel_type must be discord.ChannelType or a str of a discord.ChannelType attribute")
 
     # Return a member from mention
     found_mention = channel_mention_regex.search(name)
     if found_mention and mention:
         channel = server.get_channel(found_mention.group("id"))
+
+        if not channel.type == channel_type:
+            return None
 
     if not channel:
         # Steps to check, higher values equal more fuzzy checks
@@ -343,7 +357,7 @@ def find_channel(server: discord.Server, name, steps=3, mention=True):
         for i in range(steps if steps <= len(checks) else len(checks)):
             channel = discord.utils.find(checks[i], server.channels)
 
-            if channel:
+            if channel and channel.type == channel_type:
                 break
 
     # Return the found channel or None

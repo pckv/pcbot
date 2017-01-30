@@ -176,8 +176,10 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
                 return content(message.clean_content).lower() or default
             elif anno is utils.Annotate.Member:  # Checks member names or mentions
                 return utils.find_member(message.server, arg) or default_self(anno, default, message)
-            elif anno is utils.Annotate.Channel:  # Checks channel names or mentions
+            elif anno is utils.Annotate.Channel:  # Checks text channel names or mentions
                 return utils.find_channel(message.server, arg) or default_self(anno, default, message)
+            elif anno is utils.Annotate.VoiceChannel:  # Checks voice channel names or mentions
+                return utils.find_channel(message.server, arg, channel_type="voice") or default_self(anno, default, message)
             elif anno is utils.Annotate.Code:  # Works like Content but extracts code
                 return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
 
