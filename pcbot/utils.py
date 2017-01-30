@@ -342,22 +342,19 @@ def find_channel(server: discord.Server, name, steps=3, mention=True, channel_ty
 
     # Return a member from mention
     found_mention = channel_mention_regex.search(name)
-    if found_mention and mention:
+    if found_mention and mention and channel_type is discord.ChannelType.text:
         channel = server.get_channel(found_mention.group("id"))
-
-        if not channel.type == channel_type:
-            return None
 
     if not channel:
         # Steps to check, higher values equal more fuzzy checks
-        checks = [lambda c: c.name.lower() == name.lower(),
-                  lambda c: c.name.lower().startswith(name.lower()),
-                  lambda c: name.lower() in c.name.lower()]
+        checks = [lambda c: c.name.lower() == name.lower() and c.type is channel_type,
+                  lambda c: c.name.lower().startswith(name.lower()) and c.type is channel_type,
+                  lambda c: name.lower() in c.name.lower() and c.type is channel_type]
 
         for i in range(steps if steps <= len(checks) else len(checks)):
             channel = discord.utils.find(checks[i], server.channels)
 
-            if channel and channel.type == channel_type:
+            if channel:
                 break
 
     # Return the found channel or None
