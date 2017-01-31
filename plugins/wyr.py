@@ -11,7 +11,7 @@ from pcbot import utils, Config
 client = plugins.client  # type: discord.Client
 
 
-db = Config("would-you-rather", data=dict(timeout=10, responses=["Registered {choice}, {name}!"], questions=[]), pretty=True)
+db = Config("would-you-rather", data=dict(timeout=10, responses=["**{name}** would **{choice}**!"], questions=[]), pretty=True)
 command_pattern = re.compile(r"(.+)(?:\s+or|\s*,)\s+([^?]+)\?*")
 sessions = set()  # All running would you rather's are in this set
 
@@ -64,7 +64,7 @@ async def wouldyourather(message: discord.Message, opt: options=None):
 
             name = reply.author.display_name
             response = random.choice(db.data["responses"]).format(name=name, NAME=name.upper(), choice=reply.content)
-            await client.say(message, "**{}**".format(response))
+            await client.say(message, response)
 
         # Say the total tallies
         await client.say(message, "A total of {0} would **{2}**, while {1} would **{3}**!".format(
