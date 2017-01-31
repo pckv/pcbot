@@ -7,7 +7,7 @@ import re
 import discord
 
 import plugins
-from pcbot import Config
+from pcbot import utils, Config
 client = plugins.client  # type: discord.Client
 
 
@@ -74,3 +74,16 @@ async def wouldyourather(message: discord.Message, opt: options=None):
         answer = random.choice(opt)
         await client.say(message, "**I would {}**!".format(answer))
 
+
+@wouldyourather.command(aliases="delete")
+@utils.owner
+async def remove(message: discord.Message, opt: options):
+    """ Remove a wouldyourather question with the given options. """
+    for q in db.data["questions"]:
+        if q["choices"][0] == opt[0] and q["choices"][1] == opt[1]:
+            del q
+            db.save()
+            await client.say(message, "**Entry removed.**")
+            break
+    else:
+        await client.say(message, "**Could not find the question.**")
