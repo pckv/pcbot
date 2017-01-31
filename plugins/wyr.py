@@ -43,7 +43,8 @@ async def wouldyourather(message: discord.Message, opt: options=None):
         # Wait for replies from anyone in the channel
         while True:
             reply = await client.wait_for_message(timeout=timeout, channel=message.channel,
-                                                  check=lambda m: m.content.lower() in choices and m.author not in replied)
+                                                  check=lambda m: m.content.lower() in map(str.lower, choices) and
+                                                                  m.author not in replied)
             if reply is None:
                 break
 
