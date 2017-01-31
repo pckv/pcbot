@@ -13,6 +13,7 @@ client = plugins.client  # type: discord.Client
 
 db = Config("would-you-rather", data=dict(timeout=10, responses=["Registered {choice}, {name}!"], questions=[]), pretty=True)
 command_pattern = re.compile(r"(.+)(?:\s+or|\s*,)\s+([^?]+)\?*")
+sessions = set()  # All running would you rather's are in this set
 
 
 @plugins.argument("{open}option ...{close} or/, {open}other option ...{close}[?]", allow_spaces=True)
@@ -20,6 +21,7 @@ async def options(arg):
     """ Command argument for receiving two options. """
     match = command_pattern.match(arg)
     assert match
+    assert not match.group(1).lower() == match.group(2).lower(), "**The choices cannot be the same.**"
 
     return match.group(1), match.group(2)
 
@@ -31,6 +33,9 @@ async def wouldyourather(message: discord.Message, opt: options=None):
     **Example**: `!wouldyourather lie or be lied to`"""
     # If there are no options, the bot will ask the questions (if there are any to choose from)
     if opt is None:
+        assert message.channel.id not in sessions, "**A would you rather session is already in progress.**"
+        sessions.add(message.channel.id)
+
         assert db.data["questions"], "**There are ZERO questions saved. Ask me one!**"
 
         question = random.choice(db.data["questions"])
@@ -65,6 +70,7 @@ async def wouldyourather(message: discord.Message, opt: options=None):
         await client.say(message, "A total of {0} would **{2}**, while {1} would **{3}**!".format(
             *question["answers"], *choices))
         db.save()
+        sessions.remove(message.channel.id)
 
     # Otherwise, the member asked a question to the bot
     else:
