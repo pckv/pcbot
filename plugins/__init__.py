@@ -75,7 +75,8 @@ def _format_usage(func, pos_check):
         if param.default is param.empty and (param.kind is not param.VAR_POSITIONAL or pos_check is True):
             open, close = "<", ">"
 
-        if param.kind is param.VAR_POSITIONAL or param.annotation in lengthy_annotations:
+        if param.kind is param.VAR_POSITIONAL or param.annotation in lengthy_annotations \
+                or getattr(param.annotation, "allow_spaces", False):
             suffix = " ..."
 
         usage.append(param_format.format(open=open, close=close, name=name, suffix=suffix))
@@ -211,11 +212,12 @@ def event(name=None, bot=False):
     return decorator
 
 
-def argument(format=argument_format, *, pass_message=False):
+def argument(format=argument_format, *, pass_message=False, allow_spaces=False):
     """ Decorator for easily setting custom argument usage formats. """
     def decorator(func):
         func.argument = format
         func.pass_message = pass_message
+        func.allow_spaces = allow_spaces
         return func
 
     return decorator

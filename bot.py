@@ -161,10 +161,10 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
 
     if param.annotation is not param.empty:  # Any annotation is a function or Annotation enum
         anno = param.annotation
+        content = lambda s: utils.split(s, maxsplit=index)[-1].strip("\" ")
 
         # Valid enum checks
         if isinstance(anno, utils.Annotate):
-            content = lambda s: utils.split(s, maxsplit=index)[-1].strip("\" ")
 
             if anno is utils.Annotate.Content:  # Split and get raw content from this point
                 return content(message.content) or default
@@ -184,6 +184,9 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
                 return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
 
         try:  # Try running as a method
+            if getattr(anno, "allow_spaces", False):
+                arg = content(message.content)
+
             # Pass the message if the argument has this specified
             if getattr(anno, "pass_message", False):
                 result = anno(message, arg)
@@ -397,8 +400,8 @@ async def on_message(message: discord.Message):
     # Parse the command with the user's arguments
     try:
         parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
-    except AssertionError as e:  # Return any feedback given from the command via AssertionError
-        await client.send_message(message.channel, e)
+    except AssertionError as e:  # Return any feedback given from the command via AssertionError, or the command help
+        await client.send_message(message.channel, str(e) or utils.format_help(command, no_subcommand=True))
         log_message(message)
         return
 

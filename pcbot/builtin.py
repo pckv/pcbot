@@ -486,8 +486,8 @@ async def on_message(message: discord.Message):
             else:
                 logging.warning("An exception occurred when parsing lambda command:"
                                 "\n{}".format(utils.format_exception(e)))
-        finally:
-            return True
+
+        return True
 
 
 # Initialize the plugin's modules
