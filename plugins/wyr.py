@@ -12,7 +12,7 @@ client = plugins.client  # type: discord.Client
 
 
 db = Config("would-you-rather", data=dict(timeout=10, responses=["Registered {choice}, {name}!"], questions=[]), pretty=True)
-command_pattern = re.compile(r"([\w\s]+)(?:\s+or|\s*,)\s+([\w\s]+)\?*")
+command_pattern = re.compile(r"(.+)(?:\s+or|\s*,)\s+([^?]+)\?*")
 
 
 @plugins.argument("{open}option ...{close} or/, {open}other option ...{close}[?]", allow_spaces=True)
