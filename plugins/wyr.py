@@ -47,6 +47,8 @@ async def wouldyourather(message: discord.Message, opt: options=None):
             if reply is None:
                 break
 
+            replied.append(reply.author)
+
             # Update the answers in the DB
             # We don't care about multiples, just the amount (yes it will probably be biased)
             if reply.content.lower() == choices[0]:
@@ -81,7 +83,7 @@ async def remove(message: discord.Message, opt: options):
     """ Remove a wouldyourather question with the given options. """
     for q in db.data["questions"]:
         if q["choices"][0] == opt[0] and q["choices"][1] == opt[1]:
-            del q
+            db.data["questions"].remove(q)
             db.save()
             await client.say(message, "**Entry removed.**")
             break
