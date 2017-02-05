@@ -149,7 +149,7 @@ def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int
     return formatted
 
 
-def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None):
+def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None, potential_pp: float=None):
     """ Format any score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
@@ -158,6 +158,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         "```diff\n"
         "  acc     300s    100s    50s     miss    combo\n"
         "{sign} {acc:<8.2%}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}{max_combo}```"
+        "{potential}"
         "**Profile**: <https://osu.ppy.sh/u/{user_id}>\n"
         "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>"
         "{live}"
@@ -165,6 +166,8 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         limit=score_request_limit,
         sign="!" if acc == 1 else ("+" if score["perfect"] == "1" else "-"),
         mods=Mods.format_mods(int(score["enabled_mods"])),
+        potential="**Potential: {0:,}pp** `(+{1:.2f}pp)`\n".format(potential_pp, potential_pp - float(score["pp"]))
+                  if potential_pp is not None else "",
         acc=acc,
         artist=beatmap["artist"].replace("*", "\*").replace("_", "\_"),
         title=beatmap["title"].replace("*", "\*").replace("_", "\_"),
@@ -368,10 +371,20 @@ async def notify_pp(member_id: str, data: dict):
         # Add ripple info to the score
         score["ripple"] = new["ripple"]
 
+        # Find the potentially gained pp in standard when not FC
+        potential_pp = None
+        if mode is api.GameMode.Standard and int(score["maxcombo"]) < int(beatmap["max_combo"]):
+            options = [score["count100"] + "x100", score["count50"] + "x50",
+                       "+" + Mods.format_mods(int(score["enabled_mods"]))]
+            try:
+                potential_pp = await calculate_pp("https://osu.ppy.sh/b/{}".format(score["beatmap_id"]), *options)
+            except:
+                pass
+
         if update_mode is UpdateModes.Minimal:
             m += format_minimal_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
         else:
-            m += format_new_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
+            m += format_new_score(mode, score, beatmap, scoreboard_rank, stream_url, potential_pp) + "\n"
 
     # Always add the difference in pp along with the ranks
     m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
@@ -517,8 +530,11 @@ async def on_ready():
 
             # Next, check for any differences in pp between the "old" and the "new" subsections
             # and notify any servers
+            # NOTE: This used to also be ensure_future before adding the potential pp check.
+            # The reason for this change is to ensure downloading and running the .osu files won't happen twice
+            # at the same time, which would cause problems retrieving the correct potential pp.
             for member_id, data in osu_tracking.items():
-                asyncio.ensure_future(notify_pp(member_id, data))
+                await notify_pp(member_id, data)
 
             # Check for any differences in the users' events and post about map updates
             for member_id, data in osu_tracking.items():
@@ -667,20 +683,20 @@ async def url(message: discord.Message, member: Annotate.Member=Annotate.Self,
         member, osu_config.data["profiles"][member.id], "#_{}".format(section) if section else ""))
 
 
-@plugins.command(name="pp")
-async def pp_(message: discord.Message, beatmap_url: str, *options):
-    """ Calculate and return the would be pp using `oppai`.
+async def run_oppai(beatmap_url: str, *options):
+    """ Run oppai and return the output.
 
-    Options are a parsed set of command-line arguments:  /
-    `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`"""
+    :raises: NotImplemented, FileNotFoundError, ValueError, LookupError
+    """
     global last_calc_beatmap
 
     # This service is only supported on Linux as of yet
-    assert platform.system() == "Linux", "This service is unsupported since the bot is not hosted using Linux."
+    if not platform.system() == "Linux":
+        raise NotImplemented("This service is unsupported since the bot is not hosted using Linux.")
 
     # Make sure the bot has access to "oppai" lib
-    assert os.path.exists(os.path.join(oppai_path, "oppai")), \
-        "This service is unavailable until the owner sets up the `oppai` lib."
+    if not os.path.exists(os.path.join(oppai_path, "oppai")):
+        raise FileNotFoundError("This service is unavailable until the owner sets up the `oppai` lib.")
 
     # Only download and request when the beatmap url is different
     if not last_calc_beatmap["beatmap_url"] == beatmap_url:
@@ -691,20 +707,16 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
             try:
                 headers = await utils.retrieve_headers(beatmap_url)
             except ValueError as e:  # URL is not a URL
-                raise AssertionError(e)
+                raise ValueError(e)
 
             # Try finding out if this is a valid .osu file
             if not ("text/plain" in headers.get("Content-Type", "")
                     and ".osu" in headers.get("Content-Disposition", "")):
-                await client.say(message, e)
-                return
+                raise ValueError(e)
 
             # Download the file and set our last beatmap URL.
             beatmap_file = await utils.download_file(beatmap_url)
             beatmap = dict(beatmap_url=beatmap_url)
-        except Exception as e:
-            await client.say(message, e)
-            return
         else:
             beatmap["beatmap_url"] = beatmap_url
 
@@ -721,12 +733,38 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
     command_args = [os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu")]
 
     # Add additional options
-    if options:
-        command_args.extend(options)
+    command_args.extend(options)
 
     process = await asyncio.create_subprocess_exec(*command_args, stdout=asyncio.subprocess.PIPE)
     output, _ = await process.communicate()
-    output = output.decode("utf-8")
+
+    return output.decode("utf-8")
+
+
+async def calculate_pp(beatmap_url: str, *options):
+    """ Get only the would be pp from the given beatmap. """
+    output = await run_oppai(beatmap_url, *options)
+
+    # Search for the pp, which should be in the very end
+    pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp$", output)
+
+    # The library did not return the pp
+    if not pp_match:
+        raise Exception("A problem occurred when parsing the beatmap.")
+
+    return float(pp_match.group("pp"))
+
+
+@plugins.command(name="pp")
+async def pp_(message: discord.Message, beatmap_url: str, *options):
+    """ Calculate and return the would be pp using `oppai`.
+
+    Options are a parsed set of command-line arguments:  /
+    `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`"""
+    # try:
+    output = await run_oppai(beatmap_url, *options)
+    # except (NotImplemented, FileNotFoundError, LookupError, ValueError) as e:
+    #     raise AssertionError(e)
 
     # Search for the pp, which should be in the very end
     pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp$", output)
