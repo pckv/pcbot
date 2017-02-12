@@ -678,6 +678,25 @@ async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
     await client.say(message, "Set your gamemode to **{}**.".format(mode.name))
 
 
+@osu.command(aliases="")
+async def info(message: discord.Message, member: Annotate.Member=Annotate.Self):
+    """ Display configuration info. """
+    # Make sure the member is assigned
+    assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
+
+    user_id = osu_config.data["profiles"][member.id]
+    mode = get_mode(member.id)
+    update_mode = get_update_mode(member.id)
+
+    e = discord.Embed(color=member.color)
+    e.set_author(name=member.display_name, icon_url=member.avatar_url, url=host + "u/" + user_id)
+    e.add_field(name="Game Mode", value=mode.name)
+    e.add_field(name="Notification Mode", value=update_mode.name)
+    e.add_field(name="Playing osu!", value="YES" if member.id in osu_tracking.keys() else "NO")
+
+    await client.send_message(message.channel, embed=e)
+
+
 doc_modes = ", ".join(m.name.lower() for m in UpdateModes)
 
 
