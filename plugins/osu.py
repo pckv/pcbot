@@ -54,6 +54,7 @@ client = plugins.client  # type: discord.Client
 # Configuration data for this plugin, including settings for members and the API key
 osu_config = Config("osu", data=dict(
     key="change to your api key",
+    minimum_pp_required=0,
     profiles={},  # Profile setup as member_id: osu_id
     mode={},  # Member's game mode as member_id: gamemode_value
     server={},  # Server specific info for score- and map notification channels
@@ -76,6 +77,8 @@ api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
 oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
 last_calc_beatmap = dict(beatmap_url="---")  # The last calculated beatmap info
+
+gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
 
 class UpdateModes(Enum):
@@ -584,15 +587,40 @@ async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
     await client.send_message(message.channel, embed=embed)
 
 
+async def has_enough_pp(**params):
+    """ Lookup the given member and check if they have enough pp to register.
+    params are just like api.get_user. """
+    min_pp = osu_config.data["minimum_pp_required"]
+    osu_user = await api.get_user(**params)
+    return float(osu_user["pp_raw"]) >= min_pp
+
+
 @osu.command(aliases="set")
 async def link(message: discord.Message, name: Annotate.LowerContent):
     """ Tell the bot who you are on osu!.
 
     If you're using ripple, type ripple:<name>. """
+    mode = api.GameMode.Standard
     osu_user = await api.get_user(u=name)
 
     # Check if the osu! user exists
     assert osu_user, "osu! user `{}` does not exist.".format(name)
+    user_id = osu_user["user_id"]
+
+    # Make sure the user has more pp than the minimum limit defined in config
+    min_pp = osu_config.data["minimum_pp_required"]
+    if float(osu_user["pp_raw"]) < min_pp:
+        # Perhaps the user wants to display another gamemode
+        await client.say(message, "**You have less than the required {}pp.\nIf you're not an osu!standard player, please "
+                                  "enter your gamemode below. Valid gamemodes are `{}`.**".format(min_pp, gamemodes))
+        reply = await client.wait_for_message(timeout=60, author=message.author, channel=message.channel)
+        if not reply:
+            return
+
+        mode = api.GameMode.get_mode(reply.content)
+        assert mode is not None, "**The given gamemode is invalid.**"
+        assert await has_enough_pp(u=user_id, m=mode.value, type="id"), \
+            "**Your pp in {} is less than the required {}pp.**".format(mode.name, min_pp)
 
     # Clear the scores when changing user
     if message.author.id in osu_tracking:
@@ -605,7 +633,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
 
     # Assign the user using their unique user_id
     osu_config.data["profiles"][message.author.id] = user_id
-    osu_config.data["mode"][message.author.id] = api.GameMode.Standard.value
+    osu_config.data["mode"][message.author.id] = mode.value
     osu_config.data["primary_server"][message.author.id] = message.server.id
     osu_config.save()
     await client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
@@ -628,9 +656,6 @@ async def unlink(message: discord.Message, member: Annotate.Member=Annotate.Self
     await client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
-gamemodes = ", ".join(gm.name for gm in api.GameMode)
-
-
 @osu.command(aliases="mode m", error="Valid gamemodes: `{}`".format(gamemodes), doc_args=dict(modes=gamemodes))
 async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
     """ Sets the command executor's gamemode.
@@ -638,6 +663,10 @@ async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
     Gamemodes are: `{modes}`. """
     assert message.author.id in osu_config.data["profiles"], \
         "No osu! profile assigned to **{}**!".format(message.author.name)
+
+    user_id = osu_config.data["profiles"][message.author.id]
+    assert await has_enough_pp(u=user_id, m=mode.value, type="id"), \
+        "**Your pp in {} is less than the required {}pp.**".format(mode.name, osu_config.data["minimum_pp_required"])
 
     osu_config.data["mode"][message.author.id] = mode.value
     osu_config.save()
