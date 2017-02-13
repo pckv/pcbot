@@ -16,7 +16,7 @@ client = plugins.client  # type: discord.Client
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(partial(deque, maxlen=10000))
-logs_from_limit = 5000
+logs_from_limit = 200
 max_summaries = 5
 update_task = asyncio.Event()
 update_task.set()
@@ -24,6 +24,7 @@ update_task.set()
 # Define some regexes for option checking in "summary" command
 valid_num = re.compile(r"\*(?P<num>\d+)")
 valid_member = utils.member_mention_regex
+valid_member_silent = re.compile(r"@\((?P<name>.+)\)")
 valid_channel = utils.channel_mention_regex
 valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot")
 
@@ -67,7 +68,7 @@ async def on_message(message: discord.Message):
 
 
 def is_valid_option(arg: str):
-    if valid_num.match(arg) or valid_member.match(arg) or valid_channel.match(arg):
+    if valid_num.match(arg) or valid_member.match(arg) or valid_member_silent.match(arg) or valid_channel.match(arg):
         return True
 
     if arg.lower() in valid_options:
@@ -205,6 +206,11 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         member_match = valid_member.match(value)
         if member_match:
             member.append(utils.find_member(message.server, member_match.group()))
+            continue
+
+        member_match = valid_member_silent.match(value)
+        if member_match:
+            member.append(utils.find_member(message.server, member_match.group("name")))
             continue
 
         channel_match = valid_channel.match(value)
