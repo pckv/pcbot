@@ -782,8 +782,7 @@ async def run_oppai(beatmap_url: str, *options):
 
     # Add additional options
     command_args.extend(options)
-
-    return await utils.subprocess(*options)
+    return await utils.subprocess(*command_args)
 
 
 async def calculate_pp(beatmap_url: str, *options):
