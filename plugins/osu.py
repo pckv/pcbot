@@ -734,13 +734,13 @@ async def url(message: discord.Message, member: Annotate.Member=Annotate.Self,
 async def run_oppai(beatmap_url: str, *options):
     """ Run oppai and return the output.
 
-    :raises: NotImplemented, FileNotFoundError, ValueError, LookupError
+    :raises: NotImplementedError, FileNotFoundError, ValueError, LookupError
     """
     global last_calc_beatmap
 
     # This service is only supported on Linux as of yet
     if not platform.system() == "Linux":
-        raise NotImplemented("This service is unsupported since the bot is not hosted using Linux.")
+        raise NotImplementedError("This service is unsupported since the bot is not hosted using Linux.")
 
     # Make sure the bot has access to "oppai" lib
     if not os.path.exists(os.path.join(oppai_path, "oppai")):
@@ -808,7 +808,7 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
     `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`"""
     try:
         output = await run_oppai(beatmap_url, *options)
-    except (NotImplemented, FileNotFoundError, LookupError, ValueError) as e:
+    except (NotImplementedError, FileNotFoundError, LookupError, ValueError) as e:
         raise AssertionError(e)
 
     # Search for the pp, which should be in the very end
