@@ -12,6 +12,7 @@ from io import BytesIO
 
 import aiohttp
 import discord
+from asyncio import subprocess as sub
 
 from pcbot import Config, config
 
@@ -198,6 +199,13 @@ def role(*roles: str):
 
         return wrapped
     return decorator
+
+
+async def subprocess(*args):
+    """ Run a subprocess and return the output. Unsupported in Windows. """
+    process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE)
+    result, _ = await process.communicate()
+    return result.decode("utf-8")
 
 
 async def retrieve_page(url: str, head=False, **params):

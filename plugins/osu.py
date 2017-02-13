@@ -783,10 +783,7 @@ async def run_oppai(beatmap_url: str, *options):
     # Add additional options
     command_args.extend(options)
 
-    process = await asyncio.create_subprocess_exec(*command_args, stdout=asyncio.subprocess.PIPE)
-    output, _ = await process.communicate()
-
-    return output.decode("utf-8")
+    return await utils.subprocess(*options)
 
 
 async def calculate_pp(beatmap_url: str, *options):
@@ -809,10 +806,10 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
 
     Options are a parsed set of command-line arguments:  /
     `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`"""
-    # try:
-    output = await run_oppai(beatmap_url, *options)
-    # except (NotImplemented, FileNotFoundError, LookupError, ValueError) as e:
-    #     raise AssertionError(e)
+    try:
+        output = await run_oppai(beatmap_url, *options)
+    except (NotImplemented, FileNotFoundError, LookupError, ValueError) as e:
+        raise AssertionError(e)
 
     # Search for the pp, which should be in the very end
     pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp$", output)
