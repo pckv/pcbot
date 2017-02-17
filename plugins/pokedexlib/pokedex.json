@@ -2053,6 +2053,7 @@
                     "blissey"
                 ]
             ],
+            "evolution_cost": 50,
             "evolution_id": 51,
             "evolves_from_id": 440,
             "generation": 1,
@@ -5820,6 +5821,7 @@
                     "crobat"
                 ]
             ],
+            "evolution_cost": 100,
             "evolution_id": 17,
             "evolves_from_id": 41,
             "generation": 1,
@@ -6944,6 +6946,7 @@
                     "jumpluff"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 92,
             "evolves_from_id": 0,
             "generation": 2,
@@ -8278,6 +8281,7 @@
                     "ledian"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 84,
             "evolves_from_id": 0,
             "generation": 2,
@@ -10766,6 +10770,7 @@
                     "steelix"
                 ]
             ],
+            "evolution_cost": 50,
             "evolution_id": 41,
             "evolves_from_id": 0,
             "generation": 1,
@@ -11710,6 +11715,7 @@
                     "porygon-z"
                 ]
             ],
+            "evolution_cost": 50,
             "evolution_id": 68,
             "evolves_from_id": 0,
             "generation": 1,
@@ -12032,6 +12038,7 @@
                     "typhlosion"
                 ]
             ],
+            "evolution_cost": 100,
             "evolution_id": 80,
             "evolves_from_id": 155,
             "generation": 2,
@@ -13037,6 +13044,7 @@
                     "scizor"
                 ]
             ],
+            "evolution_cost": 50,
             "evolution_id": 58,
             "evolves_from_id": 0,
             "generation": 1,
@@ -13065,6 +13073,7 @@
                     "kingdra"
                 ]
             ],
+            "evolution_cost": 100,
             "evolution_id": 54,
             "evolves_from_id": 116,
             "generation": 1,
@@ -14900,6 +14909,7 @@
                     "sunflora"
                 ]
             ],
+            "evolution_cost": 50,
             "evolution_id": 94,
             "evolves_from_id": 0,
             "generation": 2,
@@ -15708,6 +15718,7 @@
                     "feraligatr"
                 ]
             ],
+            "evolution_cost": 25,
             "evolution_id": 81,
             "evolves_from_id": 0,
             "generation": 2,
@@ -17204,6 +17215,7 @@
                     "quagsire"
                 ]
             ],
+            "evolution_cost": 50,
             "evolution_id": 96,
             "evolves_from_id": 0,
             "generation": 2,
