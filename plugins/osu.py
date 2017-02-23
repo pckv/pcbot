@@ -54,7 +54,7 @@ client = plugins.client  # type: discord.Client
 # Configuration data for this plugin, including settings for members and the API key
 osu_config = Config("osu", data=dict(
     key="change to your api key",
-    minimum_pp_required=0,
+    minimum_pp_required=0,  # The minimum pp required to assign a gamemode/profile in general
     profiles={},  # Profile setup as member_id: osu_id
     mode={},  # Member's game mode as member_id: gamemode_value
     server={},  # Server specific info for score- and map notification channels
@@ -152,25 +152,20 @@ def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int
     return formatted
 
 
-def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None, potential_pp: float=None):
+def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None):
     """ Format any score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
-        "set a new best (`#{pos}/{limit} +{diff:.2f}pp`) on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
-        "**{pp}pp, {rank} {scoreboard_rank}+{mods}**"
+        "[*{artist} - {title} [{version}]*]({host}b/{beatmap_id})\n"
+        "**{pp}pp {stars:.2f}\u2605, {rank} {scoreboard_rank}+{mods}**"
         "```diff\n"
-        "  acc     300s    100s    50s     miss    combo\n"
-        "{sign} {acc:<8.2%}{count300:<8}{count100:<8}{count50:<8}{countmiss:<8}{maxcombo}{max_combo}```"
-        "{potential}"
-        "**Profile**: <https://osu.ppy.sh/u/{user_id}>\n"
-        "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>"
+        "  acc     300s   100s   50s    miss   combo\n"
+        "{sign} {acc:<8.2%}{count300:<7}{count100:<7}{count50:<7}{countmiss:<7}{maxcombo}{max_combo}```"
         "{live}"
     ).format(
-        limit=score_request_limit,
+        host=host,
         sign="!" if acc == 1 else ("+" if score["perfect"] == "1" else "-"),
         mods=Mods.format_mods(int(score["enabled_mods"])),
-        potential="**Potential: {0:,}pp** `(+{1:.2f}pp)`\n".format(potential_pp, potential_pp - float(score["pp"]))
-                  if potential_pp is not None else "",
         acc=acc,
         artist=beatmap["artist"].replace("*", "\*").replace("_", "\_"),
         title=beatmap["title"].replace("*", "\*").replace("_", "\_"),
@@ -178,8 +173,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         stars=float(beatmap["difficultyrating"]),
         max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.Catch) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
-        profile_url="https://ripple.moe/u/" if score["ripple"] else host + "u/",
-        live="\n**Watch live @** <{}>".format(stream_url) if stream_url else "",
+        live="\n**Watch live @** <{}>\n".format(stream_url) if stream_url else "",
         **score
     )
 
@@ -189,11 +183,11 @@ def format_minimal_score(mode: api.GameMode, score: dict, beatmap: dict, rank: i
     There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
-        "set a new best on *{artist} - {title}* **[{version}] {stars:.2f}\u2605**\n"
-        "**{pp}pp, {rank} {acc:.2%} {scoreboard_rank}+{mods}**\n"
-        "**Beatmap**: <https://osu.ppy.sh/b/{beatmap_id}>"
+        "[*{artist} - {title} [{version}]*]({host}b/{beatmap_id})\n"
+        "**{pp}pp {stars:.2f}\u2605, {rank} {acc:.2%} {scoreboard_rank}+{mods}**"
         "{live}"
     ).format(
+        host=host,
         mods=Mods.format_mods(int(score["enabled_mods"])),
         acc=acc,
         artist=beatmap["artist"].replace("*", "\*").replace("_", "\_"),
@@ -351,7 +345,8 @@ async def notify_pp(member_id: str, data: dict):
     member = data["member"]
     mode = get_mode(member_id)
     update_mode = get_update_mode(member_id)
-    m = "{} " + "(`{}`) ".format(new["username"])
+    m = ""
+    potential_pp = None
 
     # Since the user got pp they probably have a new score in their own top 100
     # If there is a score, there is also a beatmap
@@ -364,7 +359,7 @@ async def notify_pp(member_id: str, data: dict):
     if score:
         beatmap_search = await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1)
         beatmap = api.lookup_beatmap(beatmap_search)
-        stream_url = member.game.url if member.game is not None else None
+        stream_url = getattr(member.game, "url", None)
 
         # There might not be any events
         scoreboard_rank = None
@@ -375,8 +370,7 @@ async def notify_pp(member_id: str, data: dict):
         score["ripple"] = new["ripple"]
 
         # Find the potentially gained pp in standard when not FC
-        potential_pp = None
-        if mode is api.GameMode.Standard and int(score["maxcombo"]) < int(beatmap["max_combo"]):
+        if mode is api.GameMode.Standard and update_mode is not UpdateModes.PP and int(score["maxcombo"]) < int(beatmap["max_combo"]):
             options = [score["count100"] + "x100", score["count50"] + "x50",
                        "+" + Mods.format_mods(int(score["enabled_mods"]))]
             try:
@@ -387,7 +381,7 @@ async def notify_pp(member_id: str, data: dict):
         if update_mode is UpdateModes.Minimal:
             m += format_minimal_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
         else:
-            m += format_new_score(mode, score, beatmap, scoreboard_rank, stream_url, potential_pp) + "\n"
+            m += format_new_score(mode, score, beatmap, scoreboard_rank, stream_url)
 
     # Always add the difference in pp along with the ranks
     m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)
@@ -396,15 +390,25 @@ async def notify_pp(member_id: str, data: dict):
     for server in client.servers:
         member = server.get_member(member_id)
         channels = get_notify_channels(server, "score")
-        mention = osu_config.data["primary_server"].get(member_id, server.id) == server.id
-
         if not member or not channels:
             continue
 
+        user_url = ("https://ripple.moe/u/" if score["ripple"] else host) + "u/" + new["user_id"]
+        name = "[`{name}`]({url})".format(name=new["username"], url=user_url)
+
+        base_embed = discord.Embed(color=member.color)
+        base_embed.description = m
+        if potential_pp:
+            base_embed.set_footer(text="Potential: {0;,}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
+
+        if score:
+            base_embed.description = "**{0} set a new best `(#{pos}/{1} +{diff:.2f}pp)` on**\n".format(name, score_request_limit, **score) + m
+
         for i, channel in enumerate(channels):
+            embed = base_embed
+            embed.set_author(name=member.display_name, url=user_url, icon_url=member.avatar_url)
             try:
-                await client.send_message(channel, m.format(member.mention) if (mention and i == 0) else
-                                                   m.format("**" + member.display_name + "**"))
+                await client.send_message(channel, embed=embed)
             except discord.errors.Forbidden:
                 pass
 
@@ -419,29 +423,35 @@ def format_beatmapset_diffs(beatmapset: dict):
         diff_length = len("version")
 
     m = "```elm\n" \
-        "mode  {version: <{diff_len}}  |  stars   cs   ar   od   hp   drain".format(
+        "M {version: <{diff_len}}  |  stars   drain".format(
         version="version", diff_len=diff_length)
 
     for diff in sorted(beatmapset, key=lambda d: float(d["difficultyrating"])):
         diff_name = diff["version"]
-        m += "\n{gamemode: <6}{name: <{diff_len}}  |  " \
-             "{stars: <8}{diff_size: <5}{diff_approach: <5}{diff_overall: <5}{diff_drain: <5}{drain}".format(
+        m += "\n{gamemode: <2}{name: <{diff_len}}  |  " \
+             "{stars: <8}{drain}".format(
             gamemode=api.GameMode(int(diff["mode"])).name[0],
             name=diff_name if len(diff_name) < max_diff_length else diff_name[:29] + "...",
             diff_len=diff_length,
             stars="{:.2f}\u2605".format(float(diff["difficultyrating"])),
-            drain="{}:{:02}".format(*divmod(int(diff["hit_length"]), 60)),
-            **diff
+            drain="{}:{:02}".format(*divmod(int(diff["hit_length"]), 60))
         )
 
     return m + "```"
 
 
-def format_map_status(member_name: str, status_format: str, beatmapset: dict, minimal: bool):
-    """ Format the status update of a beatmap"""
-    return status_format.format(name=member_name, **beatmapset[0]) + \
-           (format_beatmapset_diffs(beatmapset) if not minimal else "\n") + \
-           "**Beatmap**: <{}s/{}>".format(host, beatmapset[0]["beatmapset_id"])
+def format_map_status(member: discord.Member, status_format: str, beatmapset: dict, minimal: bool):
+    """ Format the status update of a beatmap. """
+    set_id = beatmapset[0]["beatmapset_id"]
+    user_id = osu_config.data["profiles"][member.id]
+
+    status = status_format.format(name=member.display_name, user_id=user_id, host=host, **beatmapset[0])
+    if not minimal:
+        status += format_beatmapset_diffs(beatmapset)
+
+    embed = discord.Embed(color=member.color, description=status)
+    embed.set_thumbnail(url="https://b.ppy.sh/thumb/{}.jpg".format(set_id))
+    return embed
 
 
 async def notify_maps(member_id: str, data: dict):
@@ -472,15 +482,20 @@ async def notify_maps(member_id: str, data: dict):
 
         # Get and format the type of event
         if "submitted" in html:
-            status_format = "\U0001F310 **{name}** has submitted a new beatmap **{artist} - {title}**"
+            status_format = "\U0001F310 <name> has submitted a new beatmap <title>"
         elif "updated" in html:
-            status_format = "\U0001F53C **{name}** has updated the beatmap **{artist} - {title}**"
+            status_format = "\U0001F53C <name> has updated the beatmap <title>"
         elif "revived" in html:
-            status_format = "\U0001F64F **{artist} - {title}** has been revived from eternal slumber by **{name}**"
+            status_format = "\U0001F64F <title> has been revived from eternal slumber by <name>"
         elif "qualified" in html:
-            status_format = "\U0001F497 **{artist} - {title}** by **{name}** has just been qualified!"
+            status_format = "\U0001F497 <title> by <name> has just been qualified!"
         else:  # We discard any other events
             continue
+
+        # Replace shortcuts with proper formats and add url formats
+        if status_format:
+            status_format = status_format.replace("<name>", "[**{name}**]({host}s/{user_id})")
+            status_format = status_format.replace("<title>", "[**{artist} - {title}**]({host}s/{beatmapset_id})")
 
         # We'll sleep a little bit to let the beatmap API catch up with the change
         await asyncio.sleep(10)
@@ -507,10 +522,10 @@ async def notify_maps(member_id: str, data: dict):
             for channel in channels:
                 # Do not format difficulties when minimal (or pp) information is specified
                 update_mode = get_update_mode(member_id)
-                m = format_map_status(member.display_name, status_format, beatmapset,
-                                      update_mode is UpdateModes.Minimal or update_mode is UpdateModes.PP)
+                embed = format_map_status(member, status_format, beatmapset, update_mode is not UpdateModes.Full)
+
                 try:
-                    await client.send_message(channel, m)
+                    await client.send_message(channel, embed=embed)
                 except discord.errors.Forbidden:
                     pass
 

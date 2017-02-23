@@ -125,6 +125,14 @@ async def do_as(message: discord.Message, member: Annotate.Member, command: Anno
     await client.on_message(message)
 
 
+async def send_result(channel: discord.Channel, result):
+    """ Sends eval results. """
+    if type(result) is discord.Embed:
+        await client.send_message(channel, embed=result)
+    else:
+        await client.send_message(channel, "**Result:** \n```{}\n```".format(result))
+
+
 @plugins.command()
 @utils.owner
 async def do(message: discord.Message, python_code: Annotate.Code):
@@ -146,7 +154,7 @@ async def do(message: discord.Message, python_code: Annotate.Code):
         await client.say(message, "```" + utils.format_exception(e) + "```")
     else:
         if result:
-            await client.say(message, "**Result:** \n```{}\n```".format(result))
+            await send_result(message.channel, result)
 
 
 @plugins.command(name="eval")
@@ -166,7 +174,7 @@ async def eval_(message: discord.Message, python_code: Annotate.Code):
     except Exception as e:
         result = utils.format_exception(e)
 
-    await client.say(message, "**Result:** \n```{}\n```".format(result))
+    await send_result(message.channel, result)
 
 
 @plugins.command(name="plugin", hidden=True, aliases="pl")
