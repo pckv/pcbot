@@ -366,9 +366,6 @@ async def notify_pp(member_id: str, data: dict):
         if new["events"]:
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
 
-        # Add ripple info to the score
-        score["ripple"] = new["ripple"]
-
         # Find the potentially gained pp in standard when not FC
         if mode is api.GameMode.Standard and update_mode is not UpdateModes.PP and int(score["maxcombo"]) < int(beatmap["max_combo"]):
             options = [score["count100"] + "x100", score["count50"] + "x50",
@@ -393,20 +390,29 @@ async def notify_pp(member_id: str, data: dict):
         if not member or not channels:
             continue
 
-        user_url = ("https://ripple.moe/u/" if score["ripple"] else host) + "u/" + new["user_id"]
-        name = "[`{name}`]({url})".format(name=new["username"], url=user_url)
+        # Format the url link and the username
+        user_url = ("https://ripple.moe/u/" if new["ripple"] else host) + "u/" + new["user_id"]
+        name = "{member.mention} [`[/u/{name}]`]({url})".format(member=member, name=new["username"], url=user_url)
 
-        base_embed = discord.Embed(color=member.color)
-        base_embed.description = m
-        if potential_pp:
-            base_embed.set_footer(text="Potential: {0;,}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
+        embed = discord.Embed(color=member.color, url=user_url)
+        embed.description = m
 
+        # The top line of the format will differ depending on whether we found a score or not
         if score:
-            base_embed.description = "**{0} set a new best `(#{pos}/{1} +{diff:.2f}pp)` on**\n".format(name, score_request_limit, **score) + m
+            embed.description = "**{0} set a new best `(#{pos}/{1} +{diff:.2f}pp)` on**\n".format(name, score_request_limit, **score) + m
+        else:
+            embed.description = name + "\n" + m
+
+        # Add potential pp in the footer
+        if potential_pp:
+            embed.set_footer(text="Potential: {0:,}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
+
+        # NOTE: remove this comment when text goes underneath thumbnails..
+        # if beatmap:
+        #     base_embed.set_thumbnail(url="https://b.ppy.sh/thumb/{}l.jpg".format(beatmap["beatmapset_id"]))
 
         for i, channel in enumerate(channels):
-            embed = base_embed
-            embed.set_author(name=member.display_name, url=user_url, icon_url=member.avatar_url)
+            # embed.set_author(name=member.display_name, url=user_url, icon_url=member.avatar_url)
             try:
                 await client.send_message(channel, embed=embed)
             except discord.errors.Forbidden:
