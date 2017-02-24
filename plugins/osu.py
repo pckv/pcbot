@@ -173,7 +173,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         stars=float(beatmap["difficultyrating"]),
         max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.Catch) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
-        live="\n**Watch live @** <{}>\n".format(stream_url) if stream_url else "",
+        live="**Watch live @** <{}>\n".format(stream_url) if stream_url else "",
         **score
     )
 
@@ -195,7 +195,7 @@ def format_minimal_score(mode: api.GameMode, score: dict, beatmap: dict, rank: i
         version=beatmap["version"],
         stars=float(beatmap["difficultyrating"]),
         scoreboard_rank="#{} ".format(rank) if rank else "",
-        live="\n**Watch live @** <{}>".format(stream_url) if stream_url else "",
+        live="**Watch live @** <{}>".format(stream_url) if stream_url else "",
         **score
     )
 
