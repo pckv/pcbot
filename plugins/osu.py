@@ -392,7 +392,7 @@ async def notify_pp(member_id: str, data: dict):
 
         # Format the url link and the username
         user_url = ("https://ripple.moe/u/" if new["ripple"] else host) + "u/" + new["user_id"]
-        name = "{member.mention} [`[{ripple}/u/{name}]`]({url})".format(member=member, name=new["username"], url=user_url,
+        name = "{member.mention} [`{ripple}/u/{name}`]({url})".format(member=member, name=new["username"], url=user_url,
                                                                         ripple="ripple" if new["ripple"] else "")
 
         embed = discord.Embed(color=member.color, url=user_url)
