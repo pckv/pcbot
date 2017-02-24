@@ -130,7 +130,7 @@ def calculate_acc(mode: api.GameMode, score: dict):
 def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: dict):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
-    formatted = "\u2139`{} {}pp {:+.2f}pp`".format(("RIPPLE:" if data["ripple"] else "") + mode.name, data["pp_raw"], pp)
+    formatted = "\u2139`{} {:.2f}pp {:+.2f}pp`".format(mode.name, float(data["pp_raw"]), pp)
     formatted += (" \U0001f30d`#{:,}{}`".format(int(data["pp_rank"]),
                                                 "" if int(rank) == 0 else " {:+}".format(int(rank))))
     formatted += (" {}`#{:,}{}`".format(utils.text_to_emoji(iso), int(data["pp_country_rank"]),
@@ -392,7 +392,8 @@ async def notify_pp(member_id: str, data: dict):
 
         # Format the url link and the username
         user_url = ("https://ripple.moe/u/" if new["ripple"] else host) + "u/" + new["user_id"]
-        name = "{member.mention} [`[/u/{name}]`]({url})".format(member=member, name=new["username"], url=user_url)
+        name = "{member.mention} [`[{ripple}/u/{name}]`]({url})".format(member=member, name=new["username"], url=user_url,
+                                                                        ripple="ripple" if new["ripple"] else "")
 
         embed = discord.Embed(color=member.color, url=user_url)
         embed.description = m
@@ -500,7 +501,7 @@ async def notify_maps(member_id: str, data: dict):
 
         # Replace shortcuts with proper formats and add url formats
         if status_format:
-            status_format = status_format.replace("<name>", "[**{name}**]({host}s/{user_id})")
+            status_format = status_format.replace("<name>", "[**{name}**]({host}u/{user_id})")
             status_format = status_format.replace("<title>", "[**{artist} - {title}**]({host}s/{beatmapset_id})")
 
         # We'll sleep a little bit to let the beatmap API catch up with the change

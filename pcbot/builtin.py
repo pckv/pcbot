@@ -125,12 +125,14 @@ async def do_as(message: discord.Message, member: Annotate.Member, command: Anno
     await client.on_message(message)
 
 
-async def send_result(channel: discord.Channel, result):
+async def send_result(channel: discord.Channel, result, time_elapsed: timedelta):
     """ Sends eval results. """
     if type(result) is discord.Embed:
         await client.send_message(channel, embed=result)
     else:
-        await client.send_message(channel, "**Result:** \n```{}\n```".format(result))
+        embed = discord.Embed(color=channel.server.me.color, description="```py\n{}```".format(result))
+        embed.set_footer(text="Time elapsed: {:.3f}ms".format(time_elapsed.total_seconds() * 1000))
+        await client.send_message(channel, embed=embed)
 
 
 @plugins.command()
@@ -148,13 +150,14 @@ async def do(message: discord.Message, python_code: Annotate.Code):
         await client.say(message, "```" + utils.format_syntax_error(e) + "```")
         return
 
+    before = datetime.now()
     try:
         result = await eval("do_session()", code_globals)
     except Exception as e:
         await client.say(message, "```" + utils.format_exception(e) + "```")
     else:
         if result:
-            await send_result(message.channel, result)
+            await send_result(message.channel, result, datetime.now() - before)
 
 
 @plugins.command(name="eval")
@@ -165,6 +168,7 @@ async def eval_(message: discord.Message, python_code: Annotate.Code):
     code_globals.update(dict(message=message, client=client,
                              author=message.author, server=message.server, channel=message.channel))
 
+    before = datetime.now()
     try:
         result = eval(python_code, code_globals)
         if inspect.isawaitable(result):
@@ -174,7 +178,7 @@ async def eval_(message: discord.Message, python_code: Annotate.Code):
     except Exception as e:
         result = utils.format_exception(e)
 
-    await send_result(message.channel, result)
+    await send_result(message.channel, result, datetime.now() - before)
 
 
 @plugins.command(name="plugin", hidden=True, aliases="pl")
