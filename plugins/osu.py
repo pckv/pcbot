@@ -52,9 +52,12 @@ from plugins.osulib import api, Mods
 client = plugins.client  # type: discord.Client
 
 # Configuration data for this plugin, including settings for members and the API key
-osu_config = Config("osu", data=dict(
+osu_config = Config("osu", pretty=True, data=dict(
     key="change to your api key",
+    pp_threshold=0.13,  # The amount of pp gain required to post a score
+    score_request_limit=100,  # The maximum number of scores to request, between 0-100
     minimum_pp_required=0,  # The minimum pp required to assign a gamemode/profile in general
+    use_mentions_in_scores=True,  # Whether the bot will mention people when they set a *score*
     profiles={},  # Profile setup as member_id: osu_id
     mode={},  # Member's game mode as member_id: gamemode_value
     server={},  # Server specific info for score- and map notification channels
@@ -68,10 +71,11 @@ time_elapsed = 0  # The registered time it takes to process all information betw
 logging_interval = 30  # The time it takes before posting logging information to the console. TODO: setup logging
 rank_regex = re.compile(r"#\d+")
 
-pp_threshold = 0.13
-score_request_limit = 100
-member_timeout = 2  # How long to wait before removing a member from the register (update_interval * value seconds)
-max_diff_length = 32
+pp_threshold = osu_config.data.get("pp_threshold", 0.13)
+score_request_limit = osu_config.data.get("score_request_limit", 100)
+minimum_pp_required = osu_config.data.get("minimum_pp_required", 0)
+use_mentions_in_scores = osu_config.data.get("use_mentions_in_scores", True)
+max_diff_length = 32  # The maximum amount of characters in a beatmap difficulty
 
 api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
@@ -203,6 +207,11 @@ def format_minimal_score(mode: api.GameMode, score: dict, beatmap: dict, rank: i
 def updates_per_log():
     """ Returns the amount of updates needed before logging interval is met. """
     return logging_interval // (update_interval / 60)
+
+
+def get_primary_server(member_id: str):
+    """ Return the primary server for a member or None. """
+    return osu_config.data["primary_server"].get(member_id, None)
 
 
 def get_mode(member_id: str):
@@ -386,6 +395,8 @@ async def notify_pp(member_id: str, data: dict):
     # Send the message to all servers
     for server in client.servers:
         member = server.get_member(member_id)
+        primary_server = get_primary_server(member.id)
+        is_primary = True if primary_server is None else (True if primary_server == server.id else False)
         channels = get_notify_channels(server, "score")
         if not member or not channels:
             continue
@@ -408,15 +419,16 @@ async def notify_pp(member_id: str, data: dict):
         if potential_pp:
             embed.set_footer(text="Potential: {0:,}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
 
-        # NOTE: remove this comment when text goes underneath thumbnails..
-        # if beatmap:
-        #     base_embed.set_thumbnail(url="https://b.ppy.sh/thumb/{}l.jpg".format(beatmap["beatmapset_id"]))
-
         for i, channel in enumerate(channels):
-            # embed.set_author(name=member.display_name, url=user_url, icon_url=member.avatar_url)
             try:
                 await client.send_message(channel, embed=embed)
-            except discord.errors.Forbidden:
+
+                # In the primary server and if the user sets a score, send a mention and delete it
+                # This will only mention in the first channel of the server
+                if use_mentions_in_scores and score and i == 0 and is_primary:
+                    mention = await client.send_message(channel, member.mention)
+                    await client.delete_message(mention)
+            except discord.Forbidden:
                 pass
 
 
@@ -612,9 +624,8 @@ async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
 async def has_enough_pp(**params):
     """ Lookup the given member and check if they have enough pp to register.
     params are just like api.get_user. """
-    min_pp = osu_config.data["minimum_pp_required"]
     osu_user = await api.get_user(**params)
-    return float(osu_user["pp_raw"]) >= min_pp
+    return float(osu_user["pp_raw"]) >= minimum_pp_required
 
 
 @osu.command(aliases="set")
@@ -630,11 +641,10 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
     user_id = osu_user["user_id"]
 
     # Make sure the user has more pp than the minimum limit defined in config
-    min_pp = osu_config.data["minimum_pp_required"]
-    if float(osu_user["pp_raw"]) < min_pp:
+    if float(osu_user["pp_raw"]) < minimum_pp_required:
         # Perhaps the user wants to display another gamemode
         await client.say(message, "**You have less than the required {}pp.\nIf you're not an osu!standard player, please "
-                                  "enter your gamemode below. Valid gamemodes are `{}`.**".format(min_pp, gamemodes))
+                                  "enter your gamemode below. Valid gamemodes are `{}`.**".format(minimum_pp_required, gamemodes))
         reply = await client.wait_for_message(timeout=60, author=message.author, channel=message.channel)
         if not reply:
             return
@@ -642,7 +652,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
         mode = api.GameMode.get_mode(reply.content)
         assert mode is not None, "**The given gamemode is invalid.**"
         assert await has_enough_pp(u=user_id, m=mode.value, type="id"), \
-            "**Your pp in {} is less than the required {}pp.**".format(mode.name, min_pp)
+            "**Your pp in {} is less than the required {}pp.**".format(mode.name, minimum_pp_required)
 
     # Clear the scores when changing user
     if message.author.id in osu_tracking:
@@ -688,7 +698,7 @@ async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
 
     user_id = osu_config.data["profiles"][message.author.id]
     assert await has_enough_pp(u=user_id, m=mode.value, type="id"), \
-        "**Your pp in {} is less than the required {}pp.**".format(mode.name, osu_config.data["minimum_pp_required"])
+        "**Your pp in {} is less than the required {}pp.**".format(mode.name, minimum_pp_required)
 
     osu_config.data["mode"][message.author.id] = mode.value
     osu_config.save()
