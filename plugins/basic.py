@@ -32,7 +32,8 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
 async def avatar(message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Display your or another member's avatar. """
     e = discord.Embed(color=member.color)
-    e = e.set_image(url=member.avatar_url).set_author(name=member.display_name, icon_url=member.avatar_url)
+    e = e.set_image(url=member.avatar_url.replace(".webp", ".jpg"))
+    e.set_author(name=member.display_name, icon_url=member.avatar_url)
     await client.send_message(message.channel, embed=e)
 
 

@@ -395,11 +395,12 @@ async def notify_pp(member_id: str, data: dict):
     # Send the message to all servers
     for server in client.servers:
         member = server.get_member(member_id)
-        primary_server = get_primary_server(member.id)
-        is_primary = True if primary_server is None else (True if primary_server == server.id else False)
         channels = get_notify_channels(server, "score")
         if not member or not channels:
             continue
+
+        primary_server = get_primary_server(member.id)
+        is_primary = True if primary_server is None else (True if primary_server == server.id else False)
 
         # Format the url link and the username
         user_url = ("https://ripple.moe/u/" if new["ripple"] else host) + "u/" + new["user_id"]
