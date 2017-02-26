@@ -16,7 +16,7 @@ client = plugins.client  # type: discord.Client
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(partial(deque, maxlen=10000))
-logs_from_limit = 5000
+logs_from_limit = 10
 max_summaries = 5
 update_task = asyncio.Event()
 update_task.set()
@@ -60,7 +60,7 @@ async def update_messages(channel: discord.Channel):
         update_task.set()
 
 
-@plugins.event(bot=True)
+@plugins.event(bot=True, self=True)
 async def on_message(message: discord.Message):
     """ Whenever a message is sent, see if we can update in one of the channels. """
     if message.channel.id in stored_messages and message.content:

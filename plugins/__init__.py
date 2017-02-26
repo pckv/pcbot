@@ -193,7 +193,7 @@ def command(**options):
     return decorator
 
 
-def event(name=None, bot=False):
+def event(name=None, bot=False, self=False):
     """ Decorator to add event listeners in plugins. """
     def decorator(func):
         event_name = name or func.__name__
@@ -203,7 +203,9 @@ def event(name=None, bot=False):
                             "event listener call).")
 
         # Set the bot attribute, which determines whether the function will be triggered by messages from bot accounts
+        # The self attribute denotes if own messages will be logged
         setattr(func, "bot", bot)
+        setattr(func, "self", self)
 
         # Register our event
         events[event_name].append(func)

@@ -11,13 +11,13 @@ from datetime import datetime, timedelta
 
 import discord
 
-from pcbot import utils, config, Config, Annotate, Cleverbot
+from pcbot import utils, Config, Annotate
 import plugins
 client = plugins.client  # type: discord.Client
 
 
 feature_reqs = Config(filename="feature_requests", data={})
-cleverbot = Cleverbot(config.name.replace(" ", "_") + "-discord-bot")
+# cleverbot = Cleverbot(config.name.replace(" ", "_") + "-discord-bot")
 
 
 @plugins.command()
