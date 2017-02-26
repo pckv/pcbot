@@ -105,7 +105,7 @@ def command(**options):
         params = inspect.signature(func).parameters
         param = params[list(params.keys())[0]]  # The first parameter
         if not param.name == "message" and param.annotation is not discord.Message:
-            raise SyntaxError("Second command parameter must be named message or be of type discord.Message")
+            raise SyntaxError("First command parameter must be named message or be of type discord.Message")
 
         # Define all function stats
         name = options.get("name", func.__name__)
@@ -199,8 +199,11 @@ def event(name=None, bot=False, self=False):
         event_name = name or func.__name__
 
         if event_name == "on_ready":
-            raise NameError("on_ready in plugins is reserved for bot initialization only (use it without the"
-                            "event listener call).")
+            raise NameError("on_ready in plugins is reserved for bot initialization only. Use it without the"
+                            "event listener call)")
+
+        if self and not bot and client.user.bot:
+            logging.warning("self=True has no effect in event {}. Consider setting bot=True".format(func.__name__))
 
         # Set the bot attribute, which determines whether the function will be triggered by messages from bot accounts
         # The self attribute denotes if own messages will be logged
