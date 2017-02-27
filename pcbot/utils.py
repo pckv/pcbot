@@ -201,11 +201,17 @@ def role(*roles: str):
     return decorator
 
 
-async def subprocess(*args):
+async def subprocess(*args, carriage_return=False):
     """ Run a subprocess and return the output. Unsupported in Windows. """
     process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE)
     result, _ = await process.communicate()
-    return result.decode("utf-8")
+    result = result.decode("utf-8")
+
+    # There were some problems with the carriage_return in windows, so by default they're removed
+    if not carriage_return:
+        result = result.replace("\r", "")
+
+    return result
 
 
 async def retrieve_page(url: str, head=False, **params):

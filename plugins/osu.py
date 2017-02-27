@@ -33,8 +33,8 @@ Commands:
 
 import logging
 import os
-import platform
 import re
+import sys
 from datetime import datetime
 from enum import Enum
 from traceback import print_exc
@@ -81,6 +81,10 @@ api.api_key = osu_config.data.get("key")
 host = "https://osu.ppy.sh/"
 oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
 last_calc_beatmap = dict(beatmap_url="---")  # The last calculated beatmap info
+
+pp_pattern = re.compile(r"(?P<pp>[0-9.e+]+)pp$")
+data_pattern = re.compile(r"(?P<name>.+)\s\[(?P<version>.*)\]")
+stars_pattern = re.compile(r"([0-9.e+]+)\sstars")
 
 gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
@@ -771,12 +775,8 @@ async def run_oppai(beatmap_url: str, *options):
     """
     global last_calc_beatmap
 
-    # This service is only supported on Linux as of yet
-    if not platform.system() == "Linux":
-        raise NotImplementedError("This service is unsupported since the bot is not hosted using Linux.")
-
     # Make sure the bot has access to "oppai" lib
-    if not os.path.exists(os.path.join(oppai_path, "oppai")):
+    if not os.path.exists(os.path.join(oppai_path, "oppai" + (".exe" if sys.platform == "win32" else ""))):
         raise FileNotFoundError("This service is unavailable until the owner sets up the `oppai` lib.")
 
     # Only download and request when the beatmap url is different
@@ -823,7 +823,7 @@ async def calculate_pp(beatmap_url: str, *options):
     output = await run_oppai(beatmap_url, *options)
 
     # Search for the pp, which should be in the very end
-    pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp$", output)
+    pp_match = pp_pattern.search(output)
 
     # The library did not return the pp
     if not pp_match:
@@ -844,14 +844,14 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
         raise AssertionError(e)
 
     # Search for the pp, which should be in the very end
-    pp_match = re.search(r"(?P<pp>[0-9.e+]+)pp$", output)
+    pp_match = pp_pattern.search(output)
 
     # The library did not return the pp. Perhaps the user did something wrong?
     assert pp_match, "A problem occurred when parsing the beatmap."
 
     # Since a pp formatted string was found, we assume that these ones are present
-    data_match = re.search(r"(?P<name>.+)\s\[(?P<version>.*)\]", output)
-    stars_match = re.search(r"([0-9.e+]+)\sstars", output)
+    data_match = data_pattern.search(output)
+    stars_match = stars_pattern.search(output)
 
     # We're done! Tell the user how much this score is worth.
     await client.say(message, "*{name}* **[{version}] {1}** {stars}\u2605 would be worth `{0:,}pp`.".format(

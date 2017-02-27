@@ -7,6 +7,7 @@ that would be executed.
 import logging
 import inspect
 import os
+import sys
 import traceback
 from datetime import datetime
 from getpass import getpass
@@ -105,7 +106,7 @@ class Client(discord.Client):
 
 
 # Setup our client
-client = Client()
+client = Client(loop=asyncio.ProactorEventLoop() if sys.platform == "win32" else None)
 autosave_interval = 60 * 30
 
 
