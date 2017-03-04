@@ -291,7 +291,7 @@ async def on_voice_state_update(before: discord.Member, after: discord.Member):
 
     # Leave the voice channel we're client_connected to when the only one here is the bot
     if server in voice_states and server.me.voice_channel == channel:
-        if count_members == 1:
+        if count_members == 0:
             state = voice_states[server]
             await state.voice.disconnect()
             if state.is_playing():
@@ -299,9 +299,9 @@ async def on_voice_state_update(before: discord.Member, after: discord.Member):
                 state.skip()
             del voice_states[server]
 
-    # Connect to the voice channel when there are people in it but not us
+    # Connect to the voice channel when there are people in it
     else:
-        if count_members >= 1 and not server.me.voice_channel == channel:
+        if count_members >= 1:
             try:
                 voice = await client.join_voice_channel(channel)
             except discord.errors.ClientException:
