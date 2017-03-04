@@ -85,6 +85,7 @@ last_calc_beatmap = dict(beatmap_url="---")  # The last calculated beatmap info
 pp_pattern = re.compile(r"(?P<pp>[0-9.e+]+)pp$")
 data_pattern = re.compile(r"(?P<name>.+)\s\[(?P<version>.*)\]")
 stars_pattern = re.compile(r"([0-9.e+]+)\sstars")
+oppai_exceptions = (NotImplementedError, FileNotFoundError, LookupError, ValueError)
 
 gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
@@ -832,15 +833,67 @@ async def calculate_pp(beatmap_url: str, *options):
     return float(pp_match.group("pp"))
 
 
+async def find_closest_pp(beatmap_url: str, pp: float, *options):
+    """ Run oppai on a beatmap with increasing amount of 100s until it gives
+    pp as close as possible to the given pp value.
+
+    It is a given that amount of 100s should not be included in options.
+
+    This function returns the amount of 100s needed, not the pp. """
+    previous_pp = max_pp = await calculate_pp(beatmap_url, *options)
+    min_pp = round(7/8 * max_pp, 2)
+
+    # The pp value must be within a close range of what the map actually gives
+    if pp < min_pp or pp > max_pp:
+        raise ValueError("The given pp value must be between **{}pp** and **{}pp** for this map.".format(min_pp, max_pp))
+
+    c100 = 1
+    while True:
+        new_options = list(options)
+        new_options.append("{}x100".format(c100))
+        current_pp = await calculate_pp(beatmap_url, *new_options)
+
+        # Stop when we find a pp value between the current 100 count and the previous one
+        if current_pp <= pp <= previous_pp:
+            break
+        else:
+            previous_pp = current_pp
+            c100 += 1
+
+    # Find the closest pp of our two values, and return the amount of 100s
+    closest_pp = min([previous_pp, current_pp], key=lambda v: abs(pp - v))
+    return c100 if closest_pp == current_pp else c100 - 1
+
+
 @plugins.command(name="pp")
 async def pp_(message: discord.Message, beatmap_url: str, *options):
     """ Calculate and return the would be pp using `oppai`.
 
     Options are a parsed set of command-line arguments:  /
-    `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`"""
+    `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`
+    /
+    **Additionally**, PCBOT includes a *find closest pp* feature. This works as an
+    argument in the options, formatted like `[pp_value]pp`"""
+    # Turn the options tuple into a list so that we can change it if necessary
+    options = list(options)
+
+    # If a pp value is specified, run the calculation with the amount of 100s closest to this value
+    pp_search_match = pp_pattern.search(" ".join(options))
+    if pp_search_match:
+        # Generate a new list without any given number of 100s, and remove the pp value from the options
+        options = [s for s in options if not s.endswith("x100")]
+        options.remove(pp_search_match.group())
+
+        try:
+            c100 = await find_closest_pp(beatmap_url, float(pp_search_match.group("pp")), *options)
+        except oppai_exceptions as e:
+            raise AssertionError(e)
+        else:
+            options.append("{}x100".format(c100))
+
     try:
         output = await run_oppai(beatmap_url, *options)
-    except (NotImplementedError, FileNotFoundError, LookupError, ValueError) as e:
+    except oppai_exceptions as e:
         raise AssertionError(e)
 
     # Search for the pp, which should be in the very end
