@@ -178,18 +178,39 @@ async def timeout(message: discord.Message, member: Annotate.Member, minutes: fl
     await manage_mute(message, client.remove_roles, *muted_members)
 
 
+@plugins.argument("{open}member/#channel {suffix}{close}", pass_message=True)
+def members_and_channels(message: discord.Message, arg: str):
+    """ Look for both members and channel mentions. """
+    if utils.channel_mention_regex.match(arg):
+        return utils.find_channel(message.server, arg)
+
+    return utils.find_member(message.server, arg)
+
+
 @plugins.command()
 @utils.permission("manage_messages")
-async def purge(message: discord.Message, *members: Annotate.Member, num: utils.int_range(1, 100)):
+async def purge(message: discord.Message, *instances: members_and_channels, num: utils.int_range(1, 100)):
     """ Purge the given amount of messages from the specified members or all.
+    You may also specify a channel to delete from.
+
     `num` is a number from 1 to 100. """
+    instances = list(instances)
+
+    channel = message.channel
+    for instance in instances:
+        if type(instance) is discord.Channel:
+            channel = instance
+            instances.remove(instance)
+            break
+
+    assert not any(i for i in instances if type(i) is discord.Channel), "**I can only purge in one channel.**"
     to_delete = []
 
-    async for m in client.logs_from(message.channel, limit=100, before=message):
+    async for m in client.logs_from(channel, limit=100, before=message):
         if len(to_delete) >= num:
             break
 
-        if not members or m.author in members:
+        if not instances or m.author in instances:
             to_delete.append(m)
 
     deleted = len(to_delete)
