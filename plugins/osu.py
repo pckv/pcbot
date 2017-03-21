@@ -408,7 +408,7 @@ async def notify_pp(member_id: str, data: dict):
         is_primary = True if primary_server is None else (True if primary_server == server.id else False)
 
         # Format the url link and the username
-        user_url = ("https://ripple.moe/u/" if new["ripple"] else host) + "u/" + new["user_id"]
+        user_url = ("https://ripple.moe/" if new["ripple"] else host) + "u/" + new["user_id"]
         name = "{member.mention} [`{ripple}{name}`]({url})".format(member=member, name=new["username"], url=user_url,
                                                                         ripple="ripple: " if new["ripple"] else "")
 
