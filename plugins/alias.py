@@ -3,13 +3,10 @@
 Commands:
 alias
 """
-
-from difflib import get_close_matches
-
 import discord
 import asyncio
 
-from pcbot import Config, Annotate, utils
+from pcbot import Config, Annotate, config, utils
 import plugins
 client = plugins.client  # type: discord.Client
 
@@ -104,8 +101,18 @@ async def on_message(message: discord.Message):
                     if message.server.me.permissions_in(message.channel).manage_messages:
                         asyncio.ensure_future(client.delete_message(message))
 
-                await client.say(message, command["text"])
+                text = command["text"]
+                if text.startswith(config.command_prefix):
+                    args = utils.split(text)
+                    # try:
+                    print(args, "\n", args[0], *args[1:])
+                    await plugins.execute(args[0][1:], message, *args[1:])
+                    # except:
+                    #     pass
+                    # else:
+                    #     return True
 
+                await client.say(message, text)
                 success = True
 
     return success

@@ -236,6 +236,16 @@ def get_update_mode(member_id: str):
     return UpdateModes.get_mode(osu_config.data["update_mode"][member_id])
 
 
+def get_user_url(member_id: str):
+    """ Return the user website URL. """
+    user_id = osu_config.data["profiles"][member_id]
+
+    if api.ripple_regex.match(user_id):
+        return "https://ripple.moe/u/" + user_id[7:]
+    else:
+        return host + "u/" + user_id
+
+
 async def update_user_data():
     """ Go through all registered members playing osu!, and update their data. """
     global osu_tracking
@@ -310,7 +320,7 @@ async def get_new_score(member_id: str):
             osu_tracking[member_id]["scores"] = user_scores
 
             # Calculate the difference in pp from the score below
-            if i < 98:
+            if i < len(osu_tracking[member_id]["scores"]) - 2:
                 pp = float(score["pp"])
                 diff = pp - float(user_scores[i + 1]["pp"])
             else:
@@ -408,7 +418,7 @@ async def notify_pp(member_id: str, data: dict):
         is_primary = True if primary_server is None else (True if primary_server == server.id else False)
 
         # Format the url link and the username
-        user_url = ("https://ripple.moe/" if new["ripple"] else host) + "u/" + new["user_id"]
+        user_url = get_user_url(member.id)
         name = "{member.mention} [`{ripple}{name}`]({url})".format(member=member, name=new["username"], url=user_url,
                                                                         ripple="ripple: " if new["ripple"] else "")
 
@@ -621,7 +631,7 @@ async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
     signature = await utils.retrieve_page("http://lemmmy.pw/osusig/sig.php", head=True, colour=color,
                                           uname=user_id, pp=True, countryrank=True, xpbar=True,
                                           mode=mode.value, date=datetime.now().ctime(), **dark)
-    embed = discord.Embed(color=member.color, url=host + "u/" + user_id)
+    embed = discord.Embed(color=member.color, url=get_user_url(member.id))
     embed.set_author(name=member.display_name, icon_url=member.avatar_url)
     embed.set_image(url=signature.url)
     await client.send_message(message.channel, embed=embed)
@@ -765,8 +775,8 @@ async def url(message: discord.Message, member: Annotate.Member=Annotate.Self,
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
     # Send the URL since the member is registered
-    await client.say(message, "**{0.display_name}'s profile:** <https://osu.ppy.sh/u/{1}{2}>".format(
-        member, osu_config.data["profiles"][member.id], "#_{}".format(section) if section else ""))
+    await client.say(message, "**{0.display_name}'s profile:** <{1}{2}>".format(
+        member, get_user_url(member.id), "#_{}".format(section) if section else ""))
 
 
 async def run_oppai(beatmap_url: str, *options):
