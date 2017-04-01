@@ -102,15 +102,9 @@ class Mods(Enum):
         mods is either a bitwise or a list of mod enums. """
         if type(mods) is int:
             mods = cls.list_mods(mods)
-
         assert type(mods) is list
 
-        if mods:
-            sorted_mods = sorted((mod.name for mod in mods), key=str.lower)
-        else:
-            sorted_mods = ["Nomod"]
-
-        return "".join(sorted_mods)
+        return "".join((mod.name for mod in mods) if mods else ["Nomod"])
 
 
 def def_section(api_name: str, first_element: bool=False):
