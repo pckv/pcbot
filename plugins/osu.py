@@ -603,7 +603,7 @@ async def on_ready():
 
 
 @plugins.command(aliases="circlesimulator eba")
-async def osu(message: discord.Message, member: Annotate.Member=Annotate.Self,
+async def osu(message: discord.Message, member: discord.Member=Annotate.Self,
               mode: api.GameMode.get_mode=None):
     """ Handle osu! commands.
 
@@ -687,7 +687,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
 
 
 @osu.command(aliases="unset")
-async def unlink(message: discord.Message, member: Annotate.Member=Annotate.Self):
+async def unlink(message: discord.Message, member: discord.Member=Annotate.Self):
     """ Unlink your osu! account or unlink the member specified (**Owner only**). """
     # The message author is allowed to unlink himself
     # If a member is specified and the member is not the owner, set member to the author
@@ -726,7 +726,7 @@ async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
 
 
 @osu.command(aliases="")
-async def info(message: discord.Message, member: Annotate.Member=Annotate.Self):
+async def info(message: discord.Message, member: discord.Member=Annotate.Self):
     """ Display configuration info. """
     # Make sure the member is assigned
     assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
@@ -767,7 +767,7 @@ async def notify(message: discord.Message, mode: UpdateModes.get_mode):
 
 
 @osu.command()
-async def url(message: discord.Message, member: Annotate.Member=Annotate.Self,
+async def url(message: discord.Message, member: discord.Member=Annotate.Self,
               section: str.lower=None):
     """ Display the member's osu! profile URL. """
     # Member might not be registered
@@ -952,7 +952,7 @@ async def config(message, _: utils.placeholder):
 
 @config.command(alias="score")
 @utils.permission("manage_server")
-async def scores(message: discord.Message, *channels: Annotate.Channel):
+async def scores(message: discord.Message, *channels: discord.Channel):
     """ Set which channels to post scores to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["score-channels"] = list(c.id for c in channels)
@@ -963,7 +963,7 @@ async def scores(message: discord.Message, *channels: Annotate.Channel):
 
 @config.command(alias="map")
 @utils.permission("manage_server")
-async def maps(message: discord.Message, *channels: Annotate.Channel):
+async def maps(message: discord.Message, *channels: discord.Channel):
     """ Set which channels to post map updates to. """
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["map-channels"] = list(c.id for c in channels)

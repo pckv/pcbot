@@ -148,9 +148,9 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
 def default_self(anno, default, message: discord.Message):
     """ A silly function to make Annotate.Self work. """
     if default is utils.Annotate.Self:
-        if anno is utils.Annotate.Member:
+        if anno is utils.Annotate.Member or anno is discord.Member:
             return message.author
-        elif anno is utils.Annotate.Channel:
+        elif anno is utils.Annotate.Channel or anno is discord.Channel:
             return message.channel
 
     return default
@@ -178,9 +178,9 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
                 return content(message.clean_content) or default
             elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
                 return content(message.clean_content).lower() or default
-            elif anno is utils.Annotate.Member:  # Checks member names or mentions
+            elif anno is utils.Annotate.Member or anno is discord.Member:  # Checks member names or mentions
                 return utils.find_member(message.server, arg) or default_self(anno, default, message)
-            elif anno is utils.Annotate.Channel:  # Checks text channel names or mentions
+            elif anno is utils.Annotate.Channel or anno is discord.Channel:  # Checks text channel names or mentions
                 return utils.find_channel(message.server, arg) or default_self(anno, default, message)
             elif anno is utils.Annotate.VoiceChannel:  # Checks voice channel names or mentions
                 return utils.find_channel(message.server, arg, channel_type="voice")

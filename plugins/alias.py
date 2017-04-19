@@ -46,7 +46,7 @@ async def alias(message: discord.Message, *options: str.lower, trigger: str, tex
 
 
 @alias.command(name="list")
-async def list_aliases(message: discord.Message, member: Annotate.Member=Annotate.Self):
+async def list_aliases(message: discord.Message, member: discord.Member=Annotate.Self):
     """ List all user's aliases. """
     assert message.author.id in aliases.data, "**{} has no aliases.**".format(member.display_name)
 

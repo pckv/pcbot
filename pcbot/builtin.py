@@ -118,7 +118,7 @@ async def stream(message: discord.Message, url: str, title: Annotate.Content):
 
 @plugins.command(name="as")
 @utils.owner
-async def do_as(message: discord.Message, member: Annotate.Member, command: Annotate.Content):
+async def do_as(message: discord.Message, member: discord.Member, command: Annotate.Content):
     """ Execute a command as the specified member. """
     message.author = member
     message.content = command

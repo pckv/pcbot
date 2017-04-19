@@ -21,7 +21,7 @@ try:
     from PIL import Image
 except:
     resize = False
-    logging.warn("PIL could not be loaded. The pokedex works like usual, however sprites will remain 1x scaled.")
+    logging.warning("PIL could not be loaded. The pokedex works like usual, however sprites will remain 1x scaled.")
 else:
     resize = True
 

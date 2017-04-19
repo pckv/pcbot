@@ -137,7 +137,7 @@ async def delete(message: discord.Message, tag: Annotate.Content):
 
 
 @countdown.command(name="list")
-async def cmd_list(message: discord.Message, author: Annotate.Member=None):
+async def cmd_list(message: discord.Message, author: discord.Member=None):
     """ List all countdowns or all countdowns by the specified author. """
     assert time_cfg.data["countdown"], "There are no countdowns created."
 

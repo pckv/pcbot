@@ -11,6 +11,7 @@ Commands:
     mute
     unmute
     timeout
+    suspend
 """
 
 from collections import defaultdict
@@ -128,7 +129,7 @@ async def manage_mute(message: discord.Message, function, *members: discord.Memb
 
 @plugins.command(pos_check=True)
 @utils.permission("manage_messages")
-async def mute(message: discord.Message, *members: Annotate.Member):
+async def mute(message: discord.Message, *members: discord.Member):
     """ Mute the specified members. """
     muted_members = await manage_mute(message, client.add_roles, *members)
 
@@ -139,7 +140,7 @@ async def mute(message: discord.Message, *members: Annotate.Member):
 
 @plugins.command(pos_check=True)
 @utils.permission("manage_messages")
-async def unmute(message: discord.Message, *members: Annotate.Member):
+async def unmute(message: discord.Message, *members: discord.Member):
     """ Unmute the specified members. """
     muted_members = await manage_mute(message, client.remove_roles, *members)
 
@@ -150,7 +151,7 @@ async def unmute(message: discord.Message, *members: Annotate.Member):
 
 @plugins.command()
 @utils.permission("manage_messages")
-async def timeout(message: discord.Message, member: Annotate.Member, minutes: float, reason: Annotate.Content):
+async def timeout(message: discord.Message, member: discord.Member, minutes: float, reason: Annotate.Content):
     """ Timeout a user in minutes (will accept decimal numbers), send them
     the reason for being timed out and post the reason in the server's
     changelog if it has one. """
@@ -176,6 +177,25 @@ async def timeout(message: discord.Message, member: Annotate.Member, minutes: fl
     # Sleep for the given hours and unmute the member
     await asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60^2
     await manage_mute(message, client.remove_roles, *muted_members)
+
+
+@plugins.command(aliases="muteall mute* unmuteall unmute*")
+@utils.permission("manage_messages")
+async def suspend(message: discord.Message, channel: discord.Channel=Annotate.Self):
+    """ Suspends a channel by removing send permission for the server's default role. 
+    This function acts like a toggle. """
+    send = channel.overwrites_for(message.server.default_role).send_messages
+    print(send, False if send is None else not send)
+    overwrite = discord.PermissionOverwrite(send_messages=False if send is None else not send)
+    await client.edit_channel_permissions(channel, message.server.default_role, overwrite)
+
+    try:
+        if overwrite.send_messages:
+            await client.say(message, "{} is no longer suspended.".format(channel.mention))
+        else:
+            await client.say(message, "Suspended {}.".format(channel.mention))
+    except discord.Forbidden:  # ...
+        await client.send_message(message.author, "You just removed my send permission in {}.".format(channel.mention))
 
 
 @plugins.argument("{open}member/#channel {suffix}{close}", pass_message=True)
