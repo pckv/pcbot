@@ -10,6 +10,7 @@ from functools import partial
 from traceback import format_exc
 
 import discord
+import pendulum
 
 from pcbot.utils import Annotate, format_exception
 from pcbot import config
@@ -22,6 +23,8 @@ Command = namedtuple("Command", "name name_prefix  aliases "
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
                        Annotate.LowerCleanContent, Annotate.Code)
 argument_format = "{open}{name}{suffix}{close}"
+CoolDown = namedtuple("CoolDown", "date command specific")
+cooldown_data = defaultdict(list)  # member: []
 
 client = None  # The client. This variable holds the bot client and is to be used by plugins
 
@@ -286,6 +289,23 @@ async def execute(cmd, message: discord.Message, *args, **kwargs):
         await cmd.function(message, *args, **kwargs)
     except AttributeError:
         raise NameError("Not a command".format(cmd))
+
+
+def get_cooldown(member: discord.Member, cmd: Command):
+    """ Returns the member's time left as a str or None. """
+    if member not in cooldown_data:
+        return None
+
+    for cooldown in cooldown_data[member]:
+        if cooldown.command == cmd or cooldown.command is None:
+            diff = cooldown.date - pendulum.now()
+            if diff.seconds < 0:
+                cooldown_data[member].remove(cooldown)
+                return None
+
+            return diff.in_words()
+    else:
+        return None
 
 
 def load_plugin(name: str, package: str="plugins"):

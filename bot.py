@@ -156,6 +156,16 @@ def default_self(anno, default, message: discord.Message):
     return default
 
 
+def override_annotation(anno):
+    """ Returns an annotation of a discord object as an Annotate object. """
+    if anno is discord.Member:
+        return utils.Annotate.Member
+    elif anno is discord.Channel:
+        return utils.Annotate.Channel
+    else:
+        return anno
+
+
 async def parse_annotation(param: inspect.Parameter, default, arg: str, index: int, message: discord.Message):
     """ Parse annotations and return the command to use.
 
@@ -164,17 +174,11 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
         default = None
 
     if param.annotation is not param.empty:  # Any annotation is a function or Annotation enum
-        anno = param.annotation
+        anno = override_annotation(param.annotation)
         content = lambda s: utils.split(s, maxsplit=index)[-1].strip("\" ")
 
         # Valid enum checks
-        if anno is discord.Member:
-            anno = utils.Annotate.Member
-        elif anno is discord.Channel:
-            anno = utils.Annotate.Channel
-
         if isinstance(anno, utils.Annotate):
-
             if anno is utils.Annotate.Content:  # Split and get raw content from this point
                 return content(message.content) or default
             elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
@@ -246,10 +250,12 @@ async def parse_command_args(command: plugins.Command, cmd_args: list, message: 
             cmd_arg = cmd_args[index]
         else:
             if param.default is not param.empty:
+                anno = override_annotation(param.annotation)
+
                 if param.kind is param.POSITIONAL_OR_KEYWORD:
-                    args.append(default_self(param.annotation, param.default, message))
+                    args.append(default_self(anno, param.default, message))
                 elif param.kind is param.KEYWORD_ONLY:
-                    kwargs[param.name] = default_self(param.annotation, param.default, message)
+                    kwargs[param.name] = default_self(anno, param.default, message)
 
                 if type(command.pos_check) is not bool:
                     index -= 1
