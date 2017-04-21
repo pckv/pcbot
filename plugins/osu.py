@@ -164,7 +164,7 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
     """ Format any score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
-        "[*{artist} - {title} [{version}]*]({host}b/{beatmap_id})\n"
+        "[{i}{artist} - {title} [{version}]{i}]({host}b/{beatmap_id})\n"
         "**{pp}pp {stars:.2f}\u2605, {rank} {scoreboard_rank}+{mods}**"
         "```diff\n"
         "  acc     300s   100s   50s    miss   combo\n"
@@ -175,8 +175,9 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         sign="!" if acc == 1 else ("+" if score["perfect"] == "1" else "-"),
         mods=Mods.format_mods(int(score["enabled_mods"])),
         acc=acc,
-        artist=beatmap["artist"].replace("*", "\*").replace("_", "\_"),
-        title=beatmap["title"].replace("*", "\*").replace("_", "\_"),
+        artist=beatmap["artist"].replace("_", "\_"),
+        title=beatmap["title"].replace("_", "\_"),
+        i="*" if "*" not in beatmap["artist"] + beatmap["title"] else "",  # Escaping asterisk doesn't work in italics
         version=beatmap["version"],
         stars=float(beatmap["difficultyrating"]),
         max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.Catch) else "",
