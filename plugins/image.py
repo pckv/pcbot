@@ -235,7 +235,7 @@ async def rotate(message: discord.Message, image_arg: image, degrees: int, *opti
     await send_image(message, image_arg)
 
 
-@plugins.command()
+@plugins.command(name="convertimage")
 async def convert(message: discord.Message, image_arg: image, extension: str.lower):
     """ Convert an image to a specified extension. """
     image_arg.set_extension(extension)
