@@ -582,7 +582,7 @@ async def on_ready():
 
     while not client.is_closed:
         try:
-            await asyncio.sleep(update_interval)
+            await asyncio.sleep(update_interval, loop=client.loop)
             started = datetime.now()
 
             # First, update every user's data
