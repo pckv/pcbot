@@ -18,6 +18,7 @@ client = plugins.client  # type: discord.Client
 stored_messages = defaultdict(partial(deque, maxlen=10000))
 logs_from_limit = 5000
 max_summaries = 5
+max_admin_summaries = 15
 update_task = asyncio.Event()
 update_task.set()
 
@@ -182,9 +183,11 @@ def filter_messages(message_content: list, phrase: str, regex: bool=False, case:
 
 
 @plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [phrase ...]",
-                 pos_check=is_valid_option)
+                 pos_check=is_valid_option, aliases="markov")
 async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
-    """ Perform a summary! """
+    """ Run a markov chain through the past 5000 messages + up to another 5000
+    messages after first use. This command needs some time after the plugin reloads
+    as it downloads the past 5000 messages in the given channel. """
     # This dict stores all parsed options as keywords
     member, channel, num = [], None, None
     regex, case, tts = False, False, False
@@ -195,12 +198,6 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         if num_match:
             assert not num
             num = int(num_match.group("num"))
-
-            # Assign limits
-            if num > max_summaries:
-                num = max_summaries
-            elif num < 1:
-                num = 1
             continue
 
         member_match = valid_member.match(value)
@@ -217,7 +214,6 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         if channel_match:
             assert not channel
             channel = utils.find_channel(message.server, channel_match.group())
-            assert channel.permissions_for(message.server.me).read_message_history, "**I can't see this channel.**"
             continue
 
         if value in valid_options:
@@ -226,16 +222,26 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
             if value == "+case":
                 case = True
             if value == "+tts":
-                assert message.author.permissions_in(message.channel).send_tts_messages, \
-                    "**You don't have permissions to send tts messages in this channel.**"
                 tts = True
             bots = False if value == "+nobot" else True if value == "+bot" else bots
 
-    # Assign defaults
-    if not num:
+    # Assign defaults and number of summaries limit
+    is_privileged = message.author.permissions_in(message.channel).manage_messages
+
+    if num > max_admin_summaries and is_privileged:
+        num = max_admin_summaries
+    elif num > max_summaries:
+        num = max_summaries if not is_privileged else num
+    elif num < 1 or num is None:
         num = 1
+
     if not channel:
         channel = message.channel
+
+    # Check channel permissions after the given channel has been decided
+    assert channel.permissions_for(message.server.me).read_message_history, "**I can't see this channel.**"
+    assert message.author.permissions_in(message.channel).send_tts_messages, \
+        "**You don't have permissions to send tts messages in this channel.**"
 
     await client.send_typing(message.channel)
     await update_task.wait()
