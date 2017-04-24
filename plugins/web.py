@@ -79,6 +79,8 @@ async def convert(message: discord.Message, value: float, currency_from: str.upp
     try:
         rate = await get_exchange_rate(currency_from, currency_to)
     except ValueError as e:
-        await client.say(message, "**{}**".format(e))
+        await client.say(message, e)
     else:
-        await client.say(message, "**{:.2f} {}**".format(value * rate, currency_to))
+        flag = utils.text_to_emoji(currency_to[:2])
+        e = discord.Embed(description="{} {:,.2f} {}".format(flag, value * rate, currency_to), color=message.author.color)
+        await client.send_message(message.channel, embed=e)
