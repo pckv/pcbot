@@ -16,7 +16,7 @@ client = plugins.client  # type: discord.Client
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(partial(deque, maxlen=10000))
-logs_from_limit = 5000
+logs_from_limit = 50
 max_summaries = 5
 max_admin_summaries = 15
 update_task = asyncio.Event()
@@ -240,7 +240,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
 
     # Check channel permissions after the given channel has been decided
     assert channel.permissions_for(message.server.me).read_message_history, "**I can't see this channel.**"
-    assert message.author.permissions_in(message.channel).send_tts_messages, \
+    assert not tts or message.author.permissions_in(message.channel).send_tts_messages, \
         "**You don't have permissions to send tts messages in this channel.**"
 
     await client.send_typing(message.channel)
