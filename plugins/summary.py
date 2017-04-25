@@ -228,12 +228,12 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     # Assign defaults and number of summaries limit
     is_privileged = message.author.permissions_in(message.channel).manage_messages
 
-    if num > max_admin_summaries and is_privileged:
+    if num is None or num < 1:
+        num = 1
+    elif num > max_admin_summaries and is_privileged:
         num = max_admin_summaries
     elif num > max_summaries:
         num = max_summaries if not is_privileged else num
-    elif num < 1 or num is None:
-        num = 1
 
     if not channel:
         channel = message.channel
