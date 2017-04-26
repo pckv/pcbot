@@ -16,7 +16,7 @@ client = plugins.client  # type: discord.Client
 
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(partial(deque, maxlen=10000))
-logs_from_limit = 50
+logs_from_limit = 5000
 max_summaries = 5
 max_admin_summaries = 15
 update_task = asyncio.Event()
