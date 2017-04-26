@@ -26,6 +26,7 @@ update_task.set()
 valid_num = re.compile(r"\*(?P<num>\d+)")
 valid_member = utils.member_mention_regex
 valid_member_silent = re.compile(r"@\((?P<name>.+)\)")
+valid_role = re.compile(r"<@&(?P<id>\d+)>")
 valid_channel = utils.channel_mention_regex
 valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot")
 
@@ -66,16 +67,6 @@ async def on_message(message: discord.Message):
     """ Whenever a message is sent, see if we can update in one of the channels. """
     if message.channel.id in stored_messages and message.content:
         stored_messages[message.channel.id].append(message)
-
-
-def is_valid_option(arg: str):
-    if valid_num.match(arg) or valid_member.match(arg) or valid_member_silent.match(arg) or valid_channel.match(arg):
-        return True
-
-    if arg.lower() in valid_options:
-        return True
-
-    return False
 
 
 def indexes_of_word(words: list, word: str):
@@ -182,7 +173,18 @@ def filter_messages(message_content: list, phrase: str, regex: bool=False, case:
             yield content
 
 
-@plugins.command(usage="[*<num>] [@<user> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [phrase ...]",
+def is_valid_option(arg: str):
+    if valid_num.match(arg) or valid_member.match(arg) or valid_member_silent.match(arg) \
+            or valid_channel.match(arg) or valid_role.match(arg):
+        return True
+
+    if arg.lower() in valid_options:
+        return True
+
+    return False
+
+
+@plugins.command(usage="[*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [phrase ...]",
                  pos_check=is_valid_option, aliases="markov")
 async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
     """ Run a markov chain through the past 5000 messages + up to another 5000
@@ -202,12 +204,18 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
 
         member_match = valid_member.match(value)
         if member_match:
-            member.append(utils.find_member(message.server, member_match.group()))
+            member.append(message.server.get_member(member_match.group("id")))
             continue
 
         member_match = valid_member_silent.match(value)
         if member_match:
             member.append(utils.find_member(message.server, member_match.group("name")))
+            continue
+
+        role_match = valid_role.match(value)
+        if role_match:
+            role = discord.utils.get(message.server.roles, id=role_match.group("id"))
+            member.extend(m for m in message.server.members if role in m.roles)
             continue
 
         channel_match = valid_channel.match(value)
