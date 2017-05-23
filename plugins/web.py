@@ -44,17 +44,17 @@ async def define(message: discord.Message, term: Annotate.LowerCleanContent):
     await client.say(message, msg)
 
 
-async def get_exchange_rate(base: str, symbol: str):
+async def get_exchange_rate(base: str, currency: str):
     """ Returns the exchange rate between two currencies. """
-    # Return the cached result unless the last reset was 3 days ago or more
-    if (base, symbol) in exchange_rate_cache:
-        if (datetime.now() - exchange_rate_cache["reset"]).days >= 3:
+    # Return the cached result unless the last reset was yesterday or longer
+    if (base, currency) in exchange_rate_cache:
+        if (datetime.now() - exchange_rate_cache["reset"]).days >= 1:
             exchange_rate_cache.clear()
             exchange_rate_cache["reset"] = datetime.now()
         else:
-            return exchange_rate_cache[(base, symbol)]
+            return exchange_rate_cache[(base, currency)]
 
-    data = await utils.download_json("https://api.fixer.io/latest", base=base, symbols=symbol)
+    data = await utils.download_json("https://api.fixer.io/latest", base=base, symbols=currency)
 
     # Raise an error when the base is invalid
     if "error" in data and data["error"].lower() == "invalid base":
@@ -62,13 +62,13 @@ async def get_exchange_rate(base: str, symbol: str):
 
     # The API will not return errors on invalid symbols, so we check this manually
     if not data["rates"]:
-        raise ValueError("{} is not a valid currency".format(symbol))
+        raise ValueError("{} is not a valid currency".format(currency))
 
-    rate = data["rates"][symbol]
+    rate = data["rates"][currency]
 
     # Add both the exchange rate of the given order and the inverse to the cache
-    exchange_rate_cache[(base, symbol)] = rate
-    exchange_rate_cache[(symbol, base)] = 1 / rate
+    exchange_rate_cache[(base, currency)] = rate
+    exchange_rate_cache[(currency, base)] = 1 / rate
 
     return rate
 

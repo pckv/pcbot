@@ -580,7 +580,7 @@ async def on_ready():
     if osu_config.data["key"] == "change to your api key":
         logging.warning("osu! functionality is unavailable until an API key is provided (config/osu.json)")
 
-    while not client.is_closed:
+    while not client.loop.is_closed():
         try:
             await asyncio.sleep(update_interval, loop=client.loop)
             started = datetime.now()
