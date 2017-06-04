@@ -492,7 +492,7 @@ def format_map_status(member: discord.Member, status_format: str, beatmapset: di
         status += format_beatmapset_diffs(beatmapset)
 
     embed = discord.Embed(color=member.color, description=status)
-    embed.set_thumbnail(url="https://b.ppy.sh/thumb/{}.jpg?date={}".format(set_id, datetime.now().ctime()))
+    embed.set_thumbnail(url="https://b.ppy.sh/thumb/{}.jpg?date={}".format(set_id, datetime.now().ctime().replace(" ", "%20")))
     return embed
 
 
