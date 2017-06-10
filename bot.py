@@ -48,6 +48,7 @@ class Client(discord.Client):
                 log_message(args[0], prefix="... ")
 
     def dispatch(self, event, *args, **kwargs):
+        """ Override event dispatch to handle plugin events. """
         # Exclude some messages
         is_bot, is_self = False, False
         if event == "message":
@@ -423,8 +424,12 @@ async def on_message(message: discord.Message):
     if not parsed_command:
         return
 
+    # Log the command executed and execute said command
     log_message(message)
-    client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))  # Run command
+    client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))
+
+    # Manually dispatch an event for when commands are requested
+    client.dispatch("command_requested", message, parsed_command, *args, **kwargs)
 
     # Log time spent parsing the command
     stop_time = datetime.now()
