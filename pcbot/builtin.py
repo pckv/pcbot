@@ -112,7 +112,7 @@ async def game(message: discord.Message, name: Annotate.Content=None):
 @utils.owner
 async def stream(message: discord.Message, url: str, title: Annotate.Content):
     """ Start streaming a game. """
-    await client.change_status(game=discord.Game(name=title, url=url, type=1))
+    await client.change_presence(game=discord.Game(name=title, url=url, type=1))
     await client.say(message, "Started streaming **{}**.".format(title))
 
 

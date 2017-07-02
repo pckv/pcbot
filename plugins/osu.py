@@ -57,6 +57,7 @@ osu_config = Config("osu", pretty=True, data=dict(
     score_request_limit=100,  # The maximum number of scores to request, between 0-100
     minimum_pp_required=0,  # The minimum pp required to assign a gamemode/profile in general
     use_mentions_in_scores=True,  # Whether the bot will mention people when they set a *score*
+    update_interval=30,  # The sleep time in seconds between updates
     profiles={},  # Profile setup as member_id: osu_id
     mode={},  # Member's game mode as member_id: gamemode_value
     server={},  # Server specific info for score- and map notification channels
@@ -65,7 +66,7 @@ osu_config = Config("osu", pretty=True, data=dict(
 ))
 
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
-update_interval = 30  # The pause time in seconds between updates
+update_interval = osu_config.data.get("update_interval", 30)
 time_elapsed = 0  # The registered time it takes to process all information between updates (changes each update)
 logging_interval = 30  # The time it takes before posting logging information to the console. TODO: setup logging
 rank_regex = re.compile(r"#\d+")
@@ -711,7 +712,7 @@ async def unlink(message: discord.Message, member: discord.Member=Annotate.Self)
     await client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
-@osu.command(aliases="mode m", error="Valid gamemodes: `{}`".format(gamemodes), doc_args=dict(modes=gamemodes))
+@osu.command(aliases="mode m track", error="Valid gamemodes: `{}`".format(gamemodes), doc_args=dict(modes=gamemodes))
 async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
     """ Sets the command executor's gamemode.
 
@@ -733,7 +734,7 @@ async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
     await client.say(message, "Set your gamemode to **{}**.".format(mode.name))
 
 
-@osu.command(aliases="")
+@osu.command()
 async def info(message: discord.Message, member: discord.Member=Annotate.Self):
     """ Display configuration info. """
     # Make sure the member is assigned
