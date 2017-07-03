@@ -269,10 +269,8 @@ async def download_file(url: str, bytesio=False, headers=None, **params):
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :returns: The byte-like file. """
-    async with aiohttp.ClientSession(loop=client.loop) as session:
-        async with session.get(url, params=params, headers=headers or {}) as response:
-            file_bytes = await response.read()
-            return BytesIO(file_bytes) if bytesio else file_bytes
+    file_bytes = await retrieve_page(url, call="read", headers=headers, **params)
+    return BytesIO(file_bytes) if bytesio else file_bytes
 
 
 async def download_json(url: str, headers=None, **params):
@@ -282,12 +280,10 @@ async def download_json(url: str, headers=None, **params):
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :returns: A JSON representation of the downloaded file. """
-    async with aiohttp.ClientSession(loop=client.loop) as session:
-        async with session.get(url, params=params, headers=headers or {}) as response:
-            try:
-                return await response.json()
-            except ValueError:
-                return None
+    try:
+        return await retrieve_page(url, call="json", headers=headers, **params)
+    except ValueError:
+        return None
 
 
 def convert_image_object(image, format: str="PNG", **params):
