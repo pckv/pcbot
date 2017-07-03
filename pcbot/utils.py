@@ -16,6 +16,12 @@ from asyncio import subprocess as sub
 
 from pcbot import Config, config
 
+try:
+    import bs4
+except:
+    pass
+
+
 owner_cfg = Config("owner")
 member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_regex = re.compile(r"<#(?P<id>\d+)>")
@@ -214,51 +220,70 @@ async def subprocess(*args, carriage_return=False):
     return result
 
 
-async def retrieve_page(url: str, head=False, **params):
+async def retrieve_page(url: str, head=False, call=None, headers=None, **params):
     """ Download and return a website with aiohttp.
 
     :param url: Download url as str.
     :param head: Whether or not to head the function.
+    :param call: Any attribute coroutine to call before returning. Eg: "text" would return await response.text()
+    :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :returns: The byte-like file. """
+    :returns: The byte-like file OR whatever return value of the attribute set in call. """
     async with aiohttp.ClientSession(loop=client.loop) as session:
         coro = session.head if head else session.get
 
-        async with coro(url, params=params) as response:
-            return response
+        async with coro(url, params=params, headers=headers or {}) as response:
+            if call is not None:
+                attr = getattr(response, call)
+                return await attr()
+            else:
+                return response
 
 
-async def retrieve_headers(url: str, **params):
+async def retrieve_headers(url: str, headers=None, **params):
     """ Retrieve the headers from a URL.
 
     :param url: URL as str.
+    :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :returns: Headers as a dict. """
-    head = await retrieve_page(url, head=True, **params)
+    head = await retrieve_page(url, head=True, headers=headers, **params)
     return head.headers
 
 
-async def download_file(url: str, bytesio=False, **params):
+async def retrieve_html(url: str, headers=None, **params):
+    """ Retrieve the html from a URL.
+
+    :param url: URL as str.
+    :param headers: A dict of any additional headers.
+    :param params: Any additional url parameters.
+    :returns: HTML as str. """
+    return await retrieve_page(url, call="text", headers=headers, **params)
+
+
+async def download_file(url: str, bytesio=False, headers=None, **params):
     """ Download and return a byte-like object of a file.
 
     :param url: Download url as str.
     :param bytesio: Convert this object to BytesIO before returning.
+    :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :returns: The byte-like file. """
     async with aiohttp.ClientSession(loop=client.loop) as session:
-        async with session.get(url, params=params) as response:
+        async with session.get(url, params=params, headers=headers or {}) as response:
             file_bytes = await response.read()
             return BytesIO(file_bytes) if bytesio else file_bytes
 
 
-async def download_json(url: str, **params):
+async def download_json(url: str, headers=None, **params):
     """ Download and return a json file.
 
     :param url: Download url as str.
+    :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :returns: A JSON representation of the downloaded file. """
     async with aiohttp.ClientSession(loop=client.loop) as session:
-        async with session.get(url, params=params) as response:
+        async with session.get(url, params=params, headers=headers or {}) as response:
             try:
                 return await response.json()
             except ValueError:
