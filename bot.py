@@ -7,6 +7,7 @@ that would be executed.
 import logging
 import inspect
 import os
+import random
 import sys
 import traceback
 from datetime import datetime
@@ -412,6 +413,11 @@ async def on_message(message: discord.Message):
     command = plugins.get_command(cmd)
     if not command:
         return
+
+    # Throttle for 12th June 2017 "Day of Action" event: https://www.battleforthenet.com/july12/
+    if (start_time.year, start_time.month, start_time.day) == (2017, 7, 12):
+        await client.send_typing(message.channel)
+        await asyncio.sleep(random.randint(2, 11))
 
     # Parse the command with the user's arguments
     try:
