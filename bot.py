@@ -390,7 +390,7 @@ async def on_message(message: discord.Message):
     The bot will handle all commands in plugins and send on_message to plugins using it. """
     # Make sure the client is ready before processing commands
     await client.wait_until_ready()
-    start_time = datetime.now()
+    start_time = datetime.utcnow()
 
     # We don't care about channels we can't write in as the bot usually sends feedback
     if message.server and message.server.owner and not message.server.me.permissions_in(message.channel).send_messages:
@@ -438,7 +438,7 @@ async def on_message(message: discord.Message):
     client.dispatch("command_requested", message, parsed_command, *args, **kwargs)
 
     # Log time spent parsing the command
-    stop_time = datetime.now()
+    stop_time = datetime.utcnow()
     time_elapsed = (stop_time - start_time).total_seconds() / 1000
     logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
 
