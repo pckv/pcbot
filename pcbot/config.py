@@ -5,6 +5,7 @@ setting the bot's version and a class for creating configs.
 """
 
 import json
+import logging
 from os.path import exists
 from os import mkdir
 
@@ -76,10 +77,7 @@ class Config:
 
         :return: config parsed from json or None"""
         if exists(self.filepath):
-            with open(self.filepath, "r") as f:
-                try:
-                    return json.load(f)
-                except ValueError:
-                    pass
+            with open(self.filepath) as f:
+                return json.load(f)
 
         return None
