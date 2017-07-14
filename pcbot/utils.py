@@ -4,6 +4,7 @@ This module holds the owner data along with a handful of
 command specific functions and helpers.
 """
 
+import logging
 import re
 import shlex
 from enum import Enum
@@ -280,10 +281,14 @@ async def download_json(url: str, headers=None, **params):
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :returns: A JSON representation of the downloaded file. """
-    try:
-        return await retrieve_page(url, call="json", headers=headers, **params)
-    except ValueError:
-        return None
+    async with aiohttp.ClientSession(loop=client.loop) as session:
+        async with session.get(url, params=params, headers=headers or {}) as response:
+            try:
+                return await response.json()
+            except Exception as e:
+                text = await response.text()
+                logging.warning(format_exception(e) + "\nResponse content:\n" + text)
+                return None
 
 
 def convert_image_object(image, format: str="PNG", **params):
