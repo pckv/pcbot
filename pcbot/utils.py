@@ -281,14 +281,11 @@ async def download_json(url: str, headers=None, **params):
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :returns: A JSON representation of the downloaded file. """
-    async with aiohttp.ClientSession(loop=client.loop) as session:
-        async with session.get(url, params=params, headers=headers or {}) as response:
-            try:
-                return await response.json()
-            except Exception as e:
-                text = await response.text()
-                logging.warning(format_exception(e) + "\nResponse content:\n" + text)
-                return None
+    try:
+        return await retrieve_page(url, call="json", headers=headers, **params)
+    except ValueError as e:
+        logging.warning(format_exception(e))
+        return None
 
 
 def convert_image_object(image, format: str="PNG", **params):
