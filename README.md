@@ -1,5 +1,8 @@
 # PCBOT
-WIP discord bot using [discord.py]. 
+
+[![Documentation Status](https://readthedocs.org/projects/pcbot/badge/?version=latest)](http://pcbot.readthedocs.io/en/latest/?badge=latest)
+
+WIP discord bot using [discord.py].
 
 **PCBOT is only supported by python version 3.5.0 and newer.**
 
