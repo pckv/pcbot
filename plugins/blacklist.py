@@ -151,7 +151,7 @@ async def on_message(message: discord.Message):
     # Check for matching patterns
     if channel_config.match_patterns:
         for pattern in channel_config.match_patterns:
-            content = message.clean_content if channel_config.case_sensitive else message.clean_content.lower()
+            content = message.content if channel_config.case_sensitive else message.content.lower()
             invalid = False
 
             # Look for whole words if the words field is set to True
