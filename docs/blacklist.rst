@@ -189,9 +189,9 @@ Valid substitutions are:
 
 .. py:data:: override
 
-**default**: ``false``
-
 `bool` |-| when true, :data:`match_patterns` and :data:`regex_patterns` will be specific to their channel or server.
+
+**default**: ``false``
 
 .. code-block:: json
 
