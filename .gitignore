@@ -6,6 +6,9 @@
 # Python specific
 __pycache__
 
+# Docs
+docs/_build
+
 # PCBOT specific
 config
 plugins/osulib/oppai
