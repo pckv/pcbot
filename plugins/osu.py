@@ -284,13 +284,16 @@ async def update_user_data():
             user_data = await api.get_user(u=profile, type="id", m=mode)
         except ServerDisconnectedError:
             continue
+        except asyncio.TimeoutError:
+            logging.warning("Timed out when retrieving osu! info from {} ({})".format(member, profile))
+            continue
 
         # Sleep after using get_user as to not put too much strain on the API at once
         await asyncio.sleep(.2)
 
         # Just in case something goes wrong, we skip this member (these things are usually one-time occurrences)
         if user_data is None:
-            logging.info("Could not retrieve osu! info from {}".format(profile))
+            logging.info("Could not retrieve osu! info from {} ({})".format(member, profile))
             continue
 
         # User is already tracked
