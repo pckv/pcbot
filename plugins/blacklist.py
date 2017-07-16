@@ -1,6 +1,6 @@
 """ Plugin for blacklisting words. 
 
-    See config/blacklist.json for customization.
+    Docs: http://pcbot.readthedocs.io/en/latest/blacklist.html
 """
 
 
@@ -18,9 +18,18 @@ client = plugins.client  # type: discord.Client
 
 blacklist = Config("blacklist", data={"enabled": False, "global": {}, "server": [], "channel": []}, pretty=True)
 
-# Field names only needed for parsing: id, override
-blacklist_config_fieldnames = "match_patterns regex_patterns case_sensitive response bots exclude words".split(" ")
-
+blacklist_config_fieldnames = [
+    "match",
+    "patterns",
+    "regex_patterns",
+    "case_sensitive",
+    "response",
+    "bots",
+    "exclude",
+    "words",
+    "id",
+    "override"
+]
 BlacklistConfig = namedtuple("BlacklistConfig", " ".join(blacklist_config_fieldnames))
 blacklist_cache = {}
 
@@ -31,12 +40,6 @@ def make_config_object(data: dict):
     :param data: dict with blacklist config data.
     :return: BlacklistConfig
     """
-    # If there are invalid keys, remove these with a warning
-    for key in data:
-        if key not in blacklist_config_fieldnames:
-            logging.warning("Invalid key name in blacklist.json: " + key)
-            del data[key]
-
     # When a key in not found, default to None
     for key in blacklist_config_fieldnames:
         if key not in data:
@@ -71,11 +74,14 @@ def update_data(data: dict, section: str, object_id: str=None):
         override = server_data.get("override", False)
         case_sensitive = server_data.get("case_sensitive", False)
 
-        for key in blacklist_config_fieldnames:
-            if key not in server_data:
+        for key, local_data in server_data.items():
+            # Remove invalid keys with a warning (unless they're one of the special field names)
+            if key not in blacklist_config_fieldnames:
+                logging.warning("Invalid key name in blacklist.json: " + key)
                 continue
 
-            local_data = server_data[key]
+            # Always reset override after each cycle
+            local_override = override
 
             # Manually parse match patterns and regex match patterns
             if key == "match_patterns":
@@ -85,9 +91,9 @@ def update_data(data: dict, section: str, object_id: str=None):
                 local_data = [re.compile(s, flags=0 if case_sensitive else re.IGNORECASE) for s in local_data]
             else:
                 # The override keyword is only used for determining patterns
-                override = True
+                local_override = True
 
-            if override or key not in data:
+            if local_override or key not in data:
                 data[key] = local_data
             else:
                 data[key].extend(local_data)

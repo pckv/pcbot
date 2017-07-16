@@ -18,7 +18,13 @@ dictionary of keys and values. All valid keys and their functions are documented
 
 Modifying the configuration by hand can however be tedious, and writing invalid json is likely. When the json
 fails to decode, the blacklist plugin will crash intentionally, leaving an error message in the log. Check
-the message at the bottom of the traceback for debugging.
+the message at the bottom of the traceback for debugging. Additionally, invalid dataset keys are also logged
+to the console as a warning, and are ignored by the compiler.
+
+.. warning::
+
+    The plugin compiles json for a specific channel at runtime *when* a message is sent to that channel. Invalid
+    keywords will therefore **not** be logged when the plugin is loaded.
 
 Categories
 ~~~~~~~~~~
@@ -112,8 +118,9 @@ Read the `Python documentation`_ for supported syntax.
 
     {
         "regex_patterns": [
-            "Kappa \\d+",
-            "(ha){4,}"
+            "kappa \\d+",
+            "(ha){4,}",
+            "https?://that-annoying-social-media-website\\.tv"
         ]
     }
 
@@ -184,7 +191,7 @@ Valid substitutions are:
 
 .. note::
 
-    As with any other keyword, you can disable response in specific servers or channels by overriding the response
+    As with any other keyword, you can disable responses in specific servers or channels by overriding the response
     keyword with ``"response": null`` or ``"response": ""``. This is demonstrated in the example above.
 
 .. py:data:: override
@@ -214,7 +221,7 @@ Valid substitutions are:
     }
 
 The configuration above would **only** blacklist the word ``raspberry`` in the given channel, whereas any other
-channel blacklists the word ``strawberry`` only.
+channel blacklists the word ``strawberry``.
 
 .. note::
 
@@ -225,6 +232,27 @@ channel blacklists the word ``strawberry`` only.
 `bool` |-| determines whether given :data:`match_patterns` and :data:`regex_patterns` should be case sensitive.
 
 **default**: ``false``
+
+Case sensitivity is applied to every word in both :data:`match_patterns` and :data:`regex_patterns`. However,
+pattern specific case sensitivity can be controlled by using regex only for your patterns, and including
+the syntax for regex' IGNORECASE, ``(?i)``:
+
+.. code-block:: json
+
+    {
+        "case_sensitive": true,
+        "regex_patterns": [
+            "Raspberry Pi",
+            "bad word(?i)",
+            "[A-Z][a-z]+"
+        ]
+    }
+
+The example above displays three cases:
+
+* A case sensitive search that only matches when someone types ``Rasperry Pi`` by the letter
+* A case insensitive search that would match both ``bad word``, ``BaD WorD`` and any other combination
+* A pattern that matches any capitalized word
 
 .. py:data:: bots
 
