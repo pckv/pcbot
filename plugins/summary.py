@@ -69,6 +69,16 @@ async def on_message(message: discord.Message):
         stored_messages[message.channel.id].append(message)
 
 
+async def on_reload(name: str):
+    """ Preserve the summary message cache when reloading. """
+    global stored_messages
+    local_messages = stored_messages
+
+    await plugins.reload(name)
+
+    stored_messages = local_messages
+
+
 def indexes_of_word(words: list, word: str):
     """ Return a list of indexes with the given word. """
     return [i for i, s in enumerate(words) if s.lower() == word]

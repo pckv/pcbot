@@ -194,7 +194,7 @@ async def reload(message: discord.Message, *names: str.lower):
 
             # The plugin entered is valid so we reload it
             await plugins.save_plugin(name)
-            plugins.reload_plugin(name)
+            await plugins.call_reload(name)
             reloaded.append(name)
 
         if reloaded:
@@ -205,7 +205,7 @@ async def reload(message: discord.Message, *names: str.lower):
         await plugins.save_plugins()
 
         for plugin_name in plugins.all_keys():
-            plugins.reload_plugin(plugin_name)
+            await plugins.call_reload(plugin_name)
 
         await client.say(message, "All plugins reloaded.")
 

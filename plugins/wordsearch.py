@@ -163,3 +163,14 @@ async def auto(message: discord.Message, count: int=1):
     or enter up to 5 with `count`."""
     word = await auto_word(count)
     client.loop.create_task(start_wordsearch(message.channel, message.author, word))
+
+
+async def on_reload(name: str):
+    """ Keep the wordsearch games and auto words cache when reloading. """
+    global wordsearch, wordsearch_words
+    local_wordsearch, local_words = wordsearch, wordsearch_words
+
+    await plugins.reload(name)
+
+    wordsearch = local_wordsearch
+    wordsearch_words = wordsearch_words

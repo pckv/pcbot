@@ -76,6 +76,8 @@ async def get_exchange_rate(base: str, currency: str):
 @plugins.command(aliases="ge currency cur")
 async def convert(message: discord.Message, value: float, currency_from: str.upper, currency_to: str.upper):
     """ Converts currency. """
+    print(exchange_rate_cache)
+
     try:
         rate = await get_exchange_rate(currency_from, currency_to)
     except ValueError as e:
@@ -84,3 +86,13 @@ async def convert(message: discord.Message, value: float, currency_from: str.upp
         flag = utils.text_to_emoji(currency_to[:2])
         e = discord.Embed(description="{} {:,.2f} {}".format(flag, value * rate, currency_to), color=message.author.color)
         await client.send_message(message.channel, embed=e)
+
+
+async def on_reload(name):
+    """ Don't drop the cache. """
+    global exchange_rate_cache
+    local_cache = exchange_rate_cache
+
+    await plugins.reload(name)
+
+    exchange_rate_cache = local_cache

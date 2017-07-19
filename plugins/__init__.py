@@ -413,8 +413,15 @@ def load_plugin(name: str, package: str="plugins"):
     return False
 
 
-def reload_plugin(name: str):
-    """ Reload a plugin. """
+async def on_reload(name: str):
+    """ The default on_reload function. """
+    await reload(name)
+
+
+async def reload(name: str):
+    """ Reload a plugin.
+
+    This must be called from an on_reload function or coroutine. """
     if name in plugins:
         # Remove all registered commands
         if hasattr(plugins[name], "__commands"):
@@ -428,14 +435,19 @@ def reload_plugin(name: str):
 
         plugins[name] = importlib.reload(plugins[name])
 
-        # See if the plugin has an on_reload() function, and call that
-        if hasattr(plugins[name], "on_reload"):
-            if callable(plugins[name].on_reload):
-                result = plugins[name].on_reload()
-                if inspect.isawaitable(result):
-                    client.loop.create_task(result)
-
         logging.debug("Reloaded plugin {}".format(name))
+
+
+async def call_reload(name: str):
+    """ Initiates reload of plugin. """
+    # See if the plugin has an on_reload() function, and call that
+    if hasattr(plugins[name], "on_reload"):
+        if callable(plugins[name].on_reload):
+            result = plugins[name].on_reload(name)
+            if inspect.isawaitable(result):
+                await result
+    else:
+        await on_reload(name)
 
 
 def unload_plugin(name: str):

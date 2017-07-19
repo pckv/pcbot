@@ -614,6 +614,16 @@ async def on_ready():
             time_elapsed = (datetime.now() - started).total_seconds()
 
 
+async def on_reload(name: str):
+    """ Preserve the tracking cache. """
+    global osu_tracking
+    local_tracking = osu_tracking
+
+    await plugins.reload(name)
+
+    osu_tracking = local_tracking
+
+
 @plugins.command(aliases="circlesimulator eba")
 async def osu(message: discord.Message, member: discord.Member=Annotate.Self,
               mode: api.GameMode.get_mode=None):

@@ -314,3 +314,13 @@ async def hotpotato(message: discord.Message, participants: int=4):
 async def typing(message: discord.Message, participants: int=2):
     """ The typing command. Description is defined using a template. """
     await init_game(message, Typing, participants)
+
+
+async def on_reload(name: str):
+    """ Keep the list of current games when reloading. """
+    global started
+    local_started = started
+
+    await plugins.reload(name)
+
+    started = local_started

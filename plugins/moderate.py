@@ -42,7 +42,7 @@ def setup_default_config(server: discord.Server):
         moderate.save()
 
 
-@plugins.command(name="moderate")
+@plugins.command(name="moderate", permissions="manage_messages")
 async def moderate_(message, _: utils.placeholder):
     """ Change moderation settings. """
     pass
@@ -60,9 +60,8 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
 
     default_config[name] = default
 
-    @moderate_.command(name=name,
-                       description="Display current {} setting or enable/disable it.".format(setting),
-                       usage="[on | off]")
+    @moderate_.command(name=name, usage="[on | off]", permissions=permissions,
+                       description="Display current {} setting or enable/disable it.".format(setting))
     async def display_setting(message: discord.Message):
         """ The command to display the current setting. """
         setup_default_config(message.server)
