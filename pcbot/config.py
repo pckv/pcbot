@@ -5,7 +5,6 @@ setting the bot's version and a class for creating configs.
 """
 
 import json
-import logging
 from os.path import exists
 from os import mkdir
 

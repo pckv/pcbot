@@ -25,7 +25,7 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
     """ Roll a number from 1-100 if no second argument or second argument is not a number.
         Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, num)
-    await client.say(message, "{0.mention} rolls `{1}`.".format(message.author, rolled))
+    await client.say(message, "**{0.display_name}** rolls `{1}`.".format(message.author, rolled))
 
 
 @plugins.command()

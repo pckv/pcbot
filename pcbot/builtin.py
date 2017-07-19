@@ -45,13 +45,14 @@ async def help_(message: discord.Message, command: str.lower=None, *args):
         commands = []
 
         for plugin in plugins.all_values():
-            if getattr(plugin, "__commands", False):  # Massive pile of shit that works (so sorry)
-                commands.extend(
-                    cmd.name_prefix.split()[0] for cmd in plugin.__commands
-                    if not cmd.hidden and
-                    (not getattr(getattr(cmd, "function"), "owner", False) or
-                     utils.is_owner(message.author))
-                )
+            # Only go through plugins with actual commands
+            if not getattr(plugin, "__commands", False):
+                continue
+
+            # Add all commands that the user can use
+            for cmd in plugin.__commands:
+                if not cmd.hidden and plugins.can_use_command(cmd, message):
+                    commands.append(cmd.name_prefix.split()[0])
 
         commands = ", ".join(sorted(commands))
 
@@ -67,7 +68,7 @@ async def setowner(message: discord.Message):
     if not message.channel.is_private:
         return
 
-    assert not utils.owner_cfg.data, "An owner is already set."
+    assert not plugins.owner_cfg.data, "An owner is already set."
 
     owner_code = str(random.randint(100, 999))
     logging.critical("Owner code for assignment: {}".format(owner_code))
@@ -80,8 +81,8 @@ async def setowner(message: discord.Message):
 
     if user_code:
         await client.say(message, "You have been assigned bot owner.")
-        utils.owner_cfg.data = message.author.id
-        utils.owner_cfg.save()
+        plugins.owner_cfg.data = message.author.id
+        plugins.owner_cfg.save()
 
 
 @plugins.command(owner=True)

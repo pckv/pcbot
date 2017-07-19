@@ -140,7 +140,7 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
         await client.say(message, str(e) or command.error or utils.format_help(command))
     except:
         traceback.print_exc()
-        if utils.is_owner(message.author) and config.owner_error:
+        if plugins.is_owner(message.author) and config.owner_error:
             await client.say(message, utils.format_code(traceback.format_exc()))
         else:
             await client.say(message, "An error occurred while executing this command. If the error persists, "
@@ -415,11 +415,7 @@ async def on_message(message: discord.Message):
         return
 
     # Check that the author is allowed to use the command
-    if command.owner and not utils.is_owner(message.author):
-        return
-    if not plugins.has_permissions(command, message):
-        return
-    if not plugins.has_roles(command, message):
+    if not plugins.can_use_command(command, message):
         return
 
     # Parse the command with the user's arguments

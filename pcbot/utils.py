@@ -18,7 +18,6 @@ from asyncio import subprocess as sub
 from pcbot import Config, config
 
 
-owner_cfg = Config("owner")
 member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_regex = re.compile(r"<#(?P<id>\d+)>")
 markdown_code_regex = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
@@ -127,9 +126,15 @@ def format_help(command, no_subcommand: bool=False):
 
     desc = command.description
 
-    # Notify the user when a command is owner specific
-    if getattr(command.function, "owner", False):
+    # Notify the user about command permissions
+    if command.owner:
         desc += "\n:information_source:`Only the bot owner can execute this command.`"
+    if command.permissions:
+        desc += "\n:information_source:`The following permissions are required to execute this command: {}`".format(
+            ", ".join(command.permissions))
+    if command.roles:
+        desc += "\n:information_source:`The following permissions are required to execute this command: {}`".format(
+            ", ".join(command.roles))
 
     # Format aliases
     alias_format = ""
@@ -143,36 +148,6 @@ def format_help(command, no_subcommand: bool=False):
                       alias for alias in command.aliases))
 
     return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
-
-
-def is_owner(user):
-    """ Return true if user/member is the assigned bot owner.
-
-    :param user: discord.User, discord.Member or a str representing the user's ID.
-    :raises: TypeError: user is wrong type. """
-    if isinstance(user, discord.User):
-        user = user.id
-    elif type(user) is not str:
-        raise TypeError("member must be an instance of discord.User or a str representing the user's ID.")
-
-    if user == owner_cfg.data:
-        return True
-
-    return False
-
-
-def owner(func):
-    """ Decorator that runs the command only if the author is the owner.
-
-    NOTE: this function is deprecated. Use the command 'owner' attribute instead."""
-    @wraps(func)
-    async def wrapped(message: discord.Message, *args, **kwargs):
-        if is_owner(message.author):
-            await func(message, *args, **kwargs)
-
-    # Owner commands receive an owner attribute
-    setattr(wrapped, "owner", True)
-    return wrapped
 
 
 def permission(*perms: str):

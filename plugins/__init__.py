@@ -17,12 +17,14 @@ from pcbot import config
 
 plugins = {}
 events = defaultdict(list)
-Command = namedtuple("Command", "name name_prefix aliases owner permissions roles "
+Command = namedtuple("Command", "name name_prefix aliases owner permissions roles servers "
                                 "usage description function parent sub_commands depth hidden error pos_check "
                                 "disabled_pm doc_args")
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
                        Annotate.LowerCleanContent, Annotate.Code)
 argument_format = "{open}{name}{suffix}{close}"
+
+owner_cfg = config.Config("owner")
 CoolDown = namedtuple("CoolDown", "date command specific")
 cooldown_data = defaultdict(list)  # member: []
 
@@ -112,6 +114,10 @@ def command(**options):
         pos_check   : func / bool : An optional check function for positional arguments, eg: pos_check=lambda s: s
                                     When this attribute is a bool and True, force positional arguments.
         doc_args    : dict        : Arguments to send to the docstring under formatting.
+        owner       : bool        : When True, only triggers for the owner.
+        permissions : str / list  : Permissions required for this command as a str separated by whitespace or a list.
+        roles       : str / list  : Roles required for this command as a str separated by whitespace or a list.
+        servers     : str / list  : a str separated by whitespace or a list of valid server ids.
     """
     def decorator(func):
         # Make sure the first parameter in the function is a message object
@@ -135,11 +141,13 @@ def command(**options):
         owner = options.get("owner", False)
         permissions = options.get("permissions")
         roles = options.get("roles")
+        servers = options.get("servers")
 
         # Parse str lists
         aliases = _parse_str_list(aliases, "aliases", name)
         permissions = _parse_str_list(permissions, "permissions", name)
         roles = _parse_str_list(roles, "roles", name)
+        servers = _parse_str_list(servers, "servers", name)
 
         formatted_usage = options.get("usage", _format_usage(func, pos_check))
         if formatted_usage is not None:
@@ -185,7 +193,7 @@ def command(**options):
         cmd = Command(name=name, aliases=aliases, usage=usage, name_prefix=name_prefix, description=description,
                       function=func, parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error,
                       pos_check=pos_check, disabled_pm=disabled_pm, doc_args=doc_args, owner=owner,
-                      permissions=permissions, roles=roles)
+                      permissions=permissions, roles=roles, servers=servers)
 
         # If the command has a parent (is a subcommand)
         if parent:
@@ -285,6 +293,22 @@ def get_sub_command(cmd, *args: str):
     return cmd
 
 
+def is_owner(user: discord.User):
+    """ Return true if user/member is the assigned bot owner.
+
+    :param user: discord.User, discord.Member or a str representing the user's ID.
+    :raises: TypeError: user is wrong type. """
+    if isinstance(user, discord.User):
+        user = user.id
+    elif type(user) is not str:
+        raise TypeError("member must be an instance of discord.User or a str representing the user's ID.")
+
+    if user == owner_cfg.data:
+        return True
+
+    return False
+
+
 def has_permissions(cmd: Command, message: discord.Message):
     """ Return True if the member has permissions to execute the command. """
     if not cmd.permissions:
@@ -307,6 +331,28 @@ def has_roles(cmd: Command, message: discord.Message):
         return True
 
     return False
+
+
+def is_valid_server(cmd: Command, server: discord.Server):
+    """ Return True if the command is allowed in server. """
+    if not cmd.servers or server.id in cmd.servers:
+        return True
+
+    return False
+
+
+def can_use_command(cmd: Command, message: discord.Message):
+    """ Return True if the member who sent the message can use this command. """
+    if cmd.owner and not is_owner(message.author):
+        return False
+    if not has_permissions(cmd, message):
+        return False
+    if not has_roles(cmd, message):
+        return False
+    if not is_valid_server(cmd, message.server):
+        return False
+
+    return True
 
 
 async def execute(cmd, message: discord.Message, *args, **kwargs):
