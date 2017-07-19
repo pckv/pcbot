@@ -132,28 +132,33 @@ async def pokedex_(message: discord.Message, name_or_id: Annotate.LowerCleanCont
         name = id_to_name(pokemon_id)
         assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
 
-    # Get the server's scale factor
-    if not message.channel.is_private \
-            and message.server.id in pokedex_config.data and "scale-factor" in pokedex_config.data[message.server.id]:
-        scale_factor = pokedex_config.data[message.server.id]["scale-factor"]
-    else:
-        scale_factor = default_scale_factor
-
     # Assign our pokemon
     pokemon = pokedex[name]
 
-    # Assign the sprite to use
-    if pokemon["id"] in sprites:
-        sprite = sprites[pokemon["id"]]
-    else:
-        sprite = sprites[0]
+    if message.channel.permissions_for(message.server.me).attach_files:
+        # Get the server's scale factor
+        if not message.channel.is_private \
+                and message.server.id in pokedex_config.data and "scale-factor" in pokedex_config.data[message.server.id]:
+            scale_factor = pokedex_config.data[message.server.id]["scale-factor"]
+        else:
+            scale_factor = default_scale_factor
 
-    # Resize (if PIL is enabled) and upload the sprite
-    if resize and not round(scale_factor, 2) == 1:
-        sprite = resize_sprite(sprite, scale_factor)
-    elif resize:
-        sprite = BytesIO(sprite)
-    await client.send_file(message.channel, sprite, filename="{}.png".format(name))
+        # Assign our pokemon
+        pokemon = pokedex[name]
+
+        # Assign the sprite to use
+        if pokemon["id"] in sprites:
+            sprite = sprites[pokemon["id"]]
+        else:
+            sprite = sprites[0]
+
+        # Resize (if PIL is enabled) and upload the sprite
+        if resize and not round(scale_factor, 2) == 1:
+            sprite = resize_sprite(sprite, scale_factor)
+        elif resize:
+            sprite = BytesIO(sprite)
+
+        await client.send_file(message.channel, sprite, filename="{}.png".format(name))
 
     # Format Pokemon GO specific info
     pokemon_go_info = ""
