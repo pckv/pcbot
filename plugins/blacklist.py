@@ -19,8 +19,7 @@ client = plugins.client  # type: discord.Client
 blacklist = Config("blacklist", data={"enabled": False, "global": {}, "server": [], "channel": []}, pretty=True)
 
 blacklist_config_fieldnames = [
-    "match",
-    "patterns",
+    "match_patterns",
     "regex_patterns",
     "case_sensitive",
     "response",

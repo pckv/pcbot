@@ -112,12 +112,14 @@ def def_section(api_name: str, first_element: bool=False):
     async def template(url=api_url, **params):
         global requests_sent
 
+        # Convert ripple id properly and change the url
         if "u" in params:
             ripple = ripple_regex.match(params["u"])
             if ripple:
                 params["u"] = ripple.group("data")
                 url = ripple_url
 
+        # Add the API key unless we're not sending to the official API
         if url == api_url and "k" not in params:
             params["k"] = api_key
 
@@ -133,10 +135,7 @@ def def_section(api_name: str, first_element: bool=False):
             return json
 
         # If the returned value should be the first element, see if we can cut it
-        if len(json) < 1:
-            return None
-
-        return json[0]
+        return json[0] if len(json) > 0 else None
 
     # Set the correct name of the function and add simple docstring
     template.__name__ = api_name

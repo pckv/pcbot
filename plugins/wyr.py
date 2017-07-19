@@ -84,8 +84,7 @@ async def wouldyourather(message: discord.Message, opt: options=None):
         await client.say(message, "**I would {}**!".format(answer))
 
 
-@wouldyourather.command(aliases="delete")
-@utils.owner
+@wouldyourather.command(aliases="delete", owner=True)
 async def remove(message: discord.Message, opt: options):
     """ Remove a wouldyourather question with the given options. """
     for q in db.data["questions"]:

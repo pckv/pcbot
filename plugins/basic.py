@@ -37,8 +37,7 @@ async def avatar(message: discord.Message, member: discord.Member=Annotate.Self)
     await client.send_message(message.channel, embed=e)
 
 
-@plugins.command(description="Finds messages mentioning you in the last 24 hours.", aliases="mentions")
-@utils.role("Stupid")
+@plugins.command(description="Finds messages mentioning you in the last 24 hours.", aliases="mentions", roles="Stupid")
 async def mentioned(message: discord.Message, member: discord.Member=Annotate.Self):
     """ Looks for member mentions. The description is in the decorator solely to
     correctly specify the type of member, so that PyCharm doesn't get cross.
@@ -162,8 +161,7 @@ async def new(message: discord.Message, plugin: plugin_in_req, content: Annotate
     await client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
 
 
-@feature.command()
-@utils.owner
+@feature.command(owner=True)
 async def mark(message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Toggles marking a feature request as complete.
     See `{pre}plugin` for a list of plugins. """
@@ -183,8 +181,7 @@ async def mark(message: discord.Message, plugin: plugin_in_req, req_id: get_req_
         await client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
-@feature.command()
-@utils.owner
+@feature.command(owner=True)
 async def remove(message: discord.Message, plugin: plugin_in_req, req_id: get_req_id):
     """ Removes a feature request.
     See `{pre}plugin` for a list of plugins. """

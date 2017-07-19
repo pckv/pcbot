@@ -69,16 +69,14 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
         current = moderate.data[message.server.id][name]
         await client.say(message, "{} is **{}**.".format(setting, "enabled" if current else "disabled"))
 
-    @display_setting.command(hidden=True, aliases="true set enable")
-    @utils.permission(*permissions)
+    @display_setting.command(hidden=True, aliases="true set enable", permissions=permissions)
     async def on(message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[message.server.id][name] = True
         moderate.save()
         await client.say(message, "{} **enabled**.".format(setting))
 
-    @display_setting.command(hidden=True, aliases="false unset disable")
-    @utils.permission(*permissions)
+    @display_setting.command(hidden=True, aliases="false unset disable", permissions=permissions)
     async def off(message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[message.server.id][name] = False
@@ -127,8 +125,7 @@ async def manage_mute(message: discord.Message, function, *members: discord.Memb
     return muted_members or None
 
 
-@plugins.command(pos_check=True)
-@utils.permission("manage_messages")
+@plugins.command(pos_check=True, permissions="manage_messages")
 async def mute(message: discord.Message, *members: discord.Member):
     """ Mute the specified members. """
     muted_members = await manage_mute(message, client.add_roles, *members)
@@ -138,8 +135,7 @@ async def mute(message: discord.Message, *members: discord.Member):
         await client.say(message, "Muted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
-@plugins.command(pos_check=True)
-@utils.permission("manage_messages")
+@plugins.command(pos_check=True, permissions="manage_messages")
 async def unmute(message: discord.Message, *members: discord.Member):
     """ Unmute the specified members. """
     muted_members = await manage_mute(message, client.remove_roles, *members)
@@ -149,8 +145,7 @@ async def unmute(message: discord.Message, *members: discord.Member):
         await client.say(message, "Unmuted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
-@plugins.command()
-@utils.permission("manage_messages")
+@plugins.command(permissions="manage_messages")
 async def timeout(message: discord.Message, member: discord.Member, minutes: float, reason: Annotate.Content):
     """ Timeout a user in minutes (will accept decimal numbers), send them
     the reason for being timed out and post the reason in the server's
@@ -179,8 +174,7 @@ async def timeout(message: discord.Message, member: discord.Member, minutes: flo
     await manage_mute(message, client.remove_roles, *muted_members)
 
 
-@plugins.command(aliases="muteall mute* unmuteall unmute*")
-@utils.permission("manage_messages")
+@plugins.command(aliases="muteall mute* unmuteall unmute*", permissions="manage_messages")
 async def suspend(message: discord.Message, channel: discord.Channel=Annotate.Self):
     """ Suspends a channel by removing send permission for the server's default role. 
     This function acts like a toggle. """
@@ -207,8 +201,7 @@ def members_and_channels(message: discord.Message, arg: str):
     return utils.find_member(message.server, arg)
 
 
-@plugins.command()
-@utils.permission("manage_messages")
+@plugins.command(permissions="manage_messages")
 async def purge(message: discord.Message, *instances: members_and_channels, num: utils.int_range(1, 100)):
     """ Purge the given amount of messages from the specified members or all.
     You may also specify a channel to delete from.

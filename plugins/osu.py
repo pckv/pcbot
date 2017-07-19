@@ -77,7 +77,7 @@ minimum_pp_required = osu_config.data.get("minimum_pp_required", 0)
 use_mentions_in_scores = osu_config.data.get("use_mentions_in_scores", True)
 max_diff_length = 32  # The maximum amount of characters in a beatmap difficulty
 
-api.api_key = osu_config.data.get("key")
+api.set_api_key(osu_config.data.get("key"))
 host = "https://osu.ppy.sh/"
 oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
 last_calc_beatmap = dict(beatmap_url="---")  # The last calculated beatmap info
@@ -962,8 +962,7 @@ async def config(message, _: utils.placeholder):
     pass
 
 
-@config.command(alias="score")
-@utils.permission("manage_server")
+@config.command(alias="score", permissions="manage_server")
 async def scores(message: discord.Message, *channels: discord.Channel):
     """ Set which channels to post scores to. """
     init_server_config(message.server)
@@ -973,8 +972,7 @@ async def scores(message: discord.Message, *channels: discord.Channel):
         utils.format_objects(*channels) or "no channels"))
 
 
-@config.command(alias="map")
-@utils.permission("manage_server")
+@config.command(alias="map", permissions="manage_server")
 async def maps(message: discord.Message, *channels: discord.Channel):
     """ Set which channels to post map updates to. """
     init_server_config(message.server)
@@ -984,8 +982,7 @@ async def maps(message: discord.Message, *channels: discord.Channel):
         utils.format_objects(*channels) or "no channels"))
 
 
-@osu.command()
-@utils.owner
+@osu.command(owner=True)
 async def debug(message: discord.Message):
     """ Display some debug info. """
     await client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"

@@ -84,8 +84,7 @@ async def setowner(message: discord.Message):
         utils.owner_cfg.save()
 
 
-@plugins.command()
-@utils.owner
+@plugins.command(owner=True)
 async def stop(message: discord.Message):
     """ Stops the bot. """
     await client.say(message, "\N{COLLISION SYMBOL}\N{PISTOL}")
@@ -93,31 +92,27 @@ async def stop(message: discord.Message):
     await client.logout()
 
 
-@plugins.command()
-@utils.owner
+@plugins.command(owner=True)
 async def update(message: discord.Message):
     """ Update the bot by running `git pull`. """
     await client.say(message, "```diff\n{}```".format(await utils.subprocess("git", "pull")))
 
 
-@plugins.command()
-@utils.owner
+@plugins.command(owner=True)
 async def game(message: discord.Message, name: Annotate.Content=None):
     """ Stop playing or set game to `name`. """
     await client.change_presence(game=discord.Game(name=name, type=0))
     await client.say(message, "**Set the game to** `{}`.".format(name) if name else "**No longer playing.**")
 
 
-@game.command()
-@utils.owner
+@game.command(owner=True)
 async def stream(message: discord.Message, url: str, title: Annotate.Content):
     """ Start streaming a game. """
     await client.change_presence(game=discord.Game(name=title, url=url, type=1))
     await client.say(message, "Started streaming **{}**.".format(title))
 
 
-@plugins.command(name="as")
-@utils.owner
+@plugins.command(name="as", owner=True)
 async def do_as(message: discord.Message, member: discord.Member, command: Annotate.Content):
     """ Execute a command as the specified member. """
     message.author = member
@@ -135,8 +130,7 @@ async def send_result(channel: discord.Channel, result, time_elapsed: timedelta)
         await client.send_message(channel, embed=embed)
 
 
-@plugins.command()
-@utils.owner
+@plugins.command(owner=True)
 async def do(message: discord.Message, python_code: Annotate.Code):
     """ Execute python code. """
     code_globals.update(dict(message=message, client=client,
@@ -160,8 +154,7 @@ async def do(message: discord.Message, python_code: Annotate.Code):
             await send_result(message.channel, result, datetime.now() - before)
 
 
-@plugins.command(name="eval")
-@utils.owner
+@plugins.command(name="eval", owner=True)
 async def eval_(message: discord.Message, python_code: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one
     line that returns something. Coroutine generators will by awaited. """
@@ -188,8 +181,7 @@ async def plugin_(message: discord.Message):
     await client.say(message, "**Plugins:** ```{}```".format(", ".join(plugins.all_keys())))
 
 
-@plugin_.command(aliases="r", pos_check=False)
-@utils.owner
+@plugin_.command(aliases="r", pos_check=False, owner=True)
 async def reload(message: discord.Message, *names: str.lower):
     """ Reloads all plugins or the specified plugin. """
     if names:
@@ -217,8 +209,7 @@ async def reload(message: discord.Message, *names: str.lower):
         await client.say(message, "All plugins reloaded.")
 
 
-@plugin_.command(error="You need to specify the name of the plugin to load.")
-@utils.owner
+@plugin_.command(owner=True, error="You need to specify the name of the plugin to load.")
 async def load(message: discord.Message, name: str.lower):
     """ Loads a plugin. """
     assert not plugins.get_plugin(name), "Plugin `{}` is already loaded.".format(name)
@@ -230,8 +221,7 @@ async def load(message: discord.Message, name: str.lower):
     await client.say(message, "Plugin `{}` loaded.".format(name))
 
 
-@plugin_.command(error="You need to specify the name of the plugin to unload.")
-@utils.owner
+@plugin_.command(owner=True, error="You need to specify the name of the plugin to unload.")
 async def unload(message: discord.Message, name: str.lower):
     """ Unloads a plugin. """
     assert plugins.get_plugin(name), "`{}` is not a loaded plugin.".format(name)
@@ -253,8 +243,7 @@ async def lambda_(message: discord.Message):
                      "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
 
 
-@lambda_.command(aliases="a")
-@utils.owner
+@lambda_.command(aliases="a", owner=True)
 async def add(message: discord.Message, trigger: str, python_code: Annotate.Code):
     """ Add a command that runs the specified python code. """
     lambdas.data[trigger] = python_code
@@ -262,8 +251,7 @@ async def add(message: discord.Message, trigger: str, python_code: Annotate.Code
     await client.say(message, "Command `{}` set.".format(trigger))
 
 
-@lambda_.command(aliases="r")
-@utils.owner
+@lambda_.command(aliases="r", owner=True)
 async def remove(message: discord.Message, trigger: str):
     """ Remove a command. """
     assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
@@ -274,8 +262,7 @@ async def remove(message: discord.Message, trigger: str):
     await client.say(message, "Command `{}` removed.".format(trigger))
 
 
-@lambda_.command()
-@utils.owner
+@lambda_.command(owner=True)
 async def enable(message: discord.Message, trigger: str):
     """ Enable a command. """
     # If the specified trigger is in the blacklist, we remove it
@@ -290,8 +277,7 @@ async def enable(message: discord.Message, trigger: str):
         await client.say(message, "Command `{}` is already enabled.".format(trigger))
 
 
-@lambda_.command()
-@utils.owner
+@lambda_.command(owner=True)
 async def disable(message: discord.Message, trigger: str):
     """ Disable a command. """
     # If the specified trigger is not in the blacklist, we add it
@@ -335,8 +321,7 @@ def import_module(module: str, attr: str=None):
     return name
 
 
-@lambda_.command(name="import")
-@utils.owner
+@lambda_.command(name="import", owner=True)
 async def import_(message: discord.Message, module: str, attr: str=None):
     """ Import the specified module. Specifying `attr` will act like `from attr import module`.
 

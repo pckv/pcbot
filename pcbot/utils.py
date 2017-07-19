@@ -17,11 +17,6 @@ from asyncio import subprocess as sub
 
 from pcbot import Config, config
 
-try:
-    import bs4
-except:
-    pass
-
 
 owner_cfg = Config("owner")
 member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
@@ -102,7 +97,7 @@ def format_usage(command):
     of a sub command on a newline.
 
     :param command: Type plugins.Command
-    :returns: str: formatted usage. """
+    :return: str: formatted usage. """
     if command.hidden and command.parent is not None:
         return
 
@@ -122,7 +117,7 @@ def format_help(command, no_subcommand: bool=False):
 
     :param command: Type plugins.Command
     :param no_subcommand: Use only the given command's usage.
-    :returns: str: help message"""
+    :return: str: help message"""
     usage = command.usage if no_subcommand else format_usage(command)
 
     # If there is no usage, the command isn't supposed to be displayed as such
@@ -167,7 +162,9 @@ def is_owner(user):
 
 
 def owner(func):
-    """ Decorator that runs the command only if the author is the owner. """
+    """ Decorator that runs the command only if the author is the owner.
+
+    NOTE: this function is deprecated. Use the command 'owner' attribute instead."""
     @wraps(func)
     async def wrapped(message: discord.Message, *args, **kwargs):
         if is_owner(message.author):
@@ -180,7 +177,9 @@ def owner(func):
 
 def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
-    perms must be a string matching any property of discord.Permissions. """
+    perms must be a string matching any property of discord.Permissions.
+
+    NOTE: this function is deprecated. Use the command 'permissions' attribute instead."""
     def decorator(func):
         @wraps(func)
         async def wrapped(message: discord.Message, *args, **kwargs):
@@ -195,7 +194,9 @@ def permission(*perms: str):
 
 def role(*roles: str):
     """ Decorator that runs the command only if the author has the specified Roles.
-    roles must be a string representing a role's name. """
+    roles must be a string representing a role's name. 
+    
+    NOTE: this function is deprecated. Use the command 'roles' attribute instead. """
     def decorator(func):
         @wraps(func)
         async def wrapped(message: discord.Message, *args, **kwargs):
@@ -229,7 +230,7 @@ async def retrieve_page(url: str, head=False, call=None, headers=None, **params)
     :param call: Any attribute coroutine to call before returning. Eg: "text" would return await response.text()
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :returns: The byte-like file OR whatever return value of the attribute set in call. """
+    :return: The byte-like file OR whatever return value of the attribute set in call. """
     async with aiohttp.ClientSession(loop=client.loop) as session:
         coro = session.head if head else session.get
 
@@ -247,7 +248,7 @@ async def retrieve_headers(url: str, headers=None, **params):
     :param url: URL as str.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :returns: Headers as a dict. """
+    :return: Headers as a dict. """
     head = await retrieve_page(url, head=True, headers=headers, **params)
     return head.headers
 
@@ -258,7 +259,7 @@ async def retrieve_html(url: str, headers=None, **params):
     :param url: URL as str.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :returns: HTML as str. """
+    :return: HTML as str. """
     return await retrieve_page(url, call="text", headers=headers, **params)
 
 
@@ -269,7 +270,7 @@ async def download_file(url: str, bytesio=False, headers=None, **params):
     :param bytesio: Convert this object to BytesIO before returning.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :returns: The byte-like file. """
+    :return: The byte-like file. """
     file_bytes = await retrieve_page(url, call="read", headers=headers, **params)
     return BytesIO(file_bytes) if bytesio else file_bytes
 
@@ -280,7 +281,7 @@ async def download_json(url: str, headers=None, **params):
     :param url: Download url as str.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :returns: A JSON representation of the downloaded file. """
+    :return: A JSON representation of the downloaded file. """
     try:
         return await retrieve_page(url, call="json", headers=headers, **params)
     except ValueError as e:
@@ -295,7 +296,7 @@ def convert_image_object(image, format: str="PNG", **params):
     :param image: PIL.Image.Image: object to convert.
     :param format: The image format, defaults to PNG.
     :param params: Any additional parameters sent to the writer.
-    :returns: BytesIO: the image object in bytes. """
+    :return: BytesIO: the image object in bytes. """
     buffer = BytesIO()
     image.save(buffer, format, **params)
     buffer.seek(0)
@@ -320,7 +321,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     :param name: display_name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
     :param mention: bool, check for mentions.
-    :returns: discord.Member """
+    :return: discord.Member """
     member = None
 
     # Return a member from mention
@@ -348,24 +349,24 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
 
 def find_channel(server: discord.Server, name, steps=3, mention=True, channel_type="text"):
     """ Find any channel by its name or a formatted mention.
-        Steps define the depth at which to search. More steps equal
-        less accurate checks.
+    Steps define the depth at which to search. More steps equal
+    less accurate checks.
 
-        +--------+------------------+
-        |  step  |     function     |
-        +--------+------------------+
-        |    0   | perform no check |
-        |    1   |   name is equal  |
-        |    2   | name starts with |
-        |    3   |    name is in    |
-        +--------+------------------+
+    +--------+------------------+
+    |  step  |     function     |
+    +--------+------------------+
+    |    0   | perform no check |
+    |    1   |   name is equal  |
+    |    2   | name starts with |
+    |    3   |    name is in    |
+    +--------+------------------+
 
-        :param server: discord.Server to look through for channels.
-        :param name: name as a string or mention to find.
-        :param steps: int from 0-3 to specify search depth.
-        :param mention: check for mentions.
-        :param channel_type: what type of channel we're looking for. Can be str or discord.ChannelType.
-        :returns: discord.Channel """
+    :param server: discord.Server to look through for channels.
+    :param name: name as a string or mention to find.
+    :param steps: int from 0-3 to specify search depth.
+    :param mention: check for mentions.
+    :param channel_type: what type of channel we're looking for. Can be str or discord.ChannelType.
+    :return: discord.Channel """
     channel = None
 
     # We want to allow both str and discord.ChannelType, so try converting str and handle exceptions
@@ -438,7 +439,7 @@ def get_formatted_code(code: str):
     and give the executable python code, or raise an exception.
 
     :param code: Code formatted in markdown.
-    :returns: str: Code. """
+    :return: str: Code. """
     code = code.strip(" \n")
     match = markdown_code_regex.match(code)
 
@@ -458,7 +459,7 @@ def format_code(code: str, language: str=None, *, simple: bool=False):
     :param code: Code formatted in markdown.
     :param language: Optional syntax highlighting language.
     :param simple: Use single quotes, e.g `"Hello!"`
-    :returns: str of markdown code """
+    :return: str of markdown code """
     if simple:
         return "`{}`".format(code)
     else:
@@ -470,7 +471,7 @@ def text_to_emoji(text: str):
     Text must only contain characters in the alphabet from A-Z.
 
     :param text: text of characters in the alphabet from A-Z.
-    :returns: str: formatted emoji unicode. """
+    :return: str: formatted emoji unicode. """
     regional_offset = 127397  # This number + capital letter = regional letter
     return "".join(chr(ord(c) + regional_offset) for c in text.upper())
 
@@ -480,7 +481,7 @@ def split(text: str, maxsplit: int=-1):
 
     :param text: Text to split.
     :param maxsplit: Number of times to split. The rest is returned without splitting.
-    :returns: list: split text. """
+    :return: list: split text. """
     # Generate a shlex object for eventually splitting manually
     split_object = shlex.shlex(text, posix=True)
     split_object.quotes = '"`'

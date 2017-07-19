@@ -17,7 +17,7 @@ from pcbot import config
 
 plugins = {}
 events = defaultdict(list)
-Command = namedtuple("Command", "name name_prefix  aliases "
+Command = namedtuple("Command", "name name_prefix aliases owner permissions roles "
                                 "usage description function parent sub_commands depth hidden error pos_check "
                                 "disabled_pm doc_args")
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
@@ -87,6 +87,16 @@ def _format_usage(func, pos_check):
         return " ".join(usage)
 
 
+def _parse_str_list(obj, name, cmd_name):
+    """ Return the list from the parsed str or an empty list if object is None. """
+    if type(obj) is str:
+        return obj.split(" ")
+    elif type(obj) is not list:
+        if obj is not None:
+            logging.warning("Invalid parameter in command '{}': {} must be a str or a list".format(cmd_name, name))
+        return []
+
+
 def command(**options):
     """ Decorator function that adds a command to the module's __commands dict.
     This allows the user to dynamically create commands without the use of a dictionary
@@ -122,12 +132,14 @@ def command(**options):
         description = options.get("description") or func.__doc__ or "Undocumented."
         disabled_pm = options.get("disabled_pm", False)
         doc_args = options.get("doc_args", dict())
+        owner = options.get("owner", False)
+        permissions = options.get("permissions")
+        roles = options.get("roles")
 
-        # Parse aliases
-        if type(aliases) is str:
-            aliases = aliases.split(" ")
-        elif aliases is None:
-            aliases = []
+        # Parse str lists
+        aliases = _parse_str_list(aliases, "aliases", name)
+        permissions = _parse_str_list(permissions, "permissions", name)
+        roles = _parse_str_list(roles, "roles", name)
 
         formatted_usage = options.get("usage", _format_usage(func, pos_check))
         if formatted_usage is not None:
@@ -172,7 +184,8 @@ def command(**options):
         # Create our command
         cmd = Command(name=name, aliases=aliases, usage=usage, name_prefix=name_prefix, description=description,
                       function=func, parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error,
-                      pos_check=pos_check, disabled_pm=disabled_pm, doc_args=doc_args)
+                      pos_check=pos_check, disabled_pm=disabled_pm, doc_args=doc_args, owner=owner,
+                      permissions=permissions, roles=roles)
 
         # If the command has a parent (is a subcommand)
         if parent:
@@ -270,6 +283,30 @@ def get_sub_command(cmd, *args: str):
             break
 
     return cmd
+
+
+def has_permissions(cmd: Command, message: discord.Message):
+    """ Return True if the member has permissions to execute the command. """
+    if not cmd.permissions:
+        return True
+
+    member_perms = message.author.permissions_in(message.channel)
+    if all(getattr(member_perms, perm, False) for perm in cmd.permissions):
+        return True
+
+    return False
+
+
+def has_roles(cmd: Command, message: discord.Message):
+    """ Return True if the member has the required roles. """
+    if not cmd.roles:
+        return True
+
+    member_roles = [r.name for r in message.author.roles[1:]]
+    if any(r in member_roles for r in cmd.roles):
+        return True
+
+    return False
 
 
 async def execute(cmd, message: discord.Message, *args, **kwargs):

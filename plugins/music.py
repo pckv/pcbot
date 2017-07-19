@@ -252,8 +252,7 @@ async def queue(message: discord.Message):
     await client.delete_message(msg)
 
 
-@music.command()
-@utils.owner
+@music.command(owner=True)
 async def link(message: discord.Message, voice_channel: Annotate.VoiceChannel):
     """ Link the Music bot to a voice channel in a server. """
     assert voice_channel.id not in music_channels.data, "**This voice channel is already linked.**"
@@ -265,8 +264,7 @@ async def link(message: discord.Message, voice_channel: Annotate.VoiceChannel):
     await client.say(message, "Voice channel **{0.name}** is now the music channel.".format(voice_channel))
 
 
-@music.command()
-@utils.owner
+@music.command(owner=True)
 async def unlink(message: discord.Message):
     """ Unlink this server's music channel. """
     channel = get_server_channel(message.server)

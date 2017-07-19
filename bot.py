@@ -414,10 +414,13 @@ async def on_message(message: discord.Message):
     if not command:
         return
 
-    # Throttle for 12th June 2017 "Day of Action" event: https://www.battleforthenet.com/july12/
-    if (start_time.year, start_time.month, start_time.day) == (2017, 7, 12):
-        await client.send_typing(message.channel)
-        await asyncio.sleep(random.randint(2, 11))
+    # Check that the author is allowed to use the command
+    if command.owner and not utils.is_owner(message.author):
+        return
+    if not plugins.has_permissions(command, message):
+        return
+    if not plugins.has_roles(command, message):
+        return
 
     # Parse the command with the user's arguments
     try:
