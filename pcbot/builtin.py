@@ -99,6 +99,17 @@ async def update(message: discord.Message):
     await client.say(message, "```diff\n{}```".format(await utils.subprocess("git", "pull")))
 
 
+@update.command(owner=True)
+async def reset(message: discord.Message):
+    """ **RESET THE HEAD** before updating. This removes all local changes done to the repository 
+    (excluding the .gitignore files). """
+    confirmed = await utils.confirm(message, "Are you sure you want to remove all local changes?")
+    assert confirmed, "Aborted."
+
+    await utils.subprocess("git", "reset", "--hard")
+    await update(message)
+
+
 @plugins.command(owner=True)
 async def game(message: discord.Message, name: Annotate.Content=None):
     """ Stop playing or set game to `name`. """

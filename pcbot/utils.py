@@ -150,6 +150,18 @@ def format_help(command, no_subcommand: bool=False):
     return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
 
 
+async def confirm(message: discord.Message, text: str, timeout: int=10):
+    """ Have the message author confirm their action. """
+    await client.send_message(message.channel, text + " [{}{}]".format(str(timeout) + "s " if timeout else "", "yes/no"))
+    reply = await client.wait_for_message(timeout, author=message.author, channel=message.channel,
+                                          check=lambda m: m.content.lower() in ("y", "yes", "n", "no"))
+
+    if reply and reply.content.lower() in ("y", "yes"):
+        return True
+
+    return False
+
+
 def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
     perms must be a string matching any property of discord.Permissions.
