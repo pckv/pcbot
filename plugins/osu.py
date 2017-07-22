@@ -713,7 +713,7 @@ async def unlink(message: discord.Message, member: discord.Member=Annotate.Self)
     """ Unlink your osu! account or unlink the member specified (**Owner only**). """
     # The message author is allowed to unlink himself
     # If a member is specified and the member is not the owner, set member to the author
-    if not utils.is_owner(message.author):
+    if not plugins.is_owner(message.author):
         member = message.author
 
     # The member might not be linked to any profile

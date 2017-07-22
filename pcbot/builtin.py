@@ -475,7 +475,7 @@ async def on_message(message: discord.Message):
         try:
             exec(python_code, code_globals)
         except SyntaxError as e:
-            if utils.is_owner(message.author):
+            if plugins.is_owner(message.author):
                 await client.say(message, "```" + utils.format_syntax_error(e) + "```")
             else:
                 logging.warning("An exception occurred when parsing lambda command:"
@@ -488,7 +488,7 @@ async def on_message(message: discord.Message):
         except AssertionError as e:  # Send assertion errors to the core module
             raise AssertionError(e)
         except Exception as e:
-            if utils.is_owner(message.author):
+            if plugins.is_owner(message.author):
                 await client.say(message, "```" + utils.format_exception(e) + "```")
             else:
                 logging.warning("An exception occurred when parsing lambda command:"
