@@ -133,7 +133,7 @@ def format_help(command, no_subcommand: bool=False):
         desc += "\n:information_source:`The following permissions are required to execute this command: {}`".format(
             ", ".join(command.permissions))
     if command.roles:
-        desc += "\n:information_source:`The following permissions are required to execute this command: {}`".format(
+        desc += "\n:information_source:`The following roles are required to execute this command: {}`".format(
             ", ".join(command.roles))
 
     # Format aliases
