@@ -202,7 +202,7 @@ async def subprocess(*args, pipe=None, carriage_return=False):
     :param args: Arguments to be passed to the subprocess
     :param pipe: Any optional input for the stdin.
     :param carriage_return: When True, carriage returns, \r, are not removed from the result. """
-    process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE)
+    process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE, stdin=sub.PIPE)
     result, _ = await process.communicate(input=bytes(pipe, encoding="utf-8") if pipe else None)
     result = result.decode("utf-8")
 
