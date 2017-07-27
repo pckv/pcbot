@@ -196,10 +196,14 @@ def role(*roles: str):
     return decorator
 
 
-async def subprocess(*args, carriage_return=False):
-    """ Run a subprocess and return the output. Unsupported in Windows. """
+async def subprocess(*args, pipe=None, carriage_return=False):
+    """ Run a subprocess and return the output.
+
+    :param args: Arguments to be passed to the subprocess
+    :param pipe: Any optional input for the stdin.
+    :param carriage_return: When True, carriage returns, \r, are not removed from the result. """
     process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE)
-    result, _ = await process.communicate()
+    result, _ = await process.communicate(input=bytes(pipe, encoding="utf-8") if pipe else None)
     result = result.decode("utf-8")
 
     # There were some problems with the carriage_return in windows, so by default they're removed
