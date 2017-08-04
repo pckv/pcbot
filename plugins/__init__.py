@@ -158,7 +158,13 @@ def command(**options):
         servers = _parse_str_list(servers, "servers", name)
 
         # Set the usage of this command
-        usage = options.get("usage", _format_usage(func, pos_check))
+        usage_suffix = options.get("usage", _format_usage(func, pos_check))
+
+        # Convert to a function that uses the name_prefix
+        if usage_suffix is not None:
+            usage = lambda server: name_prefix(server) + " " + usage_suffix
+        else:
+            usage = None
 
         # Properly format description when using docstrings
         # Kinda like markdown; new line = (blank line) or (/ at end of line)
@@ -182,6 +188,16 @@ def command(**options):
         # Format the description for any optional keys, and store the {pre} argument for later
         description = description.replace("{pre}", "%pre%").format(**doc_args)
         description = description.replace("%pre%", "{pre}")
+
+        # Notify the user about command permissions
+        if owner:
+            description += "\n:information_source:`Only the bot owner can execute this command.`"
+        if permissions:
+            description += "\n:information_source:`Permissions required: {}`".format(
+                ", ".join(" ".join(s.capitalize() for s in p.split("_")) for p in permissions))
+        if roles:
+            description += "\n:information_source:`Roles required: {}`".format(
+                ", ".join(roles))
 
         # Load the plugin the function is from, so that we can modify the __commands attribute
         plugin = inspect.getmodule(func)
@@ -269,7 +285,7 @@ def format_usage(cmd: Command, server: discord.Server):
         return
 
     command_prefix = config.server_command_prefix(server)
-    usage = ["{pre} {cmd.usage}".format(pre=cmd.name_prefix(server), cmd=cmd)]
+    usage = [cmd.usage(server)]
     for sub_command in cmd.sub_commands:
         # Recursively format the usage of the next sub commands
         formatted = format_usage(sub_command, server)
@@ -287,7 +303,7 @@ def format_help(cmd: Command, server: discord.Server, no_subcommand: bool=False)
     :param server: The server to generate help in.
     :param no_subcommand: Use only the given command's usage.
     :return: str: help message"""
-    usage = cmd.usage if no_subcommand else format_usage(cmd, server)
+    usage = cmd.usage(server) if no_subcommand else format_usage(cmd, server)
 
     # If there is no usage, the command isn't supposed to be displayed as such
     # Therefore, we switch to using the parent command instead
@@ -296,16 +312,6 @@ def format_help(cmd: Command, server: discord.Server, no_subcommand: bool=False)
 
     command_prefix = config.server_command_prefix(server)
     desc = cmd.description.format(pre=command_prefix)
-
-    # Notify the user about command permissions
-    if cmd.owner:
-        desc += "\n:information_source:`Only the bot owner can execute this command.`"
-    if cmd.permissions:
-        desc += "\n:information_source:`The following permissions are required to execute this command: {}`".format(
-            ", ".join(cmd.permissions))
-    if cmd.roles:
-        desc += "\n:information_source:`The following roles are required to execute this command: {}`".format(
-            ", ".join(cmd.roles))
 
     # Format aliases
     alias_format = ""

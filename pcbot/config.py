@@ -93,7 +93,12 @@ def set_server_config(server: discord.Server, key: str, value):
     if server.id not in server_config.data:
         server_config.data[server.id] = {}
 
-    server_config.data[server.id][key] = value
+    # Change the value or remove it from the list if the value is None
+    if value is None:
+        del server_config.data[server.id][key]
+    else:
+        server_config.data[server.id][key] = value
+
     server_config.save()
 
 

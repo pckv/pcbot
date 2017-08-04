@@ -41,7 +41,7 @@ from typing import List
 
 import asyncio
 import discord
-from aiohttp.errors import ServerDisconnectedError
+from aiohttp import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate

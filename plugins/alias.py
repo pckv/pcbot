@@ -85,6 +85,7 @@ async def on_message(message: discord.Message):
         for name, command in user_aliases.items():
             execute = False
             msg = message.content
+            args = utils.split(msg)
 
             if not command.get("case_sensitive", False):
                 msg = msg.lower()
@@ -93,7 +94,7 @@ async def on_message(message: discord.Message):
                 if name in msg:
                     execute = True
             else:
-                if msg.startswith(name):
+                if name == args[0]:
                     execute = True
 
             if execute:
@@ -106,9 +107,7 @@ async def on_message(message: discord.Message):
 
                 # Execute the command if it is one
                 if text.startswith(pre):
-                    args = utils.split(text)
-                    print(args, "\n", args[0], *args[1:])
-                    await plugins.execute(args[0][len(pre):], message)
+                    await plugins.execute(utils.split(text)[0][len(pre):], message)
                 else:
                     await client.say(message, text)
                 success = True
