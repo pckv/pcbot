@@ -441,7 +441,7 @@ async def set_prefix(message: discord.Message, prefix: str):
 async def set_case_sensitivity(message: discord.Message, value: plugins.true_or_false):
     """ Enable or disable case sensitivity in command triggers. """
     config.set_server_config(message.server, "case_sensitive_commands", value)
-    await client.say(message, "{} case sensitive command triggers in this server. ".format("Enabled" if value else "Disabled"))
+    await client.say(message, "**{}** case sensitive command triggers in this server. ".format("Enabled" if value else "Disabled"))
 
 
 def init():

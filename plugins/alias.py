@@ -99,21 +99,18 @@ async def on_message(message: discord.Message):
             if execute:
                 if command.get("delete_message", False):
                     if message.server.me.permissions_in(message.channel).manage_messages:
-                        asyncio.ensure_future(client.delete_message(message))
+                        client.loop.create_task(client.delete_message(message))
 
                 text = command["text"]
                 pre = config.server_command_prefix(message.server)
+
+                # Execute the command if it is one
                 if text.startswith(pre):
                     args = utils.split(text)
-                    # try:
                     print(args, "\n", args[0], *args[1:])
-                    await plugins.execute(args[0][1:], message, *args[1:])
-                    # except:
-                    #     pass
-                    # else:
-                    #     return True
-
-                await client.say(message, text)
+                    await plugins.execute(args[0][len(pre):], message)
+                else:
+                    await client.say(message, text)
                 success = True
 
     return success

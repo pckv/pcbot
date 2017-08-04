@@ -15,7 +15,7 @@ import discord
 import json
 
 import plugins
-from pcbot import Config, permission, Annotate, command_prefix
+from pcbot import Config, permission, Annotate, server_command_prefix
 
 try:
     from PIL import Image
@@ -232,14 +232,14 @@ async def egg(message: discord.Message, egg_type: Annotate.LowerCleanContent):
         distance, ", ".join(sorted(pokemon_criteria))))
 
 
-def assert_type(slot: str):
+def assert_type(slot: str, server: discord.Server):
     """ Assert if a type does not exist, and show the valid types. """
     match = get_close_matches(slot, api["types"], n=1, cutoff=0.4)
 
     if match:
         matches_string = " Perhaps you meant `{}`?".format(match[0])
     else:
-        matches_string = " See `{}help pokedex type`.".format(command_prefix)
+        matches_string = " See `{}help pokedex type`.".format(server_command_prefix(server))
     assert slot in api["types"], "**{}** is not a valid pokemon type.{}".format(
         slot.capitalize(), matches_string)
 
@@ -282,11 +282,11 @@ def format_efficacy(types: list):
 @pokedex_.command(name="type", description="Show pokemon with the specified types. {}".format(types_str))
 async def filter_type(message: discord.Message, slot_1: str.lower, slot_2: str.lower=None):
     matched_pokemon = []
-    assert_type(slot_1)
+    assert_type(slot_1, message.server)
 
     # Find all pokemon with the matched criteria
     if slot_2:
-        assert_type(slot_2)
+        assert_type(slot_2, message.server)
 
         # If two slots are provided, search for pokemon with both types matching
         for pokemon in pokedex.values():
@@ -310,7 +310,7 @@ async def filter_type(message: discord.Message, slot_1: str.lower, slot_2: str.l
 @pokedex_.command(aliases="e",
                   description="Display type efficacy (effectiveness) of the specified type. {}".format(types_str))
 async def effect(message: discord.Message, type: str.lower):
-    assert_type(type)
+    assert_type(type, message.server)
 
     await client.say(message, format_efficacy([type]))
 

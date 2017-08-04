@@ -447,13 +447,13 @@ async def execute(cmd, message: discord.Message, *args, **kwargs):
 
     :raises: NameError when command does not exist. """
     # Get the command object if the given command represents a name
-    if type(cmd) is str:
-        cmd = get_command(cmd)
+    if type(cmd) is not Command:
+        cmd = get_command(cmd, config.server_case_sensitive_commands(message.server))
 
     try:
         await cmd.function(message, *args, **kwargs)
     except AttributeError:
-        raise NameError("Not a command".format(cmd))
+        raise NameError("{} is not a command".format(cmd))
 
 
 def get_cooldown(member: discord.Member, cmd: Command):
