@@ -91,65 +91,6 @@ def placeholder(_: str):
     return False
 
 
-def format_usage(command):
-    """ Format the usage string of the given command. Places any usage
-    of a sub command on a newline.
-
-    :param command: Type plugins.Command
-    :return: str: formatted usage. """
-    if command.hidden and command.parent is not None:
-        return
-
-    usage = [command.usage]
-    for sub_command in command.sub_commands:
-        # Recursively format the usage of the next sub commands
-        formatted = format_usage(sub_command)
-
-        if formatted:
-            usage.append(formatted)
-
-    return "\n".join(s for s in usage if s is not None) if usage else None
-
-
-def format_help(command, no_subcommand: bool=False):
-    """ Format the help string of the given command as a message to be sent.
-
-    :param command: Type plugins.Command
-    :param no_subcommand: Use only the given command's usage.
-    :return: str: help message"""
-    usage = command.usage if no_subcommand else format_usage(command)
-
-    # If there is no usage, the command isn't supposed to be displayed as such
-    # Therefore, we switch to using the parent command instead
-    if usage is None and command.parent is not None:
-        return format_help(command.parent)
-
-    desc = command.description
-
-    # Notify the user about command permissions
-    if command.owner:
-        desc += "\n:information_source:`Only the bot owner can execute this command.`"
-    if command.permissions:
-        desc += "\n:information_source:`The following permissions are required to execute this command: {}`".format(
-            ", ".join(command.permissions))
-    if command.roles:
-        desc += "\n:information_source:`The following roles are required to execute this command: {}`".format(
-            ", ".join(command.roles))
-
-    # Format aliases
-    alias_format = ""
-    if command.aliases:
-        # Don't add blank space unless necessary
-        if not desc.strip().endswith("```"):
-            alias_format += "\n"
-
-        alias_format += "**Aliases**: ```{}```".format(
-            ", ".join((config.command_prefix if identifier_prefix.match(alias[0]) and command.parent is None else "") +
-                      alias for alias in command.aliases))
-
-    return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
-
-
 async def confirm(message: discord.Message, text: str, timeout: int=10):
     """ Have the message author confirm their action. """
     await client.send_message(message.channel, text + " [{}{}]".format(str(timeout) + "s " if timeout else "", "yes/no"))

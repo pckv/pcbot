@@ -8,9 +8,12 @@ import json
 from os.path import exists
 from os import mkdir
 
+import discord
+
 
 github_repo = "PcBoy111/PCBOT/"
-command_prefix = "!"
+default_command_prefix = "!"
+default_case_sensitive_commands = True
 help_arg = ("?", "help")
 version = ""
 name = "PCBOT"  # Placebo name, should be changed on_ready
@@ -80,3 +83,31 @@ class Config:
                 return json.load(f)
 
         return None
+
+
+server_config = Config("server-config", data={})
+
+
+def set_server_config(server: discord.Server, key: str, value):
+    """ Set a server config value. """
+    if server.id not in server_config.data:
+        server_config.data[server.id] = {}
+
+    server_config.data[server.id][key] = value
+    server_config.save()
+
+
+def server_command_prefix(server: discord.Server):
+    """ Get the server's command prefix. """
+    if server.id in server_config.data:
+        return server_config.data[server.id].get("command_prefix", default_command_prefix)
+
+    return default_command_prefix
+
+
+def server_case_sensitive_commands(server: discord.Server):
+    """ Get the server's case sensitivity settings. """
+    if server.id in server_config.data:
+        return server_config.data[server.id].get("case_sensitive_commands", default_case_sensitive_commands)
+
+    return default_case_sensitive_commands

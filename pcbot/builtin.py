@@ -27,10 +27,12 @@ code_globals = {}
 @plugins.command(name="help", aliases="commands")
 async def help_(message: discord.Message, command: str.lower=None, *args):
     """ Display commands or their usage and description. """
+    command_prefix = config.server_command_prefix(message.server)
+
     # Display the specific command
     if command:
-        if command.startswith(config.command_prefix):
-            command = command[len(config.command_prefix):]
+        if command.startswith(command_prefix):
+            command = command[len(command_prefix):]
 
         cmd = plugins.get_command(command)
         if not cmd:
@@ -38,7 +40,7 @@ async def help_(message: discord.Message, command: str.lower=None, *args):
 
         # Get the specific command with arguments and send the help
         cmd = plugins.get_sub_command(cmd, *args)
-        await client.say(message, utils.format_help(cmd))
+        await client.say(message, plugins.format_help(cmd, message.server))
 
     # Display every command
     else:
@@ -52,13 +54,13 @@ async def help_(message: discord.Message, command: str.lower=None, *args):
             # Add all commands that the user can use
             for cmd in plugin.__commands:
                 if not cmd.hidden and plugins.can_use_command(cmd, message):
-                    commands.append(cmd.name_prefix.split()[0])
+                    commands.append(cmd.name_prefix(message.server).split()[0])
 
         commands = ", ".join(sorted(commands))
 
         m = "**Commands**: ```{0}```Use `{1}help <command>`, `{1}<command> {2}` or " \
             "`{1}<command> {3}` for command specific help.".format(
-            commands, config.command_prefix, *config.help_arg)
+            commands, command_prefix, *config.help_arg)
         await client.say(message, m)
 
 
@@ -404,7 +406,7 @@ async def get_changelog(num: int):
 
 
 @plugins.command(name=config.name.lower())
-async def bot_info(message: discord.Message):
+async def bot_hub(message: discord.Message):
     """ Display basic information. """
     app_info = await client.application_info()
 
@@ -422,10 +424,24 @@ async def bot_info(message: discord.Message):
     ))
 
 
-@bot_info.command(name="changelog")
+@bot_hub.command(name="changelog")
 async def changelog_(message: discord.Message, num: utils.int_range(f=1)=3):
     """ Get `num` requests from the changelog. Defaults to 3. """
     await client.say(message, await get_changelog(num))
+
+
+@bot_hub.command(name="prefix")
+async def set_prefix(message: discord.Message, prefix: str):
+    """ Set the bot prefix. **The prefix is case sensitive.** """
+    config.set_server_config(message.server, "command_prefix", prefix)
+    await client.say(message, "Set the server prefix to `{}`.".format(prefix))
+
+
+@bot_hub.command(name="case")
+async def set_case_sensitivity(message: discord.Message, value: plugins.true_or_false):
+    """ Enable or disable case sensitivity in command triggers. """
+    config.set_server_config(message.server, "case_sensitive_commands", value)
+    await client.say(message, "{} case sensitive command triggers in this server. ".format("Enabled" if value else "Disabled"))
 
 
 def init():

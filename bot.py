@@ -54,10 +54,10 @@ class Client(discord.Client):
         is_bot, is_self = False, False
         if event == "message":
             message = args[0]
-            if message.author == client.user:
-                is_self = True
             if not message.content:
                 return
+            if message.author == client.user:
+                is_self = True
             if message.author.bot:
                 is_bot = True
 
@@ -344,7 +344,6 @@ async def parse_command_args(command: plugins.Command, cmd_args: list, message: 
 
 async def parse_command(command: plugins.Command, cmd_args: list, message: discord.Message):
     """ Try finding a command """
-    command = plugins.get_sub_command(command, *cmd_args[1:])
     cmd_args = cmd_args[command.depth:]
     send_help = False
 
@@ -369,7 +368,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
             else:
                 if len(cmd_args) == 1:
                     send_help = True
-                await client.say(message, utils.format_help(command, no_subcommand=False if send_help else True))
+                await client.say(message, plugins.format_help(command, message.server, no_subcommand=False if send_help else True))
 
         command = None
 
@@ -400,17 +399,21 @@ async def on_message(message: discord.Message):
     if message.author.bot:
         return
 
+    # Find server specific settings
+    command_prefix = config.server_command_prefix(message.server)
+    case_sensitive = config.server_case_sensitive_commands(message.server)
+
     # Split content into arguments by space (surround with quotes for spaces)
     cmd_args = utils.split(message.content)
 
     # Get command name
-    if cmd_args[0].startswith(config.command_prefix) and len(cmd_args[0]) > len(config.command_prefix):
-        cmd = cmd_args[0][len(config.command_prefix):]
+    if cmd_args[0].startswith(command_prefix) and len(cmd_args[0]) > len(command_prefix):
+        cmd = cmd_args[0][len(command_prefix):]
     else:
         return
 
     # Try finding a command object
-    command = plugins.get_command(cmd)
+    command = plugins.get_command(cmd, case_sensitive)
     if not command:
         return
 
@@ -420,9 +423,10 @@ async def on_message(message: discord.Message):
 
     # Parse the command with the user's arguments
     try:
+        command = plugins.get_sub_command(command, *cmd_args[1:], case_sensitive)
         parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
     except AssertionError as e:  # Return any feedback given from the command via AssertionError, or the command help
-        await client.send_message(message.channel, str(e) or utils.format_help(command, no_subcommand=True))
+        await client.send_message(message.channel, str(e) or plugins.format_help(command, message.server, no_subcommand=True))
         log_message(message)
         return
 
@@ -467,7 +471,7 @@ def main():
     # Setup a login group for handling only token or email, but not both
     login_group = parser.add_mutually_exclusive_group()
     login_group.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
-    login_group.add_argument("--email", "-e", help="The email to login to. Token prompt is default.")
+    login_group.add_argument("--email", "-e", help="Alternative email to login with.")
 
     parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
     parser.add_argument("--log-level", "-l",
@@ -486,11 +490,13 @@ def main():
     # Setup some config for more customization
     bot_meta = config.Config("bot_meta", pretty=True, data=dict(
         name="PCBOT",
-        command_prefix=config.command_prefix,
+        command_prefix=config.default_command_prefix,
+        case_sensitive_commands=config.default_case_sensitive_commands,
         display_owner_error_in_chat=False
     ))
     config.name = bot_meta.data["name"]
-    config.command_prefix = bot_meta.data["command_prefix"]
+    config.default_command_prefix = bot_meta.data["command_prefix"]
+    config.default_case_sensitive_commands = bot_meta.data["case_sensitive_commands"]
     config.owner_error = bot_meta.data["display_owner_error_in_chat"]
 
     # Set the client for the plugins to use

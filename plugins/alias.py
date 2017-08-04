@@ -65,7 +65,7 @@ async def remove(message: discord.Message, trigger: Annotate.Content):
 
     # Check if the trigger is in the would be list (basically checks if trigger is in [] if user is not registered)
     assert trigger in aliases.data.get(message.author.id, []), \
-        "**Alias `{}` has never been set. Check `{}`.**".format(trigger, list_aliases.cmd.name_prefix)
+        "**Alias `{}` has never been set. Check `{}`.**".format(trigger, list_aliases.cmd.name_prefix(message.server))
 
     # Trigger is an assigned alias, remove it
     aliases.data[message.author.id].pop(trigger)
@@ -102,7 +102,8 @@ async def on_message(message: discord.Message):
                         asyncio.ensure_future(client.delete_message(message))
 
                 text = command["text"]
-                if text.startswith(config.command_prefix):
+                pre = config.server_command_prefix(message.server)
+                if text.startswith(pre):
                     args = utils.split(text)
                     # try:
                     print(args, "\n", args[0], *args[1:])

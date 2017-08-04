@@ -12,8 +12,7 @@ from traceback import format_exc
 import discord
 import pendulum
 
-from pcbot.utils import Annotate, format_exception
-from pcbot import config
+from pcbot import config, Annotate, identifier_prefix, format_exception
 
 plugins = {}
 events = defaultdict(list)
@@ -99,6 +98,15 @@ def _parse_str_list(obj, name, cmd_name):
         return []
 
 
+def _name_prefix(name, parent):
+    """ Generate a function for generating the command's prefix in the given server. """
+    def decorator(server: discord.Server):
+        pre = config.server_command_prefix(server)
+        return parent.name_prefix(server) + " " + name if parent is not None else pre + name
+
+    return decorator
+
+
 def command(**options):
     """ Decorator function that adds a command to the module's __commands dict.
     This allows the user to dynamically create commands without the use of a dictionary
@@ -132,7 +140,7 @@ def command(**options):
         hidden = options.get("hidden", False)
         parent = options.get("parent", None)
         depth = parent.depth + 1 if parent is not None else 0
-        name_prefix = parent.name_prefix + " " + name if parent is not None else config.command_prefix + name
+        name_prefix = _name_prefix(name, parent)
         error = options.get("error", None)
         pos_check = options.get("pos_check", False)
         description = options.get("description") or func.__doc__ or "Undocumented."
@@ -149,11 +157,8 @@ def command(**options):
         roles = _parse_str_list(roles, "roles", name)
         servers = _parse_str_list(servers, "servers", name)
 
-        formatted_usage = options.get("usage", _format_usage(func, pos_check))
-        if formatted_usage is not None:
-            usage = "{pre} {usage}".format(pre=name_prefix, usage=formatted_usage)
-        else:
-            usage = None
+        # Set the usage of this command
+        usage = options.get("usage", _format_usage(func, pos_check))
 
         # Properly format description when using docstrings
         # Kinda like markdown; new line = (blank line) or (/ at end of line)
@@ -174,8 +179,9 @@ def command(**options):
 
             description = new_desc
 
-        # Format the description for any optional keys
-        description = description.format(pre=config.command_prefix, **doc_args)
+        # Format the description for any optional keys, and store the {pre} argument for later
+        description = description.replace("{pre}", "%pre%").format(**doc_args)
+        description = description.replace("%pre%", "{pre}")
 
         # Load the plugin the function is from, so that we can modify the __commands attribute
         plugin = inspect.getmodule(func)
@@ -252,15 +258,91 @@ def argument(format=argument_format, *, pass_message=False, allow_spaces=False):
     return decorator
 
 
+def format_usage(cmd: Command, server: discord.Server):
+    """ Format the usage string of the given command. Places any usage
+    of a sub command on a newline.
+
+    :param cmd: Type Command.
+    :param server: The server to generate the usage in.
+    :return: str: formatted usage. """
+    if cmd.hidden and cmd.parent is not None:
+        return
+
+    command_prefix = config.server_command_prefix(server)
+    usage = ["{pre} {cmd.usage}".format(pre=cmd.name_prefix(server), cmd=cmd)]
+    for sub_command in cmd.sub_commands:
+        # Recursively format the usage of the next sub commands
+        formatted = format_usage(sub_command, server)
+
+        if formatted:
+            usage.append(formatted)
+
+    return "\n".join(s for s in usage if s is not None).format(pre=command_prefix) if usage else None
+
+
+def format_help(cmd: Command, server: discord.Server, no_subcommand: bool=False):
+    """ Format the help string of the given command as a message to be sent.
+
+    :param cmd: Type Command
+    :param server: The server to generate help in.
+    :param no_subcommand: Use only the given command's usage.
+    :return: str: help message"""
+    usage = cmd.usage if no_subcommand else format_usage(cmd, server)
+
+    # If there is no usage, the command isn't supposed to be displayed as such
+    # Therefore, we switch to using the parent command instead
+    if usage is None and cmd.parent is not None:
+        return format_help(cmd.parent, server)
+
+    command_prefix = config.server_command_prefix(server)
+    desc = cmd.description.format(pre=command_prefix)
+
+    # Notify the user about command permissions
+    if cmd.owner:
+        desc += "\n:information_source:`Only the bot owner can execute this command.`"
+    if cmd.permissions:
+        desc += "\n:information_source:`The following permissions are required to execute this command: {}`".format(
+            ", ".join(cmd.permissions))
+    if cmd.roles:
+        desc += "\n:information_source:`The following roles are required to execute this command: {}`".format(
+            ", ".join(cmd.roles))
+
+    # Format aliases
+    alias_format = ""
+    if cmd.aliases:
+        # Don't add blank space unless necessary
+        if not desc.strip().endswith("```"):
+            alias_format += "\n"
+
+        alias_format += "**Aliases**: ```{}```".format(
+            ", ".join((command_prefix if identifier_prefix.match(alias[0]) and cmd.parent is None else "") +
+                      alias for alias in cmd.aliases))
+
+    return "**Usage**: ```{}```**Description**: {}{}".format(usage, desc, alias_format)
+
+
 def parent_attr(cmd: Command, attr: str):
     """ Return the attribute from the parent if there is one. """
     return getattr(cmd.parent, attr, False) or getattr(cmd, attr)
 
 
-def get_command(trigger: str):
+def compare_command_name(trigger: str, cmd: Command, case_sensitive: bool=True):
+    """ Compare the given trigger with the command's name and aliases.
+
+    :param trigger: a str representing the command name or alias.
+    :param cmd: The Command object to compare.
+    :param case_sensitive: When True, case is preserved in command name triggers. """
+    if case_sensitive:
+        return trigger == cmd.name or trigger in cmd.aliases
+    else:
+        return trigger.lower() == cmd.name.lower() or trigger.lower() in (name.lower() for name in cmd.aliases)
+
+
+def get_command(trigger: str, case_sensitive: bool=True):
     """ Find and return a command function from a plugin.
 
-    :param trigger: a str representing the command name or alias. """
+    :param trigger: a str representing the command name or alias.
+    :param case_sensitive: When True, case is preserved in command name triggers. """
     for plugin in all_values():
         commands = getattr(plugin, "__commands", None)
 
@@ -269,7 +351,7 @@ def get_command(trigger: str):
             continue
 
         for cmd in plugin.__commands:
-            if trigger == cmd.name or trigger in cmd.aliases:
+            if compare_command_name(trigger, cmd, case_sensitive):
                 return cmd
         else:
             continue
@@ -277,14 +359,14 @@ def get_command(trigger: str):
     return None
 
 
-def get_sub_command(cmd, *args: str):
+def get_sub_command(cmd, *args: str, case_sensitive: bool=True):
     """ Go through all arguments and return any group command function.
 
     :param cmd: type plugins.Command
     :param args: str of arguments following the command trigger. """
     for arg in args:
         for sub_cmd in cmd.sub_commands:
-            if arg == sub_cmd.name or arg in sub_cmd.aliases:
+            if compare_command_name(arg, sub_cmd, case_sensitive):
                 cmd = sub_cmd
                 break
         else:
@@ -486,3 +568,14 @@ async def save_plugins():
     Set up for saving on !stop and periodic saving every 30 minutes. """
     for name in all_keys():
         await save_plugin(name)
+
+
+@argument(format="{open}on | off{close}")
+def true_or_false(arg: str):
+    """ Return True or False flexibly based on the input. """
+    if arg.lower() in ("yes", "true", "enable", "1", "on"):
+        return True
+    elif arg.lower() in ("no", "false", "disable", "0", "off"):
+        return False
+    else:
+        return None
