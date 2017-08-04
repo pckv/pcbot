@@ -430,14 +430,14 @@ async def changelog_(message: discord.Message, num: utils.int_range(f=1)=3):
     await client.say(message, await get_changelog(num))
 
 
-@bot_hub.command(name="prefix")
+@bot_hub.command(name="prefix", permissions="administrator")
 async def set_prefix(message: discord.Message, prefix: str):
     """ Set the bot prefix. **The prefix is case sensitive.** """
     config.set_server_config(message.server, "command_prefix", prefix)
     await client.say(message, "Set the server prefix to `{}`.".format(prefix))
 
 
-@bot_hub.command(name="case")
+@bot_hub.command(name="case", permissions="administrator")
 async def set_case_sensitivity(message: discord.Message, value: plugins.true_or_false):
     """ Enable or disable case sensitivity in command triggers. """
     config.set_server_config(message.server, "case_sensitive_commands", value)
