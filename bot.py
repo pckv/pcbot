@@ -413,7 +413,7 @@ async def on_message(message: discord.Message):
         return
 
     # Try finding a command object
-    command = plugins.get_command(cmd, case_sensitive)
+    command = plugins.get_command(cmd, case_sensitive=case_sensitive)
     if not command:
         return
 
@@ -423,7 +423,7 @@ async def on_message(message: discord.Message):
 
     # Parse the command with the user's arguments
     try:
-        command = plugins.get_sub_command(command, *cmd_args[1:], case_sensitive)
+        command = plugins.get_sub_command(command, *cmd_args[1:], case_sensitive=case_sensitive)
         parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
     except AssertionError as e:  # Return any feedback given from the command via AssertionError, or the command help
         await client.send_message(message.channel, str(e) or plugins.format_help(command, message.server, no_subcommand=True))
