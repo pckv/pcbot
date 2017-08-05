@@ -431,9 +431,9 @@ async def changelog_(message: discord.Message, num: utils.int_range(f=1)=3):
 
 
 @bot_hub.command(name="prefix", permissions="administrator")
-async def set_prefix(message: discord.Message, prefix: Annotate.Content=None):
-    """ Set the bot prefix. **The prefix is case sensitive.** """
-    config.set_server_config(message.server, "command_prefix", prefix.replace(" ", "\\ "))
+async def set_prefix(message: discord.Message, prefix: str=None):
+    """ Set the bot prefix. **The prefix is case sensitive and may not include spaces.** """
+    config.set_server_config(message.server, "command_prefix", utils.split(prefix)[0])
 
     pre = config.default_command_prefix if prefix is None else prefix
     await client.say(message, "Set the server prefix to `{}`.".format(pre))
