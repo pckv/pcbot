@@ -50,16 +50,21 @@ class Client(discord.Client):
 
     def dispatch(self, event, *args, **kwargs):
         """ Override event dispatch to handle plugin events. """
-        # Exclude some messages
-        is_bot, is_self = False, False
+        # Exclude blank messages
         if event == "message":
             message = args[0]
             if not message.content:
                 return
-            if message.author == client.user:
-                is_self = True
-            if message.author.bot:
-                is_bot = True
+
+        # Find every event that has a discord.Member argument, and filter out bots and self
+        is_bot, is_self = False, False
+        for arg in args:
+            if type(arg) is discord.Member:
+                if arg == client.user:
+                    is_self = True
+                if arg.bot:
+                    is_bot = True
+                break
 
         super().dispatch(event, *args, **kwargs)
 

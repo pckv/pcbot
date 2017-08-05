@@ -301,6 +301,7 @@ async def on_voice_state_update(before: discord.Member, after: discord.Member):
     else:
         if count_members >= 1:
             try:
+                print(str(after))
                 voice = await client.join_voice_channel(channel)
             except discord.errors.ClientException:
                 # The bot is in another channel, so we'll get the voice client and move the bot

@@ -369,7 +369,8 @@ def get_sub_command(cmd, *args: str, case_sensitive: bool=True):
     """ Go through all arguments and return any group command function.
 
     :param cmd: type plugins.Command
-    :param args: str of arguments following the command trigger. """
+    :param args: str of arguments following the command trigger.
+    :param case_sensitive: When True, case is preserved in command name triggers. """
     for arg in args:
         for sub_cmd in cmd.sub_commands:
             if compare_command_name(arg, sub_cmd, case_sensitive):

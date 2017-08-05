@@ -449,10 +449,15 @@ async def set_case_sensitivity(message: discord.Message, value: plugins.true_or_
 def init():
     """ Import any imports for lambdas. """
     # Add essential globals for "do", "eval" and "lambda" commands
+    class Plugin:
+        """ Class for returning plugins easily by using attributes. """
+        def __getattr__(self, item):
+            return plugins.get_plugin(item)
+
     code_globals.update(dict(
         utils=utils, datetime=datetime, timedelta=timedelta,
         random=random, asyncio=asyncio, plugins=plugins,
-        plugin=plugins.get_plugin, command=plugins.get_command, execute=plugins.execute
+        plugin=Plugin(), command=plugins.get_command, execute=plugins.execute
     ))
 
     # Import modules for "do", "eval" and "lambda" commands
