@@ -3086,6 +3086,7 @@
             "evolves_from_id": 0,
             "generation": 2,
             "genus": "Fire Mouse",
+            "hatches_from": 5,
             "height": 0.5,
             "id": 155,
             "locale_name": "Cyndaquil",
