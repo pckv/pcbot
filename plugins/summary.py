@@ -284,9 +284,10 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     if phrase:
         message_content = list(filter_messages(message_content, phrase, regex, case))
 
+    command_prefix = config.server_command_prefix(message.server)
     # Clean up by removing all commands from the summaries
-    if phrase is None or not phrase.startswith(config.command_prefix):
-        message_content = [s for s in message_content if not s.startswith(config.command_prefix)]
+    if phrase is None or not phrase.startswith(command_prefix):
+        message_content = [s for s in message_content if not s.startswith(command_prefix)]
 
     # Check if we even have any messages
     assert message_content, on_no_messages.format(message)
