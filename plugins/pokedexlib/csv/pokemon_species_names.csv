@@ -1,0 +1,722 @@
+species_id,language_id,name,genus
+1,9,Bulbasaur,Seed
+2,9,Ivysaur,Seed
+3,9,Venusaur,Seed
+4,9,Charmander,Lizard
+5,9,Charmeleon,Flame
+6,9,Charizard,Flame
+7,9,Squirtle,Tiny Turtle
+8,9,Wartortle,Turtle
+9,9,Blastoise,Shellfish
+10,9,Caterpie,Worm
+11,9,Metapod,Cocoon
+12,9,Butterfree,Butterfly
+13,9,Weedle,Hairy Bug
+14,9,Kakuna,Cocoon
+15,9,Beedrill,Poison Bee
+16,9,Pidgey,Tiny Bird
+17,9,Pidgeotto,Bird
+18,9,Pidgeot,Bird
+19,9,Rattata,Mouse
+20,9,Raticate,Mouse
+21,9,Spearow,Tiny Bird
+22,9,Fearow,Beak
+23,9,Ekans,Snake
+24,9,Arbok,Cobra
+25,9,Pikachu,Mouse
+26,9,Raichu,Mouse
+27,9,Sandshrew,Mouse
+28,9,Sandslash,Mouse
+29,9,Nidoran♀,Poison Pin
+30,9,Nidorina,Poison Pin
+31,9,Nidoqueen,Drill
+32,9,Nidoran♂,Poison Pin
+33,9,Nidorino,Poison Pin
+34,9,Nidoking,Drill
+35,9,Clefairy,Fairy
+36,9,Clefable,Fairy
+37,9,Vulpix,Fox
+38,9,Ninetales,Fox
+39,9,Jigglypuff,Balloon
+40,9,Wigglytuff,Balloon
+41,9,Zubat,Bat
+42,9,Golbat,Bat
+43,9,Oddish,Weed
+44,9,Gloom,Weed
+45,9,Vileplume,Flower
+46,9,Paras,Mushroom
+47,9,Parasect,Mushroom
+48,9,Venonat,Insect
+49,9,Venomoth,Poison Moth
+50,9,Diglett,Mole
+51,9,Dugtrio,Mole
+52,9,Meowth,Scratch Cat
+53,9,Persian,Classy Cat
+54,9,Psyduck,Duck
+55,9,Golduck,Duck
+56,9,Mankey,Pig Monkey
+57,9,Primeape,Pig Monkey
+58,9,Growlithe,Puppy
+59,9,Arcanine,Legendary
+60,9,Poliwag,Tadpole
+61,9,Poliwhirl,Tadpole
+62,9,Poliwrath,Tadpole
+63,9,Abra,Psi
+64,9,Kadabra,Psi
+65,9,Alakazam,Psi
+66,9,Machop,Superpower
+67,9,Machoke,Superpower
+68,9,Machamp,Superpower
+69,9,Bellsprout,Flower
+70,9,Weepinbell,Flycatcher
+71,9,Victreebel,Flycatcher
+72,9,Tentacool,Jellyfish
+73,9,Tentacruel,Jellyfish
+74,9,Geodude,Rock
+75,9,Graveler,Rock
+76,9,Golem,Megaton
+77,9,Ponyta,Fire Horse
+78,9,Rapidash,Fire Horse
+79,9,Slowpoke,Dopey
+80,9,Slowbro,Hermit Crab
+81,9,Magnemite,Magnet
+82,9,Magneton,Magnet
+83,9,Farfetch'd,Wild Duck
+84,9,Doduo,Twin Bird
+85,9,Dodrio,Triple Bird
+86,9,Seel,Sea Lion
+87,9,Dewgong,Sea Lion
+88,9,Grimer,Sludge
+89,9,Muk,Sludge
+90,9,Shellder,Bivalve
+91,9,Cloyster,Bivalve
+92,9,Gastly,Gas
+93,9,Haunter,Gas
+94,9,Gengar,Shadow
+95,9,Onix,Rock Snake
+96,9,Drowzee,Hypnosis
+97,9,Hypno,Hypnosis
+98,9,Krabby,River Crab
+99,9,Kingler,Pincer
+100,9,Voltorb,Ball
+101,9,Electrode,Ball
+102,9,Exeggcute,Egg
+103,9,Exeggutor,Coconut
+104,9,Cubone,Lonely
+105,9,Marowak,Bone Keeper
+106,9,Hitmonlee,Kicking
+107,9,Hitmonchan,Punching
+108,9,Lickitung,Licking
+109,9,Koffing,Poison Gas
+110,9,Weezing,Poison Gas
+111,9,Rhyhorn,Spikes
+112,9,Rhydon,Drill
+113,9,Chansey,Egg
+114,9,Tangela,Vine
+115,9,Kangaskhan,Parent
+116,9,Horsea,Dragon
+117,9,Seadra,Dragon
+118,9,Goldeen,Goldfish
+119,9,Seaking,Goldfish
+120,9,Staryu,Star Shape
+121,9,Starmie,Mysterious
+122,9,Mr. Mime,Barrier
+123,9,Scyther,Mantis
+124,9,Jynx,Human Shape
+125,9,Electabuzz,Electric
+126,9,Magmar,Spitfire
+127,9,Pinsir,Stag Beetle
+128,9,Tauros,Wild Bull
+129,9,Magikarp,Fish
+130,9,Gyarados,Atrocious
+131,9,Lapras,Transport
+132,9,Ditto,Transform
+133,9,Eevee,Evolution
+134,9,Vaporeon,Bubble Jet
+135,9,Jolteon,Lightning
+136,9,Flareon,Flame
+137,9,Porygon,Virtual
+138,9,Omanyte,Spiral
+139,9,Omastar,Spiral
+140,9,Kabuto,Shellfish
+141,9,Kabutops,Shellfish
+142,9,Aerodactyl,Fossil
+143,9,Snorlax,Sleeping
+144,9,Articuno,Freeze
+145,9,Zapdos,Electric
+146,9,Moltres,Flame
+147,9,Dratini,Dragon
+148,9,Dragonair,Dragon
+149,9,Dragonite,Dragon
+150,9,Mewtwo,Genetic
+151,9,Mew,New Species
+152,9,Chikorita,Leaf
+153,9,Bayleef,Leaf
+154,9,Meganium,Herb
+155,9,Cyndaquil,Fire Mouse
+156,9,Quilava,Volcano
+157,9,Typhlosion,Volcano
+158,9,Totodile,Big Jaw
+159,9,Croconaw,Big Jaw
+160,9,Feraligatr,Big Jaw
+161,9,Sentret,Scout
+162,9,Furret,Long Body
+163,9,Hoothoot,Owl
+164,9,Noctowl,Owl
+165,9,Ledyba,Five Star
+166,9,Ledian,Five Star
+167,9,Spinarak,String Spit
+168,9,Ariados,Long Leg
+169,9,Crobat,Bat
+170,9,Chinchou,Angler
+171,9,Lanturn,Light
+172,9,Pichu,Tiny Mouse
+173,9,Cleffa,Star Shape
+174,9,Igglybuff,Balloon
+175,9,Togepi,Spike Ball
+176,9,Togetic,Happiness
+177,9,Natu,Tiny Bird
+178,9,Xatu,Mystic
+179,9,Mareep,Wool
+180,9,Flaaffy,Wool
+181,9,Ampharos,Light
+182,9,Bellossom,Flower
+183,9,Marill,Aqua Mouse
+184,9,Azumarill,Aqua Rabbit
+185,9,Sudowoodo,Imitation
+186,9,Politoed,Frog
+187,9,Hoppip,Cottonweed
+188,9,Skiploom,Cottonweed
+189,9,Jumpluff,Cottonweed
+190,9,Aipom,Long Tail
+191,9,Sunkern,Seed
+192,9,Sunflora,Sun
+193,9,Yanma,Clear Wing
+194,9,Wooper,Water Fish
+195,9,Quagsire,Water Fish
+196,9,Espeon,Sun
+197,9,Umbreon,Moonlight
+198,9,Murkrow,Darkness
+199,9,Slowking,Royal
+200,9,Misdreavus,Screech
+201,9,Unown,Symbol
+202,9,Wobbuffet,Patient
+203,9,Girafarig,Long Neck
+204,9,Pineco,Bagworm
+205,9,Forretress,Bagworm
+206,9,Dunsparce,Land Snake
+207,9,Gligar,Fly Scorpion
+208,9,Steelix,Iron Snake
+209,9,Snubbull,Fairy
+210,9,Granbull,Fairy
+211,9,Qwilfish,Balloon
+212,9,Scizor,Pincer
+213,9,Shuckle,Mold
+214,9,Heracross,Single Horn
+215,9,Sneasel,Sharp Claw
+216,9,Teddiursa,Little Bear
+217,9,Ursaring,Hibernator
+218,9,Slugma,Lava
+219,9,Magcargo,Lava
+220,9,Swinub,Pig
+221,9,Piloswine,Swine
+222,9,Corsola,Coral
+223,9,Remoraid,Jet
+224,9,Octillery,Jet
+225,9,Delibird,Delivery
+226,9,Mantine,Kite
+227,9,Skarmory,Armor Bird
+228,9,Houndour,Dark
+229,9,Houndoom,Dark
+230,9,Kingdra,Dragon
+231,9,Phanpy,Long Nose
+232,9,Donphan,Armor
+233,9,Porygon2,Virtual
+234,9,Stantler,Big Horn
+235,9,Smeargle,Painter
+236,9,Tyrogue,Scuffle
+237,9,Hitmontop,Handstand
+238,9,Smoochum,Kiss
+239,9,Elekid,Electric
+240,9,Magby,Live Coal
+241,9,Miltank,Milk Cow
+242,9,Blissey,Happiness
+243,9,Raikou,Thunder
+244,9,Entei,Volcano
+245,9,Suicune,Aurora
+246,9,Larvitar,Rock Skin
+247,9,Pupitar,Hard Shell
+248,9,Tyranitar,Armor
+249,9,Lugia,Diving
+250,9,Ho-Oh,Rainbow
+251,9,Celebi,Time Travel
+252,9,Treecko,Wood Gecko
+253,9,Grovyle,Wood Gecko
+254,9,Sceptile,Forest
+255,9,Torchic,Chick
+256,9,Combusken,Young Fowl
+257,9,Blaziken,Blaze
+258,9,Mudkip,Mud Fish
+259,9,Marshtomp,Mud Fish
+260,9,Swampert,Mud Fish
+261,9,Poochyena,Bite
+262,9,Mightyena,Bite
+263,9,Zigzagoon,Tiny Raccoon
+264,9,Linoone,Rushing
+265,9,Wurmple,Worm
+266,9,Silcoon,Cocoon
+267,9,Beautifly,Butterfly
+268,9,Cascoon,Cocoon
+269,9,Dustox,Poison Moth
+270,9,Lotad,Water Weed
+271,9,Lombre,Jolly
+272,9,Ludicolo,Carefree
+273,9,Seedot,Acorn
+274,9,Nuzleaf,Wily
+275,9,Shiftry,Wicked
+276,9,Taillow,Tiny Swallow
+277,9,Swellow,Swallow
+278,9,Wingull,Seagull
+279,9,Pelipper,Water Bird
+280,9,Ralts,Feeling
+281,9,Kirlia,Emotion
+282,9,Gardevoir,Embrace
+283,9,Surskit,Pond Skater
+284,9,Masquerain,Eyeball
+285,9,Shroomish,Mushroom
+286,9,Breloom,Mushroom
+287,9,Slakoth,Slacker
+288,9,Vigoroth,Wild Monkey
+289,9,Slaking,Lazy
+290,9,Nincada,Trainee
+291,9,Ninjask,Ninja
+292,9,Shedinja,Shed
+293,9,Whismur,Whisper
+294,9,Loudred,Big Voice
+295,9,Exploud,Loud Noise
+296,9,Makuhita,Guts
+297,9,Hariyama,Arm Thrust
+298,9,Azurill,Polka Dot
+299,9,Nosepass,Compass
+300,9,Skitty,Kitten
+301,9,Delcatty,Prim
+302,9,Sableye,Darkness
+303,9,Mawile,Deceiver
+304,9,Aron,Iron Armor
+305,9,Lairon,Iron Armor
+306,9,Aggron,Iron Armor
+307,9,Meditite,Meditate
+308,9,Medicham,Meditate
+309,9,Electrike,Lightning
+310,9,Manectric,Discharge
+311,9,Plusle,Cheering
+312,9,Minun,Cheering
+313,9,Volbeat,Firefly
+314,9,Illumise,Firefly
+315,9,Roselia,Thorn
+316,9,Gulpin,Stomach
+317,9,Swalot,Poison Bag
+318,9,Carvanha,Savage
+319,9,Sharpedo,Brutal
+320,9,Wailmer,Ball Whale
+321,9,Wailord,Float Whale
+322,9,Numel,Numb
+323,9,Camerupt,Eruption
+324,9,Torkoal,Coal
+325,9,Spoink,Bounce
+326,9,Grumpig,Manipulate
+327,9,Spinda,Spot Panda
+328,9,Trapinch,Ant Pit
+329,9,Vibrava,Vibration
+330,9,Flygon,Mystic
+331,9,Cacnea,Cactus
+332,9,Cacturne,Scarecrow
+333,9,Swablu,Cotton Bird
+334,9,Altaria,Humming
+335,9,Zangoose,Cat Ferret
+336,9,Seviper,Fang Snake
+337,9,Lunatone,Meteorite
+338,9,Solrock,Meteorite
+339,9,Barboach,Whiskers
+340,9,Whiscash,Whiskers
+341,9,Corphish,Ruffian
+342,9,Crawdaunt,Rogue
+343,9,Baltoy,Clay Doll
+344,9,Claydol,Clay Doll
+345,9,Lileep,Sea Lily
+346,9,Cradily,Barnacle
+347,9,Anorith,Old Shrimp
+348,9,Armaldo,Plate
+349,9,Feebas,Fish
+350,9,Milotic,Tender
+351,9,Castform,Weather
+352,9,Kecleon,Color Swap
+353,9,Shuppet,Puppet
+354,9,Banette,Marionette
+355,9,Duskull,Requiem
+356,9,Dusclops,Beckon
+357,9,Tropius,Fruit
+358,9,Chimecho,Wind Chime
+359,9,Absol,Disaster
+360,9,Wynaut,Bright
+361,9,Snorunt,Snow Hat
+362,9,Glalie,Face
+363,9,Spheal,Clap
+364,9,Sealeo,Ball Roll
+365,9,Walrein,Ice Break
+366,9,Clamperl,Bivalve
+367,9,Huntail,Deep Sea
+368,9,Gorebyss,South Sea
+369,9,Relicanth,Longevity
+370,9,Luvdisc,Rendezvous
+371,9,Bagon,Rock Head
+372,9,Shelgon,Endurance
+373,9,Salamence,Dragon
+374,9,Beldum,Iron Ball
+375,9,Metang,Iron Claw
+376,9,Metagross,Iron Leg
+377,9,Regirock,Rock Peak
+378,9,Regice,Iceberg
+379,9,Registeel,Iron
+380,9,Latias,Eon
+381,9,Latios,Eon
+382,9,Kyogre,Sea Basin
+383,9,Groudon,Continent
+384,9,Rayquaza,Sky High
+385,9,Jirachi,Wish
+386,9,Deoxys,DNA
+387,9,Turtwig,Tiny Leaf
+388,9,Grotle,Grove
+389,9,Torterra,Continent
+390,9,Chimchar,Chimp
+391,9,Monferno,Playful
+392,9,Infernape,Flame
+393,9,Piplup,Penguin
+394,9,Prinplup,Penguin
+395,9,Empoleon,Emperor
+396,9,Starly,Starling
+397,9,Staravia,Starling
+398,9,Staraptor,Predator
+399,9,Bidoof,Plump Mouse
+400,9,Bibarel,Beaver
+401,9,Kricketot,Cricket
+402,9,Kricketune,Cricket
+403,9,Shinx,Flash
+404,9,Luxio,Spark
+405,9,Luxray,Gleam Eyes
+406,9,Budew,Bud
+407,9,Roserade,Bouquet
+408,9,Cranidos,Head Butt
+409,9,Rampardos,Head Butt
+410,9,Shieldon,Shield
+411,9,Bastiodon,Shield
+412,9,Burmy,Bagworm
+413,9,Wormadam,Bagworm
+414,9,Mothim,Moth
+415,9,Combee,Tiny Bee
+416,9,Vespiquen,Beehive
+417,9,Pachirisu,EleSquirrel
+418,9,Buizel,Sea Weasel
+419,9,Floatzel,Sea Weasel
+420,9,Cherubi,Cherry
+421,9,Cherrim,Blossom
+422,9,Shellos,Sea Slug
+423,9,Gastrodon,Sea Slug
+424,9,Ambipom,Long Tail
+425,9,Drifloon,Balloon
+426,9,Drifblim,Blimp
+427,9,Buneary,Rabbit
+428,9,Lopunny,Rabbit
+429,9,Mismagius,Magical
+430,9,Honchkrow,Big Boss
+431,9,Glameow,Catty
+432,9,Purugly,Tiger Cat
+433,9,Chingling,Bell
+434,9,Stunky,Skunk
+435,9,Skuntank,Skunk
+436,9,Bronzor,Bronze
+437,9,Bronzong,Bronze Bell
+438,9,Bonsly,Bonsai
+439,9,Mime Jr.,Mime
+440,9,Happiny,Playhouse
+441,9,Chatot,Music Note
+442,9,Spiritomb,Forbidden
+443,9,Gible,Land Shark
+444,9,Gabite,Cave
+445,9,Garchomp,Mach
+446,9,Munchlax,Big Eater
+447,9,Riolu,Emanation
+448,9,Lucario,Aura
+449,9,Hippopotas,Hippo
+450,9,Hippowdon,Heavyweight
+451,9,Skorupi,Scorpion
+452,9,Drapion,Ogre Scorpion
+453,9,Croagunk,Toxic Mouth
+454,9,Toxicroak,Toxic Mouth
+455,9,Carnivine,Bug Catcher
+456,9,Finneon,Wing Fish
+457,9,Lumineon,Neon
+458,9,Mantyke,Kite
+459,9,Snover,Frost Tree
+460,9,Abomasnow,Frost Tree
+461,9,Weavile,Sharp Claw
+462,9,Magnezone,Magnet Area
+463,9,Lickilicky,Licking
+464,9,Rhyperior,Drill
+465,9,Tangrowth,Vine
+466,9,Electivire,Thunderbolt
+467,9,Magmortar,Blast
+468,9,Togekiss,Jubilee
+469,9,Yanmega,Ogre Darner
+470,9,Leafeon,Verdant
+471,9,Glaceon,Fresh Snow
+472,9,Gliscor,Fang Scorpion
+473,9,Mamoswine,Twin Tusk
+474,9,Porygon-Z,Virtual
+475,9,Gallade,Blade
+476,9,Probopass,Compass
+477,9,Dusknoir,Gripper
+478,9,Froslass,Snow Land
+479,9,Rotom,Plasma
+480,9,Uxie,Knowledge
+481,9,Mesprit,Emotion
+482,9,Azelf,Willpower
+483,9,Dialga,Temporal
+484,9,Palkia,Spatial
+485,9,Heatran,Lava Dome
+486,9,Regigigas,Colossal
+487,9,Giratina,Renegade
+488,9,Cresselia,Lunar
+489,9,Phione,Sea Drifter
+490,9,Manaphy,Seafaring
+491,9,Darkrai,Pitch-Black
+492,9,Shaymin,Gratitude
+493,9,Arceus,Alpha
+494,9,Victini,Victory
+495,9,Snivy,Grass Snake
+496,9,Servine,Grass Snake
+497,9,Serperior,Regal
+498,9,Tepig,Fire Pig
+499,9,Pignite,Fire Pig
+500,9,Emboar,Mega Fire Pig
+501,9,Oshawott,Sea Otter
+502,9,Dewott,Discipline
+503,9,Samurott,Formidable
+504,9,Patrat,Scout
+505,9,Watchog,Lookout
+506,9,Lillipup,Puppy
+507,9,Herdier,Loyal Dog
+508,9,Stoutland,Big-Hearted
+509,9,Purrloin,Devious
+510,9,Liepard,Cruel
+511,9,Pansage,Grass Monkey
+512,9,Simisage,Thorn Monkey
+513,9,Pansear,High Temp
+514,9,Simisear,Ember
+515,9,Panpour,Spray
+516,9,Simipour,Geyser
+517,9,Munna,Dream Eater
+518,9,Musharna,Drowsing
+519,9,Pidove,Tiny Pigeon
+520,9,Tranquill,Wild Pigeon
+521,9,Unfezant,Proud
+522,9,Blitzle,Electrified
+523,9,Zebstrika,Thunderbolt
+524,9,Roggenrola,Mantle
+525,9,Boldore,Ore
+526,9,Gigalith,Compressed
+527,9,Woobat,Bat
+528,9,Swoobat,Courting
+529,9,Drilbur,Mole
+530,9,Excadrill,Subterrene
+531,9,Audino,Hearing
+532,9,Timburr,Muscular
+533,9,Gurdurr,Muscular
+534,9,Conkeldurr,Muscular
+535,9,Tympole,Tadpole
+536,9,Palpitoad,Vibration
+537,9,Seismitoad,Vibration
+538,9,Throh,Judo
+539,9,Sawk,Karate
+540,9,Sewaddle,Sewing
+541,9,Swadloon,Leaf-Wrapped
+542,9,Leavanny,Nurturing
+543,9,Venipede,Centipede
+544,9,Whirlipede,Curlipede
+545,9,Scolipede,Megapede
+546,9,Cottonee,Cotton Puff
+547,9,Whimsicott,Windveiled
+548,9,Petilil,Bulb
+549,9,Lilligant,Flowering
+550,9,Basculin,Hostile
+551,9,Sandile,Desert Croc
+552,9,Krokorok,Desert Croc
+553,9,Krookodile,Intimidation
+554,9,Darumaka,Zen Charm
+555,9,Darmanitan,Blazing
+556,9,Maractus,Cactus
+557,9,Dwebble,Rock Inn
+558,9,Crustle,Stone Home
+559,9,Scraggy,Shedding
+560,9,Scrafty,Hoodlum
+561,9,Sigilyph,Avianoid
+562,9,Yamask,Spirit
+563,9,Cofagrigus,Coffin
+564,9,Tirtouga,Prototurtle
+565,9,Carracosta,Prototurtle
+566,9,Archen,First Bird
+567,9,Archeops,First Bird
+568,9,Trubbish,Trash Bag
+569,9,Garbodor,Trash Heap
+570,9,Zorua,Tricky Fox
+571,9,Zoroark,Illusion Fox
+572,9,Minccino,Chinchilla
+573,9,Cinccino,Scarf
+574,9,Gothita,Fixation
+575,9,Gothorita,Manipulate
+576,9,Gothitelle,Astral Body
+577,9,Solosis,Cell
+578,9,Duosion,Mitosis
+579,9,Reuniclus,Multiplying
+580,9,Ducklett,Water Bird
+581,9,Swanna,White Bird
+582,9,Vanillite,Fresh Snow
+583,9,Vanillish,Icy Snow
+584,9,Vanilluxe,Snowstorm
+585,9,Deerling,Season
+586,9,Sawsbuck,Season
+587,9,Emolga,Sky Squirrel
+588,9,Karrablast,Clamping
+589,9,Escavalier,Cavalry
+590,9,Foongus,Mushroom
+591,9,Amoonguss,Mushroom
+592,9,Frillish,Floating
+593,9,Jellicent,Floating
+594,9,Alomomola,Caring
+595,9,Joltik,Attaching
+596,9,Galvantula,EleSpider
+597,9,Ferroseed,Thorn Seed
+598,9,Ferrothorn,Thorn Pod
+599,9,Klink,Gear
+600,9,Klang,Gear
+601,9,Klinklang,Gear
+602,9,Tynamo,EleFish
+603,9,Eelektrik,EleFish
+604,9,Eelektross,EleFish
+605,9,Elgyem,Cerebral
+606,9,Beheeyem,Cerebral
+607,9,Litwick,Candle
+608,9,Lampent,Lamp
+609,9,Chandelure,Luring
+610,9,Axew,Tusk
+611,9,Fraxure,Axe Jaw
+612,9,Haxorus,Axe Jaw
+613,9,Cubchoo,Chill
+614,9,Beartic,Freezing
+615,9,Cryogonal,Crystallizing
+616,9,Shelmet,Snail
+617,9,Accelgor,Shell Out
+618,9,Stunfisk,Trap
+619,9,Mienfoo,Martial Arts
+620,9,Mienshao,Martial Arts
+621,9,Druddigon,Cave
+622,9,Golett,Automaton
+623,9,Golurk,Automaton
+624,9,Pawniard,Sharp Blade
+625,9,Bisharp,Sword Blade
+626,9,Bouffalant,Bash Buffalo
+627,9,Rufflet,Eaglet
+628,9,Braviary,Valiant
+629,9,Vullaby,Diapered
+630,9,Mandibuzz,Bone Vulture
+631,9,Heatmor,Anteater
+632,9,Durant,Iron Ant
+633,9,Deino,Irate
+634,9,Zweilous,Hostile
+635,9,Hydreigon,Brutal
+636,9,Larvesta,Torch
+637,9,Volcarona,Sun
+638,9,Cobalion,Iron Will
+639,9,Terrakion,Cavern
+640,9,Virizion,Grassland
+641,9,Tornadus,Cyclone
+642,9,Thundurus,Bolt Strike
+643,9,Reshiram,Vast White
+644,9,Zekrom,Deep Black
+645,9,Landorus,Abundance
+646,9,Kyurem,Boundary
+647,9,Keldeo,Colt
+648,9,Meloetta,Melody
+649,9,Genesect,Paleozoic
+650,9,Chespin,Spiny Nut
+651,9,Quilladin,Spiny Armor
+652,9,Chesnaught,Spiny Armor
+653,9,Fennekin,Fox
+654,9,Braixen,Fox
+655,9,Delphox,Fox
+656,9,Froakie,Bubble Frog
+657,9,Frogadier,Bubble Frog
+658,9,Greninja,Ninja
+659,9,Bunnelby,Digging
+660,9,Diggersby,Digging
+661,9,Fletchling,Tiny Robin
+662,9,Fletchinder,Ember
+663,9,Talonflame,Scorching
+664,9,Scatterbug,Scatterdust
+665,9,Spewpa,Scatterdust
+666,9,Vivillon,Scale
+667,9,Litleo,Lion Cub
+668,9,Pyroar,Royal
+669,9,Flabébé,Single Bloom
+670,9,Floette,Single Bloom
+671,9,Florges,Garden
+672,9,Skiddo,Mount
+673,9,Gogoat,Mount
+674,9,Pancham,Playful
+675,9,Pangoro,Daunting
+676,9,Furfrou,Poodle
+677,9,Espurr,Restraint
+678,9,Meowstic,Constraint
+679,9,Honedge,Sword
+680,9,Doublade,Sword
+681,9,Aegislash,Royal Sword
+682,9,Spritzee,Perfume
+683,9,Aromatisse,Fragrance
+684,9,Swirlix,Cotton Candy
+685,9,Slurpuff,Meringue
+686,9,Inkay,Revolving
+687,9,Malamar,Overturning
+688,9,Binacle,Two-Handed
+689,9,Barbaracle,Collective
+690,9,Skrelp,Mock Kelp
+691,9,Dragalge,Mock Kelp
+692,9,Clauncher,Water Gun
+693,9,Clawitzer,Howitzer
+694,9,Helioptile,Generator
+695,9,Heliolisk,Generator
+696,9,Tyrunt,Royal Heir
+697,9,Tyrantrum,Despot
+698,9,Amaura,Tundra
+699,9,Aurorus,Tundra
+700,9,Sylveon,Intertwining
+701,9,Hawlucha,Wrestling
+702,9,Dedenne,Antenna
+703,9,Carbink,Jewel
+704,9,Goomy,Soft Tissue
+705,9,Sliggoo,Soft Tissue
+706,9,Goodra,Dragon
+707,9,Klefki,Key Ring
+708,9,Phantump,Stump
+709,9,Trevenant,Elder Tree
+710,9,Pumpkaboo,Pumpkin
+711,9,Gourgeist,Pumpkin
+712,9,Bergmite,Ice Chunk
+713,9,Avalugg,Iceberg
+714,9,Noibat,Sound Wave
+715,9,Noivern,Sound Wave
+716,9,Xerneas,Life
+717,9,Yveltal,Destruction
+718,9,Zygarde,Order
+719,9,Diancie,Jewel
+720,9,Hoopa,Mischief
+721,9,Volcanion,Steam

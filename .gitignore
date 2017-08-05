@@ -12,8 +12,6 @@ docs/_build
 # PCBOT specific
 config
 plugins/osulib/oppai
-plugins/pokedexlib/create_lib.py
-plugins/pokedexlib/csv/
 
 # Additional executable files
 *.bat
