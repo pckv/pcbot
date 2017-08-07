@@ -447,7 +447,7 @@ async def on_message(message: discord.Message):
 
     # Log time spent parsing the command
     stop_time = datetime.utcnow()
-    time_elapsed = (stop_time - start_time).total_seconds() / 1000
+    time_elapsed = (stop_time - start_time).total_seconds() * 1000
     logging.debug("Time spent parsing command: {elapsed:.6f}ms".format(elapsed=time_elapsed))
 
 
