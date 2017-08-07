@@ -482,15 +482,18 @@ def main():
     parser.add_argument("--log-level", "-l",
                         help="Use the specified logging level (see the docs on logging for values).",
                         type=lambda s: getattr(logging, s.upper()), default=logging.INFO, metavar="LEVEL")
+    parser.add_argument("--enable-protocol-logging", "-p", help="Enables logging protocol events. THESE SPAM THE LOG.",
+                        action="store_true")
     start_args = parser.parse_args()
 
     # Setup logger with level specified in start_args or logging.INFO
     logging.basicConfig(level=start_args.log_level,
                         format="%(levelname)s %(asctime)s [%(module)s / %(name)s]: %(message)s")
 
-    # Always keep discord.py logger at INFO as a minimum
-    discord_logger = logging.getLogger("discord")
-    discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
+    # Always keep the websockets.protocol logger at INFO as a minimum unless --enable-protocol-logging is set
+    if not start_args.enable_protocol_logging:
+        discord_logger = logging.getLogger("websockets.protocol")
+        discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
 
     # Setup some config for more customization
     bot_meta = config.Config("bot_meta", pretty=True, data=dict(
