@@ -18,6 +18,7 @@ client = plugins.client  # type: discord.Client
 
 pastas = Config("pastas", data={})
 pasta_cache = {}  # list of generate_pasta tuples to cache
+embed_color = discord.Color.dark_grey()
 
 
 async def generate_pasta(name: str):
@@ -38,7 +39,7 @@ async def generate_pasta(name: str):
         name, ", ".join(get_close_matches(parsed_name, pastas.data.keys(), cutoff=0.5)))
 
     text = pastas.data[parsed_name]
-    embed = await convert_to_embed(text)
+    embed = await convert_to_embed(text, color=embed_color)
 
     # Add the url to the message content itself when it's not an image
     content = None
@@ -106,6 +107,7 @@ async def on_message(message: discord.Message):
             embed = copy(embed)
             if embed:
                 embed.set_footer(text=str(message.author))
+                embed.color = message.author.color
 
             await client.send_message(message.channel, content, embed=embed)
         finally:

@@ -241,7 +241,7 @@ def get_user_url(member_id: str):
     """ Return the user website URL. """
     user_id = osu_config.data["profiles"][member_id]
 
-    if api.ripple_regex.match(user_id):
+    if api.ripple_pattern.match(user_id):
         return "https://ripple.moe/u/" + user_id[7:]
     else:
         return host + "u/" + user_id
@@ -307,7 +307,7 @@ async def update_user_data():
 
         # Update the "new" data
         osu_tracking[member_id]["new"] = user_data
-        osu_tracking[member_id]["new"]["ripple"] = True if api.ripple_regex.match(profile) else False
+        osu_tracking[member_id]["new"]["ripple"] = True if api.ripple_pattern.match(profile) else False
 
 
 async def get_new_score(member_id: str):
@@ -697,7 +697,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
 
     # Convert their user_id to a ripple id
     user_id = osu_user["user_id"]
-    if api.ripple_regex.match(name):
+    if api.ripple_pattern.match(name):
         user_id = "ripple:" + user_id
 
     # Assign the user using their unique user_id

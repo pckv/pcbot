@@ -14,7 +14,7 @@ api_key = ""
 requests_sent = 0
 
 ripple_url = "https://ripple.moe/api/"
-ripple_regex = re.compile(r"ripple:\s*(?P<data>.+)")
+ripple_pattern = re.compile(r"ripple:\s*(?P<data>.+)")
 
 
 def set_api_key(s: str):
@@ -114,7 +114,7 @@ def def_section(api_name: str, first_element: bool=False):
 
         # Convert ripple id properly and change the url
         if "u" in params:
-            ripple = ripple_regex.match(params["u"])
+            ripple = ripple_pattern.match(params["u"])
             if ripple:
                 params["u"] = ripple.group("data")
                 url = ripple_url
@@ -152,13 +152,13 @@ get_user_recent = def_section("get_user_recent")
 get_match = def_section("get_match", first_element=True)
 get_replay = def_section("get_replay")
 
-beatmap_url_regex = re.compile(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)")
+beatmap_url_pattern = re.compile(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)")
 
 
 async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
     """ Takes a url and returns the beatmap in the specified gamemode.
     If a url for a submission is given, it will find the most difficult map. """
-    match = beatmap_url_regex.match(url)
+    match = beatmap_url_pattern.match(url)
 
     # If there was no match, the operation was unsuccessful
     if not match:
@@ -187,7 +187,7 @@ async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
 
 async def beatmapset_from_url(url: str):
     """ Takes a url and returns the beatmapset of the specified beatmap. """
-    match = beatmap_url_regex.match(url)
+    match = beatmap_url_pattern.match(url)
 
     # If there was no match, the operation was unsuccessful
     if not match:

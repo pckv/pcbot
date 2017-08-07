@@ -407,24 +407,28 @@ async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
     :param kwargs: Any kwargs to be passed to discord.Embed's init function. """
     url = None
     embed = discord.Embed(**kwargs)
-    url_match = http_url_pattern.search(text)
 
-    # Handle urls
-    if url_match:
-        url = url_match.group(0)
-        headers = await retrieve_headers(url)
+    # Find the first url or None
+    for word in text.split():
+        url_match = http_url_pattern.match(word)
 
-        # Remove the url from the text and use it as a description
-        text = text.replace(url, "")
-        embed.description = text or None
+        # Handle urls
+        if url_match:
+            url = url_match.group(0)
+            headers = await retrieve_headers(url)
 
-        # If the url is an image, embed it
-        if "image" in headers["Content-Type"]:
-            embed.set_image(url=url)
+            # Remove the url from the text and use it as a description
+            text = text.replace(url, "")
+            embed.description = text or None
 
-        # If the embed isn't an image, we'll just use it as the embed url
-        else:
-            embed.url = url
+            # If the url is an image, embed it
+            if "image" in headers["Content-Type"]:
+                embed.set_image(url=url)
+
+            # If the embed isn't an image, we'll just use it as the embed url
+            else:
+                embed.url = url
+            break
     else:
         embed.description = text
 
