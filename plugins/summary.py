@@ -24,10 +24,10 @@ update_task.set()
 
 # Define some regexes for option checking in "summary" command
 valid_num = re.compile(r"\*(?P<num>\d+)")
-valid_member = utils.member_mention_regex
+valid_member = utils.member_mention_pattern
 valid_member_silent = re.compile(r"@\((?P<name>.+)\)")
 valid_role = re.compile(r"<@&(?P<id>\d+)>")
-valid_channel = utils.channel_mention_regex
+valid_channel = utils.channel_mention_pattern
 valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"

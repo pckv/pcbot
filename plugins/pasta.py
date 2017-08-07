@@ -4,36 +4,62 @@ Commands:
     pasta
 """
 
-from random import choice
 from difflib import get_close_matches
+from random import choice
 
 import discord
 import asyncio
 
-from pcbot import Config, Annotate
+from pcbot import Config, Annotate, convert_to_embed
 import plugins
 client = plugins.client  # type: discord.Client
 
 
 pastas = Config("pastas", data={})
+pasta_cache = {}  # list of generate_pasta tuples to cache
 
 
-@plugins.command(aliases="paste")
-async def pasta(message: discord.Message, name: Annotate.LowerContent):
-    """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
-        pasta action. You also need quotes around `<name>` if it has any spaces. """
-    # Display a random pasta
-    assert not name == ".", choice(list(pastas.data.values()))
+async def generate_pasta(name: str):
+    """ Generate a pasta embed. """
+    # Return the optionally cached result
+    if name in pasta_cache:
+        return pasta_cache[name]
 
-    # We don't use spaces in pastas at all
+    # Choose a random pasta when the name is .
+    if name == ".":
+        name = choice(list(pastas.data.values()))
+
+    # Remove spaces as pastas are space independent
     parsed_name = name.replace(" ", "")
 
     # Pasta might not be in the set
     assert parsed_name in pastas.data, "Pasta `{}` is undefined.\nPerhaps you meant: `{}`?".format(
         name, ", ".join(get_close_matches(parsed_name, pastas.data.keys(), cutoff=0.5)))
 
-    # Display the specified pasta
-    await client.say(message, pastas.data[parsed_name])
+    text = pastas.data[parsed_name]
+    embed = await convert_to_embed(text)
+
+    # Add the url to the message content itself when it's not an image
+    content = None
+    if embed.url and embed.image.url == embed.Empty:
+        content = embed.url
+        embed.url = None
+
+    if len(embed.to_dict()) <= 1:
+        embed = None
+
+    # Cache the result and return
+    generated = (embed, content)
+    pasta_cache[name] = generated
+    return generated
+
+
+@plugins.command(aliases="paste")
+async def pasta(message: discord.Message, name: Annotate.LowerContent):
+    """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
+        pasta action. You also need quotes around `<name>` if it has any spaces. """
+    embed, content = await generate_pasta(name)
+    await client.send_message(message.channel, content, embed=embed)
 
 
 @pasta.command(aliases="a create set")
@@ -71,8 +97,13 @@ async def on_message(message: discord.Message):
         if message.channel.permissions_for(message.server.me).manage_messages:
             asyncio.ensure_future(client.delete_message(message))
         try:
-            await pasta(message, message.content[1:].lower())
+            embed, content = await generate_pasta(message.content[1:].lower())
         except AssertionError as e:
             await client.say(message, e)
+        else:
+            if embed:
+                embed.set_footer(text=str(message.author))
+
+            await client.send_message(message.channel, content, embed=embed)
         finally:
             return True

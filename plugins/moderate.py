@@ -194,7 +194,7 @@ async def suspend(message: discord.Message, channel: discord.Channel=Annotate.Se
 @plugins.argument("{open}member/#channel {suffix}{close}", pass_message=True)
 def members_and_channels(message: discord.Message, arg: str):
     """ Look for both members and channel mentions. """
-    if utils.channel_mention_regex.match(arg):
+    if utils.channel_mention_pattern.match(arg):
         return utils.find_channel(message.server, arg)
 
     return utils.find_member(message.server, arg)

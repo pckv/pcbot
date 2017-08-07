@@ -18,9 +18,10 @@ from asyncio import subprocess as sub
 from pcbot import Config, config
 
 
-member_mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
-channel_mention_regex = re.compile(r"<#(?P<id>\d+)>")
-markdown_code_regex = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
+member_mention_pattern = re.compile(r"<@!?(?P<id>\d+)>")
+channel_mention_pattern = re.compile(r"<#(?P<id>\d+)>")
+markdown_code_pattern = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
+http_url_pattern = re.compile(r"https?://[a-z0-9-]+\.[a-z0-9-.]+(?:/\S+)?", flags=re.IGNORECASE)
 identifier_prefix = re.compile(r"[a-zA-Z_]")
 
 client = None  # Declare the Client. For python 3.6: client: discord.Client
@@ -257,7 +258,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     member = None
 
     # Return a member from mention
-    found_mention = member_mention_regex.search(name)
+    found_mention = member_mention_pattern.search(name)
     if found_mention and mention:
         member = server.get_member(found_mention.group("id"))
         return member
@@ -311,7 +312,7 @@ def find_channel(server: discord.Server, name, steps=3, mention=True, channel_ty
         raise TypeError("channel_type must be discord.ChannelType or a str of a discord.ChannelType attribute")
 
     # Return a member from mention
-    found_mention = channel_mention_regex.search(name)
+    found_mention = channel_mention_pattern.search(name)
     if found_mention and mention and channel_type is discord.ChannelType.text:
         channel = server.get_channel(found_mention.group("id"))
 
@@ -373,7 +374,7 @@ def get_formatted_code(code: str):
     :param code: Code formatted in markdown.
     :return: str: Code. """
     code = code.strip(" \n")
-    match = markdown_code_regex.match(code)
+    match = markdown_code_pattern.match(code)
 
     if match:
         code = match.group("code")
@@ -396,6 +397,42 @@ def format_code(code: str, language: str=None, *, simple: bool=False):
         return "`{}`".format(code)
     else:
         return "```{}\n{}```".format(language or "", code)
+
+
+async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
+    """ Convert text to an embed, where urls will be embedded if the url is an image.
+
+    :param text: str to convert.
+    :param author: Additionally format an author.
+    :param kwargs: Any kwargs to be passed to discord.Embed's init function. """
+    url = None
+    embed = discord.Embed(**kwargs)
+    url_match = http_url_pattern.search(text)
+
+    # Handle urls
+    if url_match:
+        url = url_match.group(0)
+        headers = await retrieve_headers(url)
+
+        # Remove the url from the text and use it as a description
+        text = text.replace(url, "")
+        embed.description = text or None
+
+        # If the url is an image, embed it
+        if "image" in headers["Content-Type"]:
+            embed.set_image(url=url)
+
+        # If the embed isn't an image, we'll just use it as the embed url
+        else:
+            embed.url = url
+    else:
+        embed.description = text
+
+    # Set the author if given
+    if author:
+        embed.set_author(name=author.display_name, icon_url=author.avatar_url, url=url)
+
+    return embed
 
 
 def text_to_emoji(text: str):
