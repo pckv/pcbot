@@ -4,6 +4,7 @@ Commands:
     pasta
 """
 
+from copy import copy
 from difflib import get_close_matches
 from random import choice
 
@@ -101,6 +102,8 @@ async def on_message(message: discord.Message):
         except AssertionError as e:
             await client.say(message, e)
         else:
+            # Copy the embed in order to not screw the cache up, and set the footer to the author
+            embed = copy(embed)
             if embed:
                 embed.set_footer(text=str(message.author))
 
