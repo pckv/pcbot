@@ -164,7 +164,7 @@ def command(**options):
         if usage_suffix is not None:
             usage = lambda server: name_prefix(server) + " " + usage_suffix
         else:
-            usage = None
+            usage = lambda server: None
 
         # Properly format description when using docstrings
         # Kinda like markdown; new line = (blank line) or (/ at end of line)

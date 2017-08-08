@@ -343,7 +343,7 @@ def format_syntax_error(e: Exception):
     return "{0.text}\n{1:>{0.offset}}\n{2}: {0}".format(e, "^", type(e).__name__).replace("\n\n", "\n")
 
 
-def format_objects(*objects, attr=None, dec: str= "", sep: str= ", "):
+def format_objects(*objects, attr=None, dec: str="", sep: str=None):
     """ Return a formatted string of objects (User, Member, Channel or Server) using
     the given decorator and the given separator.
 
@@ -359,10 +359,13 @@ def format_objects(*objects, attr=None, dec: str= "", sep: str= ", "):
     if attr is None:
         if isinstance(first_object, discord.User):
             attr = "display_name"
-        elif isinstance(first_object, discord.Channel):
+        elif isinstance(first_object, discord.Channel) or isinstance(first_object, discord.Role):
             attr = "mention"
+            sep = " "
         elif isinstance(first_object, discord.Server):
             attr = "name"
+
+    sep = sep if sep is not None else ", "
 
     return sep.join(dec + getattr(m, attr) + dec for m in objects)
 

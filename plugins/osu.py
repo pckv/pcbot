@@ -978,8 +978,8 @@ async def scores(message: discord.Message, *channels: discord.Channel):
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["score-channels"] = list(c.id for c in channels)
     osu_config.save()
-    await client.say(message, "**Notifying scores in {}.**".format(
-        utils.format_objects(*channels) or "no channels"))
+    await client.say(message, "**Notifying scores in**: {}".format(
+        utils.format_objects(*channels, sep=" ") or "no channels"))
 
 
 @config.command(alias="map", permissions="manage_server")
@@ -988,8 +988,8 @@ async def maps(message: discord.Message, *channels: discord.Channel):
     init_server_config(message.server)
     osu_config.data["server"][message.server.id]["map-channels"] = list(c.id for c in channels)
     osu_config.save()
-    await client.say(message, "**Notifying map updates in {}.**".format(
-        utils.format_objects(*channels) or "no channels"))
+    await client.say(message, "**Notifying map updates in**: {}".format(
+        utils.format_objects(*channels, sep=" ") or "no channels"))
 
 
 @osu.command(owner=True)
