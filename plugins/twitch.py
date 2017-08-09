@@ -19,13 +19,13 @@ client = plugins.client  # type: discord.Client
 twitch_config = Config("twitch-config", data=dict(servers={}))
 
 
-@plugins.command()
-async def twitch(message: discord.Message, _: utils.placeholder):
+@plugins.command(name="twitch")
+async def twitch_group(message: discord.Message, _: utils.placeholder):
     """ The twitch subcommand. """
     pass
 
 
-@twitch.command(name="channels")
+@twitch_group.command(name="channels")
 async def notify_channels(message: discord.Message, *channels: discord.Channel):
     """ Specify channels to notify when a member goes live, or use no arguments to disable. """
     if message.server.id not in twitch_config.data["servers"]:
