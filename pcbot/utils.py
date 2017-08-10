@@ -408,8 +408,8 @@ async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
     :param text: str to convert.
     :param author: Additionally format an author.
     :param kwargs: Any kwargs to be passed to discord.Embed's init function. """
-    url = None
     embed = discord.Embed(**kwargs)
+    url = embed.Empty
 
     # Find the first url or None
     for word in text.split():
