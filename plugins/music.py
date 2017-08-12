@@ -37,10 +37,15 @@ client = plugins.client  # type: discord.Client
 music_channels = Config("music_channels", data=[])
 voice_states = {}  # type: Dict[discord.Server, VoiceState]
 youtube_dl_options = dict(
+    format="bestaudio/best",
+    extractaudio=True,
+    audioformat="mp3",
+    noplaylist=True,
     default_search="auto",
     quiet=True,
     nocheckcertificate=True
 )
+ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 
 max_songs_queued = 2  # How many songs each member are allowed in the queue at once
 max_song_length = 60 * 120  # The maximum song length in seconds
@@ -162,7 +167,8 @@ async def play(message: discord.Message, song: Annotate.CleanContent):
     song = song.strip("< >`")
 
     try:
-        player = await state.voice.create_ytdl_player(song, ytdl_options=youtube_dl_options, after=state.play_next)
+        player = await state.voice.create_ytdl_player(song, ytdl_options=youtube_dl_options, after=state.play_next,
+                                                      before_options=ffmpeg_before_options)
     except:
         await client.say(message, "**Could not add this song to the queue.**")
         print_exc()
