@@ -104,7 +104,7 @@ def set_server_config(server: discord.Server, key: str, value):
 
 def server_command_prefix(server: discord.Server):
     """ Get the server's command prefix. """
-    if server.id in server_config.data:
+    if server is not None and server.id in server_config.data:
         return server_config.data[server.id].get("command_prefix", default_command_prefix)
 
     return default_command_prefix
@@ -112,7 +112,7 @@ def server_command_prefix(server: discord.Server):
 
 def server_case_sensitive_commands(server: discord.Server):
     """ Get the server's case sensitivity settings. """
-    if server.id in server_config.data:
+    if server is not None and server.id in server_config.data:
         return server_config.data[server.id].get("case_sensitive_commands", default_case_sensitive_commands)
 
     return default_case_sensitive_commands

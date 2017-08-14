@@ -143,10 +143,14 @@ async def delete_message(message: discord.Message, response: str, pattern: str):
 
 async def on_message(message: discord.Message):
     """ Handle any message accordingly to the data in the blacklist config. """
+    # We don't care about private channels
+    if message.channel.is_private:
+        return
+
     channel_config = complete_config(message)
 
-    # We don't care about private channels and we might not care about bots
-    if message.channel.is_private or (message.author.bot and channel_config.bots is False):
+    # Skip bots if told to
+    if message.author.bot and not channel_config.bots:
         return
 
     # Exclude any members in the exclude list

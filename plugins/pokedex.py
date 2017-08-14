@@ -15,7 +15,7 @@ import discord
 import json
 
 import plugins
-from pcbot import Config, permission, Annotate, server_command_prefix
+from pcbot import Config, Annotate, server_command_prefix, utils
 
 try:
     from PIL import Image
@@ -83,10 +83,7 @@ def resize_sprite(sprite, factor: float):
     image = image.resize((width, height), Image.NEAREST)
 
     # Return the byte-like object
-    buffer = BytesIO()
-    image.save(buffer, "PNG")
-    buffer.seek(0)
-    return buffer
+    return utils.conv
 
 
 def format_type(types: list):
@@ -135,7 +132,8 @@ async def pokedex_(message: discord.Message, name_or_id: Annotate.LowerCleanCont
     # Assign our pokemon
     pokemon = pokedex[name]
 
-    if message.channel.permissions_for(message.server.me).attach_files:
+    # Send an image if the bots has Attach Files permission or the message is a dm
+    if message.server is None or message.channel.permissions_for(message.server.me).attach_files:
         # Get the server's scale factor
         if not message.channel.is_private \
                 and message.server.id in pokedex_config.data and "scale-factor" in pokedex_config.data[message.server.id]:
@@ -315,15 +313,14 @@ async def effect(message: discord.Message, type: str.lower):
     await client.say(message, format_efficacy([type]))
 
 
-@permission("manage_server")
-@pokedex_.command(disabled_pm=True, aliases="sf")
+@pokedex_.command(disabled_pm=True, aliases="sf", permissions="manage_server")
 async def scalefactor(message: discord.Message, factor: float=default_scale_factor):
     """ Set the image scaling factor for your server. If no factor is given, the default is set. /
     **This command requires the `Manage Server` permission.**"""
-    assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(
-        factor, max_scale_factor)
-    assert min_scale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(
-        factor, min_scale_factor)
+    assert not factor == 0, "If you wish to disable images, remove the `Attach Files` permission from this bot."
+
+    assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(factor, max_scale_factor)
+    assert min_scale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(factor, min_scale_factor)
 
     if message.server.id not in pokedex_config.data:
         pokedex_config.data[message.server.id] = {}
@@ -332,9 +329,9 @@ async def scalefactor(message: discord.Message, factor: float=default_scale_fact
     if factor == default_scale_factor:
         if "scale-factor" in pokedex_config.data[message.server.id]:
             del pokedex_config.data[message.server.id]["scale-factor"]
-            reply = "Pokédex image scale factor reset to **{factor}**."
+            reply = "Pokédex image scale factor reset to default: **{factor}**."
         else:
-            reply = "Pokédex image scale factor is **{factor}**."
+            reply = "Pokédex image scale factor is **{factor}** (default)."
     else:
         pokedex_config.data[message.server.id]["scale-factor"] = factor
         reply = "Pokédex image scale factor set to **{factor}**."
