@@ -1,7 +1,8 @@
 """ API integration for osu!
 
     Adds Mods enums with raw value calculations and some
-    request functions. """
+    request functions.
+"""
 
 from enum import Enum
 import re
@@ -19,7 +20,8 @@ ripple_pattern = re.compile(r"ripple:\s*(?P<data>.+)")
 
 def set_api_key(s: str):
     """ Set the osu! API key. This simplifies every API function as they
-    can exclude the "k" parameter. """
+    can exclude the "k" parameter.
+    """
     global api_key
     api_key = s
 
@@ -99,7 +101,8 @@ class Mods(Enum):
     def format_mods(cls, mods):
         """ Return a string with the mods in a sorted format, such as DTHD.
 
-        mods is either a bitwise or a list of mod enums. """
+        mods is either a bitwise or a list of mod enums.
+        """
         if type(mods) is int:
             mods = cls.list_mods(mods)
         assert type(mods) is list
@@ -152,12 +155,17 @@ get_user_recent = def_section("get_user_recent")
 get_match = def_section("get_match", first_element=True)
 get_replay = def_section("get_replay")
 
-beatmap_url_pattern = re.compile(r"http[s]?://osu.ppy.sh/(?P<type>b|s)/(?P<id>\d+)")
+beatmap_url_pattern = re.compile(r"http[s]?://osu.ppy.sh/(?P<type>[bs])/(?P<id>\d+)")
 
 
-async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
+async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard, *, return_type: str="beatmap"):
     """ Takes a url and returns the beatmap in the specified gamemode.
-    If a url for a submission is given, it will find the most difficult map. """
+    If a url for a submission is given, it will find the most difficult map.
+
+    :param url: The url to lookup. Must be a osu.ppy.sh url of /b/<id> or /s/<id>.
+    :param mode: The GameMode to lookup.
+    :param return_type: Defaults to "beatmap". Use "id" to only return the id (spares a request for /b/ urls).
+    """
     match = beatmap_url_pattern.match(url)
 
     # If there was no match, the operation was unsuccessful
@@ -166,6 +174,9 @@ async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
 
     # Get the beatmap specified
     if match.group("type") == "b":
+        if return_type == "id":
+            return match.group("id")
+
         difficulties = await get_beatmaps(b=match.group("id"), m=mode.value, limit=1)
     else:
         difficulties = await get_beatmaps(s=match.group("id"), m=mode.value)
@@ -181,6 +192,9 @@ async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard):
         stars = float(diff["difficultyrating"])
         if stars > highest:
             beatmap, highest = diff, stars
+
+    if return_type == "id":
+        return beatmap["beatmap_id"]
 
     return beatmap
 
@@ -216,8 +230,9 @@ async def beatmapset_from_url(url: str):
 def lookup_beatmap(beatmaps: list, **lookup):
     """ Finds and returns the first beatmap with the lookup specified.
 
-    Beatmaps is a list of beatmaps and could be used with get_beatmaps()
-    Lookup is any key stored in a beatmap from get_beatmaps() """
+    Beatmaps is a list of beatmap dicts and could be used with get_beatmaps().
+    Lookup is any key stored in a beatmap from get_beatmaps().
+    """
     if not beatmaps:
         return None
 
@@ -238,7 +253,8 @@ def lookup_beatmap(beatmaps: list, **lookup):
 
 def rank_from_events(events: dict, beatmap_id: str):
     """ Return the rank of the first score of given beatmap_id from a
-    list of events gathered via get_user() or None. """
+    list of events gathered via get_user().
+    """
     for event in events:
         if event["beatmap_id"] == beatmap_id:
             match = re.search(r"rank\s#(?P<rank>\d+)(?:<|\s)", event["display_html"])

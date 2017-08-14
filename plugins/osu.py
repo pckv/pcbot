@@ -18,12 +18,10 @@ TUTORIAL:
     This plugin might send a lot of requests, so keep up to date with the
     !osu debug command.
 
-    The pp command requires that you setup the "oppai" lib:
-    https://github.com/Francesco149/oppai
+    The pp command requires that you setup pyoppai
+    https://github.com/Francesco149/oppai/tree/master/pyoppai
 
-    The directory would be "/plugins/osulib/oppai/". It should be setup so that
-    the bot can run "/plugins/osulib/oppai/oppai" as an executable. On Windows
-    the executable would be "/oppai.exe".
+    Check the readme in the link above for install instructions.
 
 Commands:
     osu
@@ -31,9 +29,7 @@ Commands:
 """
 
 import logging
-import os
 import re
-import sys
 from datetime import datetime
 from enum import Enum
 from traceback import print_exc
@@ -45,7 +41,7 @@ from aiohttp import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate
-from plugins.osulib import api, Mods
+from plugins.osulib import api, Mods, calculate_pp, pyoppai
 
 
 client = plugins.client  # type: discord.Client
@@ -79,13 +75,6 @@ max_diff_length = 32  # The maximum amount of characters in a beatmap difficulty
 
 api.set_api_key(osu_config.data.get("key"))
 host = "https://osu.ppy.sh/"
-oppai_path = "plugins/osulib/oppai/"  # Path to oppai lib for pp calculations
-last_calc_beatmap = dict(beatmap_url="---")  # The last calculated beatmap info
-
-pp_pattern = re.compile(r"(?P<pp>[0-9.e+]+)pp$")
-data_pattern = re.compile(r"(?P<name>.+)\s\[(?P<version>.*)\]")
-stars_pattern = re.compile(r"([0-9.e+]+)\sstars")
-oppai_exceptions = (NotImplementedError, FileNotFoundError, LookupError, ValueError)
 
 gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
@@ -399,7 +388,8 @@ async def notify_pp(member_id: str, data: dict):
             options = [score["count100"] + "x100", score["count50"] + "x50",
                        "+" + Mods.format_mods(int(score["enabled_mods"]))]
             try:
-                potential_pp = await calculate_pp("https://osu.ppy.sh/b/{}".format(score["beatmap_id"]), *options)
+                pp_stats = await calculate_pp("https://osu.ppy.sh/b/{}".format(score["beatmap_id"]), *options)
+                potential_pp = pp_stats.pp
             except:
                 pass
 
@@ -800,150 +790,21 @@ async def url(message: discord.Message, member: discord.Member=Annotate.Self,
         member, get_user_url(member.id), "#_{}".format(section) if section else ""))
 
 
-async def run_oppai(beatmap_url: str, *options):
-    """ Run oppai and return the output.
-
-    :raises: NotImplementedError, FileNotFoundError, ValueError, LookupError
-    """
-    global last_calc_beatmap
-
-    # Make sure the bot has access to "oppai" lib
-    if not os.path.exists(os.path.join(oppai_path, "oppai" + (".exe" if sys.platform == "win32" else ""))):
-        raise FileNotFoundError("This service is unavailable until the owner sets up the `oppai` lib.")
-
-    # Only download and request when the beatmap url is different
-    if not last_calc_beatmap["beatmap_url"] == beatmap_url:
-        # Parse beatmap URL and download the beatmap .osu
-        try:
-            beatmap = await api.beatmap_from_url(beatmap_url)
-        except SyntaxError as e:  # URL is invalid, perhaps it's a .osu file?
-            try:
-                headers = await utils.retrieve_headers(beatmap_url)
-            except ValueError as e:  # URL is not a URL
-                raise ValueError(e)
-
-            # Try finding out if this is a valid .osu file
-            if not ("text/plain" in headers.get("Content-Type", "")
-                    and ".osu" in headers.get("Content-Disposition", "")):
-                raise ValueError(e)
-
-            # Download the file and set our last beatmap URL.
-            beatmap_file = await utils.download_file(beatmap_url)
-            beatmap = dict(beatmap_url=beatmap_url)
-        else:
-            beatmap["beatmap_url"] = beatmap_url
-
-            # Download the beatmap though the osu! website
-            beatmap_file = await utils.download_file(host + "osu/" + str(beatmap["beatmap_id"]))
-
-        # Save the beatmap pp_map.osu
-        with open(os.path.join(oppai_path, "pp_map.osu"), "wb") as f:
-            f.write(beatmap_file)
-    else:
-        beatmap = last_calc_beatmap
-
-    last_calc_beatmap = beatmap
-    command_args = [os.path.join(oppai_path, "oppai"), os.path.join(oppai_path, "pp_map.osu")]
-
-    # Add additional options
-    command_args.extend(options)
-    return await utils.subprocess(*command_args)
-
-
-async def calculate_pp(beatmap_url: str, *options):
-    """ Get only the would be pp from the given beatmap. """
-    output = await run_oppai(beatmap_url, *options)
-
-    # Search for the pp, which should be in the very end
-    pp_match = pp_pattern.search(output)
-
-    # The library did not return the pp
-    if not pp_match:
-        raise Exception("A problem occurred when parsing the beatmap.")
-
-    return float(pp_match.group("pp"))
-
-
-async def find_closest_pp(beatmap_url: str, pp: float, *options):
-    """ Run oppai on a beatmap with increasing amount of 100s until it gives
-    pp as close as possible to the given pp value.
-
-    It is a given that amount of 100s should not be included in options.
-
-    This function returns the amount of 100s needed, not the pp. """
-    previous_pp = max_pp = await calculate_pp(beatmap_url, *options)
-    min_pp = round(7/8 * max_pp, 2)
-
-    # The pp value must be within a close range of what the map actually gives
-    if pp < min_pp or pp > max_pp:
-        raise ValueError("The given pp value must be between **{}pp** and **{}pp** for this map.".format(min_pp, max_pp))
-
-    c100 = 1
-    while True:
-        new_options = list(options)
-        new_options.append("{}x100".format(c100))
-        current_pp = await calculate_pp(beatmap_url, *new_options)
-
-        # Stop when we find a pp value between the current 100 count and the previous one
-        if current_pp <= pp <= previous_pp:
-            break
-        else:
-            previous_pp = current_pp
-            c100 += 1
-
-    # Find the closest pp of our two values, and return the amount of 100s
-    closest_pp = min([previous_pp, current_pp], key=lambda v: abs(pp - v))
-    return c100 if closest_pp == current_pp else c100 - 1
-
-
-@plugins.command(name="pp")
 async def pp_(message: discord.Message, beatmap_url: str, *options):
-    """ Calculate and return the would be pp using `oppai`.
+    """ Calculate and return the would be pp using `pyoppai`.
 
     Options are a parsed set of command-line arguments:  /
     `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`
-    /
-    **Additionally**, PCBOT includes a *find closest pp* feature. This works as an
-    argument in the options, formatted like `[pp_value]pp`"""
-    # Turn the options tuple into a list so that we can change it if necessary
-    options = list(options)
+    """
+    pp_stats = await calculate_pp(beatmap_url, *options)
 
-    # If a pp value is specified, run the calculation with the amount of 100s closest to this value
-    pp_search_match = pp_pattern.search(" ".join(options))
-    if pp_search_match:
-        # Generate a new list without any given number of 100s, and remove the pp value from the options
-        options = [s for s in options if not s.endswith("x100")]
-        options.remove(pp_search_match.group())
-
-        try:
-            c100 = await find_closest_pp(beatmap_url, float(pp_search_match.group("pp")), *options)
-        except oppai_exceptions as e:
-            raise AssertionError(e)
-        else:
-            options.append("{}x100".format(c100))
-
-    try:
-        output = await run_oppai(beatmap_url, *options)
-    except oppai_exceptions as e:
-        raise AssertionError(e)
-
-    # Search for the pp, which should be in the very end
-    pp_match = pp_pattern.search(output)
-
-    # The library did not return the pp. Perhaps the user did something wrong?
-    assert pp_match, "A problem occurred when parsing the beatmap."
-
-    # Since a pp formatted string was found, we assume that these ones are present
-    data_match = data_pattern.search(output)
-    stars_match = stars_pattern.search(output)
-
-    # We're done! Tell the user how much this score is worth.
-    await client.say(message, "*{name}* **[{version}] {1}** {stars}\u2605 would be worth `{0:,}pp`.".format(
-        float(pp_match.group("pp")), " ".join(options),
-        stars=stars_match.group(1), **data_match.groupdict()))
+    await client.say(message, "*{artist} - {title}* **[{version}] {0}** {stars:.02f}\u2605 would be worth `{pp:,.02f}pp`.".format(
+        " ".join(options), **pp_stats._asdict()))
 
 
-osu.command(name="pp")(pp_)
+if pyoppai is not None:
+    plugins.command(name="pp")(pp_)
+    osu.command(name="pp")(pp_)
 
 
 @osu.command(aliases="map")
