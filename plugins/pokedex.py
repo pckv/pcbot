@@ -83,7 +83,7 @@ def resize_sprite(sprite, factor: float):
     image = image.resize((width, height), Image.NEAREST)
 
     # Return the byte-like object
-    return utils.conv
+    return utils.convert_image_object(image)
 
 
 def format_type(types: list):
