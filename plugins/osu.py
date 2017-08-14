@@ -41,7 +41,7 @@ from aiohttp import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate
-from plugins.osulib import api, Mods, calculate_pp, pyoppai
+from plugins.osulib import api, Mods, calculate_pp, pyoppai, PPStats, ClosestPPStats
 
 
 client = plugins.client  # type: discord.Client
@@ -796,7 +796,20 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
     Options are a parsed set of command-line arguments:  /
     `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`
     """
-    pp_stats = await calculate_pp(beatmap_url, *options)
+    try:
+        pp_stats = await calculate_pp(beatmap_url, *options)
+    except ValueError as e:
+        await client.say(message, e)
+        return
+
+    options = list(options)
+    if type(pp_stats) is ClosestPPStats:
+        # Remove any accuracy percentage from options as we're setting this manually, and remove unused options
+        for opt in options:
+            if opt.endswith("%") or opt.endswith("pp") or opt.endswith("x300") or opt.endswith("x100") or opt.endswith("x50"):
+                options.remove(opt)
+
+        options.insert(0, "{}%".format(pp_stats.acc))
 
     await client.say(message, "*{artist} - {title}* **[{version}] {0}** {stars:.02f}\u2605 would be worth `{pp:,.02f}pp`.".format(
         " ".join(options), **pp_stats._asdict()))

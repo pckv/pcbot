@@ -18,7 +18,8 @@ except:
 host = "https://osu.ppy.sh/"
 
 Beatmap = namedtuple("Beatmap", "url size")
-PPStats = namedtuple("PPStats", "pp acc stars artist title version")
+PPStats = namedtuple("PPStats", "pp stars artist title version")
+ClosestPPStats = namedtuple("ClosestPPStats", "acc pp stars artist title version")
 last_calc_beatmap = Beatmap(url=None, size=None)
 
 oppai_path = "plugins/osulib/oppai/"
@@ -78,18 +79,11 @@ def create_ctx(beatmap: Beatmap):
     return ctx, beatmap_ctx
 
 
-async def calculate_pp(beatmap_url: str, *options):
-    """ Return a PPStats namedtuple from this beatmap. """
-    if pyoppai is None:
-        return None
+def apply_settings(beatmap_ctx, args):
+    """ Applies settings to the ctx using parsed arguments.
 
-    beatmap = await download_beatmap(beatmap_url)
-    ctx, beatmap_ctx = create_ctx(beatmap)
-    args = parse_options(*options)
-
-    # Create the difficulty context for calculating
-    diff_ctx = pyoppai.new_d_calc_ctx(ctx)
-
+    Also return the mods bitmask for use during pp calculation.
+    """
     # Find the mod bitmask and optionally apply mods
     mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
     if not mods_bitmask == 0:
@@ -103,6 +97,27 @@ async def calculate_pp(beatmap_url: str, *options):
     if args.od is not None:
         pyoppai.set_od(beatmap_ctx, args.od)
 
+    return mods_bitmask
+
+
+async def calculate_pp(beatmap_url: str, *options):
+    """ Return a PPStats namedtuple from this beatmap, or a ClosestPPStats namedtuple
+    when [pp_value]pp is given in the options. """
+    if pyoppai is None:
+        return None
+
+    beatmap = await download_beatmap(beatmap_url)
+    args = parse_options(*options)
+
+    # If the pp arg is given, return using the closest pp function
+    if args.pp is not None:
+        return await find_closest_pp(beatmap, args.pp, args)
+
+    ctx, beatmap_ctx = create_ctx(beatmap)
+
+    # Create the difficulty context for calculating
+    diff_ctx = pyoppai.new_d_calc_ctx(ctx)
+    mods_bitmask = apply_settings(beatmap_ctx, args)
     stars, aim, speed, _, _, _, _ = pyoppai.d_calc(diff_ctx, beatmap_ctx)
 
     # Calculate using only acc when acc is specified
@@ -113,37 +128,53 @@ async def calculate_pp(beatmap_url: str, *options):
         acc, pp, _, _, _ = pyoppai.pp_calc(
             ctx, aim, speed, beatmap_ctx, mods_bitmask, args.combo, args.misses, args.c300, args.c100, args.c50, args.score_version)
 
-    return PPStats(pp, acc, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx), pyoppai.version(beatmap_ctx))
+    return PPStats(pp, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx), pyoppai.version(beatmap_ctx))
 
 
-async def _find_closest_pp(beatmap_url: str, pp: float, *options):
-    """ Run oppai on a beatmap with increasing amount of 100s until it gives
-    pp as close as possible to the given pp value.
+async def find_closest_pp(beatmap, pp: float, args):
+    """ Find the accuracy required to get the given amount of pp from this map. """
+    if pyoppai is None:
+        return None
 
-    It is a given that amount of 100s should not be included in options.
+    ctx, beatmap_ctx = create_ctx(beatmap)
 
-    This function returns the amount of 100s needed, not the pp. """
-    # TODO: reimplement
-    previous_pp = max_pp = await calculate_pp(beatmap_url, *options)
-    min_pp = round(7/8 * max_pp, 2)
+    # Create the difficulty context for calculating
+    diff_ctx = pyoppai.new_d_calc_ctx(ctx)
+    mods_bitmask = apply_settings(beatmap_ctx, args)
+    stars, aim, speed, _, _, _, _ = pyoppai.d_calc(diff_ctx, beatmap_ctx)
 
-    # The pp value must be within a close range of what the map actually gives
-    if pp < min_pp or pp > max_pp:
-        raise ValueError("The given pp value must be between **{}pp** and **{}pp** for this map.".format(min_pp, max_pp))
+    # Define a partial command for easily setting the pp value by 100s count
+    def calc(accuracy: float):
+        return pyoppai.pp_calc_acc(
+            ctx, aim, speed, beatmap_ctx, accuracy, mods_bitmask, args.combo, args.misses, args.score_version)[1]
 
-    c100 = 1
+    # Find the smallest possible value with oppai
+    min_pp = calc(accuracy=0.0)
+    if pp <= min_pp:
+        raise ValueError("The given pp value is too low (oppai gives **{:.02f}pp** at **0% acc**).".format(min_pp))
+
+    # Calculate the max pp value by using 0x100
+    previous_pp = calc(accuracy=100.0)
+
+    if pp >= previous_pp:
+        raise ValueError("PP value should be below **{:.02f}pp** for this map.".format(previous_pp))
+
+    acc = 100.0
+    inc = .01
     while True:
-        new_options = list(options)
-        new_options.append("{}x100".format(c100))
-        current_pp = await calculate_pp(beatmap_url, *new_options)
+        current_pp = calc(accuracy=acc)
 
         # Stop when we find a pp value between the current 100 count and the previous one
         if current_pp <= pp <= previous_pp:
             break
         else:
             previous_pp = current_pp
-            c100 += 1
+            acc -= inc
+            if inc < 0.25:
+                inc += .0001
 
     # Find the closest pp of our two values, and return the amount of 100s
     closest_pp = min([previous_pp, current_pp], key=lambda v: abs(pp - v))
-    return c100 if closest_pp == current_pp else c100 - 1
+    acc = acc if closest_pp == current_pp else acc + inc
+    return ClosestPPStats(round(acc, 2), closest_pp, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx),
+                          pyoppai.version(beatmap_ctx))
