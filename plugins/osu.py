@@ -433,7 +433,7 @@ async def notify_pp(member_id: str, data: dict):
 
         # Add potential pp in the footer
         if potential_pp:
-            embed.set_footer(text="Potential: {0:,}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
+            embed.set_footer(text="Potential: {0:,.2f}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
 
         for i, channel in enumerate(channels):
             try:
