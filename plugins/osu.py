@@ -41,7 +41,7 @@ from aiohttp import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate
-from plugins.osulib import api, Mods, calculate_pp, pyoppai, PPStats, ClosestPPStats
+from plugins.osulib import api, Mods, calculate_pp, pyoppai, ClosestPPStats
 
 
 client = plugins.client  # type: discord.Client
@@ -374,8 +374,7 @@ async def notify_pp(member_id: str, data: dict):
 
     # If a new score was found, format the score
     if score:
-        beatmap_search = await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1)
-        beatmap = api.lookup_beatmap(beatmap_search)
+        beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1))[0]
         stream_url = getattr(member.game, "url", None)
 
         # There might not be any events
@@ -418,10 +417,10 @@ async def notify_pp(member_id: str, data: dict):
         primary_server = get_primary_server(member.id)
         is_primary = True if primary_server is None else (True if primary_server == server.id else False)
 
-        # Format the url link and the username
+        # Format the url and the username
         user_url = get_user_url(member.id)
         name = "{member.mention} [`{ripple}{name}`]({url})".format(member=member, name=new["username"], url=user_url,
-                                                                        ripple="ripple: " if new["ripple"] else "")
+                                                                   ripple="ripple: " if new["ripple"] else "")
 
         embed = discord.Embed(color=member.color, url=user_url)
         embed.description = m
@@ -793,8 +792,14 @@ async def url(message: discord.Message, member: discord.Member=Annotate.Self,
 async def pp_(message: discord.Message, beatmap_url: str, *options):
     """ Calculate and return the would be pp using `pyoppai`.
 
+    The beatmap url should either be a link to a beatmap /b/ or /s/, or an
+    uploaded .osu file.
+
     Options are a parsed set of command-line arguments:  /
-    `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version]`
+    `([acc]% | [num_100s]x100 [num_50s]x50) +[mods] [combo]x [misses]m scorev[scoring_version] ar[ar] od[od] cs[cs]`
+
+    **Additionally**, PCBOT includes a *find closest pp* feature. This works as an
+    argument in the options, formatted like `[pp_value]pp`
     """
     try:
         pp_stats = await calculate_pp(beatmap_url, *options)

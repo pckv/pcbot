@@ -49,6 +49,10 @@ def mods(s: str):
     # Find and add all identified mods
     for name in names:
         for mod in Mods:
+            # Skip duplicate mods
+            if mod in mod_list:
+                continue
+
             if mod.name.lower() == name.lower():
                 mod_list.append(mod)
                 break
@@ -65,7 +69,7 @@ parser.add("c50", r"(\d+)x50", type=int, default=0)
 parser.add("misses", r"(\d+)m", type=int, default=0)
 parser.add("combo", r"(\d+)x", type=int, default=0xFFFF)
 parser.add("mods", r"\+(\w+)", type=mods)
-parser.add("score_version", r"scorev(\d)", type=int, default=1)
+parser.add("score_version", r"scorev([12])", type=int, default=1)
 
 parser.add("ar", r"ar([0-9.]+)", type=float)
 parser.add("cs", r"cs([0-9.]+)", type=float)

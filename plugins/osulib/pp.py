@@ -1,5 +1,5 @@
-""" Implement pp calculation features using oppai.
-https://github.com/Francesco149/oppai
+""" Implement pp calculation features using pyoppai.
+    https://github.com/Francesco149/oppai/tree/master/pyoppai
 """
 
 import os
@@ -47,7 +47,7 @@ async def download_beatmap(beatmap_url: str):
     try:
         beatmap_id = await api.beatmap_from_url(beatmap_url, return_type="id")
     except SyntaxError as e:
-        # Since the beatmap isn't a osu.ppy.sh url, we'll see if it's a .osu file
+        # Since the beatmap isn't an osu.ppy.sh url, we'll see if it's a .osu file
         if not await is_osu_file(beatmap_url):
             raise ValueError(e)
 
@@ -111,7 +111,7 @@ async def calculate_pp(beatmap_url: str, *options):
 
     # If the pp arg is given, return using the closest pp function
     if args.pp is not None:
-        return await find_closest_pp(beatmap, args.pp, args)
+        return await find_closest_pp(beatmap, args)
 
     ctx, beatmap_ctx = create_ctx(beatmap)
 
@@ -131,7 +131,7 @@ async def calculate_pp(beatmap_url: str, *options):
     return PPStats(pp, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx), pyoppai.version(beatmap_ctx))
 
 
-async def find_closest_pp(beatmap, pp: float, args):
+async def find_closest_pp(beatmap, args):
     """ Find the accuracy required to get the given amount of pp from this map. """
     if pyoppai is None:
         return None
@@ -148,33 +148,32 @@ async def find_closest_pp(beatmap, pp: float, args):
         return pyoppai.pp_calc_acc(
             ctx, aim, speed, beatmap_ctx, accuracy, mods_bitmask, args.combo, args.misses, args.score_version)[1]
 
-    # Find the smallest possible value with oppai
+    # Find the smallest possible value oppai is willing to give
     min_pp = calc(accuracy=0.0)
-    if pp <= min_pp:
+    if args.pp <= min_pp:
         raise ValueError("The given pp value is too low (oppai gives **{:.02f}pp** at **0% acc**).".format(min_pp))
 
-    # Calculate the max pp value by using 0x100
+    # Calculate the max pp value by using 100% acc
     previous_pp = calc(accuracy=100.0)
 
-    if pp >= previous_pp:
+    if args.pp >= previous_pp:
         raise ValueError("PP value should be below **{:.02f}pp** for this map.".format(previous_pp))
 
-    acc = 100.0
-    inc = .01
+    dec = .05
+    acc = 100.0 - dec
     while True:
         current_pp = calc(accuracy=acc)
+        print(acc, dec, current_pp)
 
         # Stop when we find a pp value between the current 100 count and the previous one
-        if current_pp <= pp <= previous_pp:
+        if current_pp <= args.pp <= previous_pp:
             break
         else:
             previous_pp = current_pp
-            acc -= inc
-            if inc < 0.25:
-                inc += .0001
+            acc -= dec
 
     # Find the closest pp of our two values, and return the amount of 100s
-    closest_pp = min([previous_pp, current_pp], key=lambda v: abs(pp - v))
-    acc = acc if closest_pp == current_pp else acc + inc
+    closest_pp = min([previous_pp, current_pp], key=lambda v: abs(args.pp - v))
+    acc = acc if closest_pp == current_pp else acc + dec
     return ClosestPPStats(round(acc, 2), closest_pp, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx),
                           pyoppai.version(beatmap_ctx))
