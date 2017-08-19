@@ -86,9 +86,41 @@ def resize_sprite(sprite, factor: float):
     return utils.convert_image_object(image)
 
 
-def format_type(types: list):
+def format_type(*types):
     """ Format a string from a list of a pokemon's types. """
-    return " | ".join(t.capitalize() for t in types)
+    return " | ".join(t.capitalize() for t in types if t is not None)
+
+
+def get_pokemon(name_or_id: str, assert_on_error: bool=True):
+    """ Returns a pokemon with the given name or id string. """
+    # Get the requested pokemon name
+    name = name_or_id
+    try:
+        pokemon_id = int(name_or_id)
+    except ValueError:
+        # See if there's a pokemon with the locale name formatted like the given name
+        for pokemon in pokedex.values():
+            if pokemon["locale_name"].lower() == name:
+                name = pokemon["name"]
+                break
+
+        # Correct the name if it is very close to an existing pokemon and there's only one close match
+        matches = get_close_matches(name, pokedex.keys(), n=2, cutoff=0.8)
+        if matches and len(matches) == 1:
+            name = matches[0]
+
+        if name not in pokedex:
+            assert not assert_on_error, "There is no pokémon called **{}** in my pokédex!\nPerhaps you meant: `{}`?".format(
+                name, ", ".join(get_close_matches(name, pokedex.keys(), cutoff=0.5)))
+            return None
+    else:
+        name = id_to_name(pokemon_id)
+
+        if name is None:
+            assert not assert_on_error, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
+            return None
+
+    return name
 
 
 @plugins.command(name="pokedex", aliases="pd pokemon dex")
@@ -107,27 +139,8 @@ async def pokedex_(message: discord.Message, name_or_id: Annotate.LowerCleanCont
         else:
             name_or_id = name_or_id.replace(" ", "")
 
-    # Get the requested pokemon name
-    name = name_or_id
-    try:
-        pokemon_id = int(name_or_id)
-    except ValueError:
-        # See if there's a pokemon with the locale name formatted like the given name
-        for pokemon in pokedex.values():
-            if pokemon["locale_name"].lower() == name:
-                name = pokemon["name"]
-                break
-
-        # Correct the name if it is very close to an existing pokemon and there's only one close match
-        matches = get_close_matches(name, pokedex.keys(), n=2, cutoff=0.8)
-        if matches and len(matches) == 1:
-            name = matches[0]
-
-        assert name in pokedex, "There is no pokémon called **{}** in my pokédex!\nPerhaps you meant: `{}`?".format(
-            name, ", ".join(get_close_matches(name, pokedex.keys(), cutoff=0.5)))
-    else:
-        name = id_to_name(pokemon_id)
-        assert name is not None, "There is no pokémon with ID **#{:03}** in my pokédex!".format(pokemon_id)
+    # Get the name of the specified pokemon
+    name = get_pokemon(name_or_id)
 
     # Assign our pokemon
     pokemon = pokedex[name]
@@ -180,7 +193,7 @@ async def pokedex_(message: discord.Message, name_or_id: Annotate.LowerCleanCont
         "**EVOLUTION**: {formatted_evolution}"
     ).format(
         upper_name=pokemon["locale_name"].upper(),
-        type=format_type(pokemon["types"]),
+        type=format_type(*pokemon["types"]),
         formatted_evolution=" **->** ".join(" **/** ".join(pokedex[name]["locale_name"].upper() for name in names)
                                             for names in pokemon["evolution"]),
         pokemon_go=pokemon_go_info,
@@ -245,35 +258,78 @@ def assert_type(slot: str, server: discord.Server):
 types_str = "**Valid types are** ```\n{}```".format(", ".join(s.capitalize() for s in api["types"]))
 
 
-def format_efficacy(types: list):
+def attack_method(type):
+    """ Iterate through the pokemon type's attack damage factor. """
+    for damage_type, damage in api["types"][type]["damage_factor"].items():
+        yield damage_type, damage
+
+
+def defense_method(type):
+    """ Iterate through the pokemon type's defense damage factor. """
+    for value in api["types"].values():
+        yield value["name"], value["damage_factor"][type]
+
+
+def resolve_damage_factor(method, type_1: str, type_2: str=None):
+    """ Combine the damage factors when there are two types. """
+    damage_factor = {k: 0 for k in api["types"].keys()}
+
+    if not type_2:
+        for damage_type, damage in method(type_1):
+            damage_factor[damage_type] = damage
+    else:
+        for damage_type_1, damage_1 in method(type_1):
+            for damage_type_2, damage_2 in method(type_2):
+                if damage_type_1 == damage_type_2:
+                    damage_factor[damage_type_1] = damage_1 * damage_2
+
+    return damage_factor
+
+
+def format_damage(method, type_1: str, type_2: str=None):
+    """ Formats the effective, ineffective and no effect lists with type names
+    based on the damage factor.
+    """
+    damage_factor = resolve_damage_factor(method, type_1, type_2)
+    effective, ineffective, useless = [], [], []
+
+    for damage_type, damage in damage_factor.items():
+        name = damage_type.capitalize()
+
+        if damage == 4:
+            effective.append(name + " x2")
+        elif damage == 2:
+            effective.append(name)
+        elif damage == 0.5:
+            ineffective.append(name)
+        elif damage == 0.25:
+            ineffective.append(name + " x2")
+        elif damage == 0:
+            useless.append(name)
+
+    return effective, ineffective, useless
+
+
+def format_specific_efficacy(method, type_1: str, type_2: str=None):
+    """ Format the efficacy string specifically for defense or attack. """
+    effective, ineffective, useless = format_damage(method, type_1, type_2)
+    type_name = format_type(type_1, type_2)
+    s = "**{}** \N{EN DASH} **{}**\n".format(type_name, "DEFENSE" if method is defense_method else "ATTACK")
+    if effective:
+        s += "Super effective: `{}`\n".format(", ".join(effective))
+    if ineffective:
+        s += "Not very effective: `{}`\n".format(", ".join(ineffective))
+    if useless:
+        s += "No effect: `{}`\n".format(", ".join(useless))
+
+    return s
+
+
+def format_efficacy(type_1: str, type_2: str=None):
     """ Format an efficacy string so that we can use this function for
     multiple commands. """
-    efficacy = ""
-    for type_name in types:
-        efficacy += \
-            "**{0} OFFENSIVE**\n" \
-            "Super effective against: `{1}`\n" \
-            "Not very effective against: `{2}`\n".format(
-                type_name.upper(),
-                ", ".join(s.capitalize() for s in sorted(api["types"][type_name]["effective"])) or "None",
-                ", ".join(s.capitalize() for s in sorted(api["types"][type_name]["ineffective"])) or "None")
-
-        # Find any type which is effective and ineffective against type_name
-        effective, ineffective = [], []
-        for other_type_name in api["types"]:
-            if type_name in api["types"][other_type_name]["effective"]:
-                effective.append(other_type_name)
-            elif type_name in api["types"][other_type_name]["ineffective"]:
-                ineffective.append(other_type_name)
-
-        efficacy += \
-            "**{0} DEFENSIVE**\n" \
-            "Not very effective against {1} type: `{2}`\n" \
-            "Super effective against {1} type: `{3}`\n".format(
-                type_name.upper(),
-                type_name,
-                ", ".join(s.capitalize() for s in sorted(ineffective)) or "None",
-                ", ".join(s.capitalize() for s in sorted(effective)) or "None")
+    efficacy = format_specific_efficacy(attack_method, type_1, type_2)
+    efficacy += format_specific_efficacy(defense_method, type_1, type_2)
     return efficacy.strip("\n")
 
 
@@ -296,21 +352,33 @@ async def filter_type(message: discord.Message, slot_1: str.lower, slot_2: str.l
             if pokemon["types"][0] == slot_1:
                 matched_pokemon.append(pokemon["locale_name"])
 
-    types = [slot_1] if slot_2 is None else [slot_1, slot_2]
-
     # There might not be any pokemon with the specified types
-    assert matched_pokemon, "Looks like there are no pokemon of type **{}**!".format(format_type(types))
+    assert matched_pokemon, "Looks like there are no pokemon of type **{}**!".format(format_type(slot_1, slot_2))
 
     await client.say(message, "**Pokemon with type {}**: ```\n{}```".format(
-        format_type(types), ", ".join(sorted(matched_pokemon))))
+        format_type(slot_1, slot_2), ", ".join(sorted(matched_pokemon))))
 
 
 @pokedex_.command(aliases="e",
-                  description="Display type efficacy (effectiveness) of the specified type. {}".format(types_str))
-async def effect(message: discord.Message, type: str.lower):
-    assert_type(type, message.server)
+                  description="Display type efficacy (effectiveness) of the specified type or pokemon. {}".format(types_str))
+async def effect(message: discord.Message, slot_1_or_pokemon: str.lower, slot_2: str.lower=None):
+    name = get_pokemon(slot_1_or_pokemon, assert_on_error=False)
+    formatted = ""
+    if name:
+        types = pokedex[name]["types"]
+        slot_1 = types[0]
+        if len(types) > 1:
+            slot_2 = types[1]
+        formatted += "Using types of **{}**:\n\n".format(name.capitalize())
+    else:
+        slot_1 = slot_1_or_pokemon
 
-    await client.say(message, format_efficacy([type]))
+    assert_type(slot_1, message.server)
+    if slot_2:
+        assert_type(slot_2, message.server)
+
+    formatted += format_efficacy(slot_1, slot_2)
+    await client.say(message, formatted)
 
 
 @pokedex_.command(disabled_pm=True, aliases="sf", permissions="manage_server")

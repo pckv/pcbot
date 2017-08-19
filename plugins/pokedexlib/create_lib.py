@@ -118,8 +118,7 @@ def main():
                 pokedex["types"][type_name_] = dict(
                     id=int(row["type_id"]),
                     name=type_name_,
-                    effective=[],
-                    ineffective=[]
+                    damage_factor={}
                 )
 
     with open("csv/pokemon_species_names.csv", encoding="utf-8") as f:
@@ -180,12 +179,14 @@ def main():
         for row in r:
             name = get_type_name(int(row["damage_type_id"]))
             name_target = get_type_name(int(row["target_type_id"]))
-            damage = int(row["damage_factor"])
+            damage = int(row["damage_factor"]) / 100
 
-            if damage == 200:
-                pokedex["types"][name]["effective"].append(name_target)
-            elif damage == 50:
-                pokedex["types"][name]["ineffective"].append(name_target)
+            pokedex["types"][name]["damage_factor"][name_target] = damage
+
+            # if damage == 200:
+            #     pokedex["types"][name]["effective"].append(name_target)
+            # elif damage == 50:
+            #     pokedex["types"][name]["ineffective"].append(name_target)
 
     # SAVE JSON
     with open("pokedex.json", "w") as f:
