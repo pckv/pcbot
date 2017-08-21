@@ -75,9 +75,7 @@ async def get_exchange_rate(base: str, currency: str):
 
 @plugins.command(aliases="ge currency cur")
 async def convert(message: discord.Message, value: float, currency_from: str.upper, currency_to: str.upper):
-    """ Converts currency. """
-    print(exchange_rate_cache)
-
+    """ Converts currency using http://fixer.io/ """
     try:
         rate = await get_exchange_rate(currency_from, currency_to)
     except ValueError as e:

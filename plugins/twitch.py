@@ -21,7 +21,7 @@ twitch_config = Config("twitch-config", data=dict(servers={}))
 
 @plugins.command(name="twitch")
 async def twitch_group(message: discord.Message, _: utils.placeholder):
-    """ The twitch subcommand. """
+    """ Administrative commands for twitch functions. Notifies when discord says you're streaming. """
     pass
 
 

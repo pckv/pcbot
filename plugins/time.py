@@ -1,6 +1,19 @@
+""" Module for time commands and reminders and such.
+
+    Commands:
+        when
+        countdown
+"""
+
+# TODO: Support for pendulum 1.1.0 and above
+# Please use pendulum==1.0.2 for now as timezones are broken in higher versions
+
 import discord
 import pendulum
+from operator import itemgetter
 from pytz import all_timezones
+
+import asyncio
 
 import plugins
 from pcbot import Config, Annotate
@@ -112,12 +125,16 @@ async def create(message: discord.Message, tag: tag_arg, *time, timezone: tz_arg
     timezone_name = timezone
     dt, timezone = await init_dt(message, " ".join(time), timezone)
 
-    assert (dt - pendulum.utcnow()).seconds > 0, "A countdown has to be set in the future."
+    seconds = (dt - pendulum.utcnow()).seconds
+    assert seconds > 0, "A countdown has to be set in the future."
 
-    time_cfg.data["countdown"][tag] = dict(time=dt.to_datetime_string(), tz=timezone, tz_name=timezone_name,
-                                           author=message.author.id, channel=message.channel.id)
+    cd = dict(time=dt.to_datetime_string(), tz=timezone, tz_name=timezone_name, tag=tag,
+              author=message.author.id, channel=message.channel.id)
+    time_cfg.data["countdown"][tag] = cd
     time_cfg.save()
     await client.say(message, "Added countdown with tag `{}`.".format(tag))
+
+    client.loop.create_task(wait_for_reminder(cd, seconds))
 
 
 @countdown.command(aliases="remove")
@@ -137,7 +154,7 @@ async def delete(message: discord.Message, tag: Annotate.Content):
 
 
 @countdown.command(name="list")
-async def cmd_list(message: discord.Message, author: discord.Member=None):
+async def countdown_list(message: discord.Message, author: discord.Member=None):
     """ List all countdowns or all countdowns by the specified author. """
     assert time_cfg.data["countdown"], "There are no countdowns created."
 
@@ -148,3 +165,60 @@ async def cmd_list(message: discord.Message, author: discord.Member=None):
 
     await client.say(message, "**{}countdown tags**:```\n{}```".format(
         "{}'s ".format(author.name) if author else "", ", ".join(tags)))
+
+
+async def wait_for_reminder(cd, seconds):
+    """ Wait for and send the reminder. This is a separate function so that . """
+    await asyncio.sleep(seconds)
+
+    channel = client.get_channel(cd["channel"])
+    author = channel.server.get_member(cd["author"])
+
+    msg = "Hey {0}, your countdown **{cd[tag]}** at `{cd[time]} {cd[tz_name]}` is over!".format(author.mention, cd=cd)
+    await client.send_message(channel, msg)
+
+    del time_cfg.data["countdown"][cd["tag"]]
+    time_cfg.save()
+
+
+async def handle_countdown_reminders():
+    """ Handle countdowns after starting.
+    Countdowns created afterwards are handled by the cd create command.
+    """
+    reminders = []
+    for tag, cd in dict(time_cfg.data["countdown"]).items():
+        dt = pendulum.parse(cd["time"], tz=cd["tz"])
+
+        cd = dict(cd)
+        cd["tag"] = tag
+        cd["dt"] = dt
+        reminders.append(cd)
+
+    if not reminders:
+        return
+
+    # Go through the reminders starting at the newest one
+    for cd in sorted(reminders, key=itemgetter("dt")):
+        # Find in how many seconds the countdown will finish
+        now = pendulum.now(tz=cd["tz"])
+        seconds = (cd["dt"] - now).seconds
+
+        # If the next reminder is in longer than a month, don't bother waiting,
+        if seconds > 60 * 60 * 24 * 30:
+            return
+
+        # In case of multiple countdowns at once, set a threshold at -10 seconds
+        # If below, remove the countdown and continue
+        if seconds < -10:
+            del time_cfg.data["countdown"][cd["tag"]]
+            time_cfg.save()
+            continue
+        elif seconds < 0:
+            seconds = 0
+
+        await wait_for_reminder(cd, seconds)
+
+
+async def on_ready():
+    """ Start a task for startup countdowns. """
+    client.loop.create_task(handle_countdown_reminders())

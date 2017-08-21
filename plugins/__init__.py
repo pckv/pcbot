@@ -245,8 +245,9 @@ def event(name=None, bot=False, self=False):
         event_name = name or func.__name__
 
         if event_name == "on_ready":
-            raise NameError("on_ready in plugins is reserved for bot initialization only. Use it without the"
-                            "event listener call)")
+            logging.warning("on_ready in plugins is reserved for bot initialization only (use it without the "
+                            "event listener call). It was not added to the list of events.")
+            return func
 
         if self and not bot and client.user.bot:
             logging.warning("self=True has no effect in event {}. Consider setting bot=True".format(func.__name__))

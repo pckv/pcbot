@@ -218,7 +218,7 @@ async def download_json(url: str, headers=None, **params):
     try:
         return await retrieve_page(url, call="json", headers=headers, **params)
     except ValueError as e:
-        logging.warning(format_exception(e))
+        logging.debug(format_exception(e))
         return None
 
 
