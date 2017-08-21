@@ -125,7 +125,7 @@ async def create(message: discord.Message, tag: tag_arg, *time, timezone: tz_arg
     timezone_name = timezone
     dt, timezone = await init_dt(message, " ".join(time), timezone)
 
-    seconds = (dt - pendulum.utcnow()).seconds
+    seconds = int((dt - pendulum.now(tz=timezone)).total_seconds())
     assert seconds > 0, "A countdown has to be set in the future."
 
     cd = dict(time=dt.to_datetime_string(), tz=timezone, tz_name=timezone_name, tag=tag,
@@ -200,8 +200,7 @@ async def handle_countdown_reminders():
     # Go through the reminders starting at the newest one
     for cd in sorted(reminders, key=itemgetter("dt")):
         # Find in how many seconds the countdown will finish
-        now = pendulum.now(tz=cd["tz"])
-        seconds = (cd["dt"] - now).seconds
+        seconds = int((cd["dt"] - pendulum.now(tz=cd["tz"])).total_seconds())
 
         # If the next reminder is in longer than a month, don't bother waiting,
         if seconds > 60 * 60 * 24 * 30:
