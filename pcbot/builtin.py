@@ -104,7 +104,8 @@ async def update(message: discord.Message):
 @update.command(owner=True)
 async def reset(message: discord.Message):
     """ **RESET THE HEAD** before updating. This removes all local changes done to the repository 
-    (excluding the .gitignore files). """
+    (excluding the .gitignore files).
+    """
     confirmed = await utils.confirm(message, "Are you sure you want to remove all local changes?")
     assert confirmed, "Aborted."
 
@@ -171,7 +172,8 @@ async def do(message: discord.Message, python_code: Annotate.Code):
 @plugins.command(name="eval", owner=True)
 async def eval_(message: discord.Message, python_code: Annotate.Code):
     """ Evaluate a python expression. Can be any python code on one
-    line that returns something. Coroutine generators will by awaited. """
+    line that returns something. Coroutine generators will by awaited.
+    """
     code_globals.update(dict(message=message, client=client,
                              author=message.author, server=message.server, channel=message.channel))
 
@@ -191,7 +193,8 @@ async def eval_(message: discord.Message, python_code: Annotate.Code):
 @plugins.command(name="plugin", hidden=True, aliases="pl")
 async def plugin_(message: discord.Message):
     """ Manage plugins.
-        **Owner command unless no argument is specified.** """
+        **Owner command unless no argument is specified.**
+        """
     await client.say(message, "**Plugins:** ```{}```".format(", ".join(plugins.all_keys())))
 
 
@@ -250,9 +253,10 @@ async def unload(message: discord.Message, name: str.lower):
 async def lambda_(message: discord.Message):
     """ Create commands. See `{pre}help do` for information on how the code works.
 
-        **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
-        where the default argument is what to return when the argument does not exist.
-        **Owner command unless no argument is specified.**"""
+    **In addition**, there's the `arg(i, default=0)` function for getting arguments in positions,
+    where the default argument is what to return when the argument does not exist.
+    **Owner command unless no argument is specified.**
+    """
     await client.say(message,
                      "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
 
@@ -341,7 +345,8 @@ async def import_(message: discord.Message, module: str, attr: str=None):
 
     If the given attribute starts with a colon :, the name for the module will be defined as
     whatever follows the colon character. If nothing follows, the last subcommand in the module
-    is used. """
+    is used.
+    """
     try:
         name = import_module(module, attr)
     except ImportError:

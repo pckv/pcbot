@@ -35,7 +35,8 @@ def set_client(c: discord.Client):
 
 class Annotate(Enum):
     """ Command annotation enum.
-    Annotate a command argument with one of these to get the commented result. """
+    Annotate a command argument with one of these to get the commented result.
+    """
     Content = 1  # Return all the content after command and/or arguments with Message.content
     LowerContent = 2  # Same as above but returns the contents in lowercase
     CleanContent = 3  # Return all the content after command and/or arguments with Message.clean_content
@@ -52,7 +53,8 @@ def int_range(f: int=None, t: int=None):
     specified range, f (from) - t (to).
 
     :param f: From: where the range starts. -inf if omitted.
-    :param t: To: where the range ends. +inf if omitted. """
+    :param t: To: where the range ends. +inf if omitted.
+    """
     def wrapped(arg: str):
         # Convert to int and return None if unsuccessful
         try:
@@ -75,7 +77,8 @@ def choice(*options: str, ignore_case: bool=True):
     given options.
 
     :param options: Any number of strings to choose from.
-    :param ignore_case: Do not compare case-sensitively. """
+    :param ignore_case: Do not compare case-sensitively.
+    """
     def wrapped(arg: str):
         # Compare lowercased version
         if ignore_case:
@@ -88,7 +91,8 @@ def choice(*options: str, ignore_case: bool=True):
 
 def placeholder(_: str):
     """ Return False. Using this as a command argument annotation will always fail
-    the command. Useful for groups. """
+    the command. Useful for groups.
+    """
     return False
 
 
@@ -108,7 +112,8 @@ def permission(*perms: str):
     """ Decorator that runs the command only if the author has the specified permissions.
     perms must be a string matching any property of discord.Permissions.
 
-    NOTE: this function is deprecated. Use the command 'permissions' attribute instead."""
+    NOTE: this function is deprecated. Use the command 'permissions' attribute instead.
+    """
     def decorator(func):
         @wraps(func)
         async def wrapped(message: discord.Message, *args, **kwargs):
@@ -125,7 +130,8 @@ def role(*roles: str):
     """ Decorator that runs the command only if the author has the specified Roles.
     roles must be a string representing a role's name. 
     
-    NOTE: this function is deprecated. Use the command 'roles' attribute instead. """
+    NOTE: this function is deprecated. Use the command 'roles' attribute instead.
+    """
     def decorator(func):
         @wraps(func)
         async def wrapped(message: discord.Message, *args, **kwargs):
@@ -143,7 +149,8 @@ async def subprocess(*args, pipe=None, carriage_return=False):
 
     :param args: Arguments to be passed to the subprocess
     :param pipe: Any optional input for the stdin.
-    :param carriage_return: When True, carriage returns, \r, are not removed from the result. """
+    :param carriage_return: When True, carriage returns, \r, are not removed from the result.
+    """
     process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE, stdin=sub.PIPE)
     result, _ = await process.communicate(input=bytes(pipe, encoding="utf-8") if pipe else None)
     result = result.decode("utf-8")
@@ -163,7 +170,8 @@ async def retrieve_page(url: str, head=False, call=None, headers=None, **params)
     :param call: Any attribute coroutine to call before returning. Eg: "text" would return await response.text()
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :return: The byte-like file OR whatever return value of the attribute set in call. """
+    :return: The byte-like file OR whatever return value of the attribute set in call.
+    """
     async with aiohttp.ClientSession(loop=client.loop) as session:
         coro = session.head if head else session.get
 
@@ -181,7 +189,8 @@ async def retrieve_headers(url: str, headers=None, **params):
     :param url: URL as str.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :return: Headers as a dict. """
+    :return: Headers as a dict.
+    """
     head = await retrieve_page(url, head=True, headers=headers, **params)
     return head.headers
 
@@ -192,7 +201,8 @@ async def retrieve_html(url: str, headers=None, **params):
     :param url: URL as str.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :return: HTML as str. """
+    :return: HTML as str.
+    """
     return await retrieve_page(url, call="text", headers=headers, **params)
 
 
@@ -203,7 +213,8 @@ async def download_file(url: str, bytesio=False, headers=None, **params):
     :param bytesio: Convert this object to BytesIO before returning.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :return: The byte-like file. """
+    :return: The byte-like file.
+    """
     file_bytes = await retrieve_page(url, call="read", headers=headers, **params)
     return BytesIO(file_bytes) if bytesio else file_bytes
 
@@ -214,7 +225,8 @@ async def download_json(url: str, headers=None, **params):
     :param url: Download url as str.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
-    :return: A JSON representation of the downloaded file. """
+    :return: A JSON representation of the downloaded file.
+    """
     try:
         return await retrieve_page(url, call="json", headers=headers, **params)
     except ValueError as e:
@@ -229,7 +241,8 @@ def convert_image_object(image, format: str="PNG", **params):
     :param image: PIL.Image.Image: object to convert.
     :param format: The image format, defaults to PNG.
     :param params: Any additional parameters sent to the writer.
-    :return: BytesIO: the image object in bytes. """
+    :return: BytesIO: the image object in bytes.
+    """
     buffer = BytesIO()
     image.save(buffer, format, **params)
     buffer.seek(0)
@@ -254,7 +267,8 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     :param name: display_name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
     :param mention: bool, check for mentions.
-    :return: discord.Member """
+    :return: discord.Member
+    """
     member = None
 
     # Return a member from mention
@@ -299,7 +313,8 @@ def find_channel(server: discord.Server, name, steps=3, mention=True, channel_ty
     :param steps: int from 0-3 to specify search depth.
     :param mention: check for mentions.
     :param channel_type: what type of channel we're looking for. Can be str or discord.ChannelType.
-    :return: discord.Channel """
+    :return: discord.Channel
+    """
     channel = None
 
     # We want to allow both str and discord.ChannelType, so try converting str and handle exceptions
@@ -339,7 +354,8 @@ def format_exception(e: Exception):
 
 def format_syntax_error(e: Exception):
     """ Returns a formatted string of a SyntaxError.
-    Stolen from https://github.com/Rapptz/RoboDanny/blob/master/cogs/repl.py#L24-L25 """
+    Stolen from https://github.com/Rapptz/RoboDanny/blob/master/cogs/repl.py#L24-L25
+    """
     return "{0.text}\n{1:>{0.offset}}\n{2}: {0}".format(e, "^", type(e).__name__).replace("\n\n", "\n")
 
 
@@ -351,7 +367,8 @@ def format_objects(*objects, attr=None, dec: str="", sep: str=None):
     :param attr: The attribute to get from any object. Defaults to object names.
     :param dec: String to decorate around each object.
     :param sep: Separator between each argument.
-    :return: str: the formatted objects. """
+    :return: str: the formatted objects.
+    """
     if not objects:
         return
 
@@ -375,7 +392,8 @@ def get_formatted_code(code: str):
     and give the executable python code, or raise an exception.
 
     :param code: Code formatted in markdown.
-    :return: str: Code. """
+    :return: str: Code.
+    """
     code = code.strip(" \n")
     match = markdown_code_pattern.match(code)
 
@@ -395,7 +413,8 @@ def format_code(code: str, language: str=None, *, simple: bool=False):
     :param code: Code formatted in markdown.
     :param language: Optional syntax highlighting language.
     :param simple: Use single quotes, e.g `"Hello!"`
-    :return: str of markdown code """
+    :return: str of markdown code.
+    """
     if simple:
         return "`{}`".format(code)
     else:
@@ -407,7 +426,8 @@ async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
 
     :param text: str to convert.
     :param author: Additionally format an author.
-    :param kwargs: Any kwargs to be passed to discord.Embed's init function. """
+    :param kwargs: Any kwargs to be passed to discord.Embed's init function.
+    """
     embed = discord.Embed(**kwargs)
     url = embed.Empty
 
@@ -447,7 +467,8 @@ def text_to_emoji(text: str):
     Text must only contain characters in the alphabet from A-Z.
 
     :param text: text of characters in the alphabet from A-Z.
-    :return: str: formatted emoji unicode. """
+    :return: str: formatted emoji unicode.
+    """
     regional_offset = 127397  # This number + capital letter = regional letter
     return "".join(chr(ord(c) + regional_offset) for c in text.upper())
 
@@ -457,7 +478,8 @@ def split(text: str, maxsplit: int=-1):
 
     :param text: Text to split.
     :param maxsplit: Number of times to split. The rest is returned without splitting.
-    :return: list: split text. """
+    :return: list: split text.
+    """
     # Generate a shlex object for eventually splitting manually
     split_object = shlex.shlex(text, posix=True)
     split_object.quotes = '"`'

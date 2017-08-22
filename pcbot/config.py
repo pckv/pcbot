@@ -22,7 +22,8 @@ owner_error = False  # Whether the bot owner should receive error messages in ch
 
 def set_version(ver: str):
     """ Set the version of the API. This function should really only
-    be used in bot.py. """
+    be used in bot.py.
+    """
     global version
     version = ver
     return version
@@ -36,7 +37,8 @@ class Config:
 
         :param filename: usually a string representing the module name.
         :param data: default data setup, usually an empty/defaulted dictionary or list.
-        :param load: should the config file load when initialized? Only loads when a config already exists. """
+        :param load: should the config file load when initialized? Only loads when a config already exists.
+        """
         self.filepath = "{}{}.json".format(self.config_path, filename)
         self.pretty = pretty
 
@@ -77,7 +79,8 @@ class Config:
     def load(self):
         """ Load the config from file if it exists.
 
-        :return: config parsed from json or None"""
+        :return: config parsed from json or None
+        """
         if exists(self.filepath):
             with open(self.filepath) as f:
                 return json.load(f)

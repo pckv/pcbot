@@ -281,7 +281,8 @@ def format_usage(cmd: Command, server: discord.Server):
 
     :param cmd: Type Command.
     :param server: The server to generate the usage in.
-    :return: str: formatted usage. """
+    :return: str: formatted usage.
+    """
     if cmd.hidden and cmd.parent is not None:
         return
 
@@ -303,7 +304,8 @@ def format_help(cmd: Command, server: discord.Server, no_subcommand: bool=False)
     :param cmd: Type Command
     :param server: The server to generate help in.
     :param no_subcommand: Use only the given command's usage.
-    :return: str: help message"""
+    :return: str: help message.
+    """
     usage = cmd.usage(server) if no_subcommand else format_usage(cmd, server)
 
     # If there is no usage, the command isn't supposed to be displayed as such
@@ -338,7 +340,8 @@ def compare_command_name(trigger: str, cmd: Command, case_sensitive: bool=True):
 
     :param trigger: a str representing the command name or alias.
     :param cmd: The Command object to compare.
-    :param case_sensitive: When True, case is preserved in command name triggers. """
+    :param case_sensitive: When True, case is preserved in command name triggers.
+    """
     if case_sensitive:
         return trigger == cmd.name or trigger in cmd.aliases
     else:
@@ -349,7 +352,8 @@ def get_command(trigger: str, case_sensitive: bool=True):
     """ Find and return a command function from a plugin.
 
     :param trigger: a str representing the command name or alias.
-    :param case_sensitive: When True, case is preserved in command name triggers. """
+    :param case_sensitive: When True, case is preserved in command name triggers.
+    """
     for plugin in all_values():
         commands = getattr(plugin, "__commands", None)
 
@@ -371,7 +375,8 @@ def get_sub_command(cmd, *args: str, case_sensitive: bool=True):
 
     :param cmd: type plugins.Command
     :param args: str of arguments following the command trigger.
-    :param case_sensitive: When True, case is preserved in command name triggers. """
+    :param case_sensitive: When True, case is preserved in command name triggers.
+    """
     for arg in args:
         for sub_cmd in cmd.sub_commands:
             if compare_command_name(arg, sub_cmd, case_sensitive):
@@ -387,7 +392,8 @@ def is_owner(user: discord.User):
     """ Return true if user/member is the assigned bot owner.
 
     :param user: discord.User, discord.Member or a str representing the user's ID.
-    :raises: TypeError: user is wrong type. """
+    :raises: TypeError: user is wrong type.
+    """
     if isinstance(user, discord.User):
         user = user.id
     elif type(user) is not str:
@@ -412,7 +418,8 @@ def has_permissions(cmd: Command, message: discord.Message):
 
 
 def has_roles(cmd: Command, message: discord.Message):
-    """ Return True if the member has the required roles. """
+    """ Return True if the member has the required roles.
+    """
     if not cmd.roles:
         return True
 
@@ -453,7 +460,8 @@ async def execute(cmd, message: discord.Message, *args, **kwargs):
     :param message: required message object in order to execute a command
     :param args, kwargs: any arguments passed into the command.
 
-    :raises: NameError when command does not exist. """
+    :raises: NameError when command does not exist.
+    """
     # Get the command object if the given command represents a name
     if type(cmd) is not Command:
         cmd = get_command(cmd, config.server_case_sensitive_commands(message.server))
@@ -465,7 +473,8 @@ async def execute(cmd, message: discord.Message, *args, **kwargs):
 
 
 def get_cooldown(member: discord.Member, cmd: Command):
-    """ Returns the member's time left as a str or None. """
+    """ Returns the member's time left as a str or None.
+    """
     if member not in cooldown_data:
         return None
 
@@ -485,7 +494,8 @@ def load_plugin(name: str, package: str="plugins"):
     """ Load a plugin with the name name. If package isn't specified, this
     looks for plugin with specified name in /plugins/
 
-    Any loaded plugin is imported and stored in the self.plugins dictionary. """
+    Any loaded plugin is imported and stored in the self.plugins dictionary.
+    """
     if not name.startswith("__") or not name.endswith("__"):
         try:
             plugin = importlib.import_module("{package}.{plugin}".format(plugin=name, package=package))
@@ -504,14 +514,16 @@ def load_plugin(name: str, package: str="plugins"):
 
 
 async def on_reload(name: str):
-    """ The default on_reload function. """
+    """ The default on_reload function.
+    """
     await reload(name)
 
 
 async def reload(name: str):
     """ Reload a plugin.
 
-    This must be called from an on_reload function or coroutine. """
+    This must be called from an on_reload function or coroutine.
+    """
     if name in plugins:
         # Remove all registered commands
         if hasattr(plugins[name], "__commands"):
@@ -573,7 +585,8 @@ async def save_plugin(name):
 
 async def save_plugins():
     """ Looks for any save function in a plugin and saves.
-    Set up for saving on !stop and periodic saving every 30 minutes. """
+    Set up for saving on !stop and periodic saving every 30 minutes.
+    """
     for name in all_keys():
         await save_plugin(name)
 
