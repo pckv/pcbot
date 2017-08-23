@@ -44,7 +44,7 @@ async def generate_pasta(name: str):
     # Add the url to the message content itself when it's not an image
     content = None
     if embed.url and embed.image.url == embed.Empty:
-        content = embed.url + " \N{EN DASH} " + embed.description
+        content = embed.url + (" \N{EN DASH} " + embed.description if embed.description else "")
         embed = None  # Remove the embed as the image wouldn't embed otherwise
 
     # Cache the result and return
@@ -101,8 +101,8 @@ async def on_message(message: discord.Message):
             await client.say(message, e)
         else:
             # Copy the embed in order to not screw the cache up, and set the footer to the author
-            embed = copy(embed)
             if embed:
+                embed = copy(embed)
                 embed.set_footer(text=str(message.author))
                 embed.color = message.author.color
 
