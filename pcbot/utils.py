@@ -21,7 +21,7 @@ from pcbot import Config, config
 member_mention_pattern = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_pattern = re.compile(r"<#(?P<id>\d+)>")
 markdown_code_pattern = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
-http_url_pattern = re.compile(r"https?://[a-z0-9-]+\.[a-z0-9-.]+(?:/\S+)?", flags=re.IGNORECASE)
+http_url_pattern = re.compile(r"(?P<protocol>https?://)(?P<host>[a-z0-9-]+\.[a-z0-9-.]+/?)(?P<sub>\S+)?", flags=re.IGNORECASE)
 identifier_prefix = re.compile(r"[a-zA-Z_]")
 
 client = None  # Declare the Client. For python 3.6: client: discord.Client

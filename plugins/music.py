@@ -23,9 +23,11 @@ Commands:
     music
 """
 
+import re
 from collections import namedtuple, deque
 from traceback import print_exc
 from typing import Dict
+from urllib import parse as url_parse
 
 import asyncio
 import discord
@@ -56,6 +58,8 @@ if not discord.opus.is_loaded():
 
 
 Song = namedtuple("Song", "channel player requester")
+
+disposition_pattern = re.compile(r"filename=\"(?P<name>.+)\"")
 
 
 def format_song(song: Song, url=True):
@@ -165,6 +169,11 @@ async def play(message: discord.Message, song: Annotate.CleanContent):
 
     # Strip any embed characters, spaces or code symbols.
     song = song.strip("< >`")
+    real_url = song
+
+    url_match = utils.http_url_pattern.match(song)
+    if url_match:
+        song = url_match.group("protocol") + url_match.group("host") + url_parse.quote(url_match.group("sub"))
 
     try:
         player = await state.voice.create_ytdl_player(song, ytdl_options=youtube_dl_options, after=state.play_next,
@@ -177,6 +186,16 @@ async def play(message: discord.Message, song: Annotate.CleanContent):
     # Make sure the song isn't too long
     if player.duration:
         assert player.duration < max_song_length, "**The requested song is too long.**"
+
+    if url_match and player.title == url_match.group("sub"):
+        player.url = real_url
+
+        # Try retrieving the filename as this is probably a file
+        headers = await utils.retrieve_headers(song)
+        if "Content-Disposition" in headers:
+            name_match = disposition_pattern.search(headers["Content-Disposition"])
+            if name_match:
+                player.title = "".join(name_match.group("name").split(".")[:-1])
 
     player.volume = state.volume
     song = Song(player=player, requester=message.author, channel=message.channel)
@@ -307,7 +326,6 @@ async def on_voice_state_update(before: discord.Member, after: discord.Member):
     else:
         if count_members >= 1:
             try:
-                print(str(after))
                 voice = await client.join_voice_channel(channel)
             except discord.errors.ClientException:
                 # The bot is in another channel, so we'll get the voice client and move the bot
