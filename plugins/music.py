@@ -169,11 +169,6 @@ async def play(message: discord.Message, song: Annotate.CleanContent):
 
     # Strip any embed characters, spaces or code symbols.
     song = song.strip("< >`")
-    real_url = song
-
-    url_match = utils.http_url_pattern.match(song)
-    if url_match:
-        song = url_match.group("protocol") + url_match.group("host") + url_parse.quote(url_match.group("sub"))
 
     try:
         player = await state.voice.create_ytdl_player(song, ytdl_options=youtube_dl_options, after=state.play_next,
@@ -187,9 +182,8 @@ async def play(message: discord.Message, song: Annotate.CleanContent):
     if player.duration:
         assert player.duration < max_song_length, "**The requested song is too long.**"
 
+    url_match = utils.http_url_pattern.match(song)
     if url_match and player.title == url_match.group("sub"):
-        player.url = real_url
-
         # Try retrieving the filename as this is probably a file
         headers = await utils.retrieve_headers(song)
         if "Content-Disposition" in headers:
