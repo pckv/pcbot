@@ -7,4 +7,3 @@ the plugin manager (plugins.__init__.py), and loaded in bot.py
 
 from .config import *
 from .utils import *
-from .cleverbot import Cleverbot

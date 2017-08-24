@@ -17,7 +17,6 @@ client = plugins.client  # type: discord.Client
 
 
 feature_reqs = Config(filename="feature_requests", data={})
-# cleverbot = Cleverbot(config.name.replace(" ", "_") + "-discord-bot")
 
 
 @plugins.command()
@@ -192,21 +191,3 @@ async def remove(message: discord.Message, plugin: plugin_in_req, req_id: get_re
     del feature_reqs.data[plugin][req_id]
     feature_reqs.save()
     await client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
-
-
-# NOTE: the code below used to be for triggering cleverbot responses on mentions. It has been commented out
-#       after the unofficial API died as a direct result of the new official API. Since the official API requires
-#       signup to use (which needs your address, email and phone number), I have discontinued cleverbot support,
-#       at least for now.
-
-# @plugins.event(bot=True)
-# async def on_message(message: discord.Message):
-#     """ Have cleverbot respond to our bot. """
-#     if not message.content.startswith(config.command_prefix) and client.user in message.mentions:
-#         # Start typing and remove the bot mention from the message.
-#         await client.send_typing(message.channel)
-#         question = " ".join(word for word in message.content.split() if not word == message.server.me.mention)
-#
-#         # Ask cleverbot the given question and send the response.
-#         await client.say(message, await cleverbot.ask(question))
-#         return True
