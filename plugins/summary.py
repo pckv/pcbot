@@ -106,68 +106,79 @@ def random_with_bias(messages: list, word: str):
 
 def markov_messages(messages, coherent=False):
     """ Generate some kind of markov chain that somehow works with discord.
-    I found this makes better results than markovify would. """
-    imitated = []
+    I found this makes better results than markovify would.
+    """
+    chain = []
     word = ""
 
     if all(True if s.startswith("@") or s.startswith("http") else False for s in messages):
         return "**The given phrase would crash the bot.**"
 
-    # First word
+    # Find the first word of the markov sentence
     while True:
+        # Choose a random message
         m_split = random.choice(messages).split()
         if not m_split:
             continue
 
-        # Choose the first word in the sentence to simulate a markov chain
+        # Choose the first word in the message to simulate a markov chain
         word = m_split[0]
 
+        # Skip any mentions or potential urls
         if not word.startswith("@") and not word.startswith("http"):
             break
 
-    # Add the first word
-    imitated.append(word)
+    # Add the first word to the chain
+    chain.append(word)
     valid = []
-    im = ""
+    word = ""
 
-    # Next words
+    # Generate the rest of the chain
     while True:
-        # Set the last word and find all messages with the last word in it
-        if not im == imitated[-1].lower():
-            im = imitated[-1].lower()
-            valid = [m for m in messages if im in m.lower().split()]
+        # Find all messages with the last word in the chain (the previously found word) in it
+        if not word == chain[-1].lower():
+            word = chain[-1].lower()
 
-        # Add a word from the message found
+            # Generate a list of messages that include the last word in the chain
+            valid = [m for m in messages if word in m.lower().split()]
+
+        # When there are valid messages, add a random word that meets the requirements
         if valid:
-            # # Choose one of the matched messages and split it into a list or words
-            m = random_with_bias(valid, im).split()
-            m_indexes = indexes_of_word(m, im)
-            m_index = random.choice(m_indexes)  # Choose a random index
+            # Choose one of the matched messages and split into a list of words
+            m = random_with_bias(valid, word).split()
+
+            # Find all indexes of the last word in the chain, and choose a random one
+            m_indexes = indexes_of_word(m, word)
+            m_index = random.choice(m_indexes)
+
+            # Generate a list of words in the message starting at the previous word
             m_from = m[m_index:]
 
-            # Are there more than the matched word in the message (is it not the last word?)
+            # Are there more than the matched word in the found message (is it not the last word?)
             if len(m_from) > 1:
-                imitated.append(m_from[1])  # Then we'll add the next word
+                chain.append(m_from[1])  # Then we'll add the next word in the message to the chain
                 continue
-            else:
-                # Have the chance of breaking be 1/4 at start and 1/1 when imitated approaches 150 words
-                # unless the entire summary should be coherent
-                chance = 0 if coherent else int(-0.02 * len(imitated) + 4)
-                chance = chance if chance >= 0 else 0
 
-                if random.randint(0, chance) == 0:
+            # Otherwise, this is the end of the message. Let's have a chance of stopping the chain
+            # unless coherent == True
+            else:
+                # Given coherent == False, have the chance of breaking be 1/4 at start and 1/1 when
+                # the chain approaches 150 words
+                chance = 0 if coherent else int(-0.02 * len(chain) + 4)
+
+                if random.randint(0, chance if chance >= 0 else 0) == 0:
                     break
 
         # Add a random word if all valid messages are one word or there are less than 2 messages
         if len(valid) <= 1 or all(len(m.split()) <= 1 for m in valid):
             seq = random.choice(messages).split()
             word = random.choice(seq)
-            imitated.append(word)
+            chain.append(word)
 
     # Remove links after, because you know
-    imitated = [s for s in imitated if "http://" not in s and "https://" not in s]
+    chain = (s for s in chain if "http://" not in s and "https://" not in s)
 
-    return " ".join(imitated)
+    return " ".join(chain)
 
 
 def filter_messages(message_content: list, phrase: str, regex: bool=False, case: bool=False):
