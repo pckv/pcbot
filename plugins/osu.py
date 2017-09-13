@@ -178,6 +178,12 @@ async def format_stream(member: discord.Member, score: dict, beatmap: dict):
     vod_created = datetime.strptime(vod["created_at"], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)  # UTC-8
     beatmap_length = int(beatmap["total_length"])
 
+    mods = Mods.list_mods(int(score["enabled_mods"]))
+    if Mods.DT in mods or Mods.NC in mods:
+        beatmap_length *= 3/2
+    elif Mods.HT in mods:
+        beatmap_length *= 2/3
+
     # Get the timestamp in the VOD when the score was created
     timestamp_score_created = (score_created - vod_created).total_seconds()
     timestamp_play_started = timestamp_score_created - beatmap_length
