@@ -183,7 +183,7 @@ async def format_stream(member: discord.Member, score: dict, beatmap: dict):
     timestamp_play_started = timestamp_score_created - beatmap_length
 
     # Add the vod url with timestamp to the formatted text
-    text += " | [**`Video of this play :)`**]({0}?t={1}s)**\n".format(vod["url"], int(timestamp_play_started))
+    text += " | **[`Video of this play :)`]({0}?t={1}s)**\n".format(vod["url"], int(timestamp_play_started))
     return text
 
 
