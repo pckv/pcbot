@@ -30,7 +30,7 @@ Commands:
 
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from traceback import print_exc
 from typing import List
@@ -42,6 +42,7 @@ from aiohttp import ServerDisconnectedError
 import plugins
 from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods, calculate_pp, pyoppai, ClosestPPStats
+from plugins.twitchlib import twitch
 
 
 client = plugins.client  # type: discord.Client
@@ -150,7 +151,43 @@ def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int
     return formatted
 
 
-def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None):
+async def format_stream(member: discord.Member, score: dict, beatmap: dict):
+    """ Format the stream url and a VOD button when possible. """
+    stream_url = getattr(member.game, "url", None)
+    if not stream_url:
+        return ""
+
+    # Add the stream url and return immediately if twitch is not setup
+    text = "**Watch live @** <{}>".format(stream_url)
+    if not twitch.client_id:
+        return text + "\n"
+
+    # Try getting the vod information of the current stream
+    try:
+        twitch_id = await twitch.get_id(member)
+        vod_request = await twitch.request("channels/{}/videos".format(twitch_id), limit=1, broadcast_type="archive", sort="time")
+        assert vod_request["_total"] >= 1
+    except:
+        print_exc()
+        return text + "\n"
+
+    vod = vod_request["videos"][0]
+
+    # Find the timestamp of where the play would have started without pausing the game
+    score_created = datetime.strptime(score["date"], "%Y-%m-%d %H:%M:%S")
+    vod_created = datetime.strptime(vod["created_at"], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)  # UTC-8
+    beatmap_length = int(beatmap["total_length"])
+
+    # Get the timestamp in the VOD when the score was created
+    timestamp_score_created = (score_created - vod_created).total_seconds()
+    timestamp_play_started = timestamp_score_created - beatmap_length
+
+    # Add the vod url with timestamp to the formatted text
+    text += " | [**`Video of this play :)`**]({0}?t={1}s)**\n".format(vod["url"], int(timestamp_play_started))
+    return text
+
+
+async def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, member: discord.Member):
     """ Format any score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
@@ -172,12 +209,12 @@ def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, 
         stars=float(beatmap["difficultyrating"]),
         max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.Catch) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
-        live="**Watch live @** <{}>\n".format(stream_url) if stream_url else "",
+        live=await format_stream(member, score, beatmap),
         **score
     )
 
 
-def format_minimal_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, stream_url: str=None):
+async def format_minimal_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, member: discord.Member):
     """ Format any osu! score with minimal content.
     There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
@@ -194,7 +231,7 @@ def format_minimal_score(mode: api.GameMode, score: dict, beatmap: dict, rank: i
         version=beatmap["version"],
         stars=float(beatmap["difficultyrating"]),
         scoreboard_rank="#{} ".format(rank) if rank else "",
-        live="**Watch live @** <{}>".format(stream_url) if stream_url else "",
+        live=await format_stream(member, score, beatmap),
         **score
     )
 
@@ -236,6 +273,23 @@ def get_user_url(member_id: str):
         return host + "u/" + user_id
 
 
+def check_playing(member: discord.Member, member_id: str):
+    """ Check if a member has "osu!" in their Game name. """
+    # The member doesn't even match
+    if not member.id == member_id:
+        return False
+
+    # The member has disabled these features
+    if get_update_mode(member_id) is UpdateModes.Disabled:
+        return False
+
+    # See if the member is playing
+    if getattr(member.game, "name", None) and ("osu" in member.game.name.lower() or rank_regex.search(member.game.name)):
+        return True
+
+    return False
+
+
 async def update_user_data():
     """ Go through all registered members playing osu!, and update their data. """
     global osu_tracking
@@ -243,23 +297,7 @@ async def update_user_data():
     # Go through each member playing and give them an "old" and a "new" subsection
     # for their previous and latest user data
     for member_id, profile in osu_config.data["profiles"].items():
-        def check_playing(m):
-            """ Check if a member has "osu!" in their Game name. """
-            # The member doesn't even match
-            if not m.id == member_id:
-                return False
-
-            # The member has disabled these features
-            if get_update_mode(member_id) is UpdateModes.Disabled:
-                return False
-
-            # See if the member is playing
-            if getattr(m.game, "name", None) and ("osu" in m.game.name.lower() or rank_regex.search(m.game.name)):
-                return True
-
-            return False
-
-        member = discord.utils.find(check_playing, client.get_all_members())
+        member = discord.utils.find(lambda m: check_playing(m, member_id), client.get_all_members())
 
         # If the member is not playing anymore, remove them from the tracking data
         if not member:
@@ -305,7 +343,8 @@ async def get_new_score(member_id: str):
     player's top plays can be retrieved with score["pos"]. """
     # Download a list of the user's scores
     profile = osu_config.data["profiles"][member_id]
-    user_scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value)
+    user_scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value,
+                                          request_tries=3)
 
     # Compare the scores from top to bottom and try to find a new one
     for i, score in enumerate(user_scores):
@@ -374,8 +413,7 @@ async def notify_pp(member_id: str, data: dict):
 
     # If a new score was found, format the score
     if score:
-        beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1))[0]
-        stream_url = getattr(member.game, "url", None)
+        beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1, request_tries=3))[0]
 
         # There might not be any events
         scoreboard_rank = None
@@ -400,9 +438,9 @@ async def notify_pp(member_id: str, data: dict):
                 potential_pp = None
 
         if update_mode is UpdateModes.Minimal:
-            m += format_minimal_score(mode, score, beatmap, scoreboard_rank, stream_url) + "\n"
+            m += await format_minimal_score(mode, score, beatmap, scoreboard_rank, member) + "\n"
         else:
-            m += format_new_score(mode, score, beatmap, scoreboard_rank, stream_url)
+            m += await format_new_score(mode, score, beatmap, scoreboard_rank, member)
 
     # Always add the difference in pp along with the ranks
     m += format_user_diff(mode, pp_diff, rank_diff, country_rank_diff, accuracy_diff, old["country"], new)

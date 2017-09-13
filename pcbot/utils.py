@@ -15,8 +15,6 @@ import aiohttp
 import discord
 from asyncio import subprocess as sub
 
-from pcbot import Config, config
-
 
 member_mention_pattern = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_pattern = re.compile(r"<#(?P<id>\d+)>")

@@ -28,7 +28,7 @@ valid_member = utils.member_mention_pattern
 valid_member_silent = re.compile(r"@\((?P<name>.+)\)")
 valid_role = re.compile(r"<@&(?P<id>\d+)>")
 valid_channel = utils.channel_mention_pattern
-valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot")
+valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot", "+coherent")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
@@ -106,79 +106,68 @@ def random_with_bias(messages: list, word: str):
 
 def markov_messages(messages, coherent=False):
     """ Generate some kind of markov chain that somehow works with discord.
-    I found this makes better results than markovify would.
-    """
-    chain = []
+    I found this makes better results than markovify would. """
+    imitated = []
     word = ""
 
     if all(True if s.startswith("@") or s.startswith("http") else False for s in messages):
         return "**The given phrase would crash the bot.**"
 
-    # Find the first word of the markov sentence
+    # First word
     while True:
-        # Choose a random message
         m_split = random.choice(messages).split()
         if not m_split:
             continue
 
-        # Choose the first word in the message to simulate a markov chain
+        # Choose the first word in the sentence to simulate a markov chain
         word = m_split[0]
 
-        # Skip any mentions or potential urls
         if not word.startswith("@") and not word.startswith("http"):
             break
 
-    # Add the first word to the chain
-    chain.append(word)
+    # Add the first word
+    imitated.append(word)
     valid = []
-    word = ""
+    im = ""
 
-    # Generate the rest of the chain
+    # Next words
     while True:
-        # Find all messages with the last word in the chain (the previously found word) in it
-        if not word == chain[-1].lower():
-            word = chain[-1].lower()
+        # Set the last word and find all messages with the last word in it
+        if not im == imitated[-1].lower():
+            im = imitated[-1].lower()
+            valid = [m for m in messages if im in m.lower().split()]
 
-            # Generate a list of messages that include the last word in the chain
-            valid = [m for m in messages if word in m.lower().split()]
-
-        # When there are valid messages, add a random word that meets the requirements
+        # Add a word from the message found
         if valid:
-            # Choose one of the matched messages and split into a list of words
-            m = random_with_bias(valid, word).split()
-
-            # Find all indexes of the last word in the chain, and choose a random one
-            m_indexes = indexes_of_word(m, word)
-            m_index = random.choice(m_indexes)
-
-            # Generate a list of words in the message starting at the previous word
+            # # Choose one of the matched messages and split it into a list or words
+            m = random_with_bias(valid, im).split()
+            m_indexes = indexes_of_word(m, im)
+            m_index = random.choice(m_indexes)  # Choose a random index
             m_from = m[m_index:]
 
-            # Are there more than the matched word in the found message (is it not the last word?)
+            # Are there more than the matched word in the message (is it not the last word?)
             if len(m_from) > 1:
-                chain.append(m_from[1])  # Then we'll add the next word in the message to the chain
+                imitated.append(m_from[1])  # Then we'll add the next word
                 continue
-
-            # Otherwise, this is the end of the message. Let's have a chance of stopping the chain
-            # unless coherent == True
             else:
-                # Given coherent == False, have the chance of breaking be 1/4 at start and 1/1 when
-                # the chain approaches 150 words
-                chance = 0 if coherent else int(-0.02 * len(chain) + 4)
+                # Have the chance of breaking be 1/4 at start and 1/1 when imitated approaches 150 words
+                # unless the entire summary should be coherent
+                chance = 0 if coherent else int(-0.02 * len(imitated) + 4)
+                chance = chance if chance >= 0 else 0
 
-                if random.randint(0, chance if chance >= 0 else 0) == 0:
+                if random.randint(0, chance) == 0:
                     break
 
         # Add a random word if all valid messages are one word or there are less than 2 messages
         if len(valid) <= 1 or all(len(m.split()) <= 1 for m in valid):
             seq = random.choice(messages).split()
             word = random.choice(seq)
-            chain.append(word)
+            imitated.append(word)
 
     # Remove links after, because you know
-    chain = (s for s in chain if "http://" not in s and "https://" not in s)
+    imitated = [s for s in imitated if "http://" not in s and "https://" not in s]
 
-    return " ".join(chain)
+    return " ".join(imitated)
 
 
 def filter_messages(message_content: list, phrase: str, regex: bool=False, case: bool=False):
@@ -205,7 +194,8 @@ def is_valid_option(arg: str):
     return False
 
 
-@plugins.command(usage="[*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [phrase ...]",
+@plugins.command(usage="{[*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [+coherent]} "
+                       "[phrase ...]",
                  pos_check=is_valid_option, aliases="markov")
 async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
     """ Run a markov chain through the past 5000 messages + up to another 5000
@@ -213,7 +203,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     as it downloads the past 5000 messages in the given channel. """
     # This dict stores all parsed options as keywords
     member, channel, num = [], None, None
-    regex, case, tts = False, False, False
+    regex, case, tts, coherent = False, False, False, False
     bots = not summary_options.data["no_bot"]
 
     for value in options:
@@ -252,6 +242,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
                 case = True
             if value == "+tts":
                 tts = True
+            if value == "+coherent":
+                coherent = True
             bots = False if value == "+nobot" else True if value == "+bot" else bots
 
     # Assign defaults and number of summaries limit
@@ -305,5 +297,5 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
 
     # Generate the summary, or num summaries
     for i in range(num):
-        sentence = markov_messages(message_content)
+        sentence = markov_messages(message_content, coherent)
         await client.send_message(message.channel, sentence or on_fail.format(message), tts=tts)

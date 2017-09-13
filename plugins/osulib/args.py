@@ -6,8 +6,9 @@ from collections import namedtuple
 from .api import Mods
 
 
-Argument = namedtuple("Argument", "pattern type default")
+Argument = namedtuple("Argument", "pattern kwarg_pattern type default")
 mods_names = re.compile(r"\w{2}")
+kwarg = r"{}=(?P<value>\S+)"
 
 
 class RegexArgumentParser:
@@ -17,10 +18,14 @@ class RegexArgumentParser:
 
     def add(self, name, pattern, type, default=None):
         """ Adds an argument. The pattern must have a group. """
-        self.arguments[name] = Argument(pattern=re.compile(pattern), type=type, default=default)
+        self.arguments[name] = Argument(pattern=re.compile(pattern), kwarg_pattern=re.compile(kwarg.format(name)),
+                                        type=type, default=default)
 
     def parse(self, *args):
-        """ Parse arguments. """
+        """ Parse arguments.
+
+        :raise ValueError: An argument is invalid.
+        """
         Namespace = namedtuple("Namespace", " ".join(self.arguments.keys()))
         _namespace = {name: arg.default for name, arg in self.arguments.items()}
 
@@ -32,10 +37,18 @@ class RegexArgumentParser:
                     continue
 
                 # Assign the arguments on match and break the lookup
-                match = arg.pattern.match(user_arg)
+                match = arg.pattern.fullmatch(user_arg)
                 if match:
                     _namespace[name] = arg.type(match.group(1))
                     break
+
+                # Check for kwarg patterns (e.g acc=99.32 instead of 99.32%)
+                match = arg.kwarg_pattern.fullmatch(user_arg)
+                if match:
+                    _namespace[name] = arg.type(match.group("value"))
+                    break
+            else:
+                raise ValueError("{} is an invalid argument.".format(user_arg))
 
         # Return the complete Namespace namedtuple
         return Namespace(**_namespace)
@@ -66,10 +79,10 @@ parser.add("c300", r"(\d+)x300", type=int, default=0xFFFF)
 parser.add("c100", r"(\d+)x100", type=int, default=0)
 parser.add("c50", r"(\d+)x50", type=int, default=0)
 
-parser.add("misses", r"(\d+)m", type=int, default=0)
+parser.add("misses", r"(\d+)(?:m|xm(?:iss)?)", type=int, default=0)
 parser.add("combo", r"(\d+)x", type=int, default=0xFFFF)
 parser.add("mods", r"\+(\w+)", type=mods)
-parser.add("score_version", r"scorev([12])", type=int, default=1)
+parser.add("score_version", r"(?:score)?v([12])", type=int, default=1)
 
 parser.add("ar", r"ar([0-9.]+)", type=float)
 parser.add("cs", r"cs([0-9.]+)", type=float)

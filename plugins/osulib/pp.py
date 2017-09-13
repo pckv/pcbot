@@ -57,6 +57,9 @@ async def download_beatmap(beatmap_url: str):
 
     # Download the beatmap using the url
     beatmap_file = await utils.download_file(file_url)
+    if not beatmap_file:
+        raise ValueError("The given URL is invalid.")
+
     with open(beatmap_path, "wb") as f:
         f.write(beatmap_file)
 

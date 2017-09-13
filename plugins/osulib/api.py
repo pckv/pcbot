@@ -112,7 +112,7 @@ class Mods(Enum):
 
 def def_section(api_name: str, first_element: bool=False):
     """ Add a section using a template to simplify adding API functions. """
-    async def template(url=api_url, **params):
+    async def template(url=api_url, request_tries: int=1, **params):
         global requests_sent
 
         # Convert ripple id properly and change the url
@@ -127,10 +127,13 @@ def def_section(api_name: str, first_element: bool=False):
             params["k"] = api_key
 
         # Download using a URL of the given API function name
-        json = await utils.download_json(url + api_name, **params)
-        requests_sent += 1
+        for i in range(request_tries):
+            json = await utils.download_json(url + api_name, **params)
+            requests_sent += 1
 
-        if json is None:
+            if json is not None:
+                break
+        else:
             return None
 
         # Unless we want to extract the first element, return the entire object (usually a list)
