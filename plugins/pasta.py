@@ -40,6 +40,7 @@ async def generate_pasta(name: str):
 
     text = pastas.data[parsed_name]
     embed = await convert_to_embed(text, color=embed_color)
+    embed.set_footer("pasta: " + name)
 
     # Add the url to the message content itself when it's not an image
     content = None
@@ -100,12 +101,6 @@ async def on_message(message: discord.Message):
         except AssertionError as e:
             await client.say(message, e)
         else:
-            # Copy the embed in order to not screw the cache up, and set the footer to the author
-            if embed:
-                embed = copy(embed)
-                embed.set_footer(text=str(message.author))
-                embed.color = message.author.color
-
             await client.send_message(message.channel, content, embed=embed)
         finally:
             return True
