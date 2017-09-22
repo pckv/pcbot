@@ -40,7 +40,7 @@ async def generate_pasta(name: str):
 
     text = pastas.data[parsed_name]
     embed = await convert_to_embed(text, color=embed_color)
-    embed.set_footer("pasta: " + name)
+    embed.set_footer(text="pasta: " + name)
 
     # Add the url to the message content itself when it's not an image
     content = None
