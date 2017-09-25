@@ -63,7 +63,7 @@ async def pasta(message: discord.Message, name: Annotate.LowerContent):
 
 
 @pasta.command(aliases="a create set")
-async def add(message: discord.Message, name: str.lower, copypasta: Annotate.CleanContent):
+async def add(message: discord.Message, name: str.lower, copypasta: Annotate.Content):
     """ Add a pasta with the specified content. """
     # When creating pastas we don't use spaces either!
     parsed_name = name.replace(" ", "")

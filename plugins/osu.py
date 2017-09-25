@@ -178,6 +178,7 @@ async def format_stream(member: discord.Member, score: dict, beatmap: dict):
     vod_created = datetime.strptime(vod["created_at"], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)  # UTC-8
     beatmap_length = int(beatmap["total_length"])
 
+    # Convert beatmap length when speed mods are enabled
     mods = Mods.list_mods(int(score["enabled_mods"]))
     if Mods.DT in mods or Mods.NC in mods:
         beatmap_length /= 1.5
