@@ -353,7 +353,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
     send_help = False
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if cmd_args[-1] in config.help_arg or (command.disabled_pm and message.channel.is_private):
+    if len(cmd_args) > 1 and cmd_args[-1] in config.help_arg or (command.disabled_pm and message.channel.is_private):
         complete = False
         args, kwargs = [], {}
         send_help = True
