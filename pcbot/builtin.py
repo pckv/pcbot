@@ -53,7 +53,7 @@ async def help_(message: discord.Message, command: str.lower=None, *args):
 
             # Add all commands that the user can use
             for cmd in plugin.__commands:
-                if not cmd.hidden and plugins.can_use_command(cmd, message):
+                if not cmd.hidden and plugins.can_use_command(cmd, message.author, message.channel):
                     commands.append(cmd.name_prefix(message.server).split()[0])
 
         commands = ", ".join(sorted(commands))
