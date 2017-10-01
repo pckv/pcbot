@@ -398,6 +398,7 @@ async def on_message(message: discord.Message):
 
     # Make a local copy of the message since some attributes are changed and they shouldn't be overridden
     # in plugin based on_message events
+    original_message = message
     message = copy(message)
 
     # We don't care about channels we can't write in as the bot usually sends feedback
@@ -446,8 +447,8 @@ async def on_message(message: discord.Message):
         return
 
     # Log the command executed and execute said command
-    log_message(message)
-    client.loop.create_task(execute_command(parsed_command, message, *args, **kwargs))
+    log_message(original_message)
+    client.loop.create_task(execute_command(parsed_command, original_message, *args, **kwargs))
 
     # Manually dispatch an event for when commands are requested
     client.dispatch("command_requested", message, parsed_command, *args, **kwargs)
