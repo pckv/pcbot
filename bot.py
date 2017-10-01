@@ -408,22 +408,25 @@ async def on_message(message: discord.Message):
     command_prefix = config.server_command_prefix(message.server)
     case_sensitive = config.server_case_sensitive_commands(message.server)
 
-    # Split content into arguments by space (surround with quotes for spaces)
-    cmd_args = utils.split(message.content)
-
-    # Get command name
-    if cmd_args[0].startswith(command_prefix) and len(cmd_args[0]) > len(command_prefix):
-        cmd = cmd_args[0][len(command_prefix):]
-    else:
+    # Check that the message is a command
+    if not message.content.startswith(command_prefix):
         return
 
-    # Try finding a command object
-    command = plugins.get_command(cmd, case_sensitive=case_sensitive)
+    # Remove the prefix and make sure that a command was actually specified
+    content = message.content[len(command_prefix):]
+    if content.startswith(" "):
+        return
+
+    # Split content into arguments by space (surround with quotes for spaces)
+    cmd_args = utils.split(content)
+
+    # Try finding a command object using the command name (first argument)
+    command = plugins.get_command(cmd_args[0], case_sensitive=case_sensitive)
     if not command:
         return
 
     # Check that the author is allowed to use the command
-    if not plugins.can_use_command(command, message):
+    if not plugins.can_use_command(command, message.author, message.channel):
         return
 
     # Parse the command with the user's arguments

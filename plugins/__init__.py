@@ -405,25 +405,25 @@ def is_owner(user: discord.User):
     return False
 
 
-def has_permissions(cmd: Command, message: discord.Message):
+def has_permissions(cmd: Command, author: discord.Member, channel: discord.Channel):
     """ Return True if the member has permissions to execute the command. """
     if not cmd.permissions:
         return True
 
-    member_perms = message.author.permissions_in(message.channel)
+    member_perms = author.permissions_in(channel)
     if all(getattr(member_perms, perm, False) for perm in cmd.permissions):
         return True
 
     return False
 
 
-def has_roles(cmd: Command, message: discord.Message):
+def has_roles(cmd: Command, author: discord.Member):
     """ Return True if the member has the required roles.
     """
     if not cmd.roles:
         return True
 
-    member_roles = [r.name for r in message.author.roles[1:]]
+    member_roles = [r.name for r in author.roles[1:]]
     if any(r in member_roles for r in cmd.roles):
         return True
 
@@ -438,15 +438,15 @@ def is_valid_server(cmd: Command, server: discord.Server):
     return False
 
 
-def can_use_command(cmd: Command, message: discord.Message):
+def can_use_command(cmd: Command, author: discord.Member, channel: discord.Channel=None):
     """ Return True if the member who sent the message can use this command. """
-    if cmd.owner and not is_owner(message.author):
+    if cmd.owner and not is_owner(author):
         return False
-    if not has_permissions(cmd, message):
+    if channel is not None and not has_permissions(cmd, author, channel):
         return False
-    if not has_roles(cmd, message):
+    if not has_roles(cmd, author):
         return False
-    if not is_valid_server(cmd, message.server):
+    if not is_valid_server(cmd, author.server):
         return False
 
     return True
