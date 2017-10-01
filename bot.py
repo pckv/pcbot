@@ -419,7 +419,7 @@ async def on_message(message: discord.Message):
 
     # Remove the prefix and make sure that a command was actually specified
     message.content = message.content[len(command_prefix):]
-    if message.content.startswith(" "):
+    if not message.content or message.content.startswith(" "):
         return
 
     # Split content into arguments by space (surround with quotes for spaces)
