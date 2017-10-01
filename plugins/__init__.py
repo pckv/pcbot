@@ -438,7 +438,7 @@ def is_valid_server(cmd: Command, server: discord.Server):
     return False
 
 
-def can_use_command(cmd: Command, author: discord.Member, channel: discord.Channel=None):
+def can_use_command(cmd: Command, author, channel: discord.Channel=None):
     """ Return True if the member who sent the message can use this command. """
     if cmd.owner and not is_owner(author):
         return False
@@ -446,7 +446,7 @@ def can_use_command(cmd: Command, author: discord.Member, channel: discord.Chann
         return False
     if not has_roles(cmd, author):
         return False
-    if author.server is not None and not is_valid_server(cmd, author.server):
+    if isinstance(author, discord.User) or not is_valid_server(cmd, author.server):
         return False
 
     return True
