@@ -413,12 +413,12 @@ async def on_message(message: discord.Message):
         return
 
     # Remove the prefix and make sure that a command was actually specified
-    content = message.content[len(command_prefix):]
-    if content.startswith(" "):
+    message.content = message.content[len(command_prefix):]
+    if message.content.startswith(" "):
         return
 
     # Split content into arguments by space (surround with quotes for spaces)
-    cmd_args = utils.split(content)
+    cmd_args = utils.split(message.content)
 
     # Try finding a command object using the command name (first argument)
     command = plugins.get_command(cmd_args[0], case_sensitive=case_sensitive)
