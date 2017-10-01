@@ -126,6 +126,7 @@ def command(**options):
         permissions : str / list  : Permissions required for this command as a str separated by whitespace or a list.
         roles       : str / list  : Roles required for this command as a str separated by whitespace or a list.
         servers     : str / list  : a str separated by whitespace or a list of valid server ids.
+        disabled_pm : bool        : Command is disabled in PMs when True.
     """
     def decorator(func):
         # Make sure the first parameter in the function is a message object
