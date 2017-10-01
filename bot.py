@@ -7,9 +7,9 @@ that would be executed.
 import logging
 import inspect
 import os
-import random
 import sys
 import traceback
+from copy import copy
 from datetime import datetime
 from getpass import getpass
 from argparse import ArgumentParser
@@ -395,6 +395,10 @@ async def on_message(message: discord.Message):
     # Make sure the client is ready before processing commands
     await client.wait_until_ready()
     start_time = datetime.utcnow()
+
+    # Make a local copy of the message since some attributes are changed and they shouldn't be overridden
+    # in plugin based on_message events
+    message = copy(message)
 
     # We don't care about channels we can't write in as the bot usually sends feedback
     if message.server and message.server.owner and not message.server.me.permissions_in(message.channel).send_messages:
