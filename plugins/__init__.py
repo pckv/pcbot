@@ -448,9 +448,9 @@ def can_use_command(cmd: Command, author, channel: discord.Channel=None):
         return False
 
     # Handle server specific commands for both server and PM commands
-    if author is None and cmd.servers:
+    if type(author) is discord.User and cmd.servers:
         return False
-    if author is not None and not is_valid_server(cmd, author.server):
+    if type(author) is discord.Member and not is_valid_server(cmd, author.server):
         return False
 
     return True
