@@ -459,6 +459,11 @@ def init():
         def __getattr__(self, item):
             return plugins.get_plugin(item)
 
+        @staticmethod
+        def __call___(item):
+            """ Backwards compatibility for old plugin(name) method. """
+            return plugins.get_plugin(item)
+
     code_globals.update(dict(
         utils=utils, datetime=datetime, timedelta=timedelta,
         random=random, asyncio=asyncio, plugins=plugins,
