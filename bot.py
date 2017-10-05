@@ -57,13 +57,10 @@ class Client(discord.Client):
                 return
 
         # Find every event that has a discord.Member argument, and filter out bots and self
-        is_bot, is_self = False, False
+        member = None
         for arg in list(args) + list(kwargs.values()):
             if type(arg) is discord.Member:
-                if arg == client.user:
-                    is_self = True
-                if arg.bot:
-                    is_bot = True
+                member = arg
                 break
 
         super().dispatch(event, *args, **kwargs)
@@ -73,10 +70,10 @@ class Client(discord.Client):
         if method in plugins.events:
             for func in plugins.events[method]:
                 # We'll only ignore bot messages if the event has disabled for bots
-                if is_bot and not func.bot:
+                if member and member.bot and not func.bot:
                     continue
                 # Same goes for messages sent by ourselves. Naturally this requires func.bot == True
-                if is_self and not func.self:
+                if member and member == client.user and not func.self:
                     continue
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
 
