@@ -59,8 +59,11 @@ class Client(discord.Client):
         # Find every event that has a discord.Member argument, and filter out bots and self
         member = None
         for arg in list(args) + list(kwargs.values()):
-            if type(arg) is discord.Member:
+            if isinstance(arg, discord.User):
                 member = arg
+                break
+            elif isinstance(arg, discord.Message):
+                member = arg.author
                 break
 
         super().dispatch(event, *args, **kwargs)
