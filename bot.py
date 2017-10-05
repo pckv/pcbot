@@ -58,7 +58,7 @@ class Client(discord.Client):
 
         # Find every event that has a discord.Member argument, and filter out bots and self
         is_bot, is_self = False, False
-        for arg in args:
+        for arg in list(args) + list(kwargs.values()):
             if type(arg) is discord.Member:
                 if arg == client.user:
                     is_self = True
