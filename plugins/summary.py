@@ -1,6 +1,7 @@
 """ Plugin for generating markov text, or a summary if you will. """
 
 
+import logging
 import random
 import re
 from collections import defaultdict, deque
@@ -12,6 +13,11 @@ import discord
 from pcbot import utils, Annotate, config, Config
 import plugins
 client = plugins.client  # type: discord.Client
+
+try:
+    import markovify
+except ImportError:
+    logging.warning("Markovify could not be imported and as such !summary +strict will not work.")
 
 
 # The messages stored per session, where every key is a channel id
@@ -28,7 +34,7 @@ valid_member = utils.member_mention_pattern
 valid_member_silent = re.compile(r"@\((?P<name>.+)\)")
 valid_role = re.compile(r"<@&(?P<id>\d+)>")
 valid_channel = utils.channel_mention_pattern
-valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot", "+coherent")
+valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot", "+coherent", "+strict")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
@@ -203,7 +209,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     as it downloads the past 5000 messages in the given channel. """
     # This dict stores all parsed options as keywords
     member, channel, num = [], None, None
-    regex, case, tts, coherent = False, False, False, False
+    regex, case, tts, coherent, strict = False, False, False, False, True
     bots = not summary_options.data["no_bot"]
 
     for value in options:
@@ -244,6 +250,9 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
                 tts = True
             if value == "+coherent":
                 coherent = True
+            if value == "+strict":
+                strict = True
+
             bots = False if value == "+nobot" else True if value == "+bot" else bots
 
     # Assign defaults and number of summaries limit
@@ -295,7 +304,19 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     # Check if we even have any messages
     assert message_content, on_no_messages.format(message)
 
+    markovify_model = None
+    if strict:
+        try:
+            markovify_model = markovify.Text(message_content)
+        except NameError:
+            logging.warning("+strict was used but markovify is not imported")
+            strict = False
+
     # Generate the summary, or num summaries
     for i in range(num):
-        sentence = markov_messages(message_content, coherent)
+        if strict:
+            sentence = markovify_model.make_sentence(tries=1000)
+        else:
+            sentence = markov_messages(message_content, coherent)
+
         await client.send_message(message.channel, sentence or on_fail.format(message), tts=tts)
