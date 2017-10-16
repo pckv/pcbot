@@ -209,7 +209,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     as it downloads the past 5000 messages in the given channel. """
     # This dict stores all parsed options as keywords
     member, channel, num = [], None, None
-    regex, case, tts, coherent, strict = False, False, False, False, True
+    regex, case, tts, coherent, strict = False, False, False, False, False
     bots = not summary_options.data["no_bot"]
 
     for value in options:
