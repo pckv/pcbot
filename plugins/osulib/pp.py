@@ -166,7 +166,6 @@ async def find_closest_pp(beatmap, args):
     acc = 100.0 - dec
     while True:
         current_pp = calc(accuracy=acc)
-        print(acc, dec, current_pp)
 
         # Stop when we find a pp value between the current 100 count and the previous one
         if current_pp <= args.pp <= previous_pp:
