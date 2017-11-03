@@ -18,7 +18,8 @@ class RegexArgumentParser:
 
     def add(self, name, pattern, type, default=None):
         """ Adds an argument. The pattern must have a group. """
-        self.arguments[name] = Argument(pattern=re.compile(pattern), kwarg_pattern=re.compile(kwarg.format(name)),
+        self.arguments[name] = Argument(pattern=re.compile(pattern, flags=re.IGNORECASE),
+                                        kwarg_pattern=re.compile(kwarg.format(name)),
                                         type=type, default=default)
 
     def parse(self, *args):
@@ -37,7 +38,7 @@ class RegexArgumentParser:
                     continue
 
                 # Assign the arguments on match and break the lookup
-                match = arg.pattern.fullmatch(user_arg)
+                match = arg.pattern.fullmatch(user_arg, )
                 if match:
                     _namespace[name] = arg.type(match.group(1))
                     break
@@ -74,7 +75,7 @@ def mods(s: str):
 
 
 parser = RegexArgumentParser()
-parser.add("acc", r"([0-9.]+)%", type=float, default=100.0)
+parser.add("acc", r"([0-9.]+)%", type=float, default=100.0
 parser.add("c300", r"(\d+)x300", type=int, default=0xFFFF)
 parser.add("c100", r"(\d+)x100", type=int, default=0)
 parser.add("c50", r"(\d+)x50", type=int, default=0)
