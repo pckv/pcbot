@@ -866,8 +866,8 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
 
 
 if pyoppai is not None:
-    plugins.command(name="pp")(pp_)
-    osu.command(name="pp")(pp_)
+    plugins.command(name="pp", aliases="oppai")(pp_)
+    osu.command(name="pp", aliases="oppai")(pp_)
 
 
 @osu.command(aliases="map")
