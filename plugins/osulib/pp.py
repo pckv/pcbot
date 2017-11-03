@@ -87,11 +87,6 @@ def apply_settings(beatmap_ctx, args):
 
     Also return the mods bitmask for use during pp calculation.
     """
-    # Find the mod bitmask and optionally apply mods
-    mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
-    if not mods_bitmask == 0:
-        pyoppai.apply_mods(beatmap_ctx, mods_bitmask)
-
     # Set any optional beatmap settings
     if args.cs is not None:
         pyoppai.set_cs(beatmap_ctx, args.cs)
@@ -99,6 +94,11 @@ def apply_settings(beatmap_ctx, args):
         pyoppai.set_ar(beatmap_ctx, args.ar)
     if args.od is not None:
         pyoppai.set_od(beatmap_ctx, args.od)
+
+    # Find the mod bitmask and optionally apply mods
+    mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
+    if not mods_bitmask == 0:
+        pyoppai.apply_mods(beatmap_ctx, mods_bitmask)
 
     return mods_bitmask
 
