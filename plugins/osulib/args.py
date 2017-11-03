@@ -75,7 +75,7 @@ def mods(s: str):
 
 
 parser = RegexArgumentParser()
-parser.add("acc", r"([0-9.]+)%", type=float, default=100.0
+parser.add("acc", r"([0-9.]+)%", type=float, default=100.0)
 parser.add("c300", r"(\d+)x300", type=int, default=0xFFFF)
 parser.add("c100", r"(\d+)x100", type=int, default=0)
 parser.add("c50", r"(\d+)x50", type=int, default=0)
