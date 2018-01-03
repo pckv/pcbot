@@ -565,7 +565,7 @@ def main():
             if start_args.shard_total is None:
                 raise ValueError("--shard-total must be specified")
 
-            client.run(*login, shard_id=start_args.shard_id, shard_count=start_args.shart_total)
+            client.run(*login, shard_id=start_args.shard_id, shard_count=start_args.shard_total)
         else:
             client.run(*login)
     except discord.errors.LoginFailure as e:
