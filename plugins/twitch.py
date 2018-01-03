@@ -25,7 +25,7 @@ async def twitch_group(message: discord.Message, _: utils.placeholder):
     pass
 
 
-@twitch_group.command(name="channels")
+@twitch_group.command(name="channels", permissions="manage_server")
 async def notify_channels(message: discord.Message, *channels: discord.Channel):
     """ Specify channels to notify when a member goes live, or use no arguments to disable. """
     if message.server.id not in twitch_config.data["servers"]:
