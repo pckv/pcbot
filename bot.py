@@ -487,6 +487,10 @@ def main():
     login_group = parser.add_mutually_exclusive_group()
     login_group.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
     login_group.add_argument("--email", "-e", help="Alternative email to login with.")
+    
+    shard_group = parser.add_argument_group(title="Sharding", description="Arguments for sharding for bots on 2500+ servers")
+    shard_group.add_argument("--shard-id", help="Shard id. --shard-total must also be specified when used.", type=int, default=None)
+    shard_group.add_argument("--shard-total", help="Total number of shards.", type=int, default=None)
 
     parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
     parser.add_argument("--log-level", "-l",
@@ -557,7 +561,13 @@ def main():
     client.loop.create_task(add_tasks())
 
     try:
-        client.run(*login)
+        if start_args.shard_id is not None:
+            if start_args.shard_total is None:
+                raise ValueError("--shard-total must be specified")
+
+            client.run(*login, shard_id=start_args.shard_id, shard_count=start_args.shart_total)
+        else:
+            client.run(*login)
     except discord.errors.LoginFailure as e:
         logging.error(utils.format_exception(e))
 
