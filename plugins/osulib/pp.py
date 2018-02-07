@@ -17,10 +17,10 @@ except:
 
 host = "https://osu.ppy.sh/"
 
-Beatmap = namedtuple("Beatmap", "url size")
-PPStats = namedtuple("PPStats", "pp stars artist title version")
+Beatmap = namedtuple("Beatmap", "url_or_id size")
+PPStats = namedtuple("PPStats", "pp stars artist title version completion")
 ClosestPPStats = namedtuple("ClosestPPStats", "acc pp stars artist title version")
-last_calc_beatmap = Beatmap(url=None, size=None)
+last_calc_beatmap = Beatmap(url_or_id=None, size=None)
 
 oppai_path = "plugins/osulib/oppai/"
 beatmap_path = os.path.join(oppai_path, "pp_map.osu")
@@ -32,26 +32,31 @@ async def is_osu_file(url: str):
     return "text/plain" in headers.get("Content-Type", "") and ".osu" in headers.get("Content-Disposition", "")
 
 
-async def download_beatmap(beatmap_url: str):
+async def download_beatmap(beatmap_url_or_id):
     """ Download the .osu file of the beatmap with the given url.
 
     This returns the Beatmap tuple.
+
+    :param beatmap_url_or_id: beatmap_url as str or the id as int
     """
     global last_calc_beatmap
 
     # Return cached information
-    if beatmap_url == last_calc_beatmap.url:
+    if beatmap_url_or_id == last_calc_beatmap.url_or_id:
         return last_calc_beatmap
 
     # Parse the url and find the link to the .osu file
     try:
-        beatmap_id = await api.beatmap_from_url(beatmap_url, return_type="id")
+        if type(beatmap_url_or_id) is str:
+            beatmap_id = await api.beatmap_from_url(beatmap_url_or_id, return_type="id")
+        else:
+            beatmap_id = beatmap_url_or_id
     except SyntaxError as e:
         # Since the beatmap isn't an osu.ppy.sh url, we'll see if it's a .osu file
-        if not await is_osu_file(beatmap_url):
+        if not await is_osu_file(beatmap_url_or_id):
             raise ValueError(e)
 
-        file_url = beatmap_url
+        file_url = beatmap_url_or_id
     else:
         file_url = host + "osu/" + str(beatmap_id)
 
@@ -63,7 +68,7 @@ async def download_beatmap(beatmap_url: str):
     with open(beatmap_path, "wb") as f:
         f.write(beatmap_file)
 
-    last_calc_beatmap = Beatmap(url=beatmap_url, size=len(beatmap_file))
+    last_calc_beatmap = Beatmap(url_or_id=beatmap_url_or_id, size=len(beatmap_file))
     return last_calc_beatmap
 
 
@@ -103,13 +108,17 @@ def apply_settings(beatmap_ctx, args):
     return mods_bitmask
 
 
-async def calculate_pp(beatmap_url: str, *options):
+async def calculate_pp(beatmap_url_or_id, *options):
     """ Return a PPStats namedtuple from this beatmap, or a ClosestPPStats namedtuple
-    when [pp_value]pp is given in the options. """
+    when [pp_value]pp is given in the options.
+
+    :param beatmap_url_or_id: beatmap_url as str or the id as int
+    """
     if pyoppai is None:
         return None
 
-    beatmap = await download_beatmap(beatmap_url)
+    beatmap = await download_beatmap(beatmap_url_or_id)
+
     args = parse_options(*options)
 
     # If the pp arg is given, return using the closest pp function
@@ -131,7 +140,7 @@ async def calculate_pp(beatmap_url: str, *options):
         acc, pp, _, _, _ = pyoppai.pp_calc(
             ctx, aim, speed, beatmap_ctx, mods_bitmask, args.combo, args.misses, args.c300, args.c100, args.c50, args.score_version)
 
-    return PPStats(pp, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx), pyoppai.version(beatmap_ctx))
+    return PPStats(pp, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx), pyoppai.version(beatmap_ctx), )
 
 
 async def find_closest_pp(beatmap, args):

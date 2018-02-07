@@ -89,6 +89,7 @@ parser.add("ar", r"ar([0-9.]+)", type=float)
 parser.add("cs", r"cs([0-9.]+)", type=float)
 parser.add("od", r"od([0-9.]+)", type=float)
 
+parser.add("hits", "(\d+)hits", type=int)
 parser.add("pp", r"([0-9.]+)pp", type=float)
 
 

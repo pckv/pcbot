@@ -98,7 +98,7 @@ class UpdateModes(Enum):
         return None
 
 
-def calculate_acc(mode: api.GameMode, score: dict):
+def calculate_acc(mode: api.GameMode, score: dict, exclude_misses: bool=False):
     """ Calculate the accuracy using formulas from https://osu.ppy.sh/wiki/Accuracy """
     # Parse data from the score: 50s, 100s, 300s, misses, katu and geki
     keys = ("count300", "count100", "count50", "countmiss", "countkatu", "countgeki")
@@ -114,7 +114,7 @@ def calculate_acc(mode: api.GameMode, score: dict):
 
     if mode is api.GameMode.Standard:
         total_points_of_hits = c50 * 50 + c100 * 100 + c300 * 300
-        total_number_of_hits = miss + c50 + c100 + c300
+        total_number_of_hits = (0 if exclude_misses else miss) + c50 + c100 + c300
     elif mode is api.GameMode.Taiko:
         total_points_of_hits = (miss * 0 + c100 * 0.5 + c300 * 1) * 300
         total_number_of_hits = miss + c100 + c300
@@ -194,7 +194,7 @@ async def format_stream(member: discord.Member, score: dict, beatmap: dict):
     return text
 
 
-async def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int, member: discord.Member):
+async def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank: int=None, member: discord.Member=None):
     """ Format any score. There should be a member name/mention in front of this string. """
     acc = calculate_acc(mode, score)
     return (
@@ -216,7 +216,7 @@ async def format_new_score(mode: api.GameMode, score: dict, beatmap: dict, rank:
         stars=float(beatmap["difficultyrating"]),
         max_combo="/{}".format(beatmap["max_combo"]) if mode in (api.GameMode.Standard, api.GameMode.Catch) else "",
         scoreboard_rank="#{} ".format(rank) if rank else "",
-        live=await format_stream(member, score, beatmap),
+        live=await format_stream(member, score, beatmap) if member else "",
         **score
     )
 
@@ -387,6 +387,56 @@ def get_notify_channels(server: discord.Server, data_type: str):
             if server.get_channel(s)]
 
 
+async def get_potential_pp(score, beatmap, member: discord.Member, score_pp: float, use_acc: bool=False):
+    """ Returns the potential pp or None if it shouldn't display """
+    potential_pp = None
+
+    # Find the potentially gained pp in standard when not FC
+    if get_mode(member.id) is api.GameMode.Standard and get_update_mode(member.id) is not UpdateModes.PP \
+            and int(score["maxcombo"]) < int(beatmap["max_combo"]):
+        options = ["+" + Mods.format_mods(int(score["enabled_mods"]))]
+
+        if use_acc:
+            options.append("{acc:.2%}".format(acc=calculate_acc(api.GameMode.Standard, score, exclude_misses=True)))
+        else:
+            options.append(score["count100"] + "x100")
+            options.append(score["count50"] + "x50")
+
+        try:
+            pp_stats = await calculate_pp("https://osu.ppy.sh/b/{}".format(score["beatmap_id"]), *options)
+            potential_pp = pp_stats.pp
+        except:
+            pass
+
+        # Drop this info whenever the potential pp gain is negative.
+        #     The osu! API does not provide info on sliderbreak count and missed sliderend count, which results
+        #     in faulty calculation (very often negative relatively). Therefore, I will conclude that the score
+        #     was actually an FC and has missed sliderends when the gain is negative.
+        if potential_pp - score_pp <= 0:
+            potential_pp = None
+
+    return potential_pp
+
+
+def get_score_name(member: discord.Member, username: str, ripple=False):
+    """ Formats the username and link for scores."""
+    user_url = get_user_url(member.id)
+    return "{member.mention} [`{ripple}{name}`]({url})".format(member=member, name=username, url=user_url,
+                                                               ripple="ripple: " if ripple else "")
+
+
+def get_formatted_score_embed(member: discord.Member, score: dict, formatted_score: str, potential_pp: float=None):
+    embed = discord.Embed(color=member.color, url=get_user_url(member.id))
+    embed.description = formatted_score
+
+    # Add potential pp in the footer
+    if potential_pp:
+        embed.set_footer(
+            text="Potential: {0:,.2f}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
+
+    return embed
+
+
 async def notify_pp(member_id: str, data: dict):
     """ Notify any differences in pp and post the scores + rank/pp gained. """
     # Only update pp when there is actually a difference
@@ -427,22 +477,7 @@ async def notify_pp(member_id: str, data: dict):
         if new["events"]:
             scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
 
-        # Find the potentially gained pp in standard when not FC
-        if mode is api.GameMode.Standard and update_mode is not UpdateModes.PP and int(score["maxcombo"]) < int(beatmap["max_combo"]):
-            options = [score["count100"] + "x100", score["count50"] + "x50",
-                       "+" + Mods.format_mods(int(score["enabled_mods"]))]
-            try:
-                pp_stats = await calculate_pp("https://osu.ppy.sh/b/{}".format(score["beatmap_id"]), *options)
-                potential_pp = pp_stats.pp
-            except:
-                pass
-
-            # Drop this info whenever the potential pp gain is negative.
-            #     The osu! API does not provide info on sliderbreak count and missed sliderend count, which results
-            #     in faulty calculation (very often negative relatively). Therefore, I will conclude that the score
-            #     was actually an FC and has missed sliderends when the gain is negative.
-            if potential_pp - float(score["pp"]) <= 0:
-                potential_pp = None
+        potential_pp = await get_potential_pp(score, beatmap, member, float(score["pp"]))
 
         if update_mode is UpdateModes.Minimal:
             m += await format_minimal_score(mode, score, beatmap, scoreboard_rank, member) + "\n"
@@ -463,22 +498,14 @@ async def notify_pp(member_id: str, data: dict):
         is_primary = True if primary_server is None else (True if primary_server == server.id else False)
 
         # Format the url and the username
-        user_url = get_user_url(member.id)
-        name = "{member.mention} [`{ripple}{name}`]({url})".format(member=member, name=new["username"], url=user_url,
-                                                                   ripple="ripple: " if new["ripple"] else "")
-
-        embed = discord.Embed(color=member.color, url=user_url)
-        embed.description = m
+        name = get_score_name(member, data["username"], "ripple" in data)
+        embed = get_formatted_score_embed(member, score, m, potential_pp)
 
         # The top line of the format will differ depending on whether we found a score or not
         if score:
             embed.description = "**{0} set a new best `(#{pos}/{1} +{diff:.2f}pp)` on**\n".format(name, score_request_limit, **score) + m
         else:
             embed.description = name + "\n" + m
-
-        # Add potential pp in the footer
-        if potential_pp:
-            embed.set_footer(text="Potential: {0:,.2f}pp, {1:+.2f}pp".format(potential_pp, potential_pp - float(score["pp"])))
 
         for i, channel in enumerate(channels):
             try:
@@ -686,8 +713,8 @@ async def osu(message: discord.Message, member: discord.Member=Annotate.Self,
     signature = await utils.retrieve_page("http://lemmmy.pw/osusig/sig.php", head=True, colour=color,
                                           uname=user_id, pp=True, countryrank=True, xpbar=True,
                                           mode=mode.value, date=datetime.now().ctime(), **dark)
-    embed = discord.Embed(color=member.color, url=get_user_url(member.id))
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
+    embed = discord.Embed(color=member.color)
+    embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(member.id))
     embed.set_image(url=signature.url)
     await client.send_message(message.channel, embed=embed)
 
@@ -868,6 +895,34 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
 if pyoppai is not None:
     plugins.command(name="pp", aliases="oppai")(pp_)
     osu.command(name="pp", aliases="oppai")(pp_)
+
+
+@osu.command(aliases="last new")
+async def recent(message: discord.Message, member: Annotate.Member=Annotate.Self):
+    """ Display your or another member's most recent score. """
+    assert message.author.id in osu_config.data["profiles"], \
+        "No osu! profile assigned to **{}**!".format(message.author.name)
+
+    user_id = osu_config.data["profiles"][message.author.id]
+    mode = get_mode(member.id)
+
+    scores = await api.get_user_recent(u=user_id, m=get_mode(member.id), limit=1)
+    assert scores, "Found no recent score."
+
+    score = scores[0]
+    beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1, request_tries=3))[0]
+
+    mods = api.Mods.format_mods(int(score["enabled_mods"]))
+
+    score_pp = await calculate_pp(int(score["beatmap_id"]), *"{mods}{acc}% {countmiss}m {maxcombo}x".format(
+        acc=calculate_acc(mode, score), mods="+" + mods + " " if mods != "Nomod" else "", **score).split())
+    potential_pp = await get_potential_pp(score, beatmap, member, round(score_pp.pp, 2), use_acc=True)
+    score["pp"] = round(score_pp.pp, 2)
+
+    # Calculate where the player failed
+
+    embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
+    await client.send_message(message.channel, embed=embed)
 
 
 @osu.command(aliases="map")

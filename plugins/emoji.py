@@ -18,6 +18,13 @@ from PIL import Image
 import plugins
 from pcbot import Annotate, utils
 
+# See if we can create gifs using imageio
+gif_support = True
+try:
+    import imageio
+except:
+    gif_support = False
+
 
 client = plugins.client  # type: discord.Client
 
@@ -146,18 +153,18 @@ async def format_emoji(text: str, server: discord.Server):
     return [e if isinstance(e, Image.Image) else get_emoji(e, size=size) for e in parsed_emoji], has_custom
 
 
-@plugins.command(aliases="huge")
-async def greater(message: discord.Message, text: Annotate.CleanContent):
-    """ Gives a **huge** version of emojies. """
+async def convert_to_images(server: discord.Server, text: str):
+    """ Converts any emoji in the given text to a list of images.
+
+    :return: images: list, total_width: int, height: int
+    """
     # Parse all unicode and load the emojies
-    parsed_emoji, has_custom = await format_emoji(text, message.server)
+    parsed_emoji, has_custom = await format_emoji(text, server)
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
     # Combine multiple images if necessary, otherwise send just the one
     if len(parsed_emoji) == 1:
-        image_fp = utils.convert_image_object(parsed_emoji[0])
-        await client.send_file(message.channel, image_fp, filename="emoji.png")
-        return
+        return parsed_emoji, parsed_emoji[0].width, parsed_emoji[0].height
 
     # See if there's a need to rescale all images.
     height = default_size
@@ -178,10 +185,19 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
     else:
         total_width = len(parsed_emoji) * height
 
+    return parsed_emoji, total_width, height
+
+
+@plugins.command(aliases="huge")
+async def greater(message: discord.Message, text: Annotate.CleanContent):
+    """ Gives a **huge** version of emojies. """
+    # Parse all unicode and load the emojies
+    images, total_width, height = await convert_to_images(message.server, text)
+
     # Stitch all the images together
     image = Image.new("RGBA", (total_width, height))
     x = 0
-    for image_object in parsed_emoji:
+    for image_object in images:
         image.paste(image_object, box=(x, 0))
         x += image_object.width
 
@@ -189,5 +205,29 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
     image_fp = utils.convert_image_object(image)
     await client.send_file(message.channel, image_fp, filename="emojies.png")
 
+
+async def gif(message: discord.Message, text: Annotate.CleanContent):
+    """ Gives a **huge** version of emojies AS A GIF. """
+    images, total_width, height = await convert_to_images(message.server, text)
+
+    # Get optional duration
+    duration = 0.15
+
+    duration_arg = text.split(" ")[-1]
+    if re.match(r"[0-9.]+", duration_arg):
+        duration = float(duration_arg) / 10
+
+    frames = []
+    for image in images:
+        frame_bytes = utils.convert_image_object(image, format="PNG")
+        frames.append(imageio.imread(frame_bytes))
+
+    # Make a gif
+    image_bytes = imageio.mimwrite(imageio.RETURN_BYTES, frames, format="GIF", duration=duration)
+    await client.send_file(message.channel, BytesIO(image_bytes), filename="emojies.gif")
+
+
+if gif_support:
+    plugins.command(aliases="gifter grifter")(gif)
 
 init_emoji()
