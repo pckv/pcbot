@@ -18,7 +18,7 @@ except:
 host = "https://osu.ppy.sh/"
 
 Beatmap = namedtuple("Beatmap", "url_or_id size")
-PPStats = namedtuple("PPStats", "pp stars artist title version completion")
+PPStats = namedtuple("PPStats", "pp stars artist title version")
 ClosestPPStats = namedtuple("ClosestPPStats", "acc pp stars artist title version")
 last_calc_beatmap = Beatmap(url_or_id=None, size=None)
 
