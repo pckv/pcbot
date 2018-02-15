@@ -498,7 +498,7 @@ async def notify_pp(member_id: str, data: dict):
         is_primary = True if primary_server is None else (True if primary_server == server.id else False)
 
         # Format the url and the username
-        name = get_score_name(member, data["username"], "ripple" in data)
+        name = get_score_name(member, new["username"], "ripple" in data)
         embed = get_formatted_score_embed(member, score, m, potential_pp)
 
         # The top line of the format will differ depending on whether we found a score or not
