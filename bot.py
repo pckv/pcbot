@@ -504,10 +504,12 @@ def main():
                         type=lambda s: getattr(logging, s.upper()), default=logging.INFO, metavar="LEVEL")
     parser.add_argument("--enable-protocol-logging", "-p", help="Enables logging protocol events. THESE SPAM THE LOG.",
                         action="store_true")
+
+    parser.add_argument("--log-file", "-o", help="File to log to. Prints to terminal if omitted.")
     start_args = parser.parse_args()
 
     # Setup logger with level specified in start_args or logging.INFO
-    logging.basicConfig(level=start_args.log_level,
+    logging.basicConfig(filename=start_args.log_file, level=start_args.log_level,
                         format="%(levelname)s %(asctime)s [%(module)s / %(name)s]: %(message)s")
 
     # Always keep the websockets.protocol logger at INFO as a minimum unless --enable-protocol-logging is set
