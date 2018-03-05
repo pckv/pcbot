@@ -27,6 +27,43 @@ async def roll(message: discord.Message, num: utils.int_range(f=1)=100):
     await client.say(message, "**{0.display_name}** rolls `{1}`.".format(message.author, rolled))
 
 
+@plugins.argument("{open}<num>[x<sides>]{suffix}{close}")
+def dice_roll(arg: str):
+    """ Dice roll as sides (eg 6) or as num and sides (2x6)"""
+    num, sides = 1, 6
+
+    if arg.count("x") > 1:
+        return None
+
+    if "x" in arg:
+        num, sides = arg.split("x")
+    else:
+        num = arg
+
+    try:
+        num = int(num)
+        sides = int(sides)
+    except ValueError:
+        return None
+
+    if num < 1 or sides < 1:
+        return None
+
+    return num, sides
+
+
+@plugins.command()
+async def dice(message: discord.Message, num_and_sides: dice_roll=(1, 6)):
+    """ Roll an n-dimensional dice 1 or more times. """
+    rolls = []
+    num, sides = num_and_sides
+
+    for i in range(num):
+        rolls.append(random.randint(1, sides))
+
+    await client.say(message, "**{0.display_name}** rolls `[{1}]`".format(message.author, ", ".join(str(r) for r in rolls)))
+
+
 @plugins.command()
 async def avatar(message: discord.Message, member: discord.Member=Annotate.Self):
     """ Display your or another member's avatar. """
