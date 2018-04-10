@@ -79,12 +79,12 @@ class Client(discord.Client):
                 if member and member == client.user and not func.self:
                     continue
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
+
     async def send_message(self, destination, content=None, *args, **kwargs):
         if content and not kwargs.get("allow_everyone", None):
             # Replace the message content
             content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
         return await super().send_message(destination, content, *args, **kwargs)
-
 
     async def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
         """ Override send_file to notify the server when an attachment could not be sent. """

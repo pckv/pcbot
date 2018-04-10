@@ -4,6 +4,7 @@
     request functions.
 """
 
+from collections import namedtuple
 from enum import Enum
 import re
 
@@ -16,6 +17,13 @@ requests_sent = 0
 
 ripple_url = "https://ripple.moe/api/"
 ripple_pattern = re.compile(r"ripple:\s*(?P<data>.+)")
+
+mode_names = {
+    "Standard": ["standard", "osu"],
+    "Taiko": ["taiko"],
+    "Catch": ["catch", "ctb", "fruits"],
+    "Mania": ["mania", "keys"]
+}
 
 
 def set_api_key(s: str):
@@ -36,9 +44,10 @@ class GameMode(Enum):
     @classmethod
     def get_mode(cls, mode: str):
         """ Return the mode with the specified string. """
-        for enum in cls:
-            if enum.name.lower().startswith(mode.lower()):
-                return enum
+        for mode_name, names in mode_names.items():
+            for name in names:
+                if name.startswith(mode.lower()):
+                    return GameMode.__members__[mode_name]
 
         return None
 
@@ -158,31 +167,64 @@ get_user_recent = def_section("get_user_recent")
 get_match = def_section("get_match", first_element=True)
 get_replay = def_section("get_replay")
 
-beatmap_url_pattern = re.compile(r"http[s]?://osu.ppy.sh/(?P<type>[bs])/(?P<id>\d+)")
+beatmap_url_pattern_v1 = re.compile(r"https?://osu\.ppy\.sh/(?P<type>[bs])/(?P<id>\d+)(?:\?m=(?P<mode>\d))?")
+beatmap_url_pattern_v2 = re.compile(r"https?://osu\.ppy\.sh/beatmapsets/(?P<beatmapset_id>\d+)(?:#(?P<mode>\w+)/(?P<beatmap_id>\d+))?")
+
+BeatmapURLInfo = namedtuple("BeatmapURLInfo", "beatmapset_id beatmap_id gamemode")
+
+
+def parse_beatmap_url(url: str):
+    """ Parse the beatmap url and return either a BeatmapURLInfo.
+    For V1, only one parameter of either beatmap_id or beatmapset_id will be set.
+    For V2, only beatmapset_id will be set, or all arguments are set.
+
+    :raise SyntaxError: The URL is neither a v1 or v2 osu! url.
+    """
+    match_v1 = beatmap_url_pattern_v1.match(url)
+    if match_v1:
+        # There might be some gamemode info in the url
+        mode = None
+        if match_v1.group("mode") is not None:
+            mode = GameMode(int(match_v1.group("mode")))
+
+        if match_v1.group("type") == "b":
+            return BeatmapURLInfo(beatmapset_id=None, beatmap_id=match_v1.group("id"), gamemode=mode)
+        else:
+            return BeatmapURLInfo(beatmapset_id=match_v1.group("id"), beatmap_id=None, gamemode=mode)
+
+    match_v2 = beatmap_url_pattern_v2.match(url)
+    if match_v2:
+        if match_v2.group("mode") is None:
+            return BeatmapURLInfo(beatmapset_id=match_v2.group("beatmapset_id"), beatmap_id=None, gamemode=None)
+        else:
+            return BeatmapURLInfo(beatmapset_id=match_v2.group("beatmapset_id"),
+                                  beatmap_id=match_v2.group("beatmap_id"),
+                                  gamemode=GameMode.get_mode(match_v2.group("mode")))
+
+    raise SyntaxError("The given URL is invalid.")
 
 
 async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard, *, return_type: str="beatmap"):
     """ Takes a url and returns the beatmap in the specified gamemode.
     If a url for a submission is given, it will find the most difficult map.
 
-    :param url: The url to lookup. Must be a osu.ppy.sh url of /b/<id> or /s/<id>.
+    :param url: The osu! beatmap url to lookup.
     :param mode: The GameMode to lookup.
     :param return_type: Defaults to "beatmap". Use "id" to only return the id (spares a request for /b/ urls).
+    :raise SyntaxError: The URL is neither a v1 or v2 osu! url.
+    :raise LookupError: The beatmap linked in the URL was not found.
     """
-    match = beatmap_url_pattern.match(url)
-
-    # If there was no match, the operation was unsuccessful
-    if not match:
-        raise SyntaxError("The given URL is invalid.")
+    beatmap_info = parse_beatmap_url(url)
 
     # Get the beatmap specified
-    if match.group("type") == "b":
+    if beatmap_info.beatmap_id is not None:
         if return_type == "id":
-            return match.group("id")
+            return beatmap_info.beatmap_id
 
-        difficulties = await get_beatmaps(b=match.group("id"), m=mode.value, limit=1)
+        # Only download the beatmap of the id, so that only this beatmap will be returned
+        difficulties = await get_beatmaps(b=beatmap_info.beatmap_id, m=mode.value, limit=1)
     else:
-        difficulties = await get_beatmaps(s=match.group("id"), m=mode.value)
+        difficulties = await get_beatmaps(s=beatmap_info.beatmapset_id, m=mode.value)
 
     # If the beatmap doesn't exist, the operation was unsuccessful
     if not difficulties:
@@ -203,29 +245,31 @@ async def beatmap_from_url(url: str, mode: GameMode=GameMode.Standard, *, return
 
 
 async def beatmapset_from_url(url: str):
-    """ Takes a url and returns the beatmapset of the specified beatmap. """
-    match = beatmap_url_pattern.match(url)
+    """ Takes a url and returns the beatmapset of the specified beatmap.
 
-    # If there was no match, the operation was unsuccessful
-    if not match:
-        raise SyntaxError("The given URL is invalid.")
+    :param url: The osu! beatmap url to lookup.
+    :raise SyntaxError: The URL is neither a v1 or v2 osu! url.
+    :raise LookupError: The beatmap linked in the URL was not found.
+    """
+    beatmap_info = parse_beatmap_url(url)
 
-    if match.group("type") == "b":
-        difficulty = await get_beatmaps(b=match.group("id"), limit=1)
+    # Use the beatmapset_id from the url if it has one, else find the beatmapset
+    if beatmap_info.beatmapset_id is not None:
+        beatmapset_id = beatmap_info.beatmapset_id
+    else:
+        difficulty = await get_beatmaps(b=beatmap_info.beatmap_id, limit=1)
 
         # If the beatmap doesn't exist, the operation was unsuccessful
         if not difficulty:
             raise LookupError("The beatmap with the given URL was not found.")
 
         beatmapset_id = difficulty[0]["beatmapset_id"]
-    else:
-        beatmapset_id = match.group("id")
 
     beatmapset = await get_beatmaps(s=beatmapset_id)
 
     # Also make sure we get the beatmap
     if not beatmapset:
-        raise LookupError("The beatmap with the given URL was not found.")
+        raise LookupError("The beatmapset with the given URL was not found.")
 
     return beatmapset
 
