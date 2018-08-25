@@ -41,7 +41,7 @@ from aiohttp import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate
-from plugins.osulib import api, Mods, calculate_pp, pyttanko, PPStats
+from plugins.osulib import api, Mods, calculate_pp, pyttanko, ClosestPPStats
 from plugins.twitchlib import twitch
 
 
