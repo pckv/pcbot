@@ -18,8 +18,8 @@ TUTORIAL:
     This plugin might send a lot of requests, so keep up to date with the
     !osu debug command.
 
-    The pp command requires that you setup pyoppai
-    https://github.com/Francesco149/oppai/tree/master/pyoppai
+    The pp command requires that you setup pyttanko
+    pip install pyttanko
 
     Check the readme in the link above for install instructions.
 
@@ -41,7 +41,7 @@ from aiohttp import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate
-from plugins.osulib import api, Mods, calculate_pp, pyoppai, ClosestPPStats
+from plugins.osulib import api, Mods, calculate_pp, pyttanko, PPStats
 from plugins.twitchlib import twitch
 
 
@@ -862,7 +862,7 @@ async def url(message: discord.Message, member: discord.Member=Annotate.Self,
 
 
 async def pp_(message: discord.Message, beatmap_url: str, *options):
-    """ Calculate and return the would be pp using `pyoppai`.
+    """ Calculate and return the would be pp using `pyttanko`.
 
     The beatmap url should either be a link to a beatmap /b/ or /s/, or an
     uploaded .osu file.
@@ -892,7 +892,7 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
         " ".join(options), **pp_stats._asdict()))
 
 
-if pyoppai is not None:
+if pyttanko is not None:
     plugins.command(name="pp", aliases="oppai")(pp_)
     osu.command(name="pp", aliases="oppai")(pp_)
 

@@ -75,19 +75,20 @@ def mods(s: str):
 
 
 parser = RegexArgumentParser()
-parser.add("acc", r"([0-9.]+)%", type=float, default=100.0)
-parser.add("c300", r"(\d+)x300", type=int, default=0xFFFF)
+parser.add("acc", r"([0-9.]+)%", type=float)
+parser.add("c300", r"(\d+)x300", type=int)
 parser.add("c100", r"(\d+)x100", type=int, default=0)
 parser.add("c50", r"(\d+)x50", type=int, default=0)
 
 parser.add("misses", r"(\d+)(?:m|xm(?:iss)?)", type=int, default=0)
-parser.add("combo", r"(\d+)x", type=int, default=0xFFFF)
+parser.add("combo", r"(\d+)x", type=int)
 parser.add("mods", r"\+(\w+)", type=mods)
 parser.add("score_version", r"(?:score)?v([12])", type=int, default=1)
 
 parser.add("ar", r"ar([0-9.]+)", type=float)
 parser.add("cs", r"cs([0-9.]+)", type=float)
 parser.add("od", r"od([0-9.]+)", type=float)
+parser.add("hp", r"hp([0-9.]+)", type=float)
 
 parser.add("hits", "(\d+)hits", type=int)
 parser.add("pp", r"([0-9.]+)pp", type=float)
