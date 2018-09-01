@@ -23,13 +23,12 @@ Commands:
     music
 """
 
+import random
 import re
 from collections import namedtuple, deque
 from traceback import print_exc
 from typing import Dict
-from urllib import parse as url_parse
 
-import asyncio
 import discord
 
 import plugins
@@ -49,8 +48,8 @@ youtube_dl_options = dict(
 )
 ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 
-max_songs_queued = 2  # How many songs each member are allowed in the queue at once
-max_song_length = 60 * 120  # The maximum song length in seconds
+max_songs_queued = 6  # How many songs each member are allowed in the queue at once
+max_song_length = 10 * 60 * 60  # The maximum song length in seconds
 default_volume = .6
 
 if not discord.opus.is_loaded():
@@ -60,6 +59,16 @@ if not discord.opus.is_loaded():
 Song = namedtuple("Song", "channel player requester")
 
 disposition_pattern = re.compile(r"filename=\"(?P<name>.+)\"")
+
+
+async def on_reload(name: str):
+    """ Preserve voice states. """
+    global voice_states
+    local_states = voice_states
+
+    await plugins.reload(name)
+
+    voice_states = local_states
 
 
 def format_song(song: Song, url=True):
@@ -229,6 +238,7 @@ async def skip(message: discord.Message):
 
 @music.command(aliases="u nvm fuck no")
 async def undo(message: discord.Message):
+    """ Undo your previously queued song. This will not *skip* the song if it's playing. """
     assert_connected(message.author)
     state = voice_states[message.server]
 
@@ -239,6 +249,34 @@ async def undo(message: discord.Message):
             return
 
     await client.say(message, "**You have nothing to undo.**")
+
+
+@music.command()
+async def clear(message: discord.Message):
+    """ Remove all songs you have queued. """
+    assert_connected(message.author)
+    state = voice_states[message.server]
+
+    removed = False
+    for song in list(state.queue):
+        if song.requester == message.author:
+            state.queue.remove(song)
+            removed = True
+
+    if removed:
+        await client.say(message, "Removed all queued songs by **{0.display_name}**.".format(message.author))
+    else:
+        await client.say(message, "**You have no queued songs.**")
+
+
+@music.command(roles="Shuffler")
+async def shuffle(message: discord.Message):
+    """ Shuffles the current queue. """
+    assert_connected(message.author)
+    state = voice_states[message.server]
+
+    random.shuffle(state.queue)
+    await queue(message)
 
 
 @music.command(aliases="v volume")
@@ -265,10 +303,8 @@ async def queue(message: discord.Message):
     state = voice_states[message.server]
     assert state.queue, "**There are no songs queued.**"
 
-    msg = await client.say(message, "```elm\n{}```".format(
+    await client.say(message, "```elm\n{}```".format(
         "\n".join(format_song(s, url=False).replace("**", "") for s in state.queue)))
-    await asyncio.sleep(20)
-    await client.delete_message(msg)
 
 
 @music.command(owner=True)

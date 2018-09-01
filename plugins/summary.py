@@ -200,7 +200,7 @@ def is_valid_option(arg: str):
     return False
 
 
-@plugins.command(usage="{[*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [+coherent]} "
+@plugins.command(usage="([*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [+coherent]) "
                        "[phrase ...]",
                  pos_check=is_valid_option, aliases="markov")
 async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
