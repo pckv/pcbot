@@ -443,7 +443,7 @@ async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
             embed.description = text or None
 
             # If the url is an image, embed it
-            if "image" in headers["Content-Type"]:
+            if "Content-Type" in headers and "image" in headers["Content-Type"]:
                 embed.set_image(url=url)
 
             # If the embed isn't an image, we'll just use it as the embed url
