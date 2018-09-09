@@ -11,7 +11,7 @@ from os import mkdir
 import discord
 
 
-github_repo = "PcBoy111/PCBOT/"
+github_repo = "pckv/pcbot/"
 default_command_prefix = "!"
 default_case_sensitive_commands = True
 help_arg = ("?", "help")
