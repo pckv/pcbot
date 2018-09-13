@@ -56,7 +56,7 @@ class Mods(Enum):
     """ Enum for displaying mods. """
     NF = 0
     EZ = 1
-    NV = 2
+    TD = 2
     HD = 3
     HR = 4
     SD = 5
@@ -74,17 +74,19 @@ class Mods(Enum):
     Key6 = 17
     Key7 = 18
     Key8 = 19
-    KeyMod = Key4 | Key5 | Key6 | Key7 | Key8         # ¯\_(ツ)_/¯
     FI = 20
     RD = 21
-    LastMod = 22
-    FreeModAllowed = NF | EZ | HD | HR | SD | FL | \
-                     FI | RX | AP | SO | KeyMod       # ¯\_(ツ)_/¯
+    Cinema = 22
     Key9 = 24
-    Key10 = 25
+    KeyCoop = 25
     Key1 = 26
     Key3 = 27
     Key2 = 28
+    ScoreV2 = 29
+    LastMod = 30
+    KeyMod = Key4 | Key5 | Key6 | Key7 | Key8
+    FreeModAllowed = NF | EZ | HD | HR | SD | FL | FI | RX | AP | SO | KeyMod  # ¯\_(ツ)_/¯
+    ScoreIncreaseMods = HD | HR | DT | FL | FI
 
     def __new__(cls, num):
         """ Convert the given value to 2^num. """
