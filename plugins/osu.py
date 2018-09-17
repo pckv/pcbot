@@ -604,18 +604,18 @@ async def notify_maps(member_id: str, data: dict):
             status_format = status_format.replace("<name>", "[**{name}**]({host}u/{user_id})")
             status_format = status_format.replace("<title>", "[**{artist} - {title}**]({host}s/{beatmapset_id})")
 
-        # We'll sleep a little bit to let the beatmap API catch up with the change
-        await asyncio.sleep(10)
+        # We'll sleep for a while to let the beatmap API catch up with the change
+        await asyncio.sleep(30)
 
-        # Try returning the beatmap info 3 times with a span of 20 seconds.
-        # This might be needed when new maps are submitted.
-        for _ in range(3):
+        # Try returning the beatmap info 6 times with a span of a minute
+        # This might be needed when new maps are submitted
+        for _ in range(6):
             beatmapset = await api.get_beatmaps(s=event["beatmapset_id"])
             if beatmapset:
                 break
-            await asyncio.sleep(20)
+            await asyncio.sleep(60)
         else:
-            # Oh well, false positive?
+            # well shit
             continue
 
         # Send the message to all servers
