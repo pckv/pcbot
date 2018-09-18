@@ -29,7 +29,7 @@ async def generate_pasta(name: str):
 
     # Choose a random pasta when the name is .
     if name == ".":
-        name = choice(list(pastas.data.values()))
+        name = choice(list(pastas.data.keys()))
 
     # Remove spaces as pastas are space independent
     parsed_name = name.replace(" ", "")
