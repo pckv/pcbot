@@ -52,8 +52,11 @@ class ImageArg:
         if self.format.lower() == "jpg":
             self.format = "JPEG"
 
-        if self.format == "JPEG" and real_convert:
-            self.to_rgb()
+        if self.format == "JPEG":
+            if real_convert:
+                self.to_rgb()
+            else:
+                self.object = self.object.convert("RGB")
 
     def set_extension(self, ext: str, real_jpg=True):
         """ Change the extension of an image. """
