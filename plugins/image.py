@@ -91,9 +91,33 @@ class ImageArg:
         self.object = background
 
 
+async def find_prev_image(channel: discord.Channel, limit: int=200):
+    """ Look for the previous sent image. """
+    async for message in client.logs_from(channel, limit):
+        if message.attachments:
+            url = message.attachments[0]["url"]
+            headers = await utils.retrieve_headers(url)
+            match = extension_regex.search(headers["CONTENT-TYPE"])
+            if not match:
+                continue
+
+            image_format = match.group("ext")
+            image_bytes = await utils.download_file(url, bytesio=True)
+            image_object = Image.open(image_bytes)
+            return ImageArg(image_object, format=image_format)
+
+    return None
+
+
 @plugins.argument("{open}url/@user" + ("" if url_only else "/emoji") + "{suffix}{close}", pass_message=True)
 async def image(message: discord.Message, url_or_emoji: str):
-    """ Parse a url or emoji and return an ImageArg object. """
+    """ Parse a url, emoji or user mention and return an ImageArg object. """
+    # Find the previous posted image when the argument is a .
+    if url_or_emoji == ".":
+        image_arg = await find_prev_image(message.channel)
+        assert image_arg is not None, "Could not find any previously attached image."
+        return image_arg
+
     # Remove <> if the link looks like a URL, to allow for embed escaped links.
     if "http://" in url_or_emoji or "https://" in url_or_emoji:
         url_or_emoji = url_or_emoji.strip("<>")
@@ -250,7 +274,7 @@ async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice
                quality: utils.int_range(f=0, t=100)=5):
     """ Give an image some proper jpeg artifacting.
 
-    Valid effects are: `small` """
+    Valid effects are: `small, meme` """
     assert not image_arg.gif, "**JPEG saving only works on images.**"
     image_arg.set_extension("jpg", real_jpg=False if "meme" in effect else True)
 
