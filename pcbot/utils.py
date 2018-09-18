@@ -419,6 +419,18 @@ def format_code(code: str, language: str=None, *, simple: bool=False):
         return "```{}\n{}```".format(language or "", code)
 
 
+async def is_image(url: str):
+    """ Returns True if the given url is an image.
+
+    :param url: the url of the file.
+    """
+    headers = await retrieve_headers(url)
+    if "Content-Type" in headers and "image" in headers["Content-Type"]:
+        return True
+
+    return False
+
+
 async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
     """ Convert text to an embed, where urls will be embedded if the url is an image.
 
@@ -435,15 +447,13 @@ async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
 
         # Handle urls
         if url_match:
-            url = url_match.group(0)
-            headers = await retrieve_headers(url)
-
             # Remove the url from the text and use it as a description
             text = text.replace(url, "")
             embed.description = text or None
 
             # If the url is an image, embed it
-            if "Content-Type" in headers and "image" in headers["Content-Type"]:
+            url = url_match.group(0)
+            if is_image(url):
                 embed.set_image(url=url)
 
             # If the embed isn't an image, we'll just use it as the embed url
