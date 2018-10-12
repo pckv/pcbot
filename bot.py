@@ -81,6 +81,17 @@ class Client(discord.Client):
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
 
     async def send_message(self, destination, content=None, *args, **kwargs):
+        # Convert content to str, but also log this since it shouldn't happen
+        if type(content) is not str:
+            # Log the traceback too when the content is an exception (it was probably meant to be converted to string)
+            # as to make debugging easier
+            tb = ""
+            if isinstance(content, Exception):
+                tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
+            logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
+
+            content = str(content)
+
         if content and not kwargs.get("allow_everyone", None):
             # Replace the message content
             content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
@@ -89,9 +100,9 @@ class Client(discord.Client):
     async def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
         """ Override send_file to notify the server when an attachment could not be sent. """
         try:
-            await super().send_file(destination, fp, filename=filename, content=content, tts=tts)
+            return await super().send_file(destination, fp, filename=filename, content=content, tts=tts)
         except discord.errors.Forbidden:
-            await self.send_message(destination, "**I don't have the permissions to send my attachment.**")
+            return await self.send_message(destination, "**I don't have the permissions to send my attachment.**")
 
     async def delete_message(self, message):
         """ Override to add info on the last deleted message. """

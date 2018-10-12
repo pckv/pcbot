@@ -8,6 +8,7 @@ Commands:
 """
 
 import os
+import random
 import re
 from io import BytesIO
 
@@ -19,12 +20,11 @@ import plugins
 from pcbot import Annotate, utils
 
 # See if we can create gifs using imageio
-gif_support = True
 try:
     import imageio
-except:
-    gif_support = False
-
+except ImportError:
+    imageio = None
+gif_support = imageio is not None
 
 client = plugins.client  # type: discord.Client
 
@@ -37,6 +37,8 @@ emoji = {}
 emote_regex = re.compile(r"<:(?P<name>\w+):(?P<id>\d+)>")
 emote_cache = {}  # Cache for all custom emotes/emoji
 emote_size = 112
+
+g_transform_regex = re.compile(r"<g\stransform=\"translate.+?</g>")
 
 
 def init_emoji():
@@ -51,6 +53,13 @@ def init_emoji():
             emoji[emoji_name] = emoji_bytes
 
 
+def set_svg_size(emoji_bytes, size=default_size):
+    size_bytes = bytes(str(size), encoding="utf-8")
+    emoji_bytes = emoji_bytes.replace(b"<svg ",
+                                      b"<svg width=\"" + size_bytes + b"px\" height=\"" + size_bytes + b"px\" ")
+    return emoji_bytes
+
+
 def get_emoji(char: str, size=default_size):
     """ Return the emoji with the specified character and optionally
     with the given size. """
@@ -58,9 +67,8 @@ def get_emoji(char: str, size=default_size):
         return None
 
     emoji_bytes = emoji[char]
-    size_bytes = bytes(str(size), encoding="utf-8")
-    emoji_bytes = emoji_bytes.replace(b"<svg ",
-                                      b"<svg width=\"" + size_bytes + b"px\" height=\"" + size_bytes + b"px\" ")
+    emoji_bytes = set_svg_size(emoji_bytes, size)
+    
     return Image.open(BytesIO(cairosvg.svg2png(emoji_bytes)))
 
 
@@ -79,7 +87,7 @@ async def get_emote(emote_id: str, server: discord.Server):
 
 
 def parse_emoji(chars: list):
-    """ Go through and return all emoji in the given list of characters
+    """ Go through and yield all emoji in the given list of characters
     (or Image objects). """
     # Convert all characters in the given list to hex format strings, and leave the Image objects alone
     chars = [hex(ord(c))[2:] if type(c) is str else c for c in chars]
@@ -188,7 +196,7 @@ async def convert_to_images(server: discord.Server, text: str):
     return parsed_emoji, total_width, height
 
 
-@plugins.command(aliases="huge")
+@plugins.command(aliases="huge bigger big")
 async def greater(message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
@@ -204,6 +212,49 @@ async def greater(message: discord.Message, text: Annotate.CleanContent):
     # Upload the stitched image
     image_fp = utils.convert_image_object(image)
     await client.send_file(message.channel, image_fp, filename="emojies.png")
+
+
+@plugins.command()
+async def merge(message: discord.Message, text: Annotate.CleanContent):
+    """ Randomly merge attributes from several emoji. Type 're' after the command to regenerate.  """
+    contents = [str(emoji[char]) for char in parse_emoji(text)]
+    
+    assert contents, "Only emojies are supported."
+
+    g_transform_tags = []
+    for svg in contents:
+        g_transform_tags += g_transform_regex.findall(svg)
+
+    replies = []
+    while True:
+        random.shuffle(g_transform_tags)
+
+        combined = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" style="enable-background:new 0 0 45 45;" xml:space="preserve" version="1.1" id="svg2"><metadata id="metadata8"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/></cc:Work></rdf:RDF></metadata><defs id="defs6"><clipPath id="clipPath16" clipPathUnits="userSpaceOnUse"><path id="path18" d="M 0,36 36,36 36,0 0,0 0,36 Z"/></clipPath></defs><g transform="matrix(1.25,0,0,-1.25,0,45)" id="g10"><g id="g12"><g clip-path="url(#clipPath16)" id="g14">'
+        combined += "".join(g_transform_tags)
+        combined += '</g></g></g></svg>'
+    
+        combined_bytes = bytes(combined, encoding="utf-8")
+        combined_bytes = set_svg_size(combined_bytes, 256)
+
+        image_bytes = BytesIO(cairosvg.svg2png(combined_bytes))
+
+        msg = await client.send_file(message.channel, image_bytes, filename="combined.png")
+        reply = await client.wait_for_message(timeout=60, channel=message.channel, author=message.author,
+                                              check=lambda m: m.content.lower() == "re" or m.content.startswith("!merge"))
+
+        # If the user types this command, stop waiting for the "re" keyword
+        if not reply or reply.content.startswith("!merge"):
+            if replies and not message.channel.is_private:
+                if len(replies) > 1:
+                    await client.delete_messages(replies)
+                else:
+                    await client.delete_message(replies.pop())
+
+            break
+
+        # Otherwise, they must have typed the keyword
+        replies.append(reply)
+        await client.delete_message(msg)
 
 
 async def gif(message: discord.Message, text: Annotate.CleanContent):
