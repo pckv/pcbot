@@ -876,7 +876,7 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
     try:
         pp_stats = await calculate_pp(beatmap_url, *options)
     except ValueError as e:
-        await client.say(message, e)
+        await client.say(message, str(e))
         return
 
     options = list(options)
