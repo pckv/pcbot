@@ -82,19 +82,21 @@ class Client(discord.Client):
 
     async def send_message(self, destination, content=None, *args, **kwargs):
         # Convert content to str, but also log this since it shouldn't happen
-        if type(content) is not str:
-            # Log the traceback too when the content is an exception (it was probably meant to be converted to string)
-            # as to make debugging easier
-            tb = ""
-            if isinstance(content, Exception):
-                tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
-            logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
+        if content is not None:
+            if type(content) is not str:
+                # Log the traceback too when the content is an exception (it was probably meant to be
+                # converted to string) as to make debugging easier
+                tb = ""
+                if isinstance(content, Exception):
+                    tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
+                logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
 
-            content = str(content)
+                content = str(content)
 
-        if content and not kwargs.get("allow_everyone", None):
-            # Replace the message content
-            content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
+            # Replace any @here and @everyone to avoid using them
+            if not kwargs.get("allow_everyone", None):
+                content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
+
         return await super().send_message(destination, content, *args, **kwargs)
 
     async def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
