@@ -94,7 +94,7 @@ class Client(discord.Client):
                 content = str(content)
 
             # Replace any @here and @everyone to avoid using them
-            if not kwargs.get("allow_everyone", None):
+            if not kwargs.pop("allow_everyone", None):
                 content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
 
         return await super().send_message(destination, content, *args, **kwargs)
