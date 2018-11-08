@@ -175,7 +175,7 @@ async def format_stream(member: discord.Member, score: dict, beatmap: dict):
 
     # Find the timestamp of where the play would have started without pausing the game
     score_created = datetime.strptime(score["date"], "%Y-%m-%d %H:%M:%S")
-    vod_created = datetime.strptime(vod["created_at"], "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=8)  # UTC-8
+    vod_created = datetime.strptime(vod["created_at"], "%Y-%m-%dT%H:%M:%SZ")
     beatmap_length = int(beatmap["total_length"])
 
     # Convert beatmap length when speed mods are enabled
