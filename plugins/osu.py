@@ -55,6 +55,7 @@ osu_config = Config("osu", pretty=True, data=dict(
     minimum_pp_required=0,  # The minimum pp required to assign a gamemode/profile in general
     use_mentions_in_scores=True,  # Whether the bot will mention people when they set a *score*
     update_interval=30,  # The sleep time in seconds between updates
+    map_event_repeat_interval=6,  # The time in hours before a map event will be treated as "new"
     profiles={},  # Profile setup as member_id: osu_id
     mode={},  # Member's game mode as member_id: gamemode_value
     server={},  # Server specific info for score- and map notification channels
@@ -78,6 +79,25 @@ api.set_api_key(osu_config.data.get("key"))
 host = "https://osu.ppy.sh/"
 
 gamemodes = ", ".join(gm.name for gm in api.GameMode)
+
+recent_map_events = []
+event_repeat_interval = osu_config.data.get("map_event_repeat_interval", 6)
+
+
+class MapEvent:
+    """ Store userpage map events so that we don't send multiple updates. """
+    def __init__(self, text):
+        self.text = text
+        
+        self.time_created = datetime.utcnow()
+        self.count = 1
+        self.messages = []
+
+    def __repr__(self):
+        return "MapEvent(text={}, time_created={}, count={})".format(self.text, self.time_created.ctime(), self.count)
+    
+    def __str__(self):
+        return repr(self)
 
 
 class UpdateModes(Enum):
@@ -618,6 +638,21 @@ async def notify_maps(member_id: str, data: dict):
             # well shit
             continue
 
+        new_event = MapEvent(html)
+        prev = discord.utils.get(recent_map_events, text=html)
+        to_delete = []
+        
+        if prev:
+            recent_map_events.remove(prev)
+
+            if prev.time_created + timedelta(hours=event_repeat_interval) > new_event.time_created:
+                to_delete = prev.messages
+                new_event.count = prev.count + 1
+                new_event.time_created = prev.time_created
+        
+        # Always append the new event to the recent list
+        recent_map_events.append(new_event)
+
         # Send the message to all servers
         for server in client.servers:
             member = server.get_member(member_id)
@@ -630,11 +665,22 @@ async def notify_maps(member_id: str, data: dict):
                 # Do not format difficulties when minimal (or pp) information is specified
                 update_mode = get_update_mode(member_id)
                 embed = format_map_status(member, status_format, beatmapset, update_mode is not UpdateModes.Full)
+                if new_event.count > 1:
+                    embed.set_footer(text="updated {} times since".format(new_event.count))
+                    embed.timestamp = new_event.time_created
+                
+                # Delete the previous message if there is one
+                if to_delete:
+                    delete_msg = discord.utils.get(to_delete, channel=channel)
+                    await client.delete_message(delete_msg)
+                    to_delete.remove(delete_msg)
 
                 try:
-                    await client.send_message(channel, embed=embed)
+                    msg = await client.send_message(channel, embed=embed)
                 except discord.errors.Forbidden:
                     pass
+                else:
+                    new_event.messages.append(msg)
 
 
 async def on_ready():
@@ -677,12 +723,14 @@ async def on_ready():
 
 async def on_reload(name: str):
     """ Preserve the tracking cache. """
-    global osu_tracking
+    global osu_tracking, recent_map_events
     local_tracking = osu_tracking
+    local_events = recent_map_events
 
     await plugins.reload(name)
 
     osu_tracking = local_tracking
+    recent_map_events = local_events
 
 
 @plugins.command(aliases="circlesimulator eba")
