@@ -4,6 +4,7 @@
 
 import os
 from collections import namedtuple
+import logging
 
 from pcbot import utils
 from . import api
@@ -21,8 +22,8 @@ CachedBeatmap = namedtuple("CachedBeatmap", "url_or_id beatmap")
 PPStats = namedtuple("PPStats", "pp stars artist title version")
 ClosestPPStats = namedtuple("ClosestPPStats", "acc pp stars artist title version")
 
-oppai_path = "plugins/osulib/oppai/"
-beatmap_path = os.path.join(oppai_path, "pp_map.osu")
+plugin_path = "plugins/osulib/"
+beatmap_path = os.path.join(plugin_path, "map.osu")
 cached_beatmap = CachedBeatmap(url_or_id=None, beatmap=None)
 
 
@@ -59,6 +60,10 @@ async def download_beatmap(beatmap_url_or_id):
 
     with open(beatmap_path, "wb") as f:
         f.write(beatmap_file)
+    
+    if not beatmap_file.decode().startswith("osu file format"):
+        logging.error("Invalid file received from {}\nCheck {}".format(file_url, beatmap_path))
+        raise ValueError("Could not download the .osu file.")
 
 
 async def parse_map(beatmap_url_or_id):
@@ -109,7 +114,7 @@ async def calculate_pp(beatmap_url_or_id, *options):
     """
     if pyttanko is None:
         return None
-
+    
     beatmap = await parse_map(beatmap_url_or_id)
     args = parse_options(*options)
 
@@ -131,7 +136,7 @@ async def calculate_pp(beatmap_url_or_id, *options):
     # Calculate the pp
     pp, _, _, _, _ = pyttanko.ppv2(stars.aim, stars.speed, bmap=beatmap, mods=mods_bitmask, combo=args.combo,
                                    n300=c300, n100=c100, n50=c50, nmiss=args.misses,  score_version=args.score_version)
-
+    
     return PPStats(pp, stars.total, beatmap.artist, beatmap.title, beatmap.version)
 
 
