@@ -61,7 +61,9 @@ async def download_beatmap(beatmap_url_or_id):
     with open(beatmap_path, "wb") as f:
         f.write(beatmap_file)
     
-    if not beatmap_file.decode().startswith("osu file format"):
+    # one map apparently had a /ufeff at the very beginning of the file???
+    # https://osu.ppy.sh/b/1820921
+    if not beatmap_file.decode().strip("\ufeff \t").startswith("osu file format"):
         logging.error("Invalid file received from {}\nCheck {}".format(file_url, beatmap_path))
         raise ValueError("Could not download the .osu file.")
 
