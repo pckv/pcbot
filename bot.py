@@ -163,7 +163,7 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
     except AssertionError as e:
         await client.say(message, str(e) or command.error or plugins.format_help(command, message.server))
     except:
-        traceback.print_exc()
+        logging.error(traceback.format_exc())
         if plugins.is_owner(message.author) and config.owner_error:
             await client.say(message, utils.format_code(traceback.format_exc()))
         else:
