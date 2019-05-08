@@ -55,6 +55,7 @@ osu_config = Config("osu", pretty=True, data=dict(
     minimum_pp_required=0,  # The minimum pp required to assign a gamemode/profile in general
     use_mentions_in_scores=True,  # Whether the bot will mention people when they set a *score*
     update_interval=30,  # The sleep time in seconds between updates
+    not_playing_skip=10,  # Number of rounds between every time someone not playing is updated
     map_event_repeat_interval=6,  # The time in hours before a map event will be treated as "new"
     profiles={},  # Profile setup as member_id: osu_id
     mode={},  # Member's game mode as member_id: gamemode_value
@@ -65,6 +66,7 @@ osu_config = Config("osu", pretty=True, data=dict(
 
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
 update_interval = osu_config.data.get("update_interval", 30)
+not_playing_skip = osu_config.data.get("not_playing_skip", 10)
 time_elapsed = 0  # The registered time it takes to process all information between updates (changes each update)
 logging_interval = 30  # The time it takes before posting logging information to the console. TODO: setup logging
 rank_regex = re.compile(r"#\d+")
@@ -300,21 +302,12 @@ def get_user_url(member_id: str):
         return host + "u/" + user_id
 
 
-def check_playing(member: discord.Member, member_id: str):
+
+
+def is_playing(member: discord.Member):
     """ Check if a member has "osu!" in their Game name. """
-    # The member doesn't even match
-    if not member.id == member_id:
-        return False
-
-    # The member has disabled these features
-    if get_update_mode(member_id) is UpdateModes.Disabled:
-        return False
-
     # See if the member is playing
-    if getattr(member.game, "name", None) and ("osu" in member.game.name.lower() or rank_regex.search(member.game.name)):
-        return True
-
-    return False
+    return getattr(member.game, "name", None) and ("osu" in member.game.name.lower() or rank_regex.search(member.game.name))
 
 
 async def update_user_data():
@@ -324,15 +317,29 @@ async def update_user_data():
     # Go through each member playing and give them an "old" and a "new" subsection
     # for their previous and latest user data
     for member_id, profile in osu_config.data["profiles"].items():
-        member = discord.utils.find(lambda m: check_playing(m, member_id), client.get_all_members())
-
-        # If the member is not playing anymore, remove them from the tracking data
-        if not member:
-            if member_id in osu_tracking:
-                del osu_tracking[member_id]
-
+        # Skip members who disabled tracking
+        if get_update_mode(member_id) is UpdateModes.Disabled:
             continue
 
+        #member = discord.utils.find(lambda m: check_playing(m, member_id), client.get_all_members())
+        member = discord.utils.get(client.get_all_members(), id=member_id)
+        if member is None:
+            continue
+     
+        # Add the member to tracking
+        if member_id not in osu_tracking:
+            osu_tracking[member_id] = dict(member=member, ticks=0)
+
+        osu_tracking[member_id]["ticks"] += 1
+
+        # Only update members not tracked ingame every nth update
+        if not is_playing(member) and osu_tracking[member_id]["ticks"] % not_playing_skip > 0:
+            # Update their old data to match their new one on the second tick, in order to avoid duplicate posts
+            if osu_tracking[member_id]["ticks"] == 1:
+                osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
+            continue
+        
+        # Get the user data for the player
         mode = get_mode(member_id).value
         try:
             user_data = await api.get_user(u=profile, type="id", m=mode)
@@ -351,13 +358,12 @@ async def update_user_data():
             continue
 
         # User is already tracked
-        if member_id in osu_tracking:
+        if "new" in osu_tracking[member_id]:
             # Move the "new" data into the "old" data of this user
             osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
         else:
             # If this is the first time, update the user's list of scores for later
-            user_scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=mode)
-            osu_tracking[member_id] = dict(member=member, scores=user_scores)
+            osu_tracking[member_id]["scores"] = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=mode)
 
         # Update the "new" data
         osu_tracking[member_id]["new"] = user_data
@@ -1029,5 +1035,5 @@ async def debug(message: discord.Message):
                               "Members registered for update: {}".format(
         api.requests_sent, client.time_started.ctime(),
         time_elapsed,
-        utils.format_objects(*[d["member"] for d in osu_tracking.values()], dec="`")
+        utils.format_objects(*[d["member"] for d in osu_tracking.values() if "member" in d], dec="`")
     ))
