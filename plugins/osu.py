@@ -615,7 +615,9 @@ async def notify_maps(member_id: str, data: dict):
         elif "revived" in html:
             status_format = "\U0001F64F <title> has been revived from eternal slumber by <name>"
         elif "qualified" in html:
-            status_format = "\U0001F497 <title> by <name> has just been qualified!"
+            status_format = "\U0001F497 <title> by <name> has been qualified!"
+        elif "ranked" in html:
+            status_format = "\u23EB <title> by <name> has been ranked!"
         else:  # We discard any other events
             continue
 
