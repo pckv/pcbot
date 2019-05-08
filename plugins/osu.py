@@ -1032,8 +1032,10 @@ async def debug(message: discord.Message):
     """ Display some debug info. """
     await client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
                               "Spent `{:.3f}` seconds last update.\n"
-                              "Members registered for update: {}".format(
+                              "Members registered as playing: {}\n"
+                              "Total members tracked: `{}`".format(
         api.requests_sent, client.time_started.ctime(),
         time_elapsed,
-        utils.format_objects(*[d["member"] for d in osu_tracking.values() if "member" in d], dec="`")
+        utils.format_objects(*[d["member"] for d in osu_tracking.values() if is_playing(d["member"])], dec="`"),
+        len(osu_tracking)
     ))
