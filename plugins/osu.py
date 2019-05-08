@@ -328,7 +328,7 @@ async def update_user_data():
      
         # Add the member to tracking
         if member_id not in osu_tracking:
-            osu_tracking[member_id] = dict(member=member, ticks=0)
+            osu_tracking[member_id] = dict(member=member, ticks=-1)
 
         osu_tracking[member_id]["ticks"] += 1
 
