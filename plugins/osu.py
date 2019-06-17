@@ -44,6 +44,7 @@ from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods, calculate_pp, pyttanko, ClosestPPStats
 from plugins.twitchlib import twitch
 
+import json
 
 client = plugins.client  # type: discord.Client
 
@@ -79,6 +80,7 @@ max_diff_length = 32  # The maximum amount of characters in a beatmap difficulty
 
 api.set_api_key(osu_config.data.get("key"))
 host = "https://osu.ppy.sh/"
+rankings_url = "https://osu.ppy.sh/rankings/osu/performance"
 
 gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
@@ -152,9 +154,9 @@ def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
     formatted = "\u2139`{} {:.2f}pp {:+.2f}pp`".format(mode.name.replace("Standard", "osu!"), float(data["pp_raw"]), pp)
-    formatted += (" \U0001f30d`#{:,}{}`".format(int(data["pp_rank"]),
+    formatted += (" [\U0001f30d]({})`#{:,}{}`".format(rankings_url, int(data["pp_rank"]),
                                                 "" if int(rank) == 0 else " {:+}".format(int(rank))))
-    formatted += (" {}`#{:,}{}`".format(utils.text_to_emoji(iso), int(data["pp_country_rank"]),
+    formatted += (" [{}]({}?country={})`#{:,}{}`".format(utils.text_to_emoji(iso), rankings_url, iso, int(data["pp_country_rank"]),
                                         "" if int(country_rank) == 0 else " {:+}".format(int(country_rank))))
     rounded_acc = round(accuracy, 3)
     if rounded_acc > 0:
@@ -381,6 +383,9 @@ async def get_new_score(member_id: str):
     # Compare the scores from top to bottom and try to find a new one
     for i, score in enumerate(user_scores):
         if score not in osu_tracking[member_id]["scores"]:
+            if i == 0:
+                await client.send_message("106834001976639488", f"a #1 score was set: check `plugins.osu.osu_tracking['{member_id}']['debug']`")
+                osu_tracking[member_id]["debug"] = dict(scores=user_scores, old=osu_tracking[member_id]["old"], new=osu_tracking[member_id]["new"])
             osu_tracking[member_id]["scores"] = user_scores
 
             # Calculate the difference in pp from the score below
