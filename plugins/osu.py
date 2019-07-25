@@ -76,7 +76,7 @@ pp_threshold = osu_config.data.get("pp_threshold", 0.13)
 score_request_limit = osu_config.data.get("score_request_limit", 100)
 minimum_pp_required = osu_config.data.get("minimum_pp_required", 0)
 use_mentions_in_scores = osu_config.data.get("use_mentions_in_scores", True)
-max_diff_length = 32  # The maximum amount of characters in a beatmap difficulty
+max_diff_length = 26  # The maximum amount of characters in a beatmap difficulty
 
 api.set_api_key(osu_config.data.get("key"))
 host = "https://osu.ppy.sh/"
@@ -568,7 +568,7 @@ def format_beatmapset_diffs(beatmapset: dict):
         m += "\n{gamemode: <2}{name: <{diff_len}}  |  " \
              "{stars: <8}{drain}".format(
             gamemode=api.GameMode(int(diff["mode"])).name[0],
-            name=diff_name if len(diff_name) < max_diff_length else diff_name[:29] + "...",
+            name=diff_name if len(diff_name) < max_diff_length else diff_name[:max_diff_length - 3] + "...",
             diff_len=diff_length,
             stars="{:.2f}\u2605".format(float(diff["difficultyrating"])),
             drain="{}:{:02}".format(*divmod(int(diff["hit_length"]), 60))
