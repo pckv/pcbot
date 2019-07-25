@@ -68,17 +68,18 @@ async def download_beatmap(beatmap_url_or_id):
         raise ValueError("Could not download the .osu file.")
 
 
-async def parse_map(beatmap_url_or_id):
+async def parse_map(beatmap_url_or_id, ignore_cache: bool=False):
     """ Download and parse the map with the given url or id, or return a newly parsed cached version.
 
     :param beatmap_url_or_id: beatmap_url as str or the id as int
+    :param ignore_cache: When true, the .osu will always be downloaded
     """
     global cached_beatmap
 
     parser = pyttanko.parser()
 
     # Parse from cache or load the .osu and parse new
-    if beatmap_url_or_id == cached_beatmap.url_or_id:
+    if not ignore_cache and beatmap_url_or_id == cached_beatmap.url_or_id:
         with open(beatmap_path, encoding="utf-8") as fp:
             beatmap = parser.map(fp, bmap=cached_beatmap.beatmap)
     else:
@@ -108,16 +109,17 @@ def apply_settings(beatmap, args):
     return mods_bitmask
 
 
-async def calculate_pp(beatmap_url_or_id, *options):
+async def calculate_pp(beatmap_url_or_id, ignore_cache: bool=False, *options):
     """ Return a PPStats namedtuple from this beatmap, or a ClosestPPStats namedtuple
     when [pp_value]pp is given in the options.
 
     :param beatmap_url_or_id: beatmap_url as str or the id as int
+    :param ignore_cache: When true, the .osu will always be downloaded
     """
     if pyttanko is None:
         return None
     
-    beatmap = await parse_map(beatmap_url_or_id)
+    beatmap = await parse_map(beatmap_url_or_id, ignore_cache=ignore_cache)
     args = parse_options(*options)
 
     # When acc is provided, calculate the 300s, 100s and 50s

@@ -63,6 +63,7 @@ osu_config = Config("osu", pretty=True, data=dict(
     server={},  # Server specific info for score- and map notification channels
     update_mode={},  # Member's notification update mode as member_id: UpdateModes.name
     primary_server={},  # Member's primary server; defines where they should be mentioned: member_id: server_id
+    map_cache={},  # Cache for map events, primarily used for calculating and caching pp of the difficulties
 ))
 
 osu_tracking = {}  # Saves the requested data or deletes whenever the user stops playing (for comparisons)
@@ -76,7 +77,7 @@ pp_threshold = osu_config.data.get("pp_threshold", 0.13)
 score_request_limit = osu_config.data.get("score_request_limit", 100)
 minimum_pp_required = osu_config.data.get("minimum_pp_required", 0)
 use_mentions_in_scores = osu_config.data.get("use_mentions_in_scores", True)
-max_diff_length = 26  # The maximum amount of characters in a beatmap difficulty
+max_diff_length = 22  # The maximum amount of characters in a beatmap difficulty
 
 api.set_api_key(osu_config.data.get("key"))
 host = "https://osu.ppy.sh/"
@@ -304,8 +305,6 @@ def get_user_url(member_id: str):
         return host + "u/" + user_id
 
 
-
-
 def is_playing(member: discord.Member):
     """ Check if a member has "osu!" in their Game name. """
     # See if the member is playing
@@ -323,7 +322,6 @@ async def update_user_data():
         if get_update_mode(member_id) is UpdateModes.Disabled:
             continue
 
-        #member = discord.utils.find(lambda m: check_playing(m, member_id), client.get_all_members())
         member = discord.utils.get(client.get_all_members(), id=member_id)
         if member is None:
             continue
@@ -550,7 +548,7 @@ async def notify_pp(member_id: str, data: dict):
                 pass
 
 
-def format_beatmapset_diffs(beatmapset: dict):
+def format_beatmapset_diffs(beatmapset: list):
     """ Format some difficulty info on a beatmapset. """
     # Get the longest difficulty name
     diff_length = len(max((diff["version"] for diff in beatmapset), key=len))
@@ -560,24 +558,24 @@ def format_beatmapset_diffs(beatmapset: dict):
         diff_length = len("version")
 
     m = "```elm\n" \
-        "M {version: <{diff_len}}  |  stars   drain".format(
+        "M {version: <{diff_len}}  stars  drain  pp".format(
         version="version", diff_len=diff_length)
 
     for diff in sorted(beatmapset, key=lambda d: float(d["difficultyrating"])):
         diff_name = diff["version"]
-        m += "\n{gamemode: <2}{name: <{diff_len}}  |  " \
-             "{stars: <8}{drain}".format(
+        m += "\n{gamemode: <2}{name: <{diff_len}}  {stars: <7}{drain: <7}{pp}".format(
             gamemode=api.GameMode(int(diff["mode"])).name[0],
             name=diff_name if len(diff_name) < max_diff_length else diff_name[:max_diff_length - 3] + "...",
             diff_len=diff_length,
             stars="{:.2f}\u2605".format(float(diff["difficultyrating"])),
+            pp="{}pp".format(int(diff.get("pp", "0"))),
             drain="{}:{:02}".format(*divmod(int(diff["hit_length"]), 60))
         )
 
     return m + "```"
 
 
-def format_map_status(member: discord.Member, status_format: str, beatmapset: dict, minimal: bool):
+def format_map_status(member: discord.Member, status_format: str, beatmapset: list, minimal: bool):
     """ Format the status update of a beatmap. """
     set_id = beatmapset[0]["beatmapset_id"]
     user_id = osu_config.data["profiles"][member.id]
@@ -589,6 +587,44 @@ def format_map_status(member: discord.Member, status_format: str, beatmapset: di
     embed = discord.Embed(color=member.color, description=status)
     embed.set_thumbnail(url="https://b.ppy.sh/thumb/{}.jpg?date={}".format(set_id, datetime.now().ctime().replace(" ", "%20")))
     return embed
+
+
+async def calculate_pp_for_beatmapset(beatmapset: list):
+    """ Calculates the pp for every difficulty in the given mapset, added
+    to a "pp" key in the difficulty's dict. """
+    # Init the cache of this mapset if it has not been created
+    set_id = beatmapset[0]["beatmapset_id"]
+    if set_id not in osu_config.data["map_cache"]:
+        osu_config.data["map_cache"][set_id] = {}
+
+    cached_mapset = osu_config.data["map_cache"][set_id]
+
+    for i, diff in enumerate(beatmapset):
+        map_id = diff["beatmap_id"]
+        # Skip any diff that's not standard osu!
+        if int(diff["mode"]) != api.GameMode.Standard.value:
+            continue
+
+        # If the diff is cached and unchanged, use the cached pp
+        if map_id in cached_mapset:
+            if diff["file_md5"] == cached_mapset[map_id]["md5"]:
+                beatmapset[i]["pp"] = cached_mapset[map_id]["pp"]
+                continue
+
+            # If it was changed, add an asterisk to the beatmap name (this is a really stupid place to do this)
+            beatmapset[i]["version"] = "*" + diff["version"]
+
+        # If the diff is not cached, or was changed, calculate the pp and update the cache
+        pp_stats = await calculate_pp(int(map_id), ignore_cache=True)
+        beatmapset[i]["pp"] = pp_stats.pp
+
+        # Cache the difficulty
+        osu_config.data["map_cache"][set_id][map_id] = {
+            "md5": diff["file_md5"],
+            "pp": pp_stats.pp,
+        }
+
+    osu_config.save()
 
 
 async def notify_maps(member_id: str, data: dict):
@@ -636,8 +672,8 @@ async def notify_maps(member_id: str, data: dict):
             status_format = status_format.replace("<name>", "[**{name}**]({host}u/{user_id})")
             status_format = status_format.replace("<title>", "[**{artist} - {title}**]({host}s/{beatmapset_id})")
 
-        # We'll sleep for a while to let the beatmap API catch up with the change
-        await asyncio.sleep(30)
+        # We'll sleep for a long while to let the beatmap API catch up with the change
+        await asyncio.sleep(45)
 
         # Try returning the beatmap info 6 times with a span of a minute
         # This might be needed when new maps are submitted
@@ -649,6 +685,9 @@ async def notify_maps(member_id: str, data: dict):
         else:
             # well shit
             continue
+
+        # Calculate (or retrieve cached info) the pp for every difficulty of this mapset
+        await calculate_pp_for_beatmapset(beatmapset)
 
         new_event = MapEvent(html)
         prev = discord.utils.get(recent_map_events, text=html)
@@ -720,8 +759,9 @@ async def on_ready():
                 await notify_pp(member_id, data)
 
             # Check for any differences in the users' events and post about map updates
+            # NOTE: the same applies to this now. These can't be concurrent as they also calculate pp.
             for member_id, data in osu_tracking.items():
-                asyncio.ensure_future(notify_maps(member_id, data))
+                await notify_maps(member_id, data)
         # We don't want to stop updating scores even if something breaks
         except:
             print_exc()
