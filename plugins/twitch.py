@@ -64,8 +64,8 @@ def started_streaming(before: discord.Member, after: discord.Member):
         return True
 
     # Also update if they were streaming, but they changed the stream title
-    if before.game and before.game.type == 1 and not before.game.name == after.game.name:
-        return True
+    #if before.game and before.game.type == 1 and not before.game.name == after.game.name:
+    #    return True
 
     return False
 
