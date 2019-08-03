@@ -121,7 +121,6 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool=False):
     
     beatmap = await parse_map(beatmap_url_or_id, ignore_cache=ignore_cache)
     args = parse_options(*options)
-    logging.info(f"given options: {options}\nparsed args: {args}")
 
     # When acc is provided, calculate the 300s, 100s and 50s
     c300, c100, c50 = args.c300, args.c100, args.c50
