@@ -87,6 +87,7 @@ gamemodes = ", ".join(gm.name for gm in api.GameMode)
 
 recent_map_events = []
 event_repeat_interval = osu_config.data.get("map_event_repeat_interval", 6)
+timestamp_pattern = re.compile(r"(\d+:\d+:\d+\s(\([0-9,]+\))?\s*)-")
 
 
 class MapEvent:
@@ -783,6 +784,31 @@ async def on_reload(name: str):
 
     osu_tracking = local_tracking
     recent_map_events = local_events
+
+
+def get_timestamps_with_url(content: str):
+    """ Yield every map timestamp found in a string, and an edditor url.
+
+    :param content: The string to search
+    :returns: a tuple of the timestamp as a raw string and an editor url
+    """
+    for match in timestamp_pattern.finditer(content):
+        url = match.group(1).replace(" ", "%20").replace(")", r"\)")
+        yield match.group(0), "<osu://edit/{}>".format(url)
+
+
+@plugins.event()
+async def on_message(message):
+    # Ignore commands
+    if message.content.startswith("!"):
+        return
+
+    timestamps = ["{} {}".format(stamp, url) for stamp, url in get_timestamps_with_url(message.content)]
+    if timestamps:
+        await client.send_message(message.channel, 
+                embed=discord.Embed(color=message.author.color, description="\n".join(timestamps)))
+        return True
+
 
 
 @plugins.command(aliases="circlesimulator eba")
