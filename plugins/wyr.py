@@ -26,11 +26,36 @@ async def options(arg):
     return match.group(1), match.group(2)
 
 
+def get_choice(choices: list, choice: str):
+    """ Get the chosen option. This accept 1 and 2 as numbers. """
+    if choice == "1":
+        return 0
+    
+    if choice == "2":
+        return 1
+
+    choices = list(map(str.lower, choices))
+
+    # Go through all words in the given message, and find any words unique to a choice
+    for word in choice.lower().split():
+        if word == choices[0] or (word in choices[0] and word not in choices[1]):
+            return 0
+        elif word == choices[1] or word in choices[1] and word not in choices[0]:
+            return 1
+
+    # Invalid choice
+    return None
+
+
 @plugins.command(aliases="wyr rather either")
 async def wouldyourather(message: discord.Message, opt: options=None):
     """ Ask the bot if he would rather, or have the bot ask you.
 
-    **Example**: `!wouldyourather lie or be lied to`"""
+    **Examples:**
+
+    Registering a choice: `!wouldyourather lie or be lied to`
+    
+    Asking the bot: `!wouldyourather`"""
     # If there are no options, the bot will ask the questions (if there are any to choose from)
     if opt is None:
         assert message.channel.id not in sessions, "**A would you rather session is already in progress.**"
@@ -48,22 +73,25 @@ async def wouldyourather(message: discord.Message, opt: options=None):
         # Wait for replies from anyone in the channel
         while True:
             reply = await client.wait_for_message(timeout=timeout, channel=message.channel,
-                                                  check=lambda m: m.content.lower() in map(str.lower, choices) and
-                                                                  m.author not in replied)
+                                                  check=lambda m: m.author not in replied)
+            # Break on timeout
             if reply is None:
                 break
 
+            # Check if the choice is vlaid
+            choice = get_choice(choices, reply.content)
+            if choice is None:
+                continue
+
+            # Register that this author has replied
             replied.append(reply.author)
 
             # Update the answers in the DB
             # We don't care about multiples, just the amount (yes it will probably be biased)
-            if reply.content.lower() == choices[0]:
-                question["answers"][0] += 1
-            else:
-                question["answers"][1] += 1
+            question["answers"][choice] += 1
 
             name = reply.author.display_name
-            response = random.choice(db.data["responses"]).format(name=name, NAME=name.upper(), choice=reply.content)
+            response = random.choice(db.data["responses"]).format(name=name, NAME=name.upper(), choice=choices[choice])
             await client.say(message, response)
 
         # Say the total tallies
