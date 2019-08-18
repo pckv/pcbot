@@ -19,6 +19,8 @@ from PIL import Image
 import plugins
 from pcbot import Annotate, utils
 
+import logging
+
 # See if we can create gifs using imageio
 try:
     import imageio
@@ -81,7 +83,8 @@ async def get_emote(emote_id: str, server: discord.Server):
         return Image.open(emote_cache[emote.id])
 
     # Otherwise, download the emote, store it in the cache and return
-    emote_bytes = await utils.download_file(emote.url, bytesio=True)
+    url = emote.url.replace("discordapp.com/api/", "cdn.discordapp.com/")  # legacy discord.py gives old url format
+    emote_bytes = await utils.download_file(url, bytesio=True)
     emote_cache[emote.id] = emote_bytes
     return Image.open(emote_bytes)
 
