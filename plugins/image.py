@@ -2,6 +2,7 @@
 
 Commands:
     resize """
+import random
 import re
 from io import BytesIO
 
@@ -284,6 +285,29 @@ async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice
             image_arg.modify(Image.Image.resize, (w // 3, h // 3))
 
     await send_image(message, image_arg, quality=quality)
+
+
+@plugins.command(aliases="ff")
+async def fuckify(message: discord.Message, image_arg: image):
+    """
+
+    """
+    assert not image_arg.gif, "**This command uses JPEG, which only works on images.**"
+    image_arg.set_extension("jpg", real_jpg=False)
+
+    old_size = image_arg.object.size
+
+    # Resize to small width and height values
+    new_size = [random.randint(2, 40) for _ in range(2)]
+    image_arg.modify(Image.Image.resize, new_size, Image.NEAREST if random.randint(0, 4) == 0 else Image.ANTIALIAS)
+    
+    # Save as jpg with random quality
+    image_bytes = utils.convert_image_object(image_arg.object, image_arg.format, quality=random.randint(3, 30))
+    image_arg.object = Image.open(image_bytes)
+    
+    # Scale image back up, and again save as jpg with random quality
+    image_arg.modify(Image.Image.resize, old_size, Image.NEAREST if random.randint(0, 4) == 0 else Image.ANTIALIAS)
+    await send_image(message, image_arg, quality=random.randint(1, 20))
 
 
 @plugins.command()
