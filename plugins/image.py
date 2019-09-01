@@ -117,20 +117,34 @@ class ImageArg:
             self.gif_bytes = image_bytes
     
 
+async def convert_attachment(attachment):
+    """ Convert an attachment to an image argument. 
+    
+    Returns None if the attachment is not an image.
+    """
+    url = attachment["url"]
+    headers = await utils.retrieve_headers(url)
+    match = extension_regex.search(headers["CONTENT-TYPE"])
+    if not match:
+        return None
+
+    image_format = match.group("ext")
+    image_bytes = await utils.download_file(url, bytesio=True)
+    image_object = Image.open(image_bytes)
+    return ImageArg(image_object, format=image_format)
+
+
+
 async def find_prev_image(channel: discord.Channel, limit: int=200):
     """ Look for the previous sent image. """
     async for message in client.logs_from(channel, limit):
         if message.attachments:
-            url = message.attachments[0]["url"]
-            headers = await utils.retrieve_headers(url)
-            match = extension_regex.search(headers["CONTENT-TYPE"])
-            if not match:
+            # Try to convert the first attachment
+            image_arg = await convert_attachment(message.attachments[0])
+            if not image_arg:
                 continue
 
-            image_format = match.group("ext")
-            image_bytes = await utils.download_file(url, bytesio=True)
-            image_object = Image.open(image_bytes)
-            return ImageArg(image_object, format=image_format)
+            return image_arg
 
     return None
 
@@ -138,9 +152,17 @@ async def find_prev_image(channel: discord.Channel, limit: int=200):
 @plugins.argument("{open}url/@user" + ("" if url_only else "/emoji") + "{suffix}{close}", pass_message=True)
 async def image(message: discord.Message, url_or_emoji: str):
     """ Parse a url, emoji or user mention and return an ImageArg object. """
-    # Find the previous posted image when the argument is a .
+    # Check for local images
     if url_or_emoji == ".":
-        image_arg = await find_prev_image(message.channel)
+        # First see if there is an attachment to this message
+        image_arg = None
+        if message.attachments:
+            image_arg = await convert_attachment(message.attachments[0])
+
+        # If there is no attached image, look for an image posted previously
+        if not image_arg:
+            image_arg = await find_prev_image(message.channel)
+        
         assert image_arg is not None, "Could not find any previously attached image."
         return image_arg
 
