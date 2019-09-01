@@ -35,12 +35,13 @@ def get_choice(choices: list, choice: str):
         return 1
 
     choices = list(map(str.lower, choices))
+    words = list(map(str.split, choices))
 
     # Go through all words in the given message, and find any words unique to a choice
     for word in choice.lower().split():
-        if word == choices[0] or (word in choices[0] and word not in choices[1]):
+        if word in words[0] and word not in words[1]:
             return 0
-        elif word == choices[1] or word in choices[1] and word not in choices[0]:
+        elif word in words[1] and word not in words[0]:
             return 1
 
     # Invalid choice
