@@ -2,8 +2,10 @@
 
 Commands:
     resize """
+import logging
 import random
 import re
+from functools import partial
 from io import BytesIO
 
 from PIL import Image, ImageSequence, ImageOps
@@ -32,7 +34,31 @@ client = plugins.client  # type: discord.Client
 extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
 mention_regex = re.compile(r"<@!?(?P<id>\d+)>")
 max_bytes = 4096 ** 2  # 4 MB
-max_gif_bytes = 1024 * 128  # 128kB
+max_gif_bytes = 1024 * 6000  # 128kB
+
+
+def convert_image(image_object, mode, real_convert=True):
+    """ Convert the image object to a specified mode. """
+    if mode == "RGB" and image_object.mode == "RGBA" and real_convert:
+        return to_rgb(image_object)
+    
+    return image_object.convert(mode)
+
+
+def to_rgb(image_object):
+    """ Convert to RGB using solution from http://stackoverflow.com/questions/9166400/ """
+    image_object.load()
+    background = Image.new("RGB", image_object.size, (0, 0, 0))
+    background.paste(image_object, mask=image_object.split()[3])
+    return background
+
+
+def to_jpg(image_object, quality, real_convert=True):
+    # Save the image as a jpg and reopen it
+    if image_object.mode != "RGB":
+        image_object = convert_image(image_object, "RGB", real_convert)
+
+    return Image.open(utils.convert_image_object(image_object, "JPEG", quality=quality))
 
 
 class ImageArg:
@@ -53,44 +79,42 @@ class ImageArg:
         if self.format.lower() == "jpg":
             self.format = "JPEG"
 
-        if self.format == "JPEG":
-            if real_convert:
-                self.to_rgb()
-            else:
-                self.object = self.object.convert("RGB")
-
     def set_extension(self, ext: str, real_jpg=True):
         """ Change the extension of an image. """
         self.extension = self.format = ext
-        self.clean_format(real_convert=real_jpg)
 
-    def modify(self, function, *args, **kwargs):
+
+    def modify(self, function, *args, convert=None, **kwargs):
         """ Modify the image object using the given Image function.
         This function supplies sequence support. """
         if not gif_support or not self.gif:
-            self.object = function(self.object, *args, **kwargs)
+            if convert:
+                self.object = convert_image(self.object, convert)
+            if type(function) is list:
+                for func in function:
+                    self.object = func(self.object, *args, **kwargs)
+            else:
+                self.object = function(self.object, *args, **kwargs)
         else:
             frames = []
             duration = self.object.info.get("duration") / 1000
             for frame in ImageSequence.Iterator(self.object):
-                frame_bytes = utils.convert_image_object(function(frame, *args, **kwargs))
+                if convert:
+                    frame = convert_image(frame, convert, real_convert=False)
+
+                if type(function) is list:
+                    for func in function:
+                        frame = func(frame, *args, **kwargs)
+                    frame_bytes = utils.convert_image_object(frame)
+                else:
+                    frame_bytes = utils.convert_image_object(function(frame, *args, **kwargs))
                 frames.append(imageio.imread(frame_bytes, format="PNG"))
 
             # Save the image as bytes and recreate the image object
             image_bytes = imageio.mimwrite(imageio.RETURN_BYTES, frames, format=self.format, duration=duration)
             self.object = Image.open(BytesIO(image_bytes))
             self.gif_bytes = image_bytes
-
-    def to_rgb(self):
-        """ Convert to RGB using solution from http://stackoverflow.com/questions/9166400/ """
-        if not self.object.mode == "RGBA":
-            return
-
-        self.object.load()
-        background = Image.new("RGB", self.object.size, (0, 0, 0))
-        background.paste(self.object, mask=self.object.split()[3])
-        self.object = background
-
+    
 
 async def find_prev_image(channel: discord.Channel, limit: int=200):
     """ Look for the previous sent image. """
@@ -232,13 +256,9 @@ async def send_image(message: discord.Message, image_arg: ImageArg, **params):
 
 
 @plugins.command(pos_check=lambda s: s.startswith("-"))
-async def resize(message: discord.Message, image_arg: image, resolution: parse_resolution, *options,
-                 extension: str.lower=None):
+async def resize(message: discord.Message, image_arg: image, resolution: parse_resolution, *options):
     """ Resize an image with the given resolution formatted as `<width>x<height>`
-    or `*<scale>` with an optional extension. """
-    if extension:
-        image_arg.set_extension(extension)
-
+    or `*<scale>`. """
     # Generate a new image based on the scale
     if resolution[1] == 0:
         w, h = image_arg.object.size
@@ -247,7 +267,7 @@ async def resize(message: discord.Message, image_arg: image, resolution: parse_r
         resolution = (int(w * scale), int(h * scale))
 
     # Resize and upload the image
-    image_arg.modify(Image.Image.resize, resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS)
+    image_arg.modify(Image.Image.resize, resolution, Image.NEAREST if "-nearest" in options else Image.ANTIALIAS, convert="RGBA")
     await send_image(message, image_arg)
 
 
@@ -258,8 +278,7 @@ async def rotate(message: discord.Message, image_arg: image, degrees: int, *opti
         image_arg.set_extension(extension)
 
     # Rotate and upload the image
-    image_arg.modify(Image.Image.rotate, -degrees, Image.NEAREST if "-nearest" in options else Image.BICUBIC,
-                     expand=True)
+    image_arg.modify(Image.Image.rotate, -degrees, Image.NEAREST if "-nearest" in options else Image.BICUBIC, expand=True, convert="RGBA")
     await send_image(message, image_arg)
 
 
@@ -271,55 +290,46 @@ async def convert(message: discord.Message, image_arg: image, extension: str.low
 
 
 @plugins.command(aliases="jpg")
-async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice("small", "meme"),
+async def jpeg(message: discord.Message, image_arg: image, *effect: utils.choice("meme"),
                quality: utils.int_range(f=0, t=100)=5):
     """ Give an image some proper jpeg artifacting.
 
-    Valid effects are: `small, meme` """
-    assert not image_arg.gif, "**JPEG saving only works on images.**"
-    image_arg.set_extension("jpg", real_jpg=False if "meme" in effect else True)
-
-    if effect:
-        if "small" in effect:
-            w, h = image_arg.object.size
-            image_arg.modify(Image.Image.resize, (w // 3, h // 3))
-
-    await send_image(message, image_arg, quality=quality)
+    Valid effects are: `meme` """
+    image_arg.modify(to_jpg, quality, real_convert=False if "meme" in effect else True)
+    
+    await send_image(message, image_arg)
 
 
 @plugins.command(aliases="ff")
-async def fuckify(message: discord.Message, image_arg: image):
-    """
-
-    """
-    assert not image_arg.gif, "**This command uses JPEG, which only works on images.**"
-    image_arg.set_extension("jpg", real_jpg=False)
-
+async def fuckify(message: discord.Message, image_arg: image, seed=None):
+    """ destroy images """
+    if seed:
+        random.seed(seed)
     old_size = image_arg.object.size
 
     # Resize to small width and height values
-    new_size = [random.randint(2, 40) for _ in range(2)]
-    image_arg.modify(Image.Image.resize, new_size, Image.NEAREST if random.randint(0, 4) == 0 else Image.ANTIALIAS)
-    
-    # Save as jpg with random quality
-    image_bytes = utils.convert_image_object(image_arg.object, image_arg.format, quality=random.randint(3, 30))
-    image_arg.object = Image.open(image_bytes)
-    
-    # Scale image back up, and again save as jpg with random quality
-    image_arg.modify(Image.Image.resize, old_size, Image.NEAREST if random.randint(0, 4) == 0 else Image.ANTIALIAS)
-    await send_image(message, image_arg, quality=random.randint(1, 20))
+    new_size = [random.randint(5, 40) for _ in range(2)]
 
+    image_arg.modify([
+        partial(Image.Image.resize, size=new_size, resample=Image.ANTIALIAS),
+        partial(to_jpg, quality=random.randint(3, 30)),
+        partial(Image.Image.resize, size=old_size, resample=Image.ANTIALIAS),
+        partial(to_jpg, quality=random.randint(1, 20)),
+    ], convert="RGBA")
+
+    await send_image(message, image_arg)
 
 @plugins.command()
 async def invert(message: discord.Message, image_arg: image):
     """ Invert the colors of an image. """
-    image_arg.set_extension("jpg")
+    #image_arg.set_extension("jpg")
+    #image_arg.modify(to_jpg, quality=100)
 
     # This function only works in images because of PIL limitations
-    assert not image_arg.gif, "**This command does not support GIF files.**"
+    #assert not image_arg.gif, "**This command does not support GIF files.**"
 
     # Invert the colors and upload the image
-    image_arg.modify(ImageOps.invert)
+    image_arg.modify(ImageOps.invert, convert="RGB")
     await send_image(message, image_arg, quality=100)
 
 
