@@ -54,7 +54,7 @@ def to_rgb(image_object):
 
 
 def to_jpg(image_object, quality, real_convert=True):
-    # Save the image as a jpg and reopen it
+    """ Save an image object as JPG and reopen it. """
     if image_object.mode != "RGB":
         image_object = convert_image(image_object, "RGB", real_convert)
 
@@ -90,6 +90,7 @@ class ImageArg:
         if not gif_support or not self.gif:
             if convert:
                 self.object = convert_image(self.object, convert)
+
             if type(function) is list:
                 for func in function:
                     self.object = func(self.object, *args, **kwargs)
@@ -305,6 +306,7 @@ async def fuckify(message: discord.Message, image_arg: image, seed=None):
     """ destroy images """
     if seed:
         random.seed(seed)
+
     old_size = image_arg.object.size
 
     # Resize to small width and height values
@@ -322,13 +324,6 @@ async def fuckify(message: discord.Message, image_arg: image, seed=None):
 @plugins.command()
 async def invert(message: discord.Message, image_arg: image):
     """ Invert the colors of an image. """
-    #image_arg.set_extension("jpg")
-    #image_arg.modify(to_jpg, quality=100)
-
-    # This function only works in images because of PIL limitations
-    #assert not image_arg.gif, "**This command does not support GIF files.**"
-
-    # Invert the colors and upload the image
     image_arg.modify(ImageOps.invert, convert="RGB")
     await send_image(message, image_arg, quality=100)
 
