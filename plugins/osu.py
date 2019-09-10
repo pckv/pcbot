@@ -1026,13 +1026,13 @@ if pyttanko is not None:
 @osu.command(aliases="last new")
 async def recent(message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Display your or another member's most recent score. """
-    assert message.author.id in osu_config.data["profiles"], \
+    assert member.id in osu_config.data["profiles"], \
         "No osu! profile assigned to **{}**!".format(message.author.name)
 
-    user_id = osu_config.data["profiles"][message.author.id]
+    user_id = osu_config.data["profiles"][member.id]
     mode = get_mode(member.id)
 
-    scores = await api.get_user_recent(u=user_id, m=get_mode(member.id), limit=1)
+    scores = await api.get_user_recent(u=user_id, m=mode, limit=1)
     assert scores, "Found no recent score."
 
     score = scores[0]
@@ -1048,6 +1048,7 @@ async def recent(message: discord.Message, member: Annotate.Member=Annotate.Self
     # Calculate where the player failed
 
     embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
+    embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(member.id))
     await client.send_message(message.channel, embed=embed)
 
 
