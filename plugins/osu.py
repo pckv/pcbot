@@ -155,10 +155,15 @@ def calculate_acc(mode: api.GameMode, score: dict, exclude_misses: bool=False):
 def format_user_diff(mode: api.GameMode, pp: float, rank: int, country_rank: int, accuracy: float, iso: str, data: dict):
     """ Get a bunch of differences and return a formatted string to send.
     iso is the country code. """
+    pp_rank = int(data["pp_rank"])
+    pp_country_rank = int(data["pp_country_rank"])
+    
+    # Find the performance page number of the respective ranks
+
     formatted = "\u2139`{} {:.2f}pp {:+.2f}pp`".format(mode.name.replace("Standard", "osu!"), float(data["pp_raw"]), pp)
-    formatted += (" [\U0001f30d]({})`#{:,}{}`".format(rankings_url, int(data["pp_rank"]),
+    formatted += (" [\U0001f30d]({}?page={})`#{:,}{}`".format(rankings_url, pp_rank // 50 + 1, pp_rank,
                                                 "" if int(rank) == 0 else " {:+}".format(int(rank))))
-    formatted += (" [{}]({}?country={})`#{:,}{}`".format(utils.text_to_emoji(iso), rankings_url, iso, int(data["pp_country_rank"]),
+    formatted += (" [{}]({}?country={}&page={})`#{:,}{}`".format(utils.text_to_emoji(iso), rankings_url, iso, pp_country_rank // 50 + 1, pp_country_rank,
                                         "" if int(country_rank) == 0 else " {:+}".format(int(country_rank))))
     rounded_acc = round(accuracy, 3)
     if rounded_acc > 0:
