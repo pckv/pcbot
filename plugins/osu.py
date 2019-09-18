@@ -30,9 +30,9 @@ Commands:
 
 import logging
 import re
+import traceback
 from datetime import datetime, timedelta
 from enum import Enum
-from traceback import print_exc
 from typing import List
 
 import asyncio
@@ -199,7 +199,7 @@ async def format_stream(member: discord.Member, score: dict, beatmap: dict):
         vod_request = await twitch.request("channels/{}/videos".format(twitch_id), limit=1, broadcast_type="archive", sort="time")
         assert vod_request["_total"] >= 1
     except:
-        print_exc()
+        logging.error(traceback.format_exc())
         return text + "\n"
 
     vod = vod_request["videos"][0]
@@ -388,7 +388,7 @@ async def get_new_score(member_id: str):
     for i, score in enumerate(user_scores):
         if score not in osu_tracking[member_id]["scores"]:
             if i == 0:
-                await client.send_message("106834001976639488", f"a #1 score was set: check `plugins.osu.osu_tracking['{member_id}']['debug']`")
+                logging.info(f"a #1 score was set: check plugins.osu.osu_tracking['{member_id}']['debug']")
                 osu_tracking[member_id]["debug"] = dict(scores=user_scores, old=osu_tracking[member_id]["old"], new=osu_tracking[member_id]["new"])
             osu_tracking[member_id]["scores"] = user_scores
 
@@ -770,7 +770,8 @@ async def on_ready():
                 await notify_maps(member_id, data)
         # We don't want to stop updating scores even if something breaks
         except:
-            print_exc()
+            logging.error("An error occured during update:")
+            logging.error(traceback.format_exc())
         finally:
             pass
             # TODO: setup logging
