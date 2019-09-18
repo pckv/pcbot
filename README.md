@@ -26,10 +26,10 @@ $ python -V
 Python 3.5.2
 ```
 
-The next step is installing the latest version of [discord.py]:
+The next step is installing the correct version of [discord.py]:
 
 ```
-python -m pip install discord.py --update
+python -m pip install discord.py==0.16.12
 ```
 
 To install the bot, one can clone the repo:
