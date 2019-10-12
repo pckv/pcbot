@@ -20,7 +20,7 @@ twitch_config = Config("twitch-config", data=dict(servers={}))
 
 # Keep track of all {member.id: date} that are streaming
 stream_history = {}
-stream_repeat_delta = timedelta(hours=2)
+repeat_notification_delta = timedelta(hours=2)
 
 
 async def on_reload(name):
