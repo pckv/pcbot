@@ -22,7 +22,7 @@ twitch_config = Config("twitch-config", data=dict(servers={}))
 stream_history = {}
 
 
-async def on_reload()
+async def on_reload():
     global stream_history
     local_history = stream_history
 
