@@ -20,9 +20,10 @@ twitch_config = Config("twitch-config", data=dict(servers={}))
 
 # Keep track of all {member.id: date} that are streaming
 stream_history = {}
+stream_repeat_delta = timedelta(hours=2)
 
 
-async def on_reload():
+async def on_reload(name):
     global stream_history
     local_history = stream_history
 
@@ -66,9 +67,7 @@ def make_twitch_embed(member: discord.Member, response: dict):
 
 
 def started_streaming(before: discord.Member, after: discord.Member):
-    """ Return True if the member just started streaming, and did not do so
-    within the past hour.
-    """
+    """ Return True if the member just started streaming, and did not do so recently. """
     # The member is not streaming at the moment
     if after.game is None or not after.game.type == 1:
         return False
@@ -81,8 +80,8 @@ def started_streaming(before: discord.Member, after: discord.Member):
     previous_stream = stream_history.get(after.id)
     stream_history[after.id] = datetime.now()
 
-    # Check that they didn't start streaming in the last hour
-    if previous_stream and datetime.now() < (previous_stream + timedelta(minutes=10)):
+    # Check that they didn't start streaming recently
+    if previous_stream and datetime.now() < (previous_stream + repeat_notification_delta):
         return False
 
     return True
