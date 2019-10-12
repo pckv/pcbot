@@ -35,9 +35,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import List
 
+import aiohttp 
 import asyncio
 import discord
-from aiohttp import ServerDisconnectedError
 
 import plugins
 from pcbot import Config, utils, Annotate
@@ -348,7 +348,7 @@ async def update_user_data():
         mode = get_mode(member_id).value
         try:
             user_data = await api.get_user(u=profile, type="id", m=mode)
-        except ServerDisconnectedError:
+        except aiohttp.ServerDisconnectedError:
             continue
         except asyncio.TimeoutError:
             logging.warning("Timed out when retrieving osu! info from {} ({})".format(member, profile))
@@ -768,9 +768,9 @@ async def on_ready():
             # NOTE: the same applies to this now. These can't be concurrent as they also calculate pp.
             for member_id, data in osu_tracking.items():
                 await notify_maps(member_id, data)
-        # We don't want to stop updating scores even if something breaks
+        except aiohttp.ClientOSError as e:
+            logging.error(str(e))
         except:
-            logging.error("An error occured during update:")
             logging.error(traceback.format_exc())
         finally:
             pass
