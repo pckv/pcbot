@@ -8,7 +8,7 @@ Commands:
 
 import discord
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pcbot import utils, Config
 import plugins
@@ -17,6 +17,18 @@ client = plugins.client  # type: discord.Client
 
 
 twitch_config = Config("twitch-config", data=dict(servers={}))
+
+# Keep track of all {member.id: date} that are streaming
+stream_history = {}
+
+
+async def on_reload()
+    global stream_history
+    local_history = stream_history
+
+    await plugins.reload(name)
+
+    stream_history = local_history
 
 
 @plugins.command(name="twitch")
@@ -54,20 +66,26 @@ def make_twitch_embed(member: discord.Member, response: dict):
 
 
 def started_streaming(before: discord.Member, after: discord.Member):
-    """ Check if the member just started streaming. """
-    # Member isn't streaming at all
+    """ Return True if the member just started streaming, and did not do so
+    within the past hour.
+    """
+    # The member is not streaming at the moment
     if after.game is None or not after.game.type == 1:
         return False
 
-    # Previous statement means they are streaming, so update if they weren't before
-    if not before.game or before.game.type == 0:
-        return True
+    # Check if they were also streaming before
+    if before.game and before.game.type == 1:
+        return False
 
-    # Also update if they were streaming, but they changed the stream title
-    #if before.game and before.game.type == 1 and not before.game.name == after.game.name:
-    #    return True
+    # Update the stream history
+    previous_stream = stream_history.get(after.id)
+    stream_history[after.id] = datetime.now()
 
-    return False
+    # Check that they didn't start streaming in the last hour
+    if previous_stream and datetime.now() < (previous_stream + timedelta(minutes=10)):
+        return False
+
+    return True
 
 
 @plugins.event()
