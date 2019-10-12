@@ -799,7 +799,7 @@ def get_timestamps_with_url(content: str):
     :returns: a tuple of the timestamp as a raw string and an editor url
     """
     for match in timestamp_pattern.finditer(content):
-        url = match.group(1).replace(" ", "%20").replace(")", r"\)")
+        url = match.group(1).strip(" ").replace(" ", "%20").replace(")", r")")
         yield match.group(0), "<osu://edit/{}>".format(url)
 
 
