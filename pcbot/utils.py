@@ -165,7 +165,8 @@ async def retrieve_page(url: str, head=False, call=None, headers=None, **params)
 
     :param url: Download url as str.
     :param head: Whether or not to head the function.
-    :param call: Any attribute coroutine to call before returning. Eg: "text" would return await response.text()
+    :param call: Any attribute coroutine to call before returning. Eg: "text" would return await response.text().
+                 This may also be a coroutine with the response as parameter.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
     :return: The byte-like file OR whatever return value of the attribute set in call.
@@ -175,8 +176,11 @@ async def retrieve_page(url: str, head=False, call=None, headers=None, **params)
 
         async with coro(url, params=params, headers=headers or {}) as response:
             if call is not None:
-                attr = getattr(response, call)
-                return await attr()
+                if type(call) is str:
+                    attr = getattr(response, call)
+                    return await attr()
+                else:
+                    return await call(response)
             else:
                 return response
 
@@ -217,19 +221,29 @@ async def download_file(url: str, bytesio=False, headers=None, **params):
     return BytesIO(file_bytes) if bytesio else file_bytes
 
 
+async def _convert_json(response):
+    """ Converts the aiohttp ClientResponse object to JSON.
+
+    :param response: The ClientResponse object.
+    :raises: ValueError if the returned data was not of type application/json
+    :returns: The parsed json of the response
+    """
+    if "Content-Type" in response.headers and "application/json" not in response.headers["Content-Type"]:
+        raise ValueError("The response from {} does not have application/json mimetype".format(response.url))
+
+    return await response.json()
+
+
 async def download_json(url: str, headers=None, **params):
     """ Download and return a json file.
 
     :param url: Download url as str.
     :param headers: A dict of any additional headers.
     :param params: Any additional url parameters.
+    :raises: ValueError if the returned data was not of type application/json
     :return: A JSON representation of the downloaded file.
     """
-    try:
-        return await retrieve_page(url, call="json", headers=headers, **params)
-    except ValueError as e:
-        logging.debug(format_exception(e))
-        return None
+    return await retrieve_page(url, call=_convert_json, headers=headers, **params)
 
 
 def convert_image_object(image, format: str="PNG", **params):

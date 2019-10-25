@@ -390,7 +390,7 @@ async def get_new_score(member_id: str):
         if score not in osu_tracking[member_id]["scores"]:
             if i == 0:
                 logging.info(f"a #1 score was set: check plugins.osu.osu_tracking['{member_id}']['debug']")
-                osu_tracking[member_id]["debug"] = dict(scores=user_scores, old=osu_tracking[member_id]["old"], new=osu_tracking[member_id]["new"])
+                osu_tracking[member_id]["debug"] = dict(scores=user_scores, old=dict(osu_tracking[member_id]["old"]), new=dict(osu_tracking[member_id]["new"]))
             osu_tracking[member_id]["scores"] = user_scores
 
             # Calculate the difference in pp from the score below

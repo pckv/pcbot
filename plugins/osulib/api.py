@@ -4,9 +4,10 @@
     request functions.
 """
 
+import logging
+import re
 from collections import namedtuple
 from enum import Enum
-import re
 
 from pcbot import utils
 
@@ -139,11 +140,15 @@ def def_section(api_name: str, first_element: bool=False):
 
         # Download using a URL of the given API function name
         for i in range(request_tries):
-            json = await utils.download_json(url + api_name, **params)
-            requests_sent += 1
+            try:
+                json = await utils.download_json(url + api_name, **params)
+            except ValueError as e:
+                logging.warning("ValueError Calling {}: {}".format(url + api_name, e))
+            else:
+                requests_sent += 1
 
-            if json is not None:
-                break
+                if json is not None:
+                    break
         else:
             return None
 
