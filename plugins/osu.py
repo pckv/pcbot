@@ -341,7 +341,8 @@ async def update_user_data():
         # Only update members not tracked ingame every nth update
         if not is_playing(member) and osu_tracking[member_id]["ticks"] % not_playing_skip > 0:
             # Update their old data to match their new one in order to avoid duplicate posts
-            osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
+            if "new" in osu_tracking[member_id]:
+                osu_tracking[member_id]["old"] = osu_tracking[member_id]["new"]
             continue
         
         # Get the user data for the player
