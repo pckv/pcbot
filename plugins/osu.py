@@ -661,16 +661,18 @@ async def notify_maps(member_id: str, data: dict):
         html = event["display_html"]
 
         # Get and format the type of event
-        if "submitted" in html:
+        if "has submitted" in html:
             status_format = "\U0001F310 <name> has submitted a new beatmap <title>"
-        elif "updated" in html:
+        elif "has updated" in html:
             status_format = "\U0001F53C <name> has updated the beatmap <title>"
-        elif "revived" in html:
+        elif "has been revived" in html:
             status_format = "\U0001F64F <title> has been revived from eternal slumber by <name>"
-        elif "qualified" in html:
+        elif "has been qualified" in html:
             status_format = "\U0001F497 <title> by <name> has been qualified!"
-        elif "ranked" in html:
+        elif "has been ranked" in html:
             status_format = "\u23EB <title> by <name> has been ranked!"
+        elif "has been loved" in html:
+            status_format = "\u2764 <title> by <name> has been loved!"
         else:  # We discard any other events
             continue
 
