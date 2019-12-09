@@ -30,7 +30,7 @@ gif_support = imageio is not None
 
 client = plugins.client  # type: discord.Client
 
-emoji_path = "plugins/twemoji21lib/"
+emoji_path = "plugins/twemoji12lib/"
 default_size = 1024
 max_width = 2048
 max_emoji = 64
@@ -40,7 +40,7 @@ emote_regex = re.compile(r"<:(?P<name>\w+):(?P<id>\d+)>")
 emote_cache = {}  # Cache for all custom emotes/emoji
 emote_size = 112
 
-g_transform_regex = re.compile(r"<g\stransform=\"translate.+?</g>")
+svg_element_regex = re.compile(r"<(?!svg).+?/>")
 
 
 def init_emoji():
@@ -223,18 +223,18 @@ async def merge(message: discord.Message, text: Annotate.CleanContent):
     contents = [str(emoji[char]) for char in parse_emoji(text)]
     
     assert contents, "Only emojies are supported."
-
-    g_transform_tags = []
+    
+    elements = []
     for svg in contents:
-        g_transform_tags += g_transform_regex.findall(svg)
+        elements.extend(svg_element_regex.findall(svg))
 
     replies = []
     while True:
-        random.shuffle(g_transform_tags)
+        random.shuffle(elements)
 
-        combined = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" style="enable-background:new 0 0 45 45;" xml:space="preserve" version="1.1" id="svg2"><metadata id="metadata8"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/></cc:Work></rdf:RDF></metadata><defs id="defs6"><clipPath id="clipPath16" clipPathUnits="userSpaceOnUse"><path id="path18" d="M 0,36 36,36 36,0 0,0 0,36 Z"/></clipPath></defs><g transform="matrix(1.25,0,0,-1.25,0,45)" id="g10"><g id="g12"><g clip-path="url(#clipPath16)" id="g14">'
-        combined += "".join(g_transform_tags)
-        combined += '</g></g></g></svg>'
+        combined = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 36 36\">"
+        combined += "".join(elements)
+        combined += '</svg>'
     
         combined_bytes = bytes(combined, encoding="utf-8")
         combined_bytes = set_svg_size(combined_bytes, 256)
