@@ -40,7 +40,7 @@ emote_regex = re.compile(r"<:(?P<name>\w+):(?P<id>\d+)>")
 emote_cache = {}  # Cache for all custom emotes/emoji
 emote_size = 112
 
-svg_element_regex = re.compile(r"<(?!svg).+?/>")
+svg_element_regex = re.compile(r"<(?!svg)[^/>]+/>")
 
 
 def init_emoji():
@@ -235,6 +235,7 @@ async def merge(message: discord.Message, text: Annotate.CleanContent):
         combined = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 36 36\">"
         combined += "".join(elements)
         combined += '</svg>'
+        logging.info(combined)
     
         combined_bytes = bytes(combined, encoding="utf-8")
         combined_bytes = set_svg_size(combined_bytes, 256)
