@@ -294,6 +294,11 @@ def get_changelog_channel(server: discord.Server):
     return channel
 
 
+async def log_change(channel: discord.Channel, message: str):
+    embed = discord.Embed(description=message)
+    await client.send_message(channel, embed=embed)
+
+
 @plugins.event()
 async def on_message_delete(message: discord.Message):
     """ Update the changelog with deleted messages. """
@@ -313,7 +318,7 @@ async def on_message_delete(message: discord.Message):
     if message.author == client.user:
         return
 
-    await client.send_message(
+    await log_change(
         changelog_channel,
         "{0.author.mention}'s message was deleted in {0.channel.mention}:\n{0.clean_content}".format(message)
     )
@@ -331,9 +336,9 @@ async def on_channel_create(channel: discord.Channel):
 
     # Differ between voice channels and text channels
     if channel.type == discord.ChannelType.text:
-        await client.send_message(changelog_channel, "Channel {0.mention} was created.".format(channel))
+        await log_change(changelog_channel, "Channel {0.mention} was created.".format(channel))
     else:
-        await client.send_message(changelog_channel, "Voice channel **{0.name}** was created.".format(channel))
+        await log_change(changelog_channel, "Voice channel **{0.name}** was created.".format(channel))
 
 
 @plugins.event()
@@ -348,9 +353,9 @@ async def on_channel_delete(channel: discord.Channel):
 
     # Differ between voice channels and text channels
     if channel.type == discord.ChannelType.text:
-        await client.send_message(changelog_channel, "Channel **#{0.name}** was deleted.".format(channel))
+        await log_change(changelog_channel, "Channel **#{0.name}** was deleted.".format(channel))
     else:
-        await client.send_message(changelog_channel, "Voice channel **{0.name}** was deleted.".format(channel))
+        await log_change(changelog_channel, "Voice channel **{0.name}** was deleted.".format(channel))
 
 
 @plugins.event()
@@ -369,10 +374,10 @@ async def on_channel_update(before: discord.Channel, after: discord.Channel):
 
     # Differ between voice channels and text channels
     if after.type == discord.ChannelType.text:
-        await client.send_message(
+        await log_change(
             changelog_channel, "Channel **#{0.name}** changed name to {1.mention}, **{1.name}**.".format(before, after))
     else:
-        await client.send_message(
+        await log_change(
             changelog_channel, "Voice channel **{0.name}** changed name to **{1.name}**.".format(before, after))
 
 
@@ -383,7 +388,7 @@ async def on_member_join(member: discord.Member):
     if not changelog_channel:
         return
 
-    await client.send_message(changelog_channel, "{0.mention} joined the server.".format(member))
+    await log_change(changelog_channel, "{0.mention} joined the server.".format(member))
 
 
 @plugins.event()
@@ -393,7 +398,7 @@ async def on_member_remove(member: discord.Member):
     if not changelog_channel:
         return
 
-    await client.send_message(changelog_channel, "{0.mention} ({0.name}) left the server.".format(member))
+    await log_change(changelog_channel, "{0.mention} ({0.name}) left the server.".format(member))
 
 
 @plugins.event()
@@ -412,7 +417,7 @@ async def on_member_update(before: discord.Member, after: discord.Member):
         m = "{0.mention} (previously **{0.name}**) changed their username to **{1.name}**."
     elif nick_change:
         if not before.nick:
-            m = "{0.mention} got the nickname **{1.nick}**."
+            m = "{0.mention} (previously **{0.name}**) got the nickname **{1.nick}**."
         elif not after.nick:
             m = "{0.mention} (previously **{0.nick}**) no longer has a nickname."
         else:
@@ -436,9 +441,9 @@ async def on_member_update(before: discord.Member, after: discord.Member):
         return
 
     if name_change or nick_change:
-        await client.send_message(changelog_channel, m.format(before, after))
+        await log_change(changelog_channel, m.format(before, after))
     else:
-        await client.send_message(changelog_channel, m)
+        await log_change(changelog_channel, m)
 
 
 @plugins.event()
@@ -448,7 +453,7 @@ async def on_member_ban(member: discord.Member):
     if not changelog_channel:
         return
 
-    await client.send_message(changelog_channel,
+    await log_change(changelog_channel,
                                    "{0.mention} ({0.name}) was banned from the server.".format(member))
 
 
@@ -459,4 +464,4 @@ async def on_member_unban(server: discord.Server, user: discord.Member):
     if not changelog_channel:
         return
 
-    await client.send_message(changelog_channel, "{0.mention} was unbanned from the server.".format(user))
+    await log_change(changelog_channel, "{0.mention} was unbanned from the server.".format(user))
