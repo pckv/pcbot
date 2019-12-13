@@ -199,7 +199,7 @@ async def convert_to_images(server: discord.Server, text: str):
     return parsed_emoji, total_width, height
 
 
-@plugins.command(aliases="huge bigger big")
+@plugins.command(aliases="huge bigger big larger large")
 async def greater(message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
