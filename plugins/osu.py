@@ -667,9 +667,9 @@ async def notify_maps(member_id: str, data: dict):
             status_format = "\U0001F53C <name> has updated the beatmap <title>"
         elif "has been revived" in html:
             status_format = "\U0001F64F <title> has been revived from eternal slumber by <name>"
-        elif "has been qualified" in html:
+        elif "has just been qualified" in html:
             status_format = "\U0001F497 <title> by <name> has been qualified!"
-        elif "has been ranked" in html:
+        elif "has just been ranked" in html:
             status_format = "\u23EB <title> by <name> has been ranked!"
         elif "has been loved" in html:
             status_format = "\u2764 <title> by <name> has been loved!"
