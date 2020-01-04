@@ -845,7 +845,7 @@ async def osu(message: discord.Message, member: discord.Member=Annotate.Self,
     dark = dict(darkheader=True) if (r * 0.299 + g * 0.587 + b * 0.144) > 186 else {}
 
     # Download and upload the signature
-    signature = await utils.retrieve_page("http://sig.ripple.moe/sig.php", head=True, colour=color,
+    signature = await utils.retrieve_page("http://osusig.lolico.moe/sig.php", head=True, colour=color,
                                           uname=user_id, pp=True, countryrank=True, xpbar=True,
                                           mode=mode.value, date=datetime.now().ctime(), **dark)
     embed = discord.Embed(color=member.color)
