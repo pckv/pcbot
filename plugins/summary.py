@@ -20,6 +20,8 @@ except ImportError:
     logging.warning("Markovify could not be imported and as such !summary +strict will not work.")
 
 
+NEW_LINE_IDENTIFIER = " {{newline}} "
+
 # The messages stored per session, where every key is a channel id
 stored_messages = defaultdict(partial(deque, maxlen=10000))
 logs_from_limit = 5000
@@ -290,7 +292,10 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         messages = [m for m in messages if not m.author.id == client.user.id]
 
     # Convert all messages to content
-    message_content = [m.clean_content for m in messages]
+    message_content = (m.clean_content for m in messages)
+
+    # Replace newlines with ascii to make them persist through splitting
+    message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
 
     # Filter looking for phrases if specified
     if phrase:
@@ -318,5 +323,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
             sentence = markovify_model.make_sentence(tries=1000)
         else:
             sentence = markov_messages(message_content, coherent)
+
+        # Convert new line identifiers back to characters
+        sentence = sentence.replace(NEW_LINE_IDENTIFIER, "\n")
 
         await client.send_message(message.channel, sentence or on_fail.format(message), tts=tts)
