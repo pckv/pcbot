@@ -294,7 +294,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     # Convert all messages to content
     message_content = (m.clean_content for m in messages)
 
-    # Replace newlines with ascii to make them persist through splitting
+    # Replace new lines with text to make them persist through splitting
     message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
 
     # Filter looking for phrases if specified
@@ -324,7 +324,9 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         else:
             sentence = markov_messages(message_content, coherent)
 
+        assert sentence, on_fail.format(message)
+
         # Convert new line identifiers back to characters
         sentence = sentence.replace(NEW_LINE_IDENTIFIER, "\n")
 
-        await client.send_message(message.channel, sentence or on_fail.format(message), tts=tts)
+        await client.send_message(message.channel, sentence, tts=tts)
