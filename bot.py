@@ -53,7 +53,7 @@ class Client(discord.Client):
         # Exclude blank messages
         if event == "message":
             message = args[0]
-            if not message.content:
+            if not message.content and not message.attachments:
                 return
 
         # Find every event that has a discord.Member argument, and filter out bots and self
