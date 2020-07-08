@@ -848,7 +848,7 @@ async def osu(message: discord.Message, member: discord.Member=Annotate.Self,
     signature = await utils.retrieve_page("http://osusig.lolico.moe/sig.php", head=True, colour=color,
                                           uname=user_id, pp=True, countryrank=True, xpbar=True,
                                           mode=mode.value, date=datetime.now().ctime(), **dark)
-    if api.ripple_pattern.match:
+    if api.ripple_pattern.match(user_id):
             signature = await utils.retrieve_page("https://sig.ripple.moe/sig.php", head=True, colour=color,
                                           uname=user_id[7:], pp=True, countryrank=True, xpbar=True,
                                           mode=mode.value, date=datetime.now().ctime(), **dark)
