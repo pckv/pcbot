@@ -77,7 +77,7 @@ pp_threshold = osu_config.data.get("pp_threshold", 0.13)
 score_request_limit = osu_config.data.get("score_request_limit", 100)
 minimum_pp_required = osu_config.data.get("minimum_pp_required", 0)
 use_mentions_in_scores = osu_config.data.get("use_mentions_in_scores", True)
-max_diff_length = 22  # The maximum amount of characters in a beatmap difficulty
+max_diff_length = 21  # The maximum amount of characters in a beatmap difficulty
 
 api.set_api_key(osu_config.data.get("key"))
 host = "https://osu.ppy.sh/"
@@ -622,7 +622,12 @@ async def calculate_pp_for_beatmapset(beatmapset: list):
             beatmapset[i]["version"] = "*" + diff["version"]
 
         # If the diff is not cached, or was changed, calculate the pp and update the cache
-        pp_stats = await calculate_pp(int(map_id), ignore_cache=True)
+        try:
+            pp_stats = await calculate_pp(int(map_id), ignore_cache=True)
+        except ValueError:
+            logging.error(traceback.format_exc())
+            continue
+
         beatmapset[i]["pp"] = pp_stats.pp
 
         # Cache the difficulty
@@ -696,7 +701,10 @@ async def notify_maps(member_id: str, data: dict):
             continue
 
         # Calculate (or retrieve cached info) the pp for every difficulty of this mapset
-        await calculate_pp_for_beatmapset(beatmapset)
+        try:
+            await calculate_pp_for_beatmapset(beatmapset)
+        except ValueError:
+            logging.error(traceback.format_exc())
 
         new_event = MapEvent(html)
         prev = discord.utils.get(recent_map_events, text=html)
