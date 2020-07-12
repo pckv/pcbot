@@ -1057,7 +1057,7 @@ async def recent(message: discord.Message, member: Annotate.Member=Annotate.Self
 
     mods = api.Mods.format_mods(int(score["enabled_mods"]))
 
-    score_pp = await calculate_pp(int(score["beatmap_id"]), *"{mods}{acc}% {countmiss}m {maxcombo}x".format(
+    score_pp = await calculate_pp(int(score["beatmap_id"]), *"{mods}{acc:.2%} {countmiss}m {maxcombo}x".format(
         acc=calculate_acc(mode, score), mods="+" + mods + " " if mods != "Nomod" else "", **score).split())
     potential_pp = await get_potential_pp(score, beatmap, member, round(score_pp.pp, 2), use_acc=True)
     score["pp"] = round(score_pp.pp, 2)
