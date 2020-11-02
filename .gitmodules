@@ -1,0 +1,6 @@
+[submodule "plugins/wordlib/SimpleWordlists"]
+	path = plugins/wordlib/SimpleWordlists
+	url = https://github.com/taikuukaits/SimpleWordlists.git
+[submodule "plugins/wordlib/verb.forms.dictionary"]
+	path = plugins/wordlib/verb.forms.dictionary
+	url = https://github.com/monolithpl/verb.forms.dictionary.git
