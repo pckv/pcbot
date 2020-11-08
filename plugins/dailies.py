@@ -3,6 +3,7 @@ import pathlib
 import random
 from datetime import datetime
 
+import discord
 import pendulum
 
 from pcbot import Annotate
