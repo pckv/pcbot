@@ -837,7 +837,7 @@ async def osu(message: discord.Message, member: discord.Member=Annotate.Self,
     (your profile would have `playing osu!`), and send updates whenever you set a
     new top score. """
     # Make sure the member is assigned
-    assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
+    assert member.id in osu_config.data["profiles"], "No osu! profile assigned to **{}**! Please assign a profile using !osu link".format(member.name)
 
     user_id = osu_config.data["profiles"][member.id]
     mode = get_mode(member.id) if mode is None else mode
