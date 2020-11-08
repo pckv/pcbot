@@ -35,7 +35,7 @@ valid_member = utils.member_mention_pattern
 valid_member_silent = re.compile(r"@\((?P<name>.+)\)")
 valid_role = re.compile(r"<@&(?P<id>\d+)>")
 valid_channel = utils.channel_mention_pattern
-valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot", "+coherent", "+strict")
+valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot", "+coherent", "+loose")
 
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
@@ -213,6 +213,10 @@ def filter_messages_by_arguments(messages, channel, member, bots):
     return (m["content"] for m in messages)
 
 
+def is_endswith(phrase):
+    return phrase.endswith("...") and len(phrase.split()) in (1, 2)
+
+
 @plugins.command(usage="([*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [+coherent] [+loose]) "
                        "[phrase ...]",
                  pos_check=is_valid_option, aliases="markov")
@@ -301,7 +305,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
 
     # Filter looking for phrases if specified
-    if phrase:
+    if phrase and not is_endswith(phrase):
         message_content = list(filter_messages(message_content, phrase, regex, case))
 
     command_prefix = config.server_command_prefix(message.server)
@@ -323,7 +327,10 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     # Generate the summary, or num summaries
     for i in range(num):
         if strict:
-            sentence = markovify_model.make_sentence(tries=1000)
+            if phrase and is_endswith(phrase):
+                sentence = markovify_model.make_sentence_with_start(phrase[:-3])
+            else:
+                sentence = markovify_model.make_sentence(tries=1000)
         else:
             sentence = markov_messages(message_content, coherent)
 
