@@ -1,6 +1,5 @@
 """ Plugin for generating markov text, or a summary if you will. """
 
-
 import logging
 import random
 import re
@@ -41,7 +40,8 @@ valid_options = ("+re", "+regex", "+case", "+tts", "+nobot", "+bot", "+coherent"
 on_no_messages = "**There were no messages to generate a summary from, {0.author.name}.**"
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
 
-summary_options = Config("summary_options", data=dict(no_bot=False, no_self=False), pretty=True)
+summary_options = Config("summary_options", data=dict(no_bot=False, no_self=False, persistent_channels=[]), pretty=True)
+persistent_channels = Config("summary_data", data=dict(channels=[]))
 
 
 async def update_messages(channel: discord.Channel):
@@ -202,7 +202,21 @@ def is_valid_option(arg: str):
     return False
 
 
-@plugins.command(usage="([*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [+coherent]) "
+def filter_messages_by_arguments(channel, member, bots):
+    # Split the messages into content and filter member and phrase
+    messages = (m for m in stored_messages[channel.id] if not member or m.author in member)
+
+    # Filter bot messages or own messages if the option is enabled in the config
+    if not bots:
+        messages = (m for m in messages if not m.author.bot)
+    elif summary_options.data["no_self"]:
+        messages = (m for m in messages if not m.author.id == client.user.id)
+
+    # Convert all messages to content
+    return (m.clean_content for m in messages)
+
+
+@plugins.command(usage="([*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [+coherent] [+loose]) "
                        "[phrase ...]",
                  pos_check=is_valid_option, aliases="markov")
 async def summary(message: discord.Message, *options, phrase: Annotate.Content=None):
@@ -211,7 +225,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     as it downloads the past 5000 messages in the given channel. """
     # This dict stores all parsed options as keywords
     member, channel, num = [], None, None
-    regex, case, tts, coherent, strict = False, False, False, False, False
+    regex, case, tts, coherent, strict = False, False, False, False, True
     bots = not summary_options.data["no_bot"]
 
     for value in options:
@@ -252,8 +266,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
                 tts = True
             if value == "+coherent":
                 coherent = True
-            if value == "+strict":
-                strict = True
+            if value == "+loose":
+                strict = False
 
             bots = False if value == "+nobot" else True if value == "+bot" else bots
 
@@ -278,21 +292,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
     await client.send_typing(message.channel)
     await update_task.wait()
     await update_messages(channel)
-
-    # Split the messages into content and filter member and phrase
-    if member:
-        messages = [m for m in stored_messages[channel.id] if m.author in member]
-    else:
-        messages = [m for m in stored_messages[channel.id]]
-
-    # Filter bot messages or own messages if the option is enabled in the config
-    if not bots:
-        messages = [m for m in messages if not m.author.bot]
-    elif summary_options.data["no_self"]:
-        messages = [m for m in messages if not m.author.id == client.user.id]
-
-    # Convert all messages to content
-    message_content = (m.clean_content for m in messages)
+    
+    message_content = filter_messages_by_arguments(channel, member, bots)
 
     # Replace new lines with text to make them persist through splitting
     message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
@@ -322,6 +323,9 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         if strict:
             sentence = markovify_model.make_sentence(tries=1000)
         else:
+            sentence = markov_messages(message_content, coherent)
+
+        if not sentence:
             sentence = markov_messages(message_content, coherent)
 
         assert sentence, on_fail.format(message)
