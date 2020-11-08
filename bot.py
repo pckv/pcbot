@@ -41,8 +41,10 @@ class Client(discord.Client):
                 message = args[0]
                 await self.send_message(message.channel, str(e))
             else:
+                logging.error(traceback.format_exc())
                 await self.on_error(event, *args, **kwargs)
         except:
+            logging.error(traceback.format_exc())
             await self.on_error(event, *args, **kwargs)
         else:
             if result is True and event == "message":
