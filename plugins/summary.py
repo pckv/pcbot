@@ -41,7 +41,11 @@ on_no_messages = "**There were no messages to generate a summary from, {0.author
 on_fail = "**I was unable to construct a summary, {0.author.name}.**"
 
 summary_options = Config("summary_options", data=dict(no_bot=False, no_self=False, persistent_channels=[]), pretty=True)
-persistent_channels = Config("summary_data", data=dict(channels=[]))
+summary_data = Config("summary_data", data=dict(channels={}))
+
+
+def to_persistent(message: discord.Message):
+    return dict(content=message.clean_content, author=message.author.id, bot=message.author.bot)
 
 
 async def update_messages(channel: discord.Channel):
@@ -63,18 +67,11 @@ async def update_messages(channel: discord.Channel):
                 continue
 
             # We have no messages, so insert each from the left, leaving us with the oldest at index -1
-            messages.appendleft(m)
+            messages.appendleft(to_persistent(m))
     except:  # When something goes wrong, clear the messages
         messages.clear()
     finally:  # Really have to make sure we clear this task in all cases
         update_task.set()
-
-
-@plugins.event(bot=True, self=True)
-async def on_message(message: discord.Message):
-    """ Whenever a message is sent, see if we can update in one of the channels. """
-    if message.channel.id in stored_messages and message.content:
-        stored_messages[message.channel.id].append(message)
 
 
 async def on_reload(name: str):
@@ -202,18 +199,18 @@ def is_valid_option(arg: str):
     return False
 
 
-def filter_messages_by_arguments(channel, member, bots):
+def filter_messages_by_arguments(messages, channel, member, bots):
     # Split the messages into content and filter member and phrase
-    messages = (m for m in stored_messages[channel.id] if not member or m.author in member)
+    messages = (m for m in messages if not member or m["author"] in [mm.id for mm in member])
 
     # Filter bot messages or own messages if the option is enabled in the config
     if not bots:
-        messages = (m for m in messages if not m.author.bot)
+        messages = (m for m in messages if not m["bot"])
     elif summary_options.data["no_self"]:
-        messages = (m for m in messages if not m.author.id == client.user.id)
+        messages = (m for m in messages if not m["author"] == client.user.id)
 
     # Convert all messages to content
-    return (m.clean_content for m in messages)
+    return (m["content"] for m in messages)
 
 
 @plugins.command(usage="([*<num>] [@<user/role> ...] [#<channel>] [+re(gex)] [+case] [+tts] [+(no)bot] [+coherent] [+loose]) "
@@ -290,10 +287,15 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         "**You don't have permissions to send tts messages in this channel.**"
 
     await client.send_typing(message.channel)
-    await update_task.wait()
-    await update_messages(channel)
     
-    message_content = filter_messages_by_arguments(channel, member, bots)
+    if channel.id in summary_options.data["persistent_channels"]:
+        messages = summary_data.data["channels"][channel.id]
+    else:
+        await update_task.wait()
+        await update_messages(channel)
+        messages = stored_messages[channel.id]
+    
+    message_content = filter_messages_by_arguments(messages, channel, member, bots)
 
     # Replace new lines with text to make them persist through splitting
     message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
@@ -334,3 +336,42 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         sentence = sentence.replace(NEW_LINE_IDENTIFIER, "\n")
 
         await client.send_message(message.channel, sentence, tts=tts)
+
+
+@plugins.event(bot=True, self=True)
+async def on_message(message: discord.Message):
+    """ Whenever a message is sent, see if we can update in one of the channels. """
+    if message.channel.id in stored_messages and message.content:
+        stored_messages[message.channel.id].append(to_persistent(message))
+    
+    # Store to persistent if enabled for this channel
+    if message.channel.id in summary_options.data["persistent_channels"]:
+        summary_data.data["channels"][message.channel.id].append(to_persistent(message))
+        summary_data.save()
+
+
+@summary.command(owner=True)
+async def enable_persistent_messages(message: discord.Message):
+    """ Stores every message in this channel in persistent storage. """
+    if message.channel.id in summary_options.data["persistent_channels"]:
+        await client.say(message, "Persistent messages are already enabled and tracked in this channel")
+        return
+
+    summary_options.data["persistent_channels"].append(message.channel.id)
+    summary_options.save()
+
+    await client.say(message, "Downloading messages. This may take a while.")
+    
+    # Create the persistent storage
+    summary_data.data["channels"][message.channel.id] = []
+
+    # Download EVERY message in the channel
+    async for m in client.logs_from(message.channel, limit=1000000):
+        if not m.content:
+            continue
+
+        # We have no messages, so insert each from the left, leaving us with the oldest at index -1
+        summary_data.data["channels"][message.channel.id].insert(0, to_persistent(m))
+
+    summary_data.save()
+    await client.say(message, "Downloaded {} messages!".format(len(summary_data.data["channels"][message.channel.id])))
