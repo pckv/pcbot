@@ -340,7 +340,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         assert sentence, on_fail.format(message)
 
         # Convert new line identifiers back to characters
-        sentence = sentence.replace(NEW_LINE_IDENTIFIER, "\n")
+        sentence = sentence.replace(NEW_LINE_IDENTIFIER.strip(" "), "\n")
 
         await client.send_message(message.channel, sentence, tts=tts)
 
