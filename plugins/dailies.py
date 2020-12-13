@@ -44,13 +44,19 @@ def random_noun():
     return random.choice(selected_nouns)
 
 
-def make_agenda_two():
-    agenda = random.choice(verbs)
-    if random.randint(0, 8) == 0:
-        return random_noun() if random.randint(0, 1) == 0 else agenda
+def random_verb():
+    if random.randint(0, 3) == 0:
+        return random.choice(verbs) + " " + random.choice(adverbs)
 
-    agenda += " " + random_noun()
-    if random.randint(0, 5) > 1:
+    return random.choice(verbs)
+
+
+def make_agenda_two():
+    if random.randint(0, 6) > 1:
+        return random_noun() if random.randint(0, 1) == 0 else random_verb()
+
+    agenda = random.choice(verbs) + " " + random_noun()
+    if random.randint(0, 3) > 1:
         return agenda
     
     return agenda + " " + random.choice(adverbs)
