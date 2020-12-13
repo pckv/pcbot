@@ -440,7 +440,8 @@ async def get_potential_pp(score, beatmap, member: discord.Member, score_pp: flo
         try:
             pp_stats = await calculate_pp("https://osu.ppy.sh/b/{}".format(score["beatmap_id"]), *options)
             potential_pp = pp_stats.pp
-        except:
+        except Exception as e:
+            logging.error(traceback.format_exc())
             pass
 
         # Drop this info whenever the potential pp gain is negative.
@@ -1044,11 +1045,25 @@ if pyttanko is not None:
     osu.command(name="pp", aliases="oppai")(pp_)
 
 
-@osu.command(aliases="last new")
+async def create_score_embed_with_pp(member: discord.Member, score, beatmap, mode):
+    mods = api.Mods.format_mods(int(score["enabled_mods"]))
+
+    score_pp = await calculate_pp(int(score["beatmap_id"]), *"{mods}{acc:.2%} {countmiss}m {maxcombo}x".format(
+        acc=calculate_acc(mode, score), mods="+" + mods + " " if mods != "Nomod" else "", **score).split())
+    potential_pp = await get_potential_pp(score, beatmap, member, round(score_pp.pp, 2), use_acc=True)
+    score["pp"] = round(score_pp.pp, 2)
+
+    # TODO: Calculate where the player failed
+
+    embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
+    embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(member.id))
+    return embed
+
+
 async def recent(message: discord.Message, member: Annotate.Member=Annotate.Self):
     """ Display your or another member's most recent score. """
     assert member.id in osu_config.data["profiles"], \
-        "No osu! profile assigned to **{}**!".format(message.author.name)
+        "No osu! profile assigned to **{}**!".format(member.name)
 
     user_id = osu_config.data["profiles"][member.id]
     mode = get_mode(member.id)
@@ -1059,18 +1074,46 @@ async def recent(message: discord.Message, member: Annotate.Member=Annotate.Self
     score = scores[0]
     beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1, request_tries=3))[0]
 
-    mods = api.Mods.format_mods(int(score["enabled_mods"]))
-
-    score_pp = await calculate_pp(int(score["beatmap_id"]), *"{mods}{acc:.2%} {countmiss}m {maxcombo}x".format(
-        acc=calculate_acc(mode, score), mods="+" + mods + " " if mods != "Nomod" else "", **score).split())
-    potential_pp = await get_potential_pp(score, beatmap, member, round(score_pp.pp, 2), use_acc=True)
-    score["pp"] = round(score_pp.pp, 2)
-
-    # Calculate where the player failed
-
-    embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(member.id))
+    embed = await create_score_embed_with_pp(member, score, beatmap, mode)
     await client.send_message(message.channel, embed=embed)
+
+
+plugins.command()(recent)
+osu.command(aliases="last new")(recent)
+
+
+async def score(message: discord.Message, beatmap_url: str):
+    """ You scored. """
+    assert message.author.id in osu_config.data["profiles"], \
+        "No osu! profile assigned to **{}**!".format(message.author.name)
+    
+    user_id = osu_config.data["profiles"][message.author.id]
+    mode = get_mode(message.author.id)
+
+    try:
+        beatmap_info = api.parse_beatmap_url(beatmap_url)
+    except SyntaxError as e:
+        await client.say(message, e)
+        return
+    
+    assert beatmap_info.beatmap_id, "Please link to a specific difficulty"
+
+    scores = await api.get_scores(b=beatmap_info.beatmap_id, u=user_id, m=mode.value, type="id", limit=1)
+    assert len(scores) > 0, "Found no scores by **{}**.".format(message.author.name)
+
+    score = scores[0]
+
+    # Add the beatmap_id as it is not provided by the get_scores API endpoint
+    score["beatmap_id"] = beatmap_info.beatmap_id
+
+    beatmap = (await api.get_beatmaps(b=beatmap_info.beatmap_id, m=mode.value, limit=1))[0]
+
+    embed = await create_score_embed_with_pp(message.author, score, beatmap, mode)
+    await client.send_message(message.channel, embed=embed)
+
+
+plugins.command(name="score")(score)
+osu.command(name="score")(score)
 
 
 @osu.command(aliases="map")
