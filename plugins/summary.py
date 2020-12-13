@@ -323,12 +323,18 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content=N
         except NameError:
             logging.warning("+strict was used but markovify is not imported")
             strict = False
+        except KeyError:
+            markovify_model = None
 
     # Generate the summary, or num summaries
     for i in range(num):
-        if strict:
+        if strict and markovify_model:
             if phrase and is_endswith(phrase):
-                sentence = markovify_model.make_sentence_with_start(phrase[:-3])
+                try:
+                    sentence = markovify_model.make_sentence_with_start(phrase[:-3])
+                except KeyError:
+                    sentence = markovify_model.make_sentence(tries=1000)
+
             else:
                 sentence = markovify_model.make_sentence(tries=1000)
         else:
