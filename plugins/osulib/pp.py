@@ -101,7 +101,7 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool=False):
     beatmap = await parse_map(beatmap_url_or_id, ignore_cache=ignore_cache)
     args = parse_options(*options)
 
-    ezpp_data_dup(ez, beatmap, len(beatmap))
+    ezpp_data_dup(ez, beatmap, len(beatmap.encode(errors="replace")))
 
     # Set accuracy based on arguments
     if args.acc is not None:
