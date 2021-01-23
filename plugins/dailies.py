@@ -29,10 +29,10 @@ with open(words_path / "verb.forms.dictionary" / "json" / "verbs-all.json", enco
     verbs = [verb[0] for verb in verbs_json]
 
 
-def seed_for_member(member: discord.Member):
+def seed_for_member(member: discord.Member, date=None):
     """ Gets the seed for the given member. """
-    now = datetime.now()
-    return int(member.id) * now.year * now.month * now.day
+    date = date or datetime.now()
+    return int(member.id) * date.year * date.month * date.day
     
 
 def random_noun():
@@ -62,19 +62,32 @@ def make_agenda_two():
     return agenda + " " + random.choice(adverbs)
 
 
-@plugins.command()
-async def horoscope(message: discord.Message, member: discord.Member=Annotate.Self):
-    """ Shows your horoscope or the horoscope for the given member. """
-    random.seed(seed_for_member(member))
+def _horoscope(member: discord.Member, date=None, title: str=None):
+    date = date or datetime.now()
+    random.seed(seed_for_member(member, date))
 
     dos = ["\u2022 " + make_agenda_two().capitalize() for _ in range(3)]
     donts = ["\u2022 " + make_agenda_two().capitalize() for _ in range(3)]
 
-    embed = discord.Embed(color=member.color, title=datetime.now().strftime("%A"))
+    embed = discord.Embed(color=member.color, title=title or date.strftime("%A"))
     embed.set_author(name=member.display_name, icon_url=member.avatar_url)
     embed.add_field(name="Do", value="\n".join(dos))
     embed.add_field(name="Don't", value="\n".join(donts))
-    
+    return embed
+
+
+@plugins.command(aliases="horoskop")
+async def horoscope(message: discord.Message, member: discord.Member=Annotate.Self):
+    """ Shows your horoscope or the horoscope for the given member. """
+    embed = _horoscope(member)
+    await client.send_message(message.channel, embed=embed)
+
+
+@horoscope.command()
+async def year(message: discord.Message, member: discord.Member=Annotate.Self):
+    """ Shows your horoscope or the horoscope for the given member for the year. """
+    date = datetime.today().replace(day=1)
+    embed = _horoscope(member, date, title=date.strftime("%Y"))
     await client.send_message(message.channel, embed=embed)
 
 
