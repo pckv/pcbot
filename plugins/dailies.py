@@ -51,7 +51,7 @@ def random_verb():
     return random.choice(verbs)
 
 
-def make_agenda_two():
+def make_agenda():
     if random.randint(0, 6) > 1:
         return random_noun() if random.randint(0, 1) == 0 else random_verb()
 
@@ -66,8 +66,8 @@ def _horoscope(member: discord.Member, date=None, title: str=None):
     date = date or datetime.now()
     random.seed(seed_for_member(member, date))
 
-    dos = ["\u2022 " + make_agenda_two().capitalize() for _ in range(3)]
-    donts = ["\u2022 " + make_agenda_two().capitalize() for _ in range(3)]
+    dos = ["\u2022 " + make_agenda().capitalize() for _ in range(3)]
+    donts = ["\u2022 " + make_agenda().capitalize() for _ in range(3)]
 
     embed = discord.Embed(color=member.color, title=title or date.strftime("%A"))
     embed.set_author(name=member.display_name, icon_url=member.avatar_url)
@@ -90,28 +90,3 @@ async def year(message: discord.Message, member: discord.Member=Annotate.Self):
     embed = _horoscope(member, date, title=date.strftime("%Y"))
     await client.send_message(message.channel, embed=embed)
 
-
-def make_agenda():
-    aaa = random.randint(0, 10)   
-    if aaa == 0:
-        return random.choice(nouns)
-    elif aaa == 1:
-        return random.choice(verbs)
-    else:
-        return random.choice(verbs) + " " + random.choice(nouns)
-
-
-@horoscope.command()
-async def old(message: discord.Message, member: discord.Member=Annotate.Self):
-    """ Shows your horoscope or the horoscope for the given member. """
-    random.seed(seed_for_member(member))
-
-    dos = [make_agenda().capitalize() for _ in range(3)]
-    donts = [make_agenda().capitalize() for _ in range(3)]
-
-    embed = discord.Embed(color=member.color, title=datetime.now().strftime("%A"))
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
-    embed.add_field(name="Do", value="\n".join(dos))
-    embed.add_field(name="Don't", value="\n".join(donts))
-    
-    await client.send_message(message.channel, embed=embed)
