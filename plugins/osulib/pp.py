@@ -12,10 +12,9 @@ from .args import parse as parse_options
 
 try:
     from oppai import *
-
-    oppai = not None
+    can_calc_pp = True
 except:
-    oppai = None
+    can_calc_pp = False
 
 host = "https://osu.ppy.sh/"
 
@@ -68,40 +67,29 @@ async def download_beatmap(beatmap_url_or_id):
         raise ValueError("Could not download the .osu file.")
 
 
-async def parse_map(beatmap_url_or_id, ignore_cache: bool = False):
+async def parse_map(beatmap_url_or_id, ignore_cache: bool=False):
     """ Download and parse the map with the given url or id, or return a newly parsed cached version.
 
     :param beatmap_url_or_id: beatmap_url as str or the id as int
-   :param ignore_cache: When true, the .osu will always be downloaded
+    :param ignore_cache: When true, the .osu will always be downloaded
     """
     global cached_beatmap
 
     # Parse from cache or load the .osu and parse new
     if not ignore_cache and beatmap_url_or_id == cached_beatmap.url_or_id:
-        f = open(beatmap_path, 'r')
-        beatmap = f.read()
-        f.close()
+        with open(beatmap_path, encoding="utf-8") as fp:
+            beatmap = fp.read()
     else:
         await download_beatmap(beatmap_url_or_id)
-
-        f = open(beatmap_path, 'r')
-        beatmap = f.read()
-        f.close()
+        with open(beatmap_path, encoding="utf-8") as fp:
+            beatmap = fp.read()
 
         cached_beatmap = CachedBeatmap(url_or_id=beatmap_url_or_id, beatmap=beatmap)
 
     return beatmap
 
 
-#def apply_settings(args):
-#    """ Applies difficulty settings to beatmap, and return the mods bitmask. """
-#
-#    mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
-#
-#    return mods_bitmask
-
-
-async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
+async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool=False):
     """ Return a PPStats namedtuple from this beatmap, or a ClosestPPStats namedtuple
     when [pp_value]pp is given in the options.
 
@@ -113,23 +101,25 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     beatmap = await parse_map(beatmap_url_or_id, ignore_cache=ignore_cache)
     args = parse_options(*options)
 
-    ezpp_data_dup(ez, beatmap, len(beatmap.encode('utf-8')))
+    ezpp_data_dup(ez, beatmap, len(beatmap))
 
-    # When acc is provided, calculate the 300s, 100s and 50s
+    # Set accuracy based on arguments
     if args.acc is not None:
         ezpp_set_accuracy_percent(ez, args.acc)
-    if args.acc is None:
+    else:
         ezpp_set_accuracy(ez, args.c100, args.c50)
 
     # Set args if needed
+    # TODO: these don't seem to actually be applied in calculation, although
+    # they work in the native C version of oppai-ng
     if args.ar:
-        ezpp_set_base_ar(ez, float(args.ar))
+        ezpp_set_base_ar(ez, args.ar)
     if args.hp:
-        ezpp_set_base_hp(ez, float(args.hp))
+        ezpp_set_base_hp(ez, args.hp)
     if args.od:
-        ezpp_set_base_od(ez, float(args.od))
+        ezpp_set_base_od(ez, args.od)
     if args.cs:
-        ezpp_set_base_cs(ez, float(args.cs))
+        ezpp_set_base_cs(ez, args.cs)
 
     # Set combo
     if args.combo is not None:

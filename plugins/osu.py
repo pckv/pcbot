@@ -40,12 +40,7 @@ import asyncio
 import discord
 import plugins
 from pcbot import Config, utils, Annotate
-from plugins.osulib import api, Mods, calculate_pp, ClosestPPStats
-try:
-    from oppai import *
-    oppai = not None
-except:
-    oppai = None
+from plugins.osulib import api, Mods, calculate_pp, can_calc_pp, ClosestPPStats
 from plugins.twitchlib import twitch
 
 import json
@@ -1044,7 +1039,7 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
         " ".join(options), **pp_stats._asdict()))
 
 
-if oppai is not None:
+if can_calc_pp:
     plugins.command(name="pp", aliases="oppai")(pp_)
     osu.command(name="pp", aliases="oppai")(pp_)
 
