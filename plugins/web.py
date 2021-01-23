@@ -16,7 +16,7 @@ client = plugins.client  # type: discord.Client
 exchange_rate_cache = dict(reset=client.time_started)
 
 
-@plugins.command()
+@plugins.command(aliases="def")
 async def define(message: discord.Message, term: Annotate.LowerCleanContent):
     """ Defines a term using Urban Dictionary. """
     json = await utils.download_json("http://api.urbandictionary.com/v0/define", term=term)
