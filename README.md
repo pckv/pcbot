@@ -55,7 +55,7 @@ errors when modules are missing, although modules as of now are:
 | Pillow    | `pip install Pillow`                                      |
 | pendulum  | `pip install pendulum`, might also need `pytz`            |
 | cairosvg  | `pip install cairosvg`, only supported for Linux          |
-| pyttanko  | `pip install pyttanko`, used for pp calculation in osu    |
+| oppai-ng  | `pip install oppai`, used for pp calculation in osu       |
 | ffmpeg    | Not a python module; see doc in [`plugins/music.py`]      |
 | imageio   | `pip install imageio`, support gif in [`plugins/image.py`]|
 

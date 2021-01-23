@@ -1,5 +1,5 @@
-""" Implement pp calculation features using pyttanko.
-    https://github.com/Francesco149/pyttanko
+""" Implement pp calculation features using oppai-ng.
+    https://github.com/Francesco149/oppai-ng
 """
 
 import os
@@ -11,15 +11,16 @@ from . import api
 from .args import parse as parse_options
 
 try:
-    import pyttanko
-except:
-    pyttanko = None
+    from oppai import *
 
+    oppai = not None
+except:
+    oppai = None
 
 host = "https://osu.ppy.sh/"
 
 CachedBeatmap = namedtuple("CachedBeatmap", "url_or_id beatmap")
-PPStats = namedtuple("PPStats", "pp stars artist title version")
+PPStats = namedtuple("PPStats", "pp stars artist title version ar od hp cs")
 ClosestPPStats = namedtuple("ClosestPPStats", "acc pp stars artist title version")
 
 plugin_path = "plugins/osulib/"
@@ -35,7 +36,6 @@ async def is_osu_file(url: str):
 
 async def download_beatmap(beatmap_url_or_id):
     """ Download the .osu file of the beatmap with the given url, and save it to beatmap_path.
-
     :param beatmap_url_or_id: beatmap_url as str or the id as int
     """
     # Parse the url and find the link to the .osu file
@@ -60,7 +60,7 @@ async def download_beatmap(beatmap_url_or_id):
 
     with open(beatmap_path, "wb") as f:
         f.write(beatmap_file)
-    
+
     # one map apparently had a /ufeff at the very beginning of the file???
     # https://osu.ppy.sh/b/1820921
     if not beatmap_file.decode().strip("\ufeff \t").startswith("osu file format"):
@@ -68,81 +68,108 @@ async def download_beatmap(beatmap_url_or_id):
         raise ValueError("Could not download the .osu file.")
 
 
-async def parse_map(beatmap_url_or_id, ignore_cache: bool=False):
+async def parse_map(beatmap_url_or_id, ignore_cache: bool = False):
     """ Download and parse the map with the given url or id, or return a newly parsed cached version.
 
     :param beatmap_url_or_id: beatmap_url as str or the id as int
-    :param ignore_cache: When true, the .osu will always be downloaded
+   :param ignore_cache: When true, the .osu will always be downloaded
     """
     global cached_beatmap
 
-    parser = pyttanko.parser()
-
     # Parse from cache or load the .osu and parse new
     if not ignore_cache and beatmap_url_or_id == cached_beatmap.url_or_id:
-        with open(beatmap_path, encoding="utf-8") as fp:
-            beatmap = parser.map(fp, bmap=cached_beatmap.beatmap)
+        f = open(beatmap_path, 'r')
+        beatmap = f.read()
+        f.close()
     else:
         await download_beatmap(beatmap_url_or_id)
 
-        with open(beatmap_path, encoding="utf-8") as fp:
-            beatmap = parser.map(fp)
+        f = open(beatmap_path, 'r')
+        beatmap = f.read()
+        f.close()
 
         cached_beatmap = CachedBeatmap(url_or_id=beatmap_url_or_id, beatmap=beatmap)
 
     return beatmap
 
 
-def apply_settings(beatmap, args):
-    """ Applies difficulty settings to beatmap, and return the mods bitmask. """
-    mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
-
-    if args.ar:
-        beatmap.ar = float(args.ar)
-    if args.hp:
-        beatmap.hp = float(args.hp)
-    if args.od:
-        beatmap.od = float(args.od)
-    if args.cs:
-        beatmap.cs = float(args.cs)
-
-    return mods_bitmask
+#def apply_settings(args):
+#    """ Applies difficulty settings to beatmap, and return the mods bitmask. """
+#
+#    mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
+#
+#    return mods_bitmask
 
 
-async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool=False):
+async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     """ Return a PPStats namedtuple from this beatmap, or a ClosestPPStats namedtuple
     when [pp_value]pp is given in the options.
 
     :param beatmap_url_or_id: beatmap_url as str or the id as int
     :param ignore_cache: When true, the .osu will always be downloaded
     """
-    if pyttanko is None:
-        return None
-    
+    ez = ezpp_new()
+    ezpp_set_autocalc(ez, 1)
     beatmap = await parse_map(beatmap_url_or_id, ignore_cache=ignore_cache)
     args = parse_options(*options)
 
-    # When acc is provided, calculate the 300s, 100s and 50s
-    c300, c100, c50 = args.c300, args.c100, args.c50
-    if args.acc is not None:
-        c300, c100, c50 = pyttanko.acc_round(args.acc, len(beatmap.hitobjects), args.misses)
+    ezpp_data_dup(ez, beatmap, len(beatmap.encode('utf-8')))
 
-    # Change the beatmap's difficulty settings if provided, and calculate the mod bitmask
-    mods_bitmask = apply_settings(beatmap, args)
+    # When acc is provided, calculate the 300s, 100s and 50s
+    if args.acc is not None:
+        ezpp_set_accuracy_percent(ez, args.acc)
+    if args.acc is None:
+        ezpp_set_accuracy(ez, args.c100, args.c50)
+
+    # Set args if needed
+    if args.ar:
+        ezpp_set_base_ar(ez, float(args.ar))
+    if args.hp:
+        ezpp_set_base_hp(ez, float(args.hp))
+    if args.od:
+        ezpp_set_base_od(ez, float(args.od))
+    if args.cs:
+        ezpp_set_base_cs(ez, float(args.cs))
+
+    # Set combo
+    if args.combo is not None:
+        ezpp_set_combo(ez, args.combo)
+
+    # Calculate the mod bitmask and apply settings if needed
+    mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
+    ezpp_set_mods(ez, mods_bitmask)
 
     # Calculate the star difficulty
-    stars = pyttanko.diff_calc().calc(beatmap, mods_bitmask)
+    totalstars = ezpp_stars(ez)
+
+    # Set number of misses
+    ezpp_set_nmiss(ez, args.misses)
+
+    # Set score version
+    ezpp_set_score_version(ez, args.score_version)
+
+    # Parse artist name
+    artist = ezpp_artist(ez)
+
+    # Parse beatmap title
+    title = ezpp_title(ez)
+
+    # Parse difficulty name
+    version = ezpp_version(ez)
 
     # # If the pp arg is given, return using the closest pp function
     # if args.pp is not None:
     #     return await find_closest_pp(beatmap, args)
 
-    # Calculate the pp
-    pp, _, _, _, _ = pyttanko.ppv2(stars.aim, stars.speed, bmap=beatmap, mods=mods_bitmask, combo=args.combo,
-                                   n300=c300, n100=c100, n50=c50, nmiss=args.misses,  score_version=args.score_version)
-    
-    return PPStats(pp, stars.total, beatmap.artist, beatmap.title, beatmap.version)
+    ar = ezpp_ar(ez)
+    od = ezpp_od(ez)
+    hp = ezpp_hp(ez)
+    cs = ezpp_cs(ez)
 
+    # Calculate the pp
+    pp = ezpp_pp(ez)
+    ezpp_free(ez)
+    return PPStats(pp, totalstars, artist, title, version, ar, od, hp, cs)
 
 # async def find_closest_pp(beatmap, args):
 #     """ Find the accuracy required to get the given amount of pp from this map. """
