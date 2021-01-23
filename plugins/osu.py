@@ -38,10 +38,9 @@ from typing import List
 import aiohttp 
 import asyncio
 import discord
-
 import plugins
 from pcbot import Config, utils, Annotate
-from plugins.osulib import api, Mods, calculate_pp, pyttanko, ClosestPPStats
+from plugins.osulib import api, Mods, calculate_pp, can_calc_pp, ClosestPPStats
 from plugins.twitchlib import twitch
 
 import json
@@ -1010,7 +1009,7 @@ async def url(message: discord.Message, member: discord.Member=Annotate.Self,
 
 
 async def pp_(message: discord.Message, beatmap_url: str, *options):
-    """ Calculate and return the would be pp using `pyttanko`.
+    """ Calculate and return the would be pp using `oppai-ng`.
 
     The beatmap url should either be a link to a beatmap /b/ or /s/, or an
     uploaded .osu file.
@@ -1040,7 +1039,7 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
         " ".join(options), **pp_stats._asdict()))
 
 
-if pyttanko is not None:
+if can_calc_pp:
     plugins.command(name="pp", aliases="oppai")(pp_)
     osu.command(name="pp", aliases="oppai")(pp_)
 
@@ -1054,10 +1053,10 @@ async def create_score_embed_with_pp(member: discord.Member, score, beatmap, mod
     score["pp"] = round(score_pp.pp, 2)
 
     # TODO: Calculate where the player failed
-
     embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
     embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(member.id))
     return embed
+
 
 
 async def recent(message: discord.Message, member: Annotate.Member=Annotate.Self):
