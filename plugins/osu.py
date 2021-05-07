@@ -710,7 +710,7 @@ async def notify_maps(member_id: str, data: dict):
         prev = discord.utils.get(recent_map_events, text=html)
         to_delete = []
         
-        if prev:i can ping u with i
+        if prev:
             recent_map_events.remove(prev)
 
             if prev.time_created + timedelta(hours=event_repeat_interval) > new_event.time_created:
