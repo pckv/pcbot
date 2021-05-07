@@ -97,6 +97,7 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     :param beatmap_url_or_id: beatmap_url as str or the id as int
     :param ignore_cache: When true, the .osu will always be downloaded
     """
+    noautoacc = False
     ez = ezpp_new()
     ezpp_set_autocalc(ez, 1)
     beatmap = await parse_map(beatmap_url_or_id, ignore_cache=ignore_cache)
@@ -108,9 +109,10 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     if args.rank == "Frank":
         objects = args.c300 + args.c100 + args.c50 + args.misses
         ezpp_set_end(ez, objects)
+        noautoacc = True
 
     # Set accuracy based on arguments
-    if args.acc is not None:
+    if args.acc is not None and noautoacc is not True:
         ezpp_set_accuracy_percent(ez, args.acc)
     else:
         ezpp_set_accuracy(ez, args.c100, args.c50)
