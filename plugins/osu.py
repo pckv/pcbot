@@ -1048,8 +1048,9 @@ async def create_score_embed_with_pp(member: discord.Member, score, beatmap, mod
     mods = api.Mods.format_mods(int(score["enabled_mods"]))
 
     if score["rank"] == "F":
-        score_pp = await calculate_pp(int(score["beatmap_id"]), (score["rank"] + "rank"),
-                                      *"{mods} {c300}x300 {c100}x100 {c50}x50 {countmiss}m {maxcombo}x".format(
+        score_pp = await calculate_pp(int(score["beatmap_id"]),
+                                      *"{mods} {c300}x300 {c100}x100 {c50}x50 {scorerank}rank {countmiss}m {maxcombo}x".format(
+                                          scorerank=score["rank"],
                                           c300=score["count300"],
                                           c100=score["count100"],
                                           c50=score["count50"],
