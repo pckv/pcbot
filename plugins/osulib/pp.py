@@ -103,6 +103,11 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     args = parse_options(*options)
 
     ezpp_data_dup(ez, beatmap, len(beatmap.encode(errors="replace")))
+    
+    # Set end of map if failed
+    if args.rank == "Frank":
+        objects = args.c300 + args.c100 + args.c50 + args.misses
+        ezpp_set_end(ez, objects)
 
     # Set accuracy based on arguments
     if args.acc is not None:
