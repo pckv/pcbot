@@ -12,6 +12,7 @@ from .args import parse as parse_options
 
 try:
     from oppai import *
+
     can_calc_pp = True
 except:
     can_calc_pp = False
@@ -67,7 +68,7 @@ async def download_beatmap(beatmap_url_or_id):
         raise ValueError("Could not download the .osu file.")
 
 
-async def parse_map(beatmap_url_or_id, ignore_cache: bool=False):
+async def parse_map(beatmap_url_or_id, ignore_cache: bool = False):
     """ Download and parse the map with the given url or id, or return a newly parsed cached version.
 
     :param beatmap_url_or_id: beatmap_url as str or the id as int
@@ -89,7 +90,7 @@ async def parse_map(beatmap_url_or_id, ignore_cache: bool=False):
     return beatmap
 
 
-async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool=False):
+async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     """ Return a PPStats namedtuple from this beatmap, or a ClosestPPStats namedtuple
     when [pp_value]pp is given in the options.
 
@@ -147,9 +148,9 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool=False):
     # Parse difficulty name
     version = ezpp_version(ez)
 
-    # # If the pp arg is given, return using the closest pp function
-    # if args.pp is not None:
-    #     return await find_closest_pp(beatmap, args)
+    # If the pp arg is given, return using the closest pp function
+    if args.pp is not None:
+        return await find_closest_pp(beatmap, args)
 
     ar = ezpp_ar(ez)
     od = ezpp_od(ez)
@@ -161,48 +162,82 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool=False):
     ezpp_free(ez)
     return PPStats(pp, totalstars, artist, title, version, ar, od, hp, cs)
 
-# async def find_closest_pp(beatmap, args):
-#     """ Find the accuracy required to get the given amount of pp from this map. """
-#     if pyttanko is None:
-#         return None
-#
-#     ctx, beatmap_ctx = create_ctx(beatmap)
-#
-#     # Create the difficulty context for calculating
-#     diff_ctx = pyoppai.new_d_calc_ctx(ctx)
-#     mods_bitmask = apply_settings(beatmap_ctx, args)
-#     stars, aim, speed, _, _, _, _ = pyoppai.d_calc(diff_ctx, beatmap_ctx)
-#
-#     # Define a partial command for easily setting the pp value by 100s count
-#     def calc(accuracy: float):
-#         return pyoppai.pp_calc_acc(
-#             ctx, aim, speed, beatmap_ctx, accuracy, mods_bitmask, args.combo, args.misses, args.score_version)[1]
-#
-#     # Find the smallest possible value oppai is willing to give
-#     min_pp = calc(accuracy=0.0)
-#     if args.pp <= min_pp:
-#         raise ValueError("The given pp value is too low (oppai gives **{:.02f}pp** at **0% acc**).".format(min_pp))
-#
-#     # Calculate the max pp value by using 100% acc
-#     previous_pp = calc(accuracy=100.0)
-#
-#     if args.pp >= previous_pp:
-#         raise ValueError("PP value should be below **{:.02f}pp** for this map.".format(previous_pp))
-#
-#     dec = .05
-#     acc = 100.0 - dec
-#     while True:
-#         current_pp = calc(accuracy=acc)
-#
-#         # Stop when we find a pp value between the current 100 count and the previous one
-#         if current_pp <= args.pp <= previous_pp:
-#             break
-#         else:
-#             previous_pp = current_pp
-#             acc -= dec
-#
-#     # Find the closest pp of our two values, and return the amount of 100s
-#     closest_pp = min([previous_pp, current_pp], key=lambda v: abs(args.pp - v))
-#     acc = acc if closest_pp == current_pp else acc + dec
-#     return ClosestPPStats(round(acc, 2), closest_pp, stars, pyoppai.artist(beatmap_ctx), pyoppai.title(beatmap_ctx),
-#                           pyoppai.version(beatmap_ctx))
+
+async def find_closest_pp(beatmap, args):
+    """ Find the accuracy required to get the given amount of pp from this map. """
+    if not can_calc_pp:
+        return None
+    ez = ezpp_new()
+    ezpp_set_autocalc(ez, 1)
+    ezpp_data_dup(ez, beatmap, len(beatmap.encode(errors="replace")))
+
+    # Set mod bitmask
+    mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
+
+    # Define a partial command for easily setting the pp value by 100s count
+    def calc(accuracy: float):
+        # Set args if needed
+        # TODO: these don't seem to actually be applied in calculation, although
+        # they work in the native C version of oppai-ng
+        if args.ar:
+            ezpp_set_base_ar(ez, args.ar)
+        if args.hp:
+            ezpp_set_base_hp(ez, args.hp)
+        if args.od:
+            ezpp_set_base_od(ez, args.od)
+        if args.cs:
+            ezpp_set_base_cs(ez, args.cs)
+
+        # Set score version
+        ezpp_set_score_version(ez, args.score_version)
+
+        # Set number of misses
+        ezpp_set_nmiss(ez, args.misses)
+
+        # Apply mods
+        ezpp_set_mods(ez, mods_bitmask)
+
+        # Set accuracy
+        ezpp_set_accuracy_percent(ez, accuracy)
+        return ezpp_pp(ez)
+
+    # Find the smallest possible value oppai is willing to give
+    min_pp = calc(accuracy=0.0)
+    if args.pp <= min_pp:
+        raise ValueError("The given pp value is too low (oppai gives **{:.02f}pp** at **0% acc**).".format(min_pp))
+
+    # Calculate the max pp value by using 100% acc
+    previous_pp = calc(accuracy=100.0)
+
+    if args.pp >= previous_pp:
+        raise ValueError("PP value should be below **{:.02f}pp** for this map.".format(previous_pp))
+
+    dec = .05
+    acc = 100.0 - dec
+    while True:
+        current_pp = calc(accuracy=acc)
+
+        # Stop when we find a pp value between the current 100 count and the previous one
+        if current_pp <= args.pp <= previous_pp:
+            break
+        else:
+            previous_pp = current_pp
+            acc -= dec
+
+    # Calculate the star difficulty
+    totalstars = ezpp_stars(ez)
+
+    # Parse artist name
+    artist = ezpp_artist(ez)
+
+    # Parse beatmap title
+    title = ezpp_title(ez)
+
+    # Parse difficulty name
+    version = ezpp_version(ez)
+
+    # Find the closest pp of our two values, and return the amount of 100s
+    closest_pp = min([previous_pp, current_pp], key=lambda v: abs(args.pp - v))
+    acc = acc if closest_pp == current_pp else acc + dec
+    return ClosestPPStats(round(acc, 2), closest_pp, totalstars, artist, title,
+                          version)
