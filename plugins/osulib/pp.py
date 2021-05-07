@@ -171,7 +171,7 @@ async def find_closest_pp(beatmap, args):
     ezpp_set_autocalc(ez, 1)
     ezpp_data_dup(ez, beatmap, len(beatmap.encode(errors="replace")))
 
-    # Create the difficulty context for calculating
+    # Set mod bitmask
     mods_bitmask = sum(mod.value for mod in args.mods) if args.mods else 0
 
     # Define a partial command for easily setting the pp value by 100s count
