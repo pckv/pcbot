@@ -99,10 +99,10 @@ def _parse_str_list(obj, name, cmd_name):
 
 
 def _name_prefix(name, parent):
-    """ Generate a function for generating the command's prefix in the given server. """
-    def decorator(server: discord.Server):
-        pre = config.server_command_prefix(server)
-        return parent.name_prefix(server) + " " + name if parent is not None else pre + name
+    """ Generate a function for generating the command's prefix in the given guild. """
+    def decorator(guild: discord.Guild):
+        pre = config.server_command_prefix(guild)
+        return parent.name_prefix(guild) + " " + name if parent is not None else pre + name
 
     return decorator
 
@@ -125,7 +125,7 @@ def command(**options):
         owner       : bool        : When True, only triggers for the owner.
         permissions : str / list  : Permissions required for this command as a str separated by whitespace or a list.
         roles       : str / list  : Roles required for this command as a str separated by whitespace or a list.
-        servers     : str / list  : a str separated by whitespace or a list of valid server ids.
+        servers     : str / list  : a str separated by whitespace or a list of valid guild ids.
         disabled_pm : bool        : Command is disabled in PMs when True.
     """
     def decorator(func):
@@ -163,9 +163,9 @@ def command(**options):
 
         # Convert to a function that uses the name_prefix
         if usage_suffix is not None:
-            usage = lambda server: name_prefix(server) + " " + usage_suffix
+            usage = lambda guild: name_prefix(guild) + " " + usage_suffix
         else:
-            usage = lambda server: None
+            usage = lambda guild: None
 
         # Properly format description when using docstrings
         # Kinda like markdown; new line = (blank line) or (/ at end of line)
@@ -276,22 +276,22 @@ def argument(format=argument_format, *, pass_message=False, allow_spaces=False):
     return decorator
 
 
-def format_usage(cmd: Command, server: discord.Server):
+def format_usage(cmd: Command, guild: discord.Guild):
     """ Format the usage string of the given command. Places any usage
     of a sub command on a newline.
 
     :param cmd: Type Command.
-    :param server: The server to generate the usage in.
+    :param guild: The guild to generate the usage in.
     :return: str: formatted usage.
     """
     if cmd.hidden and cmd.parent is not None:
         return
 
-    command_prefix = config.server_command_prefix(server)
-    usage = [cmd.usage(server)]
+    command_prefix = config.server_command_prefix(guild)
+    usage = [cmd.usage(guild)]
     for sub_command in cmd.sub_commands:
         # Recursively format the usage of the next sub commands
-        formatted = format_usage(sub_command, server)
+        formatted = format_usage(sub_command, guild)
 
         if formatted:
             usage.append(formatted)
@@ -299,22 +299,22 @@ def format_usage(cmd: Command, server: discord.Server):
     return "\n".join(s for s in usage if s is not None).format(pre=command_prefix) if usage else None
 
 
-def format_help(cmd: Command, server: discord.Server, no_subcommand: bool=False):
+def format_help(cmd: Command, guild: discord.Guild, no_subcommand: bool=False):
     """ Format the help string of the given command as a message to be sent.
 
     :param cmd: Type Command
-    :param server: The server to generate help in.
+    :param guild: The guild to generate help in.
     :param no_subcommand: Use only the given command's usage.
     :return: str: help message.
     """
-    usage = cmd.usage(server) if no_subcommand else format_usage(cmd, server)
+    usage = cmd.usage(guild) if no_subcommand else format_usage(cmd, guild)
 
     # If there is no usage, the command isn't supposed to be displayed as such
     # Therefore, we switch to using the parent command instead
     if usage is None and cmd.parent is not None:
-        return format_help(cmd.parent, server)
+        return format_help(cmd.parent, guild)
 
-    command_prefix = config.server_command_prefix(server)
+    command_prefix = config.server_command_prefix(guild)
     desc = cmd.description.format(pre=command_prefix)
 
     # Format aliases
@@ -397,7 +397,7 @@ def is_owner(user: discord.User):
     """
     if isinstance(user, discord.User):
         user = user.id
-    elif type(user) is not str:
+    elif type(user.id) is not int:
         raise TypeError("member must be an instance of discord.User or a str representing the user's ID.")
 
     if user == owner_cfg.data:
@@ -406,7 +406,7 @@ def is_owner(user: discord.User):
     return False
 
 
-def has_permissions(cmd: Command, author: discord.Member, channel: discord.Channel):
+def has_permissions(cmd: Command, author: discord.Member, channel: discord.TextChannel):
     """ Return True if the member has permissions to execute the command. """
     if not cmd.permissions:
         return True
@@ -431,15 +431,15 @@ def has_roles(cmd: Command, author: discord.Member):
     return False
 
 
-def is_valid_server(cmd: Command, server: discord.Server):
-    """ Return True if the command is allowed in server. """
-    if not cmd.servers or server.id in cmd.servers:
+def is_valid_server(cmd: Command, guild: discord.Guild):
+    """ Return True if the command is allowed in guild. """
+    if not cmd.servers or guild.id in cmd.servers:
         return True
 
     return False
 
 
-def can_use_command(cmd: Command, author, channel: discord.Channel=None):
+def can_use_command(cmd: Command, author, channel: discord.TextChannel=None):
     """ Return True if the member who sent the message can use this command. """
     if cmd.owner and not is_owner(author):
         return False
@@ -448,10 +448,10 @@ def can_use_command(cmd: Command, author, channel: discord.Channel=None):
     if not has_roles(cmd, author):
         return False
 
-    # Handle server specific commands for both server and PM commands
+    # Handle guild specific commands for both guild and PM commands
     if type(author) is discord.User and cmd.servers:
         return False
-    if type(author) is discord.Member and not is_valid_server(cmd, author.server):
+    if type(author) is discord.Member and not is_valid_server(cmd, author.guild):
         return False
 
     return True
@@ -469,7 +469,7 @@ async def execute(cmd, message: discord.Message, *args, **kwargs):
     """
     # Get the command object if the given command represents a name
     if type(cmd) is not Command:
-        cmd = get_command(cmd, config.server_case_sensitive_commands(message.server))
+        cmd = get_command(cmd, config.server_case_sensitive_commands(message.guild))
 
     try:
         await cmd.function(message, *args, **kwargs)

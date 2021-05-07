@@ -6,12 +6,10 @@ that would be executed.
 
 import logging
 import inspect
-import os
 import sys
 import traceback
 from copy import copy
 from datetime import datetime
-from getpass import getpass
 from argparse import ArgumentParser
 
 import discord
@@ -24,9 +22,39 @@ import plugins
 __version__ = config.set_version("PCBOT V3")
 
 
+async def send_message(destination, content=None, *args, **kwargs):
+    # Convert content to str, but also log this since it shouldn't happen
+    if content is not None:
+        if type(content) is not str:
+            # Log the traceback too when the content is an exception (it was probably meant to be
+            # converted to string) as to make debugging easier
+            tb = ""
+            if isinstance(content, Exception):
+                tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
+            logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
+
+            content = str(content)
+
+        # Replace any @here and @everyone to avoid using them
+        if not kwargs.pop("allow_everyone", None):
+            content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
+
+    return await destination.send(content, *args, **kwargs)
+
+
+async def send_file(destination, fp, *, filename=None, content=None, tts=False):
+    """ Override send_file to notify the guild when an attachment could not be sent. """
+    try:
+        return await destination.send(content=content, tts=tts,
+                                      file=discord.File(fp, filename=filename))
+    except discord.errors.Forbidden:
+        return await send_message(destination, "**I don't have the permissions to send my attachment.**")
+
+
 class Client(discord.Client):
     """ Custom Client class to hold the event dispatch override and
     some helper functions. """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.time_started = datetime.utcnow()
@@ -39,7 +67,7 @@ class Client(discord.Client):
         except AssertionError as e:
             if event == "message":  # Find the message object and send the proper feedback
                 message = args[0]
-                await self.send_message(message.channel, str(e))
+                await send_message(discord.Message.channel, str(e))
             else:
                 logging.error(traceback.format_exc())
                 await self.on_error(event, *args, **kwargs)
@@ -82,54 +110,32 @@ class Client(discord.Client):
                     continue
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
 
-    async def send_message(self, destination, content=None, *args, **kwargs):
-        # Convert content to str, but also log this since it shouldn't happen
-        if content is not None:
-            if type(content) is not str:
-                # Log the traceback too when the content is an exception (it was probably meant to be
-                # converted to string) as to make debugging easier
-                tb = ""
-                if isinstance(content, Exception):
-                    tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
-                logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
-
-                content = str(content)
-
-            # Replace any @here and @everyone to avoid using them
-            if not kwargs.pop("allow_everyone", None):
-                content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
-
-        return await super().send_message(destination, content, *args, **kwargs)
-
-    async def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
-        """ Override send_file to notify the server when an attachment could not be sent. """
-        try:
-            return await super().send_file(destination, fp, filename=filename, content=content, tts=tts)
-        except discord.errors.Forbidden:
-            return await self.send_message(destination, "**I don't have the permissions to send my attachment.**")
-
     async def delete_message(self, message):
         """ Override to add info on the last deleted message. """
         self.last_deleted_messages = [message]
-        await super().delete_message(message)
+        await discord.Message.delete(message)
 
     async def delete_messages(self, messages):
         """ Override to add info on the last deleted messages. """
         self.last_deleted_messages = list(messages)
-        await super().delete_messages(messages)
+        await discord.TextChannel.delete_messages(messages=messages)
 
     async def wait_for_message(self, timeout=None, *, author=None, channel=None, content=None, check=None, bot=False):
         """ Override the check with the bot keyword: if bot=False, the function
         won't accept messages from bot accounts, where if bot=True it doesn't care. """
-        def new_check(message: discord.Message):
-            return (check(message) if check is not None else True) and (True if bot else not message.author.bot)
 
-        return await super().wait_for_message(timeout, author=author, channel=channel, content=content, check=new_check)
+        def new_check(m):
+            return (
+                       m.author == author and m.channel == channel and m.content == content
+                       if check is not None else True) \
+                   and (True if bot else not discord.Message.author.bot)
+
+        return await super().wait_for("message", check=new_check, timeout=timeout)
 
     @staticmethod
     async def say(message: discord.Message, content: str):
         """ Equivalent to client.send_message(message.channel, content) """
-        msg = await client.send_message(message.channel, content)
+        msg = await send_message(message.channel, content)
         return msg
 
 
@@ -146,13 +152,13 @@ async def autosave():
         logging.debug("Plugins saved")
 
 
-def log_message(message: discord.Message, prefix: str=""):
+def log_message(message: discord.Message, prefix: str = ""):
     """ Logs a command/message. """
-    logging.info("{prefix}@{author}{server} -> {content}".format(
+    logging.info("{prefix}@{author}{guild} -> {content}".format(
         author=message.author,
         content=message.content.split("\n")[0],
-        server=" ({})".format(message.server.name) if not message.channel.is_private else "",
-        prefix=prefix,)
+        guild=" ({})".format(message.guild.name) if not isinstance(message.channel, discord.abc.PrivateChannel) else "",
+        prefix=prefix, )
     )
 
 
@@ -163,14 +169,14 @@ async def execute_command(command: plugins.Command, message: discord.Message, *a
     try:
         await command.function(message, *args, **kwargs)
     except AssertionError as e:
-        await client.say(message, str(e) or command.error or plugins.format_help(command, message.server))
+        await client.say(message, str(e) or command.error or plugins.format_help(command, message.guild))
     except:
         logging.error(traceback.format_exc())
         if plugins.is_owner(message.author) and config.owner_error:
             await client.say(message, utils.format_code(traceback.format_exc()))
         else:
             await client.say(message, "An error occurred while executing this command. If the error persists, "
-                                       "please send a PM to {}.".format(app_info.owner))
+                                      "please send a PM to {}.".format(app_info.owner))
 
 
 def default_self(anno, default, message: discord.Message):
@@ -178,7 +184,7 @@ def default_self(anno, default, message: discord.Message):
     if default is utils.Annotate.Self:
         if anno is utils.Annotate.Member:
             return message.author
-        elif anno is utils.Annotate.Channel:
+        elif anno is utils.Annotate.TextChannel:
             return message.channel
 
     return default
@@ -188,8 +194,8 @@ def override_annotation(anno):
     """ Returns an annotation of a discord object as an Annotate object. """
     if anno is discord.Member:
         return utils.Annotate.Member
-    elif anno is discord.Channel:
-        return utils.Annotate.Channel
+    elif anno is discord.TextChannel:
+        return utils.Annotate.TextChannel
     else:
         return anno
 
@@ -203,7 +209,7 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
 
     if param.annotation is not param.empty:  # Any annotation is a function or Annotation enum
         anno = override_annotation(param.annotation)
-        content = lambda s: utils.split(s, maxsplit=index)[-1].strip("\" ")
+        def content(s): return utils.split(s, maxsplit=index)[-1].strip("\" ")
 
         # Valid enum checks
         if isinstance(anno, utils.Annotate):
@@ -216,11 +222,11 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
             elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
                 return content(message.clean_content).lower() or default
             elif anno is utils.Annotate.Member:  # Checks member names or mentions
-                return utils.find_member(message.server, arg) or default_self(anno, default, message)
-            elif anno is utils.Annotate.Channel:  # Checks text channel names or mentions
-                return utils.find_channel(message.server, arg) or default_self(anno, default, message)
+                return utils.find_member(message.guild, arg) or default_self(anno, default, message)
+            elif anno is utils.Annotate.TextChannel:  # Checks text channel names or mentions
+                return utils.find_channel(message.guild, arg) or default_self(anno, default, message)
             elif anno is utils.Annotate.VoiceChannel:  # Checks voice channel names or mentions
-                return utils.find_channel(message.server, arg, channel_type="voice")
+                return utils.find_channel(message.guild, arg, channel_type="voice")
             elif anno is utils.Annotate.Code:  # Works like Content but extracts code
                 return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
 
@@ -240,7 +246,8 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
 
             return result if result is not None else default
         except TypeError:
-            raise TypeError("Command parameter annotation must be either pcbot.utils.Annotate, a callable or a coroutine")
+            raise TypeError(
+                "Command parameter annotation must be either pcbot.utils.Annotate, a callable or a coroutine")
         except AssertionError as e:  # raise the error in order to catch it at a lower level
             raise AssertionError(e)
         except:  # On error, eg when annotation is int and given argument is str
@@ -374,7 +381,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
     send_help = False
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if len(cmd_args) > 1 and cmd_args[-1] in config.help_arg or (command.disabled_pm and message.channel.is_private):
+    if len(cmd_args) > 1 and cmd_args[-1] in config.help_arg or (command.disabled_pm and isinstance(message.channel, discord.abc.PrivateChannel)):
         complete = False
         args, kwargs = [], {}
         send_help = True
@@ -394,7 +401,8 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
             else:
                 if len(cmd_args) == 1:
                     send_help = True
-                await client.say(message, plugins.format_help(command, message.server, no_subcommand=False if send_help else True))
+                await client.say(message, plugins.format_help(command, message.guild,
+                                                              no_subcommand=False if send_help else True))
 
         command = None
 
@@ -405,7 +413,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
 async def on_ready():
     logging.info("Logged in as\n"
                  "{0.user} ({0.user.id})\n".format(client) +
-                 "-" * len(client.user.id))
+                 "-" * len(str(client.user.id)))
 
 
 @client.event
@@ -423,16 +431,16 @@ async def on_message(message: discord.Message):
     message = copy(message)
 
     # We don't care about channels we can't write in as the bot usually sends feedback
-    if message.server and message.server.owner and not message.server.me.permissions_in(message.channel).send_messages:
+    if message.guild and message.guild.owner and not message.guild.me.permissions_in(message.channel).send_messages:
         return
 
     # Don't accept commands from bot accounts
     if message.author.bot:
         return
 
-    # Find server specific settings
-    command_prefix = config.server_command_prefix(message.server)
-    case_sensitive = config.server_case_sensitive_commands(message.server)
+    # Find guild specific settings
+    command_prefix = config.server_command_prefix(message.guild)
+    case_sensitive = config.server_case_sensitive_commands(message.guild)
 
     # Check that the message is a command
     if not message.content.startswith(command_prefix):
@@ -462,7 +470,8 @@ async def on_message(message: discord.Message):
         # Parse the command with the user's arguments
         parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
     except AssertionError as e:  # Return any feedback given from the command via AssertionError, or the command help
-        await client.send_message(message.channel, str(e) or plugins.format_help(command, message.server, no_subcommand=True))
+        await send_message(message.channel,
+                                  str(e) or plugins.format_help(command, message.guild, no_subcommand=True))
         log_message(message)
         return
 
@@ -508,9 +517,11 @@ def main():
     login_group = parser.add_mutually_exclusive_group()
     login_group.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
     login_group.add_argument("--email", "-e", help="Alternative email to login with.")
-    
-    shard_group = parser.add_argument_group(title="Sharding", description="Arguments for sharding for bots on 2500+ servers")
-    shard_group.add_argument("--shard-id", help="Shard id. --shard-total must also be specified when used.", type=int, default=None)
+
+    shard_group = parser.add_argument_group(title="Sharding",
+                                            description="Arguments for sharding for bots on 2500+ guilds")
+    shard_group.add_argument("--shard-id", help="Shard id. --shard-total must also be specified when used.", type=int,
+                             default=None)
     shard_group.add_argument("--shard-total", help="Total number of shards.", type=int, default=None)
 
     parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
@@ -554,31 +565,10 @@ def main():
     # Load all dynamic plugins
     plugins.load_plugins()
 
-    # Handle login
-    if not start_args.email:
-        # Login with the specified token if specified
-        token = start_args.token or input("Token: ")
+    # Login with the specified token if specified
+    token = start_args.token or input("Token: ")
 
-        login = [token]
-    else:
-        # Get the email from commandline argument
-        email = start_args.email
-
-        password = ""
-        cached_path = client._get_cache_filename(email)  # Get the name of the would-be cached email
-
-        # If the --new-pass command-line argument is specified, remove the cached password
-        # Useful for when you have changed the password
-        if start_args.new_pass:
-            if os.path.exists(cached_path):
-                os.remove(cached_path)
-
-        # Prompt for password if the cached file does not exist (the user has not logged in before or
-        # they they entered the --new-pass argument)
-        if not os.path.exists(cached_path):
-            password = getpass()
-
-        login = [email, password]
+    login = [token]
 
     # Setup background tasks
     client.loop.create_task(add_tasks())

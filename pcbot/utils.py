@@ -261,7 +261,7 @@ def convert_image_object(image, format: str="PNG", **params):
     return buffer
 
 
-def find_member(server: discord.Server, name, steps=3, mention=True):
+def find_member(guild: discord.Guild, name, steps=3, mention=True):
     """ Find any member by their name or a formatted mention.
     Steps define the depth at which to search. More steps equal
     less accurate checks.
@@ -275,7 +275,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     |    3   |    name is in    |
     +--------+------------------+
 
-    :param server: discord.Server to look through for members.
+    :param guild: discord.Guild to look through for members.
     :param name: display_name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
     :param mention: bool, check for mentions.
@@ -286,7 +286,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     # Return a member from mention
     found_mention = member_mention_pattern.search(name)
     if found_mention and mention:
-        member = server.get_member(found_mention.group("id"))
+        member = guild.get_member(found_mention.group("id"))
         return member
 
     name = name.lower()
@@ -297,7 +297,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
               lambda m: name in m.display_name.lower() or name in m.name.lower()]
 
     for i in range(steps if steps <= len(checks) else len(checks)):
-        member = discord.utils.find(checks[i], server.members)
+        member = discord.utils.find(checks[i], guild.members)
 
         if member:
             break
@@ -306,7 +306,7 @@ def find_member(server: discord.Server, name, steps=3, mention=True):
     return member
 
 
-def find_channel(server: discord.Server, name, steps=3, mention=True, channel_type="text"):
+def find_channel(guild: discord.Guild, name, steps=3, mention=True, channel_type="text"):
     """ Find any channel by its name or a formatted mention.
     Steps define the depth at which to search. More steps equal
     less accurate checks.
@@ -320,7 +320,7 @@ def find_channel(server: discord.Server, name, steps=3, mention=True, channel_ty
     |    3   |    name is in    |
     +--------+------------------+
 
-    :param server: discord.Server to look through for channels.
+    :param guild: discord.Guild to look through for channels.
     :param name: name as a string or mention to find.
     :param steps: int from 0-3 to specify search depth.
     :param mention: check for mentions.
@@ -341,7 +341,7 @@ def find_channel(server: discord.Server, name, steps=3, mention=True, channel_ty
     # Return a member from mention
     found_mention = channel_mention_pattern.search(name)
     if found_mention and mention and channel_type is discord.ChannelType.text:
-        channel = server.get_channel(found_mention.group("id"))
+        channel = guild.get_channel(found_mention.group("id"))
 
     if not channel:
         # Steps to check, higher values equal more fuzzy checks
@@ -350,7 +350,7 @@ def find_channel(server: discord.Server, name, steps=3, mention=True, channel_ty
                   lambda c: name.lower() in c.name.lower() and c.type is channel_type]
 
         for i in range(steps if steps <= len(checks) else len(checks)):
-            channel = discord.utils.find(checks[i], server.channels)
+            channel = discord.utils.find(checks[i], guild.channels)
 
             if channel:
                 break
@@ -372,10 +372,10 @@ def format_syntax_error(e: Exception):
 
 
 def format_objects(*objects, attr=None, dec: str="", sep: str=None):
-    """ Return a formatted string of objects (User, Member, Channel or Server) using
+    """ Return a formatted string of objects (User, Member, Channel or Guild) using
     the given decorator and the given separator.
 
-    :param objects: Any object with attributes, preferably User, Member, Channel or Server.
+    :param objects: Any object with attributes, preferably User, Member, Channel or Guild.
     :param attr: The attribute to get from any object. Defaults to object names.
     :param dec: String to decorate around each object.
     :param sep: Separator between each argument.
@@ -388,10 +388,10 @@ def format_objects(*objects, attr=None, dec: str="", sep: str=None):
     if attr is None:
         if isinstance(first_object, discord.User):
             attr = "display_name"
-        elif isinstance(first_object, discord.Channel) or isinstance(first_object, discord.Role):
+        elif isinstance(first_object, discord.TextChannel) or isinstance(first_object, discord.Role):
             attr = "mention"
             sep = " "
-        elif isinstance(first_object, discord.Server):
+        elif isinstance(first_object, discord.Guild):
             attr = "name"
 
     sep = sep if sep is not None else ", "
