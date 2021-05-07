@@ -710,7 +710,7 @@ async def notify_maps(member_id: str, data: dict):
         prev = discord.utils.get(recent_map_events, text=html)
         to_delete = []
         
-        if prev:
+        if prev:i can ping u with i
             recent_map_events.remove(prev)
 
             if prev.time_created + timedelta(hours=event_repeat_interval) > new_event.time_created:
@@ -1059,7 +1059,9 @@ async def create_score_embed_with_pp(member: discord.Member, score, beatmap, mod
                                           acc=calculate_acc(mode, score),
                                           mods="+" + mods + " " if mods != "Nomod" else "", **score).split())
 
-    # TODO: Calculate where the player failed
+    potential_pp = await get_potential_pp(score, beatmap, member, round(score_pp.pp, 2), use_acc=True)
+    score["pp"] = round(score_pp.pp, 2)
+
     embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
     embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(member.id))
     return embed
