@@ -100,6 +100,7 @@ def _parse_str_list(obj, name, cmd_name):
 
 def _name_prefix(name, parent):
     """ Generate a function for generating the command's prefix in the given guild. """
+
     def decorator(guild: discord.Guild):
         pre = config.server_command_prefix(guild)
         return parent.name_prefix(guild) + " " + name if parent is not None else pre + name
@@ -128,6 +129,7 @@ def command(**options):
         servers     : str / list  : a str separated by whitespace or a list of valid guild ids.
         disabled_pm : bool        : Command is disabled in PMs when True.
     """
+
     def decorator(func):
         # Make sure the first parameter in the function is a message object
         params = inspect.signature(func).parameters
@@ -242,6 +244,7 @@ def command(**options):
 
 def event(name=None, bot=False, self=False):
     """ Decorator to add event listeners in plugins. """
+
     def decorator(func):
         event_name = name or func.__name__
 
@@ -250,7 +253,7 @@ def event(name=None, bot=False, self=False):
                             "event listener call). It was not added to the list of events.")
             return func
 
-        if self and not bot and client.user.bot:
+        if self and not bot and discord.User.bot:
             logging.warning("self=True has no effect in event {}. Consider setting bot=True".format(func.__name__))
 
         # Set the bot attribute, which determines whether the function will be triggered by messages from bot accounts
@@ -267,6 +270,7 @@ def event(name=None, bot=False, self=False):
 
 def argument(format=argument_format, *, pass_message=False, allow_spaces=False):
     """ Decorator for easily setting custom argument usage formats. """
+
     def decorator(func):
         func.argument = format
         func.pass_message = pass_message
@@ -299,7 +303,7 @@ def format_usage(cmd: Command, guild: discord.Guild):
     return "\n".join(s for s in usage if s is not None).format(pre=command_prefix) if usage else None
 
 
-def format_help(cmd: Command, guild: discord.Guild, no_subcommand: bool=False):
+def format_help(cmd: Command, guild: discord.Guild, no_subcommand: bool = False):
     """ Format the help string of the given command as a message to be sent.
 
     :param cmd: Type Command
@@ -336,7 +340,7 @@ def parent_attr(cmd: Command, attr: str):
     return getattr(cmd.parent, attr, False) or getattr(cmd, attr)
 
 
-def compare_command_name(trigger: str, cmd: Command, case_sensitive: bool=True):
+def compare_command_name(trigger: str, cmd: Command, case_sensitive: bool = True):
     """ Compare the given trigger with the command's name and aliases.
 
     :param trigger: a str representing the command name or alias.
@@ -349,7 +353,7 @@ def compare_command_name(trigger: str, cmd: Command, case_sensitive: bool=True):
         return trigger.lower() == cmd.name.lower() or trigger.lower() in (name.lower() for name in cmd.aliases)
 
 
-def get_command(trigger: str, case_sensitive: bool=True):
+def get_command(trigger: str, case_sensitive: bool = True):
     """ Find and return a command function from a plugin.
 
     :param trigger: a str representing the command name or alias.
@@ -371,7 +375,7 @@ def get_command(trigger: str, case_sensitive: bool=True):
     return None
 
 
-def get_sub_command(cmd, *args: str, case_sensitive: bool=True):
+def get_sub_command(cmd, *args: str, case_sensitive: bool = True):
     """ Go through all arguments and return any group command function.
 
     :param cmd: type plugins.Command
@@ -439,7 +443,7 @@ def is_valid_server(cmd: Command, guild: discord.Guild):
     return False
 
 
-def can_use_command(cmd: Command, author, channel: discord.TextChannel=None):
+def can_use_command(cmd: Command, author, channel: discord.TextChannel = None):
     """ Return True if the member who sent the message can use this command. """
     if cmd.owner and not is_owner(author):
         return False
@@ -495,7 +499,7 @@ def get_cooldown(member: discord.Member, cmd: Command):
         return None
 
 
-def load_plugin(name: str, package: str="plugins"):
+def load_plugin(name: str, package: str = "plugins"):
     """ Load a plugin with the name name. If package isn't specified, this
     looks for plugin with specified name in /plugins/
 
