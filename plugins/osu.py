@@ -1047,12 +1047,14 @@ if can_calc_pp:
 async def create_score_embed_with_pp(member: discord.Member, score, beatmap, mode):
     mods = api.Mods.format_mods(int(score["enabled_mods"]))
 
-    score_pp = await calculate_pp(int(score["beatmap_id"]), *"{mods}{acc:.2%} {countmiss}m {maxcombo}x".format(
-        acc=calculate_acc(mode, score), mods="+" + mods + " " if mods != "Nomod" else "", **score).split())
+    score_pp = await calculate_pp(int(score["beatmap_id"]), *"{mods}{acc:.2%} {c300}x300 {c100}x100 {c50}x50 {"
+                                                             "scorerank}rank {countmiss}m {maxcombo}x".format(
+        acc=calculate_acc(mode, score), scorerank=score["rank"], c300=score["count300"], c100=score["count100"],
+        c50=score["count50"], mods="+" + mods + " " if mods != "Nomod" else "", **score).split())
+
     potential_pp = await get_potential_pp(score, beatmap, member, round(score_pp.pp, 2), use_acc=True)
     score["pp"] = round(score_pp.pp, 2)
 
-    # TODO: Calculate where the player failed
     embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
     embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(member.id))
     return embed
