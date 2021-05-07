@@ -32,7 +32,7 @@ with open(words_path / "verb.forms.dictionary" / "json" / "verbs-all.json", enco
 def seed_for_member(member: discord.Member, date=None):
     """ Gets the seed for the given member. """
     date = date or datetime.now()
-    return int(member.id) * date.year * date.month * date.day
+    return f"{member.id}{date.year}{date.month}{date.day}"
     
 
 def random_noun():
@@ -52,7 +52,7 @@ def random_verb():
 
 
 def make_agenda():
-    if random.randint(0, 6) > 1:
+    if random.randint(0, 15) > 1:
         return random_noun() if random.randint(0, 1) == 0 else random_verb()
 
     agenda = random.choice(verbs) + " " + random_noun()
@@ -86,7 +86,7 @@ async def horoscope(message: discord.Message, member: discord.Member=Annotate.Se
 @horoscope.command()
 async def year(message: discord.Message, member: discord.Member=Annotate.Self):
     """ Shows your horoscope or the horoscope for the given member for the year. """
-    date = datetime.today().replace(day=1)
+    date = datetime.today().replace(day=1).replace(month=1)
     embed = _horoscope(member, date, title=date.strftime("%Y"))
     await client.send_message(message.channel, embed=embed)
 
