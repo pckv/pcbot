@@ -67,7 +67,7 @@ class Client(discord.Client):
         except AssertionError as e:
             if event == "message":  # Find the message object and send the proper feedback
                 message = args[0]
-                await send_message(discord.Message.channel, str(e))
+                await send_message(message.channel, str(e))
             else:
                 logging.error(traceback.format_exc())
                 await self.on_error(event, *args, **kwargs)
@@ -209,7 +209,9 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
 
     if param.annotation is not param.empty:  # Any annotation is a function or Annotation enum
         anno = override_annotation(param.annotation)
-        def content(s): return utils.split(s, maxsplit=index)[-1].strip("\" ")
+
+        def content(s):
+            return utils.split(s, maxsplit=index)[-1].strip("\" ")
 
         # Valid enum checks
         if isinstance(anno, utils.Annotate):
@@ -223,7 +225,7 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
                 return content(message.clean_content).lower() or default
             elif anno is utils.Annotate.Member:  # Checks member names or mentions
                 return utils.find_member(message.guild, arg) or default_self(anno, default, message)
-            elif anno is utils.Annotate.TextChannel:  # Checks text channel names or mentions
+            elif anno is utils.Annotate.Channel:  # Checks text channel names or mentions
                 return utils.find_channel(message.guild, arg) or default_self(anno, default, message)
             elif anno is utils.Annotate.VoiceChannel:  # Checks voice channel names or mentions
                 return utils.find_channel(message.guild, arg, channel_type="voice")
@@ -381,7 +383,8 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
     send_help = False
 
     # If the last argument ends with the help argument, skip parsing and display help
-    if len(cmd_args) > 1 and cmd_args[-1] in config.help_arg or (command.disabled_pm and isinstance(message.channel, discord.abc.PrivateChannel)):
+    if len(cmd_args) > 1 and cmd_args[-1] in config.help_arg or (
+            command.disabled_pm and isinstance(message.channel, discord.abc.PrivateChannel)):
         complete = False
         args, kwargs = [], {}
         send_help = True
@@ -471,7 +474,7 @@ async def on_message(message: discord.Message):
         parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
     except AssertionError as e:  # Return any feedback given from the command via AssertionError, or the command help
         await send_message(message.channel,
-                                  str(e) or plugins.format_help(command, message.guild, no_subcommand=True))
+                           str(e) or plugins.format_help(command, message.guild, no_subcommand=True))
         log_message(message)
         return
 

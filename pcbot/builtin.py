@@ -97,7 +97,7 @@ async def stop(message: discord.Message):
     """ Stops the bot. """
     await bot.client.say(message, "\N{COLLISION SYMBOL}\N{PISTOL}")
     await plugins.save_plugins()
-    await client.logout()
+    await client.close()
 
 
 @plugins.command(owner=True)
@@ -263,7 +263,7 @@ async def lambda_(message: discord.Message):
     **Owner command unless no argument is specified.**
     """
     await bot.client.say(message,
-                     "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
+                         "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
 
 
 @lambda_.command(aliases="a", owner=True)
@@ -421,10 +421,10 @@ async def bot_hub(message: discord.Message):
     app_info = await client.application_info()
 
     await bot.client.say(message, "**{ver}** - **{name}** ```elm\n"
-                              "Owner   : {owner}\n"
-                              "Up      : {up} UTC\n"
-                              "Guilds : {guilds}```"
-                              "{desc}".format(
+                                  "Owner   : {owner}\n"
+                                  "Up      : {up} UTC\n"
+                                  "Guilds : {guilds}```"
+                                  "{desc}".format(
         ver=config.version, name=app_info.name,
         repo="https://github.com/{}".format(config.github_repo),
         owner=str(app_info.owner),

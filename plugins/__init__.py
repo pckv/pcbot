@@ -399,9 +399,9 @@ def is_owner(user: discord.User):
     :param user: discord.User, discord.Member or a str representing the user's ID.
     :raises: TypeError: user is wrong type.
     """
-    if isinstance(user, discord.User):
+    if user is not None and user.bot is not True:
         user = user.id
-    elif type(user.id) is not int:
+    elif type(user) is not int:
         raise TypeError("member must be an instance of discord.User or a str representing the user's ID.")
 
     if user == owner_cfg.data:

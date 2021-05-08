@@ -88,34 +88,34 @@ class Config:
         return None
 
 
-server_config = Config("guild-config", data={})
+guild_config = Config("guild-config", data={})
 
 
 def set_server_config(guild: discord.Guild, key: str, value):
     """ Set a guild config value. """
-    if guild.id not in server_config.data:
-        server_config.data[guild.id] = {}
+    if str(guild.id) not in guild_config.data:
+        guild_config.data[str(guild.id)] = {}
 
     # Change the value or remove it from the list if the value is None
     if value is None:
-        del server_config.data[guild.id][key]
+        del guild_config.data[str(guild.id)][key]
     else:
-        server_config.data[guild.id][key] = value
+        guild_config.data[str(guild.id)][key] = value
 
-    server_config.save()
+    guild_config.save()
 
 
 def server_command_prefix(guild: discord.Guild):
     """ Get the guild's command prefix. """
-    if guild is not None and guild.id in server_config.data:
-        return server_config.data[guild.id].get("command_prefix", default_command_prefix)
+    if guild is not None and str(guild.id) in guild_config.data:
+        return guild_config.data[str(guild.id)].get("command_prefix", default_command_prefix)
 
     return default_command_prefix
 
 
 def server_case_sensitive_commands(guild: discord.Guild):
     """ Get the guild's case sensitivity settings. """
-    if guild is not None and guild.id in server_config.data:
-        return server_config.data[guild.id].get("case_sensitive_commands", default_case_sensitive_commands)
+    if guild is not None and str(guild.id) in guild_config.data:
+        return guild_config.data[str(guild.id)].get("case_sensitive_commands", default_case_sensitive_commands)
 
     return default_case_sensitive_commands
