@@ -117,18 +117,6 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     else:
         ezpp_set_accuracy(ez, args.c100, args.c50)
 
-    # Set args if needed
-    # TODO: these don't seem to actually be applied in calculation, although
-    # they work in the native C version of oppai-ng
-    if args.ar:
-        ezpp_set_base_ar(ez, args.ar)
-    if args.hp:
-        ezpp_set_base_hp(ez, args.hp)
-    if args.od:
-        ezpp_set_base_od(ez, args.od)
-    if args.cs:
-        ezpp_set_base_cs(ez, args.cs)
-
     # Set combo
     if args.combo is not None:
         ezpp_set_combo(ez, args.combo)
@@ -159,6 +147,18 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
     if args.pp is not None:
         return await find_closest_pp(beatmap, args)
 
+    # Set args if needed
+    # TODO: these don't seem to actually be applied in calculation, although
+    # they work in the native C version of oppai-ng
+    if args.cs:
+        ezpp_set_base_cs(ez, args.cs)
+    if args.ar:
+        ezpp_set_base_ar(ez, args.ar)
+    if args.hp:
+        ezpp_set_base_hp(ez, args.hp)
+    if args.od:
+        ezpp_set_base_od(ez, args.od)
+
     ar = ezpp_ar(ez)
     od = ezpp_od(ez)
     hp = ezpp_hp(ez)
@@ -183,18 +183,6 @@ async def find_closest_pp(beatmap, args):
 
     # Define a partial command for easily setting the pp value by 100s count
     def calc(accuracy: float):
-        # Set args if needed
-        # TODO: these don't seem to actually be applied in calculation, although
-        # they work in the native C version of oppai-ng
-        if args.ar:
-            ezpp_set_base_ar(ez, args.ar)
-        if args.hp:
-            ezpp_set_base_hp(ez, args.hp)
-        if args.od:
-            ezpp_set_base_od(ez, args.od)
-        if args.cs:
-            ezpp_set_base_cs(ez, args.cs)
-
         # Set score version
         ezpp_set_score_version(ez, args.score_version)
 
@@ -206,6 +194,19 @@ async def find_closest_pp(beatmap, args):
 
         # Set accuracy
         ezpp_set_accuracy_percent(ez, accuracy)
+
+        # Set args if needed
+        # TODO: these don't seem to actually be applied in calculation, although
+        # they work in the native C version of oppai-ng
+        if args.cs:
+            ezpp_set_base_cs(ez, args.cs)
+        if args.ar:
+            ezpp_set_base_ar(ez, args.ar)
+        if args.hp:
+            ezpp_set_base_hp(ez, args.hp)
+        if args.od:
+            ezpp_set_base_od(ez, args.od)
+
         return ezpp_pp(ez)
 
     # Find the smallest possible value oppai is willing to give
