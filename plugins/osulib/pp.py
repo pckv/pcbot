@@ -148,8 +148,8 @@ async def calculate_pp(beatmap_url_or_id, *options, ignore_cache: bool = False):
         return await find_closest_pp(beatmap, args)
 
     # Set args if needed
-    # TODO: these don't seem to actually be applied in calculation, although
-    # they work in the native C version of oppai-ng
+    # TODO: cs doesn't seem to actually be applied in calculation, although
+    # it works in the native C version of oppai-ng
     if args.cs:
         ezpp_set_base_cs(ez, args.cs)
     if args.ar:
@@ -196,8 +196,8 @@ async def find_closest_pp(beatmap, args):
         ezpp_set_accuracy_percent(ez, accuracy)
 
         # Set args if needed
-        # TODO: these don't seem to actually be applied in calculation, although
-        # they work in the native C version of oppai-ng
+        # TODO: cs doesn't seem to actually be applied in calculation, although
+        # it works in the native C version of oppai-ng
         if args.cs:
             ezpp_set_base_cs(ez, args.cs)
         if args.ar:
