@@ -106,7 +106,7 @@ async def confirm(message: discord.Message, text: str, timeout: int = 10):
     def new_check(m):
         return lambda n: m.content.lower() in ("y", "yes", "n", "no") and m.author == author and m.channel == channel
 
-    reply = await bot.client.wait_for("message", check=new_check, timeout=timeout)
+    reply = await client.wait_for("message", check=new_check, timeout=timeout)
 
     if reply and reply.content.lower() in ("y", "yes"):
         return True
