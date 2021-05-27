@@ -104,9 +104,7 @@ async def confirm(message: discord.Message, text: str, timeout: int = 10):
     channel = message.channel
 
     def new_check(m):
-        return (
-                   lambda m: m.content.lower() in ("y", "yes", "n", "no") and m.author == author and m.channel == channel
-        )
+        return lambda n: m.content.lower() in ("y", "yes", "n", "no") and m.author == author and m.channel == channel
 
     reply = await bot.client.wait_for("message", check=new_check, timeout=timeout)
 
