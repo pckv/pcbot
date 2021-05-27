@@ -100,8 +100,15 @@ async def confirm(message: discord.Message, text: str, timeout: int = 10):
     import bot
     await bot.client.send_message(message.channel,
                                   text + " [{}{}]".format(str(timeout) + "s " if timeout else "", "yes/no"))
-    reply = await bot.client.wait_for(timeout, author=message.author, channel=message.channel,
-                                      check=lambda m: m.content.lower() in ("y", "yes", "n", "no"))
+    author = message.author
+    channel = message.channel
+
+    def new_check(m):
+        return (
+                   lambda m: m.content.lower() in ("y", "yes", "n", "no") and m.author == author and m.channel == channel
+        )
+
+    reply = await bot.client.wait_for("message", check=new_check, timeout=timeout)
 
     if reply and reply.content.lower() in ("y", "yes"):
         return True
