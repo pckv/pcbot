@@ -442,8 +442,8 @@ async def on_message(message: discord.Message):
         return
 
     # Find guild specific settings
-    command_prefix = config.server_command_prefix(message.guild)
-    case_sensitive = config.server_case_sensitive_commands(message.guild)
+    command_prefix = config.guild_command_prefix(message.guild)
+    case_sensitive = config.guild_case_sensitive_commands(message.guild)
 
     # Check that the message is a command
     if not message.content.startswith(command_prefix):

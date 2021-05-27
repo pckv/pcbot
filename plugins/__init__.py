@@ -16,7 +16,7 @@ from pcbot import config, Annotate, identifier_prefix, format_exception
 
 plugins = {}
 events = defaultdict(list)
-Command = namedtuple("Command", "name name_prefix aliases owner permissions roles servers "
+Command = namedtuple("Command", "name name_prefix aliases owner permissions roles guilds "
                                 "usage description function parent sub_commands depth hidden error pos_check "
                                 "disabled_pm doc_args")
 lengthy_annotations = (Annotate.Content, Annotate.CleanContent, Annotate.LowerContent,
@@ -102,7 +102,7 @@ def _name_prefix(name, parent):
     """ Generate a function for generating the command's prefix in the given guild. """
 
     def decorator(guild: discord.Guild):
-        pre = config.server_command_prefix(guild)
+        pre = config.guild_command_prefix(guild)
         return parent.name_prefix(guild) + " " + name if parent is not None else pre + name
 
     return decorator
@@ -126,7 +126,7 @@ def command(**options):
         owner       : bool        : When True, only triggers for the owner.
         permissions : str / list  : Permissions required for this command as a str separated by whitespace or a list.
         roles       : str / list  : Roles required for this command as a str separated by whitespace or a list.
-        servers     : str / list  : a str separated by whitespace or a list of valid guild ids.
+        guilds     : str / list  : a str separated by whitespace or a list of valid guild ids.
         disabled_pm : bool        : Command is disabled in PMs when True.
     """
 
@@ -152,13 +152,13 @@ def command(**options):
         owner = options.get("owner", False)
         permissions = options.get("permissions")
         roles = options.get("roles")
-        servers = options.get("servers")
+        guilds = options.get("guilds")
 
         # Parse str lists
         aliases = _parse_str_list(aliases, "aliases", name)
         permissions = _parse_str_list(permissions, "permissions", name)
         roles = _parse_str_list(roles, "roles", name)
-        servers = _parse_str_list(servers, "servers", name)
+        guilds = _parse_str_list(guilds, "guilds", name)
 
         # Set the usage of this command
         usage_suffix = options.get("usage", _format_usage(func, pos_check))
@@ -218,7 +218,7 @@ def command(**options):
         cmd = Command(name=name, aliases=aliases, usage=usage, name_prefix=name_prefix, description=description,
                       function=func, parent=parent, sub_commands=[], depth=depth, hidden=hidden, error=error,
                       pos_check=pos_check, disabled_pm=disabled_pm, doc_args=doc_args, owner=owner,
-                      permissions=permissions, roles=roles, servers=servers)
+                      permissions=permissions, roles=roles, guilds=guilds)
 
         # If the command has a parent (is a subcommand)
         if parent:
@@ -291,7 +291,7 @@ def format_usage(cmd: Command, guild: discord.Guild):
     if cmd.hidden and cmd.parent is not None:
         return
 
-    command_prefix = config.server_command_prefix(guild)
+    command_prefix = config.guild_command_prefix(guild)
     usage = [cmd.usage(guild)]
     for sub_command in cmd.sub_commands:
         # Recursively format the usage of the next sub commands
@@ -318,7 +318,7 @@ def format_help(cmd: Command, guild: discord.Guild, no_subcommand: bool = False)
     if usage is None and cmd.parent is not None:
         return format_help(cmd.parent, guild)
 
-    command_prefix = config.server_command_prefix(guild)
+    command_prefix = config.guild_command_prefix(guild)
     desc = cmd.description.format(pre=command_prefix)
 
     # Format aliases
@@ -400,8 +400,8 @@ def is_owner(user: discord.User):
     :raises: TypeError: user is wrong type.
     """
     if user is not None and user.bot is not True:
-        user = user.id
-    elif type(user) is not int:
+        user = str(user.id)
+    elif type(user) is not str:
         raise TypeError("member must be an instance of discord.User or a str representing the user's ID.")
 
     if user == owner_cfg.data:
@@ -435,9 +435,9 @@ def has_roles(cmd: Command, author: discord.Member):
     return False
 
 
-def is_valid_server(cmd: Command, guild: discord.Guild):
+def is_valid_guild(cmd: Command, guild: discord.Guild):
     """ Return True if the command is allowed in guild. """
-    if not cmd.servers or guild.id in cmd.servers:
+    if not cmd.guilds or guild.id in cmd.guilds:
         return True
 
     return False
@@ -453,9 +453,9 @@ def can_use_command(cmd: Command, author, channel: discord.TextChannel = None):
         return False
 
     # Handle guild specific commands for both guild and PM commands
-    if type(author) is discord.User and cmd.servers:
+    if type(author) is discord.User and cmd.guilds:
         return False
-    if type(author) is discord.Member and not is_valid_server(cmd, author.guild):
+    if type(author) is discord.Member and not is_valid_guild(cmd, author.guild):
         return False
 
     return True
@@ -473,7 +473,7 @@ async def execute(cmd, message: discord.Message, *args, **kwargs):
     """
     # Get the command object if the given command represents a name
     if type(cmd) is not Command:
-        cmd = get_command(cmd, config.server_case_sensitive_commands(message.guild))
+        cmd = get_command(cmd, config.guild_case_sensitive_commands(message.guild))
 
     try:
         await cmd.function(message, *args, **kwargs)

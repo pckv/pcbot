@@ -28,7 +28,7 @@ code_globals = {}
 @plugins.command(name="help", aliases="commands")
 async def help_(message: discord.Message, command: str.lower = None, *args):
     """ Display commands or their usage and description. """
-    command_prefix = config.server_command_prefix(message.guild)
+    command_prefix = config.guild_command_prefix(message.guild)
 
     # Display the specific command
     if command:
@@ -88,7 +88,7 @@ async def setowner(message: discord.Message):
 
     if user_code:
         await bot.client.say(message, "You have been assigned bot owner.")
-        plugins.owner_cfg.data = message.author.id
+        plugins.owner_cfg.data = str(message.author.id)
         plugins.owner_cfg.save()
 
 
@@ -443,7 +443,7 @@ async def changelog_(message: discord.Message, num: utils.int_range(f=1) = 3):
 @bot_hub.command(name="prefix", permissions="administrator", disabled_pm=True)
 async def set_prefix(message: discord.Message, prefix: str = None):
     """ Set the bot prefix. **The prefix is case sensitive and may not include spaces.** """
-    config.set_server_config(message.guild, "command_prefix", utils.split(prefix)[0] if prefix else None)
+    config.set_guild_config(message.guild, "command_prefix", utils.split(prefix)[0] if prefix else None)
 
     pre = config.default_command_prefix if prefix is None else prefix
     await bot.client.say(message, "Set the guild prefix to `{}`.".format(pre))
@@ -452,7 +452,7 @@ async def set_prefix(message: discord.Message, prefix: str = None):
 @bot_hub.command(name="case", permissions="administrator", disabled_pm=True)
 async def set_case_sensitivity(message: discord.Message, value: plugins.true_or_false):
     """ Enable or disable case sensitivity in command triggers. """
-    config.set_server_config(message.guild, "case_sensitive_commands", value)
+    config.set_guild_config(message.guild, "case_sensitive_commands", value)
     await bot.client.say(message, "**{}** case sensitive command triggers in this guild. ".format(
         "Enabled" if value else "Disabled"))
 
