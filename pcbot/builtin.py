@@ -121,14 +121,14 @@ async def reset(message: discord.Message):
 @plugins.command(owner=True)
 async def game(message: discord.Message, name: Annotate.Content = None):
     """ Stop playing or set game to `name`. """
-    await client.change_presence(activity=discord.Game(name=name, type=0))
+    await client.change_presence(activity=discord.Game(name=name))
     await bot.client.say(message, "**Set the game to** `{}`.".format(name) if name else "**No longer playing.**")
 
 
 @game.command(owner=True)
 async def stream(message: discord.Message, url: str, title: Annotate.Content):
     """ Start streaming a game. """
-    await client.change_presence(activity=discord.Game(name=title, url=url, type=1))
+    await client.change_presence(activity=discord.Streaming(name=title, url=url))
     await bot.client.say(message, "Started streaming **{}**.".format(title))
 
 

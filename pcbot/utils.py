@@ -4,7 +4,6 @@ This module holds the owner data along with a handful of
 command specific functions and helpers.
 """
 
-import logging
 import re
 import shlex
 from enum import Enum
@@ -15,11 +14,11 @@ import aiohttp
 import discord
 from asyncio import subprocess as sub
 
-
 member_mention_pattern = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_pattern = re.compile(r"<#(?P<id>\d+)>")
 markdown_code_pattern = re.compile(r"^(?P<capt>`*)(?:[a-z]+\n)?(?P<code>.+)(?P=capt)$", flags=re.DOTALL)
-http_url_pattern = re.compile(r"(?P<protocol>https?://)(?P<host>[a-z0-9-]+\.[a-z0-9-.]+/?)(?P<sub>\S+)?", flags=re.IGNORECASE)
+http_url_pattern = re.compile(r"(?P<protocol>https?://)(?P<host>[a-z0-9-]+\.[a-z0-9-.]+/?)(?P<sub>\S+)?",
+                              flags=re.IGNORECASE)
 identifier_prefix = re.compile(r"[a-zA-Z_]")
 
 client = None  # Declare the Client. For python 3.6: client: discord.Client
@@ -46,13 +45,14 @@ class Annotate(Enum):
     Code = 9  # Get formatted code (like Content but extracts any code)
 
 
-def int_range(f: int=None, t: int=None):
+def int_range(f: int = None, t: int = None):
     """ Return a helper function for checking if a str converted to int is in the
     specified range, f (from) - t (to).
 
     :param f: From: where the range starts. -inf if omitted.
     :param t: To: where the range ends. +inf if omitted.
     """
+
     def wrapped(arg: str):
         # Convert to int and return None if unsuccessful
         try:
@@ -70,13 +70,14 @@ def int_range(f: int=None, t: int=None):
     return wrapped
 
 
-def choice(*options: str, ignore_case: bool=True):
+def choice(*options: str, ignore_case: bool = True):
     """ Return a helper function for checking if the argument is either of the
     given options.
 
     :param options: Any number of strings to choose from.
     :param ignore_case: Do not compare case-sensitively.
     """
+
     def wrapped(arg: str):
         # Compare lowercased version
         if ignore_case:
@@ -94,11 +95,13 @@ def placeholder(_: str):
     return False
 
 
-async def confirm(message: discord.Message, text: str, timeout: int=10):
+async def confirm(message: discord.Message, text: str, timeout: int = 10):
     """ Have the message author confirm their action. """
-    await client.send_message(message.channel, text + " [{}{}]".format(str(timeout) + "s " if timeout else "", "yes/no"))
-    reply = await client.wait_for_message(timeout, author=message.author, channel=message.channel,
-                                          check=lambda m: m.content.lower() in ("y", "yes", "n", "no"))
+    import bot
+    await bot.client.send_message(message.channel,
+                                  text + " [{}{}]".format(str(timeout) + "s " if timeout else "", "yes/no"))
+    reply = await bot.client.wait_for(timeout, author=message.author, channel=message.channel,
+                                      check=lambda m: m.content.lower() in ("y", "yes", "n", "no"))
 
     if reply and reply.content.lower() in ("y", "yes"):
         return True
@@ -112,6 +115,7 @@ def permission(*perms: str):
 
     NOTE: this function is deprecated. Use the command 'permissions' attribute instead.
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapped(message: discord.Message, *args, **kwargs):
@@ -121,6 +125,7 @@ def permission(*perms: str):
                 await func(message, *args, **kwargs)
 
         return wrapped
+
     return decorator
 
 
@@ -130,6 +135,7 @@ def role(*roles: str):
     
     NOTE: this function is deprecated. Use the command 'roles' attribute instead.
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapped(message: discord.Message, *args, **kwargs):
@@ -139,6 +145,7 @@ def role(*roles: str):
                 await func(message, *args, **kwargs)
 
         return wrapped
+
     return decorator
 
 
@@ -151,7 +158,7 @@ async def subprocess(*args, pipe=None, carriage_return=False):
     """
     process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE, stdin=sub.PIPE, stderr=sub.PIPE)
     result, stderr = await process.communicate(input=bytes(pipe, encoding="utf-8") if pipe else None)
-    
+
     result = result.decode("utf-8")
     stderr = stderr.decode("utf-8")
 
@@ -177,7 +184,8 @@ async def retrieve_page(url: str, head=False, call=None, headers=None, **params)
     :param params: Any additional url parameters.
     :return: The byte-like file OR whatever return value of the attribute set in call.
     """
-    async with aiohttp.ClientSession(loop=client.loop) as session:
+    import bot
+    async with aiohttp.ClientSession(loop=bot.client.loop) as session:
         coro = session.head if head else session.get
 
         async with coro(url, params=params, headers=headers or {}) as response:
@@ -252,7 +260,7 @@ async def download_json(url: str, headers=None, **params):
     return await retrieve_page(url, call=_convert_json, headers=headers, **params)
 
 
-def convert_image_object(image, format: str="PNG", **params):
+def convert_image_object(image, format: str = "PNG", **params):
     """ Saves a PIL.Image.Image object to BytesIO buffer. Effectively
     returns the byte-like object for sending through discord.Client.send_file.
     
@@ -377,7 +385,7 @@ def format_syntax_error(e: Exception):
     return "{0.text}\n{1:>{0.offset}}\n{2}: {0}".format(e, "^", type(e).__name__).replace("\n\n", "\n")
 
 
-def format_objects(*objects, attr=None, dec: str="", sep: str=None):
+def format_objects(*objects, attr=None, dec: str = "", sep: str = None):
     """ Return a formatted string of objects (User, Member, Channel or Guild) using
     the given decorator and the given separator.
 
@@ -425,7 +433,7 @@ def get_formatted_code(code: str):
     raise Exception("Could not format code.")
 
 
-def format_code(code: str, language: str=None, *, simple: bool=False):
+def format_code(code: str, language: str = None, *, simple: bool = False):
     """ Format markdown code.
 
     :param code: Code formatted in markdown.
@@ -439,7 +447,7 @@ def format_code(code: str, language: str=None, *, simple: bool=False):
         return "```{}\n{}```".format(language or "", code)
 
 
-async def convert_to_embed(text: str, *, author: discord.Member=None, **kwargs):
+async def convert_to_embed(text: str, *, author: discord.Member = None, **kwargs):
     """ Convert text to an embed, where urls will be embedded if the url is an image.
 
     :param text: str to convert.
@@ -491,7 +499,7 @@ def text_to_emoji(text: str):
     return "".join(chr(ord(c) + regional_offset) for c in text.upper())
 
 
-def split(text: str, maxsplit: int=-1):
+def split(text: str, maxsplit: int = -1):
     """ Split a string with shlex when possible, and add support for maxsplit.
 
     :param text: Text to split.

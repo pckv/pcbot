@@ -22,35 +22,6 @@ import plugins
 __version__ = config.set_version("PCBOT V3")
 
 
-async def send_message(destination, content=None, *args, **kwargs):
-    # Convert content to str, but also log this since it shouldn't happen
-    if content is not None:
-        if type(content) is not str:
-            # Log the traceback too when the content is an exception (it was probably meant to be
-            # converted to string) as to make debugging easier
-            tb = ""
-            if isinstance(content, Exception):
-                tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
-            logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
-
-            content = str(content)
-
-        # Replace any @here and @everyone to avoid using them
-        if not kwargs.pop("allow_everyone", None):
-            content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
-
-    return await destination.send(content, *args, **kwargs)
-
-
-async def send_file(destination, fp, *, filename=None, content=None, tts=False):
-    """ Override send_file to notify the guild when an attachment could not be sent. """
-    try:
-        return await destination.send(content=content, tts=tts,
-                                      file=discord.File(fp, filename=filename))
-    except discord.errors.Forbidden:
-        return await send_message(destination, "**I don't have the permissions to send my attachment.**")
-
-
 class Client(discord.Client):
     """ Custom Client class to hold the event dispatch override and
     some helper functions. """
@@ -67,7 +38,7 @@ class Client(discord.Client):
         except AssertionError as e:
             if event == "message":  # Find the message object and send the proper feedback
                 message = args[0]
-                await send_message(message.channel, str(e))
+                await self.send_message(message.channel, str(e))
             else:
                 logging.error(traceback.format_exc())
                 await self.on_error(event, *args, **kwargs)
@@ -110,6 +81,33 @@ class Client(discord.Client):
                     continue
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
 
+    async def send_message(self, destination, content=None, *args, **kwargs):
+        # Convert content to str, but also log this since it shouldn't happen
+        if content is not None:
+            if type(content) is not str:
+                # Log the traceback too when the content is an exception (it was probably meant to be
+                # converted to string) as to make debugging easier
+                tb = ""
+                if isinstance(content, Exception):
+                    tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
+                logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
+
+                content = str(content)
+
+            # Replace any @here and @everyone to avoid using them
+            if not kwargs.pop("allow_everyone", None):
+                content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
+
+        return await destination.send(content, *args, **kwargs)
+
+    async def send_file(self, destination, fp, *, filename=None, content=None, tts=False):
+        """ Override send_file to notify the guild when an attachment could not be sent. """
+        try:
+            return await destination.send(content=content, tts=tts,
+                                          file=discord.File(fp, filename=filename))
+        except discord.errors.Forbidden:
+            return await self.send_message(destination, "**I don't have the permissions to send my attachment.**")
+
     async def delete_message(self, message):
         """ Override to add info on the last deleted message. """
         self.last_deleted_messages = [message]
@@ -135,7 +133,7 @@ class Client(discord.Client):
     @staticmethod
     async def say(message: discord.Message, content: str):
         """ Equivalent to client.send_message(message.channel, content) """
-        msg = await send_message(message.channel, content)
+        msg = await client.send_message(message.channel, content)
         return msg
 
 
@@ -396,7 +394,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
     if not complete:
         log_message(message)  # Log the command
 
-        if command.disabled_pm and message.channel.is_private:
+        if command.disabled_pm and isinstance(message.channel, discord.abc.PrivateChannel):
             await client.say(message, "This command can not be executed in a private message.")
         else:
             if command.error and len(cmd_args) > 1 and not send_help:
@@ -473,8 +471,8 @@ async def on_message(message: discord.Message):
         # Parse the command with the user's arguments
         parsed_command, args, kwargs = await parse_command(command, cmd_args, message)
     except AssertionError as e:  # Return any feedback given from the command via AssertionError, or the command help
-        await send_message(message.channel,
-                           str(e) or plugins.format_help(command, message.guild, no_subcommand=True))
+        await client.send_message(message.channel,
+                                  str(e) or plugins.format_help(command, message.guild, no_subcommand=True))
         log_message(message)
         return
 
