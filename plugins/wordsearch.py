@@ -11,7 +11,6 @@ import discord
 import asyncio
 import aiohttp
 
-import bot
 import plugins
 
 client = plugins.client  # type: discord.Client
@@ -76,9 +75,9 @@ def stop_wordsearch(channel: discord.TextChannel):
 async def start_wordsearch(channel: discord.TextChannel, host: discord.Member, word: str = None):
     if channel.id not in wordsearch:
         if not word:
-            await bot.client.send_message(channel, "Waiting for {0.mention} to choose a word!".format(host))
+            await client.send_message(channel, "Waiting for {0.mention} to choose a word!".format(host))
     else:
-        await bot.client.send_message(channel, "A wordsearch is already active in this channel!")
+        await client.send_message(channel, "A wordsearch is already active in this channel!")
         return
 
     # Initialize the wordsearch
@@ -86,7 +85,7 @@ async def start_wordsearch(channel: discord.TextChannel, host: discord.Member, w
 
     # Wait for the user to enter a word!wor
     if not word:
-        await bot.client.send_message(host, "**Please enter a word!**\n"
+        await client.send_message(host, "**Please enter a word!**\n"
                                             "The word should be **maximum 32 characters long** and "
                                             "may **only** contain `letters A-Å` and *numbers*.")
 
@@ -98,15 +97,15 @@ async def start_wordsearch(channel: discord.TextChannel, host: discord.Member, w
         # Stop the wordsearch if the user spent more than 30 seconds writing a valid word
         if not reply:
             stop_wordsearch(channel)
-            await bot.client.send_message(channel, "{0.mention} failed to enter a valid word.".format(host))
+            await client.send_message(channel, "{0.mention} failed to enter a valid word.".format(host))
             return
 
         # Start the wordsearch
         word = reply.content.lower()
-        await bot.client.send_message(host, "Set the word to `{}`.".format(word))
-        await bot.client.send_message(channel, "{0.mention} has entered a word! {1}".format(host, tutorial))
+        await client.send_message(host, "Set the word to `{}`.".format(word))
+        await client.send_message(channel, "{0.mention} has entered a word! {1}".format(host, tutorial))
     else:
-        await bot.client.send_message(channel, "{0.mention} made me set a word! {1}".format(host, tutorial))
+        await client.send_message(channel, "{0.mention} made me set a word! {1}".format(host, tutorial))
 
     tries = 0
     hint = ""
@@ -119,7 +118,7 @@ async def start_wordsearch(channel: discord.TextChannel, host: discord.Member, w
         # Wordsearch expires after 30 minutes
         if not reply:
             stop_wordsearch(channel)
-            await bot.client.send_message(channel, "**The wordsearch was cancelled after 30 minutes of inactivity.**\n"
+            await client.send_message(channel, "**The wordsearch was cancelled after 30 minutes of inactivity.**\n"
                                                    "The word was `{}`.".format(word))
             return
 
@@ -155,7 +154,7 @@ async def start_wordsearch(channel: discord.TextChannel, host: discord.Member, w
                                                                                                   word=word)
             stop_wordsearch(channel)
 
-        asyncio.ensure_future(bot.client.send_message(channel, m))
+        asyncio.ensure_future(client.send_message(channel, m))
 
 
 @plugins.command(name="wordsearch", aliases="ws")

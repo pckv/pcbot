@@ -8,7 +8,6 @@ import re
 from collections import namedtuple
 
 import discord
-import bot
 import plugins
 from pcbot import Config
 
@@ -125,7 +124,7 @@ async def delete_message(message: discord.Message, response: str, pattern: str):
     :param response: The optional response to send, found in a BlacklistConfig.
     :param pattern: The match pattern found in the deleted message, optional for the response.
     """
-    await bot.client.delete_message(message)
+    await client.delete_message(message)
 
     if response:
         # Parse the response message by replacing keywords
@@ -136,7 +135,7 @@ async def delete_message(message: discord.Message, response: str, pattern: str):
             .replace("{guild}", message.guild.name) \
             .replace("{pattern}", pattern)
 
-        await bot.client.send_message(message.channel, response)
+        await client.send_message(message.channel, response)
 
 
 async def on_message(message: discord.Message):

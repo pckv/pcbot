@@ -9,7 +9,6 @@ from random import choice
 
 import discord
 import asyncio
-import bot
 
 from pcbot import Config, Annotate, convert_to_embed
 import plugins
@@ -59,7 +58,7 @@ async def pasta(message: discord.Message, name: Annotate.LowerContent):
     """ Use copypastas. Don't forget to enclose the copypasta in quotes: `"pasta goes here"` for multiline
         pasta action. You also need quotes around `<name>` if it has any spaces. """
     embed, content = await generate_pasta(name)
-    await bot.client.send_message(message.channel, content, embed=embed)
+    await client.send_message(message.channel, content, embed=embed)
 
 
 @pasta.command(aliases="a create set")
@@ -73,7 +72,7 @@ async def add(message: discord.Message, name: str.lower, copypasta: Annotate.Con
     # If the pasta doesn't exist, set it
     pastas.data[parsed_name] = copypasta
     pastas.save()
-    await bot.client.say(message, "Pasta `{}` set.".format(name))
+    await client.say(message, "Pasta `{}` set.".format(name))
 
 
 @pasta.command(aliases="r delete")
@@ -86,7 +85,7 @@ async def remove(message: discord.Message, name: Annotate.LowerContent):
 
     copypasta = pastas.data.pop(parsed_name)
     pastas.save()
-    await bot.client.say(message, "Pasta `{}` removed. In case this was a mistake, "
+    await client.say(message, "Pasta `{}` removed. In case this was a mistake, "
                                    "here's the pasta: ```{}```".format(name, copypasta))
 
 
@@ -95,12 +94,12 @@ async def on_message(message: discord.Message):
     """ Use shorthand |<pasta ...> for displaying pastas and remove the user's message. """
     if message.content.startswith("|") and not message.content.startswith("||"):
         if message.channel.permissions_for(message.guild.me).manage_messages:
-            asyncio.ensure_future(bot.client.delete_message(message))
+            asyncio.ensure_future(client.delete_message(message))
         try:
             embed, content = await generate_pasta(message.content[1:].lower())
         except AssertionError as e:
-            await bot.client.say(message, e)
+            await client.say(message, e)
         else:
-            await bot.client.send_message(message.channel, content, embed=embed)
+            await client.send_message(message.channel, content, embed=embed)
         finally:
             return True

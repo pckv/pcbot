@@ -12,7 +12,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 from pcbot import Annotate
 import plugins
-import bot
 client = plugins.client  # type: discord.Client
 
 
@@ -68,4 +67,4 @@ async def prank(message: discord.Message, phrase: Annotate.CleanContent="IT'S A"
     buffer = BytesIO()
     image.save(buffer, "PNG")
     buffer.seek(0)
-    await bot.client.send_file(message.channel, buffer, filename="pranked.png")
+    await client.send_file(message.channel, buffer, filename="pranked.png")

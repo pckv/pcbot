@@ -12,7 +12,6 @@ from threading import Timer
 
 import asyncio
 import discord
-import bot
 
 import plugins
 
@@ -38,7 +37,7 @@ class Game:
         """ Notify the channel that the game has been initialized. """
         m = "**{}** has started a game of {}! To participate, say `I`! **{} players needed.**".format(
             self.message.author.display_name, self.name, self.num)
-        await bot.client.say(self.message, m)
+        await client.say(self.message, m)
 
     async def get_participants(self):
         """ Wait for input and get all participants. """
@@ -52,7 +51,7 @@ class Game:
 
             if reply:  # A user replied with a valid check
                 asyncio.ensure_future(
-                    bot.client.say(self.message,
+                    client.say(self.message,
                                    "{} has entered! `{}/{}`. Type `I` to join!".format(
                                        reply.author.mention, i + 1, self.num))
                 )
@@ -60,10 +59,10 @@ class Game:
 
                 # Remove the message if bot has permissions
                 if self.member.permissions_in(self.channel).manage_messages:
-                    asyncio.ensure_future(bot.client.delete_message(reply))
+                    asyncio.ensure_future(client.delete_message(reply))
             else:
                 # At this point we got no reply in time and thus, gathering participants failed
-                await bot.client.say(self.message, "**The {} game failed to gather {} participants.**".format(
+                await client.say(self.message, "**The {} game failed to gather {} participants.**".format(
                     self.name, self.num))
                 started.pop(started.index(self.channel.id))
 
@@ -108,7 +107,7 @@ class Roulette(Game):
     async def game(self):
         """ Start playing. """
         for i, member in enumerate(self.participants):
-            await bot.client.send_message(
+            await client.send_message(
                 self.channel,
                 "{} is up next! Say `go` whenever you are ready.".format(member.mention)
             )
@@ -124,14 +123,14 @@ class Roulette(Game):
                 hit = ":boom:"
 
             if reply is None:
-                await bot.client.send_message(self.channel, "*fuck you*")
+                await client.send_message(self.channel, "*fuck you*")
 
-            await bot.client.send_message(self.channel, "{} {} :gun: ".format(member.mention, hit))
+            await client.send_message(self.channel, "{} {} :gun: ".format(member.mention, hit))
 
             if self.bullets[i] == 1:
                 break
 
-        await bot.client.send_message(self.channel, "**GAME OVER**")
+        await client.send_message(self.channel, "**GAME OVER**")
 
 
 class HotPotato(Game):
@@ -171,7 +170,7 @@ class HotPotato(Game):
                 pass_to.append(choice(pass_from))
 
             if reply is not None:
-                await bot.client.send_message(self.channel,
+                await client.send_message(self.channel,
                                               "{} :bomb: got the bomb! Pass it to either {} or {}!".format(
                                                   member.mention, pass_to[0].mention, pass_to[1].mention))
 
@@ -185,13 +184,13 @@ class HotPotato(Game):
                 member = reply.mentions[0]
                 pass_to = []
                 if self.member.permissions_in(self.channel).manage_messages:
-                    asyncio.ensure_future(bot.client.delete_message(reply))
+                    asyncio.ensure_future(client.delete_message(reply))
             elif self.time_remaining == notify:
-                asyncio.ensure_future(bot.client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
+                asyncio.ensure_future(client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
                 self.time_remaining -= 1
 
-        await bot.client.send_message(self.channel, "{0.mention} :fire: :boom: :boom: :fire:".format(member))
-        await bot.client.send_message(self.channel, "**GAME OVER**")
+        await client.send_message(self.channel, "{0.mention} :fire: :boom: :boom: :fire:".format(member))
+        await client.send_message(self.channel, "**GAME OVER**")
 
 
 class Typing(Game):
@@ -211,7 +210,7 @@ class Typing(Game):
 
     async def send_sentence(self):
         """ Generate the function for sending the sentence. """
-        await bot.client.send_message(self.channel, "**Type**: " + self.sentence)
+        await client.send_message(self.channel, "**Type**: " + self.sentence)
 
     def total_estimated_words(self):
         """ Return the estimated words in our sentence. """
@@ -253,11 +252,11 @@ class Typing(Game):
 
             reply = await client.wait_for("message", timeout=timeout, check=check)
             if not reply:
-                await bot.client.send_message(self.channel, "**Time is up.**")
+                await client.send_message(self.channel, "**Time is up.**")
                 return
 
             # Delete the member's reply in order to avoid cheating
-            asyncio.ensure_future(bot.client.delete_message(reply))
+            asyncio.ensure_future(client.delete_message(reply))
             now = datetime.now()
 
             # Calculate the time elapsed since the game started
@@ -267,14 +266,14 @@ class Typing(Game):
             accuracy = self.calculate_accuracy(reply.clean_content)
             wpm = self.calculate_wpm(int(time_elapsed))
             m = self.reply.format(member=reply.author, time=time_elapsed, wpm=wpm, accuracy=accuracy)
-            asyncio.ensure_future(bot.client.send_message(self.channel, m))
+            asyncio.ensure_future(client.send_message(self.channel, m))
 
             # Reduce the timeout by the current time elapsed and create a checkpoint for the next timeout calculation
             timeout -= int((now - checkpoint).total_seconds())
             checkpoint = now
 
         await asyncio.sleep(1)
-        await bot.client.send_message(self.channel, "**Everyone finished!**")
+        await client.send_message(self.channel, "**Everyone finished!**")
 
 
 desc_template = "Starts a game of {game.name}. To participate, say `I` in the chat.\n\n" \

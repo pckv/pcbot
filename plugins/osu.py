@@ -39,7 +39,6 @@ import aiohttp
 import asyncio
 import discord
 
-import bot
 import plugins
 from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods, calculate_pp, can_calc_pp, ClosestPPStats
@@ -555,13 +554,13 @@ async def notify_pp(member_id: str, data: dict):
 
         for i, channel in enumerate(channels):
             try:
-                await bot.client.send_message(channel, embed=embed)
+                await client.send_message(channel, embed=embed)
 
                 # In the primary guild and if the user sets a score, send a mention and delete it
                 # This will only mention in the first channel of the guild
                 if use_mentions_in_scores and score and i == 0 and is_primary:
-                    mention = await bot.client.send_message(channel, member.mention)
-                    await bot.client.delete_message(mention)
+                    mention = await client.send_message(channel, member.mention)
+                    await client.delete_message(mention)
             except discord.Forbidden:
                 pass
 
@@ -752,11 +751,11 @@ async def notify_maps(member_id: str, data: dict):
                 # Delete the previous message if there is one
                 if to_delete:
                     delete_msg = discord.utils.get(to_delete, channel=channel)
-                    await bot.client.delete_message(delete_msg)
+                    await client.delete_message(delete_msg)
                     to_delete.remove(delete_msg)
 
                 try:
-                    msg = await bot.client.send_message(channel, embed=embed)
+                    msg = await client.send_message(channel, embed=embed)
                 except discord.errors.Forbidden:
                     pass
                 else:
@@ -834,7 +833,7 @@ async def on_message(message):
 
     timestamps = ["{} {}".format(stamp, url) for stamp, url in get_timestamps_with_url(message.content)]
     if timestamps:
-        await bot.client.send_message(message.channel,
+        await client.send_message(message.channel,
                                       embed=discord.Embed(color=message.author.color,
                                                           description="\n".join(timestamps)))
         return True
@@ -892,7 +891,7 @@ async def osu(message: discord.Message, member: discord.Member = Annotate.Self,
     embed = discord.Embed(color=member.color)
     embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(str(member.id)))
     embed.set_image(url=signature.url)
-    await bot.client.send_message(message.channel, embed=embed)
+    await client.send_message(message.channel, embed=embed)
 
 
 async def has_enough_pp(**params):
@@ -917,7 +916,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
     # Make sure the user has more pp than the minimum limit defined in config
     if float(osu_user["pp_raw"]) < minimum_pp_required:
         # Perhaps the user wants to display another gamemode
-        await bot.client.say(message,
+        await client.say(message,
                              "**You have less than the required {}pp.\nIf you're not an osu!standard player, please "
                              "enter your gamemode below. Valid gamemodes are `{}`.**".format(minimum_pp_required,
                                                                                              gamemodes))
@@ -948,7 +947,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
     osu_config.data["mode"][str(message.author.id)] = mode.value
     osu_config.data["primary_guild"][str(message.author.id)] = str(message.guild.id)
     osu_config.save()
-    await bot.client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
+    await client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
 
 
 @osu.command(aliases="unset")
@@ -965,7 +964,7 @@ async def unlink(message: discord.Message, member: discord.Member = Annotate.Sel
     # Unlink the given member (usually the message author)
     del osu_config.data["profiles"][str(member.id)]
     osu_config.save()
-    await bot.client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
+    await client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
 @osu.command(aliases="mode m track", error="Valid gamemodes: `{}`".format(gamemodes), doc_args=dict(modes=gamemodes))
@@ -987,7 +986,7 @@ async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
     if str(message.author.id) in osu_tracking:
         del osu_tracking[str(message.author.id)]
 
-    await bot.client.say(message, "Set your gamemode to **{}**.".format(mode.name))
+    await client.say(message, "Set your gamemode to **{}**.".format(mode.name))
 
 
 @osu.command()
@@ -1006,7 +1005,7 @@ async def info(message: discord.Message, member: discord.Member = Annotate.Self)
     e.add_field(name="Notification Mode", value=update_mode.name)
     e.add_field(name="Playing osu!", value="YES" if str(member.id) in osu_tracking.keys() else "NO")
 
-    await bot.client.send_message(message.channel, embed=e)
+    await client.send_message(message.channel, embed=e)
 
 
 doc_modes = ", ".join(m.name.lower() for m in UpdateModes)
@@ -1028,7 +1027,7 @@ async def notify(message: discord.Message, mode: UpdateModes.get_mode):
     if str(message.author.id) in osu_tracking and mode == UpdateModes.Disabled:
         del osu_tracking[str(message.author.id)]
 
-    await bot.client.say(message, "Set your update notification mode to **{}**.".format(mode.name.lower()))
+    await client.say(message, "Set your update notification mode to **{}**.".format(mode.name.lower()))
 
 
 @osu.command()
@@ -1039,7 +1038,7 @@ async def url(message: discord.Message, member: discord.Member = Annotate.Self,
     assert str(member.id) in osu_config.data["profiles"], "No osu! profile assigned to **{}**!".format(member.name)
 
     # Send the URL since the member is registered
-    await bot.client.say(message, "**{0.display_name}'s profile:** <{1}{2}>".format(
+    await client.say(message, "**{0.display_name}'s profile:** <{1}{2}>".format(
         member, get_user_url(str(member.id)), "#_{}".format(section) if section else ""))
 
 
@@ -1058,7 +1057,7 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
     try:
         pp_stats = await calculate_pp(beatmap_url, *options)
     except ValueError as e:
-        await bot.client.say(message, str(e))
+        await client.say(message, str(e))
         return
 
     options = list(options)
@@ -1071,7 +1070,7 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
 
         options.insert(0, "{}%".format(pp_stats.acc))
 
-    await bot.client.say(message,
+    await client.say(message,
                          "*{artist} - {title}* **[{version}] {0}** {stars:.02f}\u2605 would be worth `{pp:,.02f}pp`.".format(
                              " ".join(options), **pp_stats._asdict()))
 
@@ -1118,7 +1117,7 @@ async def recent(message: discord.Message, member: Annotate.Member = Annotate.Se
     beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1, request_tries=3))[0]
 
     embed = await create_score_embed_with_pp(member, score, beatmap, mode)
-    await bot.client.send_message(message.channel, embed=embed)
+    await client.send_message(message.channel, embed=embed)
 
 
 plugins.command()(recent)
@@ -1136,7 +1135,7 @@ async def score(message: discord.Message, beatmap_url: str):
     try:
         beatmap_info = api.parse_beatmap_url(beatmap_url)
     except SyntaxError as e:
-        await bot.client.say(message, e)
+        await client.say(message, e)
         return
 
     assert beatmap_info.beatmap_id, "Please link to a specific difficulty"
@@ -1152,7 +1151,7 @@ async def score(message: discord.Message, beatmap_url: str):
     beatmap = (await api.get_beatmaps(b=beatmap_info.beatmap_id, m=mode.value, limit=1))[0]
 
     embed = await create_score_embed_with_pp(message.author, score, beatmap, mode)
-    await bot.client.send_message(message.channel, embed=embed)
+    await client.send_message(message.channel, embed=embed)
 
 
 plugins.command(name="score")(score)
@@ -1165,11 +1164,11 @@ async def mapinfo(message: discord.Message, beatmap_url: str):
     try:
         beatmapset = await api.beatmapset_from_url(beatmap_url)
     except Exception as e:
-        await bot.client.say(message, e)
+        await client.say(message, e)
         return
 
     header = "**{artist} - {title}** submitted by **{creator}**".format(**beatmapset[0])
-    await bot.client.say(message, header + format_beatmapset_diffs(beatmapset))
+    await client.say(message, header + format_beatmapset_diffs(beatmapset))
 
 
 def init_guild_config(guild: discord.Guild):
@@ -1191,7 +1190,7 @@ async def scores(message: discord.Message, *channels: discord.TextChannel):
     init_guild_config(message.guild)
     osu_config.data["guild"][str(message.guild.id)]["score-channels"] = list(c.id for c in channels)
     osu_config.save()
-    await bot.client.say(message, "**Notifying scores in**: {}".format(
+    await client.say(message, "**Notifying scores in**: {}".format(
         utils.format_objects(*channels, sep=" ") or "no channels"))
 
 
@@ -1201,18 +1200,18 @@ async def maps(message: discord.Message, *channels: discord.TextChannel):
     init_guild_config(message.guild)
     osu_config.data["guild"][str(message.guild.id)]["map-channels"] = list(c.id for c in channels)
     osu_config.save()
-    await bot.client.say(message, "**Notifying map updates in**: {}".format(
+    await client.say(message, "**Notifying map updates in**: {}".format(
         utils.format_objects(*channels, sep=" ") or "no channels"))
 
 
 @osu.command(owner=True)
 async def debug(message: discord.Message):
     """ Display some debug info. """
-    await bot.client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
+    await client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
                                   "Spent `{:.3f}` seconds last update.\n"
                                   "Members registered as playing: {}\n"
                                   "Total members tracked: `{}`".format(
-        api.requests_sent, bot.client.time_started.ctime(),
+        api.requests_sent, client.time_started.ctime(),
         time_elapsed,
         utils.format_objects(*[d["member"] for d in osu_tracking.values() if is_playing(d["member"])], dec="`"),
         len(osu_tracking)

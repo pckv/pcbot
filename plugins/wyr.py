@@ -7,7 +7,6 @@ import re
 import discord
 
 import plugins
-import bot
 from pcbot import Config
 
 client = plugins.client  # type: discord.Client
@@ -68,7 +67,7 @@ async def wouldyourather(message: discord.Message, opt: options = None):
 
         question = random.choice(db.data["questions"])
         choices = question["choices"]
-        await bot.client.say(message, "Would you rather **{}** or **{}**?".format(*choices))
+        await client.say(message, "Would you rather **{}** or **{}**?".format(*choices))
 
         timeout = db.data["timeout"]
         replied = []
@@ -98,10 +97,10 @@ async def wouldyourather(message: discord.Message, opt: options = None):
 
             name = reply.author.display_name
             response = random.choice(db.data["responses"]).format(name=name, NAME=name.upper(), choice=choices[choice])
-            await bot.client.say(message, response)
+            await client.say(message, response)
 
         # Say the total tallies
-        await bot.client.say(message, "A total of {0} would **{2}**, while {1} would **{3}**!".format(
+        await client.say(message, "A total of {0} would **{2}**, while {1} would **{3}**!".format(
             *question["answers"], *choices))
         db.save()
         sessions.remove(message.channel.id)
@@ -115,7 +114,7 @@ async def wouldyourather(message: discord.Message, opt: options = None):
         db.save()
 
         answer = random.choice(opt)
-        await bot.client.say(message, "**I would {}**!".format(answer))
+        await client.say(message, "**I would {}**!".format(answer))
 
 
 @wouldyourather.command(aliases="delete", owner=True)
@@ -125,7 +124,7 @@ async def remove(message: discord.Message, opt: options):
         if q["choices"][0] == opt[0] and q["choices"][1] == opt[1]:
             db.data["questions"].remove(q)
             db.save()
-            await bot.client.say(message, "**Entry removed.**")
+            await client.say(message, "**Entry removed.**")
             break
     else:
-        await bot.client.say(message, "**Could not find the question.**")
+        await client.say(message, "**Could not find the question.**")

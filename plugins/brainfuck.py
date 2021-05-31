@@ -4,7 +4,6 @@ import discord
 
 import plugins
 from pcbot import Annotate, Config
-import bot
 
 client = plugins.client  # type: discord.Client
 
@@ -143,10 +142,10 @@ async def brainfuck_in_channel(channel: discord.TextChannel, code, program_input
     try:
         output = run_brainfuck(code, program_input)
     except Exception as e:
-        await bot.client.send_message(channel, "```\n{}: {}```".format(type(e).__name__, str(e)))
+        await client.send_message(channel, "```\n{}: {}```".format(type(e).__name__, str(e)))
     else:
         assert len(output) <= 2000, "**The output was too long.**"
-        await bot.client.send_message(channel, "```\n{}```".format(output))
+        await client.send_message(channel, "```\n{}```".format(output))
 
 
 @plugins.command(aliases="bf")
@@ -158,7 +157,7 @@ async def brainfuck(message: discord.Message, code: Annotate.Code):
     in the pointer cell. """
     program_input = ""
     if "," in code:
-        await bot.client.say(message, "**Input required, please type:**")
+        await client.say(message, "**Input required, please type:**")
 
         def check(m):
             return m.author == message.author and m.channel == message.channel
@@ -210,7 +209,7 @@ async def add(message: discord.Message, name: snippet_name, code: Annotate.Code)
 
     cfg.data[name] = dict(author=str(str(message.author.id)), code=code)
     cfg.save()
-    await bot.client.say(message, "Entry `{}` created.".format(name))
+    await client.say(message, "Entry `{}` created.".format(name))
 
 
 @brainfuck.command(aliases="extend more")
@@ -222,7 +221,7 @@ async def append(message: discord.Message, name: snippet_name, code: Annotate.Co
 
     cfg.data[name]["code"] += code
     cfg.save()
-    await bot.client.say(message, "The given code was appended to `{}`.".format(name))
+    await client.say(message, "The given code was appended to `{}`.".format(name))
 
 
 @brainfuck.command(aliases="delete")
@@ -233,20 +232,20 @@ async def remove(message: discord.Message, name: snippet_name):
 
     del cfg.data[name]
     cfg.save()
-    await bot.client.say(message, "Removed entry with name `{}`.".format(name))
+    await client.say(message, "Removed entry with name `{}`.".format(name))
 
 
 @brainfuck.command(name="list")
 async def list_entries(message: discord.Message):
     """ Display a list of all brainfuck entries. """
-    await bot.client.say(message, "**Entries:**```\n{}```".format(", ".join(cfg.data.keys())))
+    await client.say(message, "**Entries:**```\n{}```".format(", ".join(cfg.data.keys())))
 
 
 @brainfuck.command(aliases="min reduce")
 async def minimize(message: discord.Message, code: Annotate.Code):
     """ Minimize the given code by removing everything that is not recognized
     brainfuck code. """
-    await bot.client.say(message, "```\n{}```".format("".join(c for c in code if c in brainfuck_chars)))
+    await client.say(message, "```\n{}```".format("".join(c for c in code if c in brainfuck_chars)))
 
 
 @brainfuck.command(aliases="code")
@@ -257,6 +256,6 @@ async def source(message: discord.message, name: snippet_name):
 
     m = "```{}```".format(code)
     if len(m) > 2000:
-        await bot.client.say(message, "The code for this entry exceeds 2000 characters.")
+        await client.say(message, "The code for this entry exceeds 2000 characters.")
     else:
-        await bot.client.say(message, m)
+        await client.say(message, m)

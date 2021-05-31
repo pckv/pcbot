@@ -10,7 +10,7 @@ import discord
 import logging
 from datetime import datetime, timedelta
 
-import bot
+
 from pcbot import utils, Config
 import plugins
 from plugins.twitchlib import twitch
@@ -51,7 +51,7 @@ async def notify_channels(message: discord.Message, *channels: discord.TextChann
     # Tell the user if notifications were disabled
     assert channels, "**Disabled stream notifications in this guild.**"
 
-    await bot.client.say(message, "**Notifying streams in:** {}".format(utils.format_objects(*channels, sep=" ")))
+    await client.say(message, "**Notifying streams in:** {}".format(utils.format_objects(*channels, sep=" ")))
 
 
 def make_twitch_embed(member: discord.Member, response: dict):
@@ -123,4 +123,4 @@ async def on_member_update(before: discord.Member, after: discord.Member):
     # Create the embedded message and send it to every stream channel
     embed = make_twitch_embed(after, stream_response)
     for channel_id in twitch_config.data["guilds"][str(after.guild.id)]["notify_channels"]:
-        await bot.client.send_message(after.guild.get_channel(channel_id), embed=embed)
+        await client.send_message(after.guild.get_channel(channel_id), embed=embed)

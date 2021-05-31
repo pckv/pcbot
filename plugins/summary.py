@@ -9,7 +9,6 @@ from functools import partial
 import asyncio
 import discord
 
-import bot
 from pcbot import utils, Annotate, config, Config
 import plugins
 
@@ -350,7 +349,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
         # Convert new line identifiers back to characters
         sentence = sentence.replace(NEW_LINE_IDENTIFIER.strip(" "), "\n")
 
-        await bot.client.send_message(message.channel, sentence, tts=tts)
+        await client.send_message(message.channel, sentence, tts=tts)
 
 
 @plugins.event(bot=True, self=True)
@@ -369,13 +368,13 @@ async def on_message(message: discord.Message):
 async def enable_persistent_messages(message: discord.Message):
     """ Stores every message in this channel in persistent storage. """
     if message.channel.id in summary_options.data["persistent_channels"]:
-        await bot.client.say(message, "Persistent messages are already enabled and tracked in this channel")
+        await client.say(message, "Persistent messages are already enabled and tracked in this channel")
         return
 
     summary_options.data["persistent_channels"].append(message.channel.id)
     summary_options.save()
 
-    await bot.client.say(message, "Downloading messages. This may take a while.")
+    await client.say(message, "Downloading messages. This may take a while.")
 
     # Create the persistent storage
     summary_data.data["channels"][message.channel.id] = []
@@ -389,4 +388,4 @@ async def enable_persistent_messages(message: discord.Message):
         summary_data.data["channels"][message.channel.id].insert(0, to_persistent(m))
 
     summary_data.save()
-    await bot.client.say(message, "Downloaded {} messages!".format(len(summary_data.data["channels"][message.channel.id])))
+    await client.say(message, "Downloaded {} messages!".format(len(summary_data.data["channels"][message.channel.id])))

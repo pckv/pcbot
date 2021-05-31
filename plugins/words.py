@@ -5,7 +5,6 @@ import discord
 from pcbot import Annotate
 import plugins
 
-import bot
 client = plugins.client
 
 
@@ -24,11 +23,11 @@ async def antonym(message: discord.Message, phrase: Annotate.CleanContent):
 
     if phrase not in antonyms:
         matches = get_close_matches(phrase, antonyms.keys(), n=5, cutoff=0.6)
-        await bot.client.say(message, "Found no antonyms for {}. Did you mean {}".format(phrase, ", ".join(
+        await client.say(message, "Found no antonyms for {}. Did you mean {}".format(phrase, ", ".join(
             "`" + match + "`" for match in matches)))
         return
 
-    await bot.client.say(message, ", ".join(s.strip(" \n") for s in antonyms[phrase]))
+    await client.say(message, ", ".join(s.strip(" \n") for s in antonyms[phrase]))
 
 
 @plugins.command()
@@ -37,14 +36,14 @@ async def synonym(message: discord.Message, phrase: Annotate.CleanContent):
 
     if phrase not in synonyms:
         matches = get_close_matches(phrase, synonyms.keys(), n=5, cutoff=0.6)
-        await bot.client.say(message, "Found no synonym for {}. Did you mean {}".format(phrase, ", ".join(
+        await client.say(message, "Found no synonym for {}. Did you mean {}".format(phrase, ", ".join(
             "`" + match + "`" for match in matches)))
         return
 
-    await bot.client.say(message, ", ".join(s.strip(" \n") for s in synonyms[phrase]))
+    await client.say(message, ", ".join(s.strip(" \n") for s in synonyms[phrase]))
 
 
 @plugins.command()
 async def homonym(message: discord.Message, phrase: Annotate.CleanContent):
-    await bot.client.say(message, phrase)
+    await client.say(message, phrase)
 

@@ -9,7 +9,6 @@ import random
 from re import match
 
 import discord
-import bot
 from pcbot import utils, Config, Annotate
 import plugins
 
@@ -23,7 +22,7 @@ async def roll(message: discord.Message, num: utils.int_range(f=1) = 100):
     """ Roll a number from 1-100 if no second argument or second argument is not a number.
         Alternatively rolls `num` times (minimum 1). """
     rolled = random.randint(1, num)
-    await bot.client.say(message, "**{0.display_name}** rolls `{1}`.".format(message.author, rolled))
+    await client.say(message, "**{0.display_name}** rolls `{1}`.".format(message.author, rolled))
 
 
 @plugins.argument("{open}<num>[x<sides>]{suffix}{close}")
@@ -60,7 +59,7 @@ async def dice(message: discord.Message, num_and_sides: dice_roll = (1, 6)):
     for i in range(num):
         rolls.append(random.randint(1, sides))
 
-    await bot.client.say(message, "**{0.display_name}** rolls `[{1}]`".format(message.author, ", ".join(str(r)
+    await client.say(message, "**{0.display_name}** rolls `[{1}]`".format(message.author, ", ".join(str(r)
                                                                                                         for r in
                                                                                                         rolls)))
 
@@ -71,7 +70,7 @@ async def avatar(message: discord.Message, member: discord.Member = Annotate.Sel
     e = discord.Embed(color=member.color)
     e = e.set_image(url=member.avatar_url_as(static_format="png"))
     e.set_author(name=member.display_name, icon_url=member.avatar_url)
-    await bot.client.send_message(message.channel, embed=e)
+    await client.send_message(message.channel, embed=e)
 
 
 @plugins.argument("#{open}feature_id{suffix}{close}")
@@ -129,14 +128,14 @@ async def feature(message: discord.Message, plugin: plugin_in_req, req_id: get_r
         assert feature_exists(plugin, req_id), "There is no such feature."
 
         # The feature request the specified id exists, and we format and send the feature request
-        await bot.client.say(message, "```diff\n" + format_req(plugin, req_id) + "```")
+        await client.say(message, "```diff\n" + format_req(plugin, req_id) + "```")
     else:
         format_list = "\n".join(format_req(plugin, req_id)
                                 for req_id in range(len(feature_reqs.data[plugin])))
         assert format_list, "This plugin has no feature requests!"
 
         # Format a list of all requests for the specified plugin when there are any
-        await bot.client.say(message, "```diff\n{list}```".format(list=format_list))
+        await client.say(message, "```diff\n{list}```".format(list=format_list))
 
 
 @feature.command()
@@ -151,7 +150,7 @@ async def new(message: discord.Message, plugin: plugin_in_req, content: Annotate
     # Add the feature request if an identical request does not exist
     feature_reqs.data[plugin].append(content)
     feature_reqs.save()
-    await bot.client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
+    await client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
 
 
 @feature.command(owner=True)
@@ -167,11 +166,11 @@ async def mark(message: discord.Message, plugin: plugin_in_req, req_id: get_req_
     if not req.endswith("+++"):
         feature_reqs.data[plugin][req_id] += "+++"
         feature_reqs.save()
-        await bot.client.say(message, "Marked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
+        await client.say(message, "Marked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
     else:
         feature_reqs.data[plugin][req_id] = req[:-3]
         feature_reqs.save()
-        await bot.client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
+        await client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
 @feature.command(owner=True)
@@ -184,4 +183,4 @@ async def remove(message: discord.Message, plugin: plugin_in_req, req_id: get_re
     # Remove the feature
     del feature_reqs.data[plugin][req_id]
     feature_reqs.save()
-    await bot.client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))
+    await client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))

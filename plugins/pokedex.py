@@ -14,7 +14,6 @@ from difflib import get_close_matches
 import discord
 import json
 
-import bot
 import plugins
 from pcbot import Config, Annotate, guild_command_prefix, utils
 
@@ -169,7 +168,7 @@ async def pokedex_(message: discord.Message, name_or_id: Annotate.LowerCleanCont
         elif resize:
             sprite = BytesIO(sprite)
 
-        await bot.client.send_file(message.channel, sprite, filename="{}.png".format(name))
+        await client.send_file(message.channel, sprite, filename="{}.png".format(name))
 
     # Format Pokemon GO specific info
     pokemon_go_info = ""
@@ -200,7 +199,7 @@ async def pokedex_(message: discord.Message, name_or_id: Annotate.LowerCleanCont
         **pokemon
     )
 
-    await bot.client.say(message, formatted_message)
+    await client.say(message, formatted_message)
 
 
 @pokedex_.command()
@@ -213,7 +212,7 @@ async def egg(message: discord.Message, egg_type: Annotate.LowerCleanContent):
     try:
         distance = int(float(egg_type))  # Using float for anyone willing to type 2.0km
     except ValueError:
-        await bot.client.say(message, "The egg type **{}** is invalid.".format(egg_type))
+        await client.say(message, "The egg type **{}** is invalid.".format(egg_type))
         return
 
     pokemon_criteria = []
@@ -239,7 +238,7 @@ async def egg(message: discord.Message, egg_type: Annotate.LowerCleanContent):
         distance, ", ".join("{}km".format(s) for s in sorted(egg_types)))
 
     # Respond with the list of matching criteria
-    await bot.client.say(message, "**The following Pokémon may hatch from a {}km egg**:```\n{}```".format(
+    await client.say(message, "**The following Pokémon may hatch from a {}km egg**:```\n{}```".format(
         distance, ", ".join(sorted(pokemon_criteria))))
 
 
@@ -355,7 +354,7 @@ async def filter_type(message: discord.Message, slot_1: str.lower, slot_2: str.l
     # There might not be any pokemon with the specified types
     assert matched_pokemon, "Looks like there are no pokemon of type **{}**!".format(format_type(slot_1, slot_2))
 
-    await bot.client.say(message, "**Pokemon with type {}**: ```\n{}```".format(
+    await client.say(message, "**Pokemon with type {}**: ```\n{}```".format(
         format_type(slot_1, slot_2), ", ".join(sorted(matched_pokemon))))
 
 
@@ -379,14 +378,14 @@ async def effect(message: discord.Message, slot_1_or_pokemon: str.lower, slot_2:
         assert_type(slot_2, message.guild)
 
     formatted += format_efficacy(slot_1, slot_2)
-    await bot.client.say(message, formatted)
+    await client.say(message, formatted)
 
 
 @pokedex_.command(disabled_pm=True, aliases="sf", permissions="manage_guild")
 async def scalefactor(message: discord.Message, factor: float = default_scale_factor):
     """ Set the image scaling factor for your guild. If no factor is given, the default is set. /
     **This command requires the `Manage Guild` permission.**"""
-    assert not factor == 0, "If you wish to disable images, remove the `Attach Files` permission from this bot."
+    assert not factor == 0, "If you wish to disable images, remove the `Attach Files` permission from this "
 
     assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(factor, max_scale_factor)
     assert min_scale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(factor, min_scale_factor)
@@ -406,4 +405,4 @@ async def scalefactor(message: discord.Message, factor: float = default_scale_fa
         reply = "Pokédex image scale factor set to **{factor}**."
 
     pokedex_config.save()
-    await bot.client.say(message, reply.format(factor=factor))
+    await client.say(message, reply.format(factor=factor))

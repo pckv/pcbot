@@ -9,13 +9,13 @@ from datetime import datetime
 
 from pcbot import Annotate, utils
 import plugins
-import bot
+
 
 client = plugins.client  # type: discord.Client
 
 
 # Create exchange rate cache and keep track of when we last reset it
-# exchange_rate_cache = dict(reset=bot.client.time_started)
+# exchange_rate_cache = dict(reset=client.time_started)
 
 
 @plugins.command(aliases="def")
@@ -43,7 +43,7 @@ async def define(message: discord.Message, term: Annotate.LowerCleanContent):
     # Cancel if the message is too long
     assert len(msg) <= 2000, "Defining this word would be a bad idea."
 
-    await bot.client.say(message, msg)
+    await client.say(message, msg)
 
 # async def get_exchange_rate(base: str, currency: str):
 #    """ Returns the exchange rate between two currencies. """
@@ -76,9 +76,9 @@ async def define(message: discord.Message, term: Annotate.LowerCleanContent):
 
 # @plugins.command(aliases="ge currency cur") async def convert(message: discord.Message, value: float,
 # currency_from: str.upper, currency_to: str.upper): """ Converts currency using http://fixer.io/ """ try: rate =
-# await get_exchange_rate(currency_from, currency_to) except ValueError as e: await bot.client.say(message,
+# await get_exchange_rate(currency_from, currency_to) except ValueError as e: await client.say(message,
 # e) else: flag = utils.text_to_emoji(currency_to[:2]) e = discord.Embed(description="{} {:,.2f} {}".format(flag,
-# value * rate, currency_to), color=message.author.color) await bot.client.send_message(message.channel, embed=e)
+# value * rate, currency_to), color=message.author.color) await client.send_message(message.channel, embed=e)
 
 
 # async def on_reload(name):

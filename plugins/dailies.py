@@ -4,7 +4,6 @@ import random
 from datetime import datetime
 
 import discord
-import bot
 
 from pcbot import Annotate
 import plugins
@@ -81,7 +80,7 @@ def _horoscope(member: discord.Member, date=None, title: str = None):
 async def horoscope(message: discord.Message, member: discord.Member = Annotate.Self):
     """ Shows your horoscope or the horoscope for the given member. """
     embed = _horoscope(member)
-    await bot.client.send_message(message.channel, embed=embed)
+    await client.send_message(message.channel, embed=embed)
 
 
 @horoscope.command()
@@ -89,5 +88,5 @@ async def year(message: discord.Message, member: discord.Member = Annotate.Self)
     """ Shows your horoscope or the horoscope for the given member for the year. """
     date = datetime.today().replace(day=1).replace(month=1)
     embed = _horoscope(member, date, title=date.strftime("%Y"))
-    await bot.client.send_message(message.channel, embed=embed)
+    await client.send_message(message.channel, embed=embed)
 
