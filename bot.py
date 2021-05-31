@@ -182,7 +182,7 @@ def default_self(anno, default, message: discord.Message):
     if default is utils.Annotate.Self:
         if anno is utils.Annotate.Member:
             return message.author
-        elif anno is utils.Annotate.TextChannel:
+        elif anno is utils.Annotate.Channel:
             return message.channel
 
     return default
@@ -193,7 +193,7 @@ def override_annotation(anno):
     if anno is discord.Member:
         return utils.Annotate.Member
     elif anno is discord.TextChannel:
-        return utils.Annotate.TextChannel
+        return utils.Annotate.Channel
     else:
         return anno
 
