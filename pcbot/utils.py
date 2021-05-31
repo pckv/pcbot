@@ -305,7 +305,7 @@ def find_member(guild: discord.Guild, name, steps=3, mention=True):
     # Return a member from mention
     found_mention = member_mention_pattern.search(name)
     if found_mention and mention:
-        member = guild.get_member(found_mention.group("id"))
+        member = guild.get_member(int(found_mention.group("id")))
         return member
 
     name = name.lower()
@@ -360,7 +360,7 @@ def find_channel(guild: discord.Guild, name, steps=3, mention=True, channel_type
     # Return a member from mention
     found_mention = channel_mention_pattern.search(name)
     if found_mention and mention and channel_type is discord.ChannelType.text:
-        channel = guild.get_channel(found_mention.group("id"))
+        channel = guild.get_channel(int(found_mention.group("id")))
 
     if not channel:
         # Steps to check, higher values equal more fuzzy checks
