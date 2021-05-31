@@ -128,7 +128,7 @@ async def create(message: discord.Message, tag: tag_arg, *time, timezone: tz_arg
     assert seconds > 0, "A countdown has to be set in the future."
 
     cd = dict(time=dt.to_datetime_string(), tz=timezone, tz_name=timezone_name, tag=tag,
-              author=message.author.id, channel=message.channel.id)
+              author=str(message.author.id), channel=str(message.channel.id))
     time_cfg.data["countdown"][tag] = cd
     time_cfg.save()
     await client.say(message, "Added countdown with tag `{}`.".format(tag))
@@ -144,7 +144,7 @@ async def delete(message: discord.Message, tag: Annotate.Content):
     assert tag in time_cfg.data["countdown"], "Countdown with tag `{}` does not exist.".format(tag)
 
     author_id = time_cfg.data["countdown"][tag]["author"]
-    assert message.author.id == author_id, "You are not the author of this tag ({}).".format(
+    assert str(message.author.id) == author_id, "You are not the author of this tag ({}).".format(
         getattr(discord.utils.get(client.get_all_members(), id=author_id), "name", None) or "~~Unknown~~")
 
     del time_cfg.data["countdown"][tag]
@@ -158,7 +158,7 @@ async def countdown_list(message: discord.Message, author: discord.Member = None
     assert time_cfg.data["countdown"], "There are no countdowns created."
 
     if author:
-        tags = (tag for tag, value in time_cfg.data["countdown"].items() if value["author"] == author.id)
+        tags = (tag for tag, value in time_cfg.data["countdown"].items() if value["author"] == str(author.id))
     else:
         tags = (tag for tag in time_cfg.data["countdown"].keys())
 
@@ -170,8 +170,8 @@ async def wait_for_reminder(cd, seconds):
     """ Wait for and send the reminder. This is a separate function so that . """
     await asyncio.sleep(seconds)
 
-    channel = client.get_channel(cd["channel"])
-    author = channel.server.get_member(cd["author"])
+    channel = client.get_channel(int(cd["channel"]))
+    author = channel.guild.get_member(int(cd["author"]))
 
     msg = "Hey {0}, your countdown **{cd[tag]}** at `{cd[time]} {cd[tz_name]}` is over!".format(author.mention, cd=cd)
     await client.send_message(channel, msg)
