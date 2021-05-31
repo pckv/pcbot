@@ -405,7 +405,7 @@ def format_objects(*objects, attr=None, dec: str = "", sep: str = None):
 
     first_object = objects[0]
     if attr is None:
-        if isinstance(first_object, discord.User):
+        if isinstance(first_object, discord.Member):
             attr = "display_name"
         elif isinstance(first_object, discord.TextChannel) or isinstance(first_object, discord.Role):
             attr = "mention"
