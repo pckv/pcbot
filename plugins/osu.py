@@ -334,7 +334,6 @@ async def update_user_data():
         if get_update_mode(str(member_id)) is UpdateModes.Disabled:
             continue
 
-        # TODO: Fix user intents
         member = discord.utils.get(client.get_all_members(), id=int(member_id))
         if member is None:
             continue

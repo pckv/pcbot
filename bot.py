@@ -138,7 +138,7 @@ class Client(discord.Client):
 
 
 # Setup our client
-client = Client(loop=asyncio.ProactorEventLoop() if sys.platform == "win32" else None)
+client = Client(intents=discord.Intents.all(), loop=asyncio.ProactorEventLoop() if sys.platform == "win32" else None)
 autosave_interval = 60 * 30
 
 
