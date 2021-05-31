@@ -72,18 +72,17 @@ def get_emoji(char: str, size=default_size):
     return Image.open(BytesIO(cairosvg.svg2png(emoji_bytes)))
 
 
-async def get_emote(emote_id: int, guild: discord.Guild):
+async def get_emote(emote_id: int):
     """ Return the image of a custom emote. """
-    emote = client.get_emoji(emote_id)
 
     # Return the cached version if possible
-    if emote.id in emote_cache:
-        return Image.open(emote_cache[emote.id])
+    if emote_id in emote_cache:
+        return Image.open(emote_cache[emote_id])
 
     # Otherwise, download the emote, store it in the cache and return
-    #url = emote.url.replace("discordapp.com/api/", "cdn.discordapp.com/")  # legacy discord.py gives old url format
-    emote_bytes = await utils.download_file(str(emote.url), bytesio=True)
-    emote_cache[emote.id] = emote_bytes
+    # url = emote.url.replace("discordapp.com/api/", "cdn.discordapp.com/")  # legacy discord.py gives old url format
+    emote_bytes = await utils.download_file(f'https://cdn.discordapp.com/emojis/{emote_id}.png', bytesio=True)
+    emote_cache[emote_id] = emote_bytes
     return Image.open(emote_bytes)
 
 
@@ -126,7 +125,7 @@ def parse_emoji(chars: list):
             chars_remaining = length = len(chars)
 
 
-async def format_emoji(text: str, guild: discord.Guild):
+async def format_emoji(text: str):
     """ Creates a list supporting both emoji and custom emotes. """
     char_and_emotes = []
 
@@ -137,7 +136,7 @@ async def format_emoji(text: str, guild: discord.Guild):
     for i, c in text_iter:
         match = emote_regex.match(text[i:])
         if match:
-            char_and_emotes.append(await get_emote(int(match.group("id")), guild))
+            char_and_emotes.append(await get_emote(int(match.group("id"))))
             has_custom = True
 
             # Skip ahead in the iterator
@@ -162,13 +161,13 @@ async def format_emoji(text: str, guild: discord.Guild):
     return [e if isinstance(e, Image.Image) else get_emoji(e, size=size) for e in parsed_emoji], has_custom
 
 
-async def convert_to_images(guild: discord.Guild, text: str):
+async def convert_to_images(text: str):
     """ Converts any emoji in the given text to a list of images.
 
     :return: images: list, total_width: int, height: int
     """
     # Parse all unicode and load the emojies
-    parsed_emoji, has_custom = await format_emoji(text, guild)
+    parsed_emoji, has_custom = await format_emoji(text)
     assert parsed_emoji, "I couldn't find any emoji in that text of yours."
 
     # Combine multiple images if necessary, otherwise send just the one
@@ -198,12 +197,10 @@ async def convert_to_images(guild: discord.Guild, text: str):
 
 
 @plugins.command(aliases="huge bigger big larger large")
-async def greater(message: discord.Message, text):
+async def greater(message: discord.Message, text: Annotate.Content):
     """ Gives a **huge** version of emojies. """
     # Parse all unicode and load the emojies
-    #await client.send_message(message.channel, "```" + message.content.split("\n")[0] + "```")
-    #TODO: Fix emoji ids when not sharing server
-    images, total_width, height = await convert_to_images(message.guild, text)
+    images, total_width, height = await convert_to_images(text)
 
     # Stitch all the images together
     image = Image.new("RGBA", (total_width, height))
@@ -266,7 +263,7 @@ async def merge(message: discord.Message, text: Annotate.CleanContent):
 
 async def gif(message: discord.Message, text: Annotate.CleanContent):
     """ Gives a **huge** version of emojies AS A GIF. """
-    images, total_width, height = await convert_to_images(message.guild, text)
+    images, total_width, height = await convert_to_images(text)
 
     # Get optional duration
     duration = 0.15
