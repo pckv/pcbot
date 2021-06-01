@@ -92,7 +92,7 @@ class Config:
 
         if not self.data == loaded_data:
             self.save()
-            migrate()
+        migrate()
 
     def save(self):
         """ Write the current config to file. """
