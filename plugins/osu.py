@@ -422,10 +422,8 @@ async def get_new_score(member_id: str):
                 diff = pp - float(user_scores[i + 1]["pp"])
             else:
                 diff = 0
-            logging.info("Score found")
             return dict(score, pos=i + 1, diff=diff)
     else:
-        logging.info("Score not found")
         return None
 
 
