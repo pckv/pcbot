@@ -60,9 +60,9 @@ def make_twitch_embed(member: discord.Member, response: dict):
     :param member: Member object streaming.
     :param response: Dict received through twitch.request("streams").
     """
-    e = discord.Embed(title="Playing " + response["stream"]["game"], url=member.game.url,
-                      description=member.game.name, color=member.color)
-    e.set_author(name=member.display_name, url=member.game.url, icon_url=member.avatar_url)
+    e = discord.Embed(title="Playing " + response["stream"]["game"], url=member.activity.url,
+                      description=member.activity.name, color=member.color)
+    e.set_author(name=member.display_name, url=member.activity.url, icon_url=member.avatar_url)
     e.set_thumbnail(url=response["stream"]["preview"]["small"] + "?date=" + datetime.now().ctime().replace(" ", "%20"))
     return e
 
