@@ -92,7 +92,10 @@ async def start_wordsearch(channel: discord.TextChannel, host: discord.Member, w
         def check(m):
             return m.author == host and valid_word(m)
 
-        reply = await client.wait_for("message", check=check, timeout=30)
+        try:
+            reply = await client.wait_for("message", check=check, timeout=30)
+        except asyncio.TimeoutError:
+            reply = None
 
         # Stop the wordsearch if the user spent more than 30 seconds writing a valid word
         if not reply:
@@ -113,7 +116,10 @@ async def start_wordsearch(channel: discord.TextChannel, host: discord.Member, w
     while channel.id in wordsearch:
         def check(m):
             return m.channel == channel and valid_guess(m)
-        reply = await client.wait_for("message", timeout=60 * 30, check=check)
+        try:
+            reply = await client.wait_for("message", timeout=60 * 30, check=check)
+        except asyncio.TimeoutError:
+            reply = None
 
         # Wordsearch expires after 30 minutes
         if not reply:

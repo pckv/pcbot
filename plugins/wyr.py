@@ -81,7 +81,7 @@ async def wouldyourather(message: discord.Message, opt: options = None):
                 reply = await client.wait_for("message", timeout=timeout, check=check)
             # Break on timeout
             except asyncio.TimeoutError:
-                break
+                return
 
             # Check if the choice is vlaid
             choice = get_choice(choices, reply.content)

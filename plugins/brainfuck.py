@@ -1,4 +1,5 @@
 """ Plugin for compiling and executing brainfuck code. """
+import asyncio
 
 import discord
 
@@ -162,8 +163,11 @@ async def brainfuck(message: discord.Message, code: Annotate.Code):
         def check(m):
             return m.author == message.author and m.channel == message.channel
 
-        reply = await client.wait_for("message", timeout=30, check=check)
-        assert reply, "**You failed to reply.**"
+        try:
+            reply = await client.wait_for("message", timeout=30, check=check)
+        except asyncio.TimeoutError:
+            await client.say(message, "**You failed to reply.**")
+            return
 
         program_input = reply.clean_content
 

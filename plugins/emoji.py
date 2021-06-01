@@ -6,7 +6,7 @@ difficult to install for windows.
 Commands:
     greater
 """
-
+import asyncio
 import os
 import random
 import re
@@ -244,7 +244,10 @@ async def merge(message: discord.Message, text: Annotate.CleanContent):
             return m.channel == message.channel and m.author == message.author and m.content.lower() == "re" or \
                    m.content.startswith("!merge")
 
-        reply = await client.wait_for("message", timeout=60, check=check)
+        try:
+            reply = await client.wait_for("message", timeout=60, check=check)
+        except asyncio.TimeoutError:
+            reply = None
 
         # If the user types this command, stop waiting for the "re" keyword
         if not reply or reply.content.startswith("!merge"):

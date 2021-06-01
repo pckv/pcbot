@@ -47,7 +47,12 @@ class Game:
                 return m.channel == self.channel and m.content.lower().strip() == "i" and m.author not in self.participants
 
             # Wait with a timeout of 2 minutes and check each message with check(m)
-            reply = await client.wait_for("message", timeout=120, check=check)
+            try:
+                reply = await client.wait_for("message", timeout=120, check=check)
+            except asyncio.TimeoutError:
+                await client.say(self.message, "**The {} game failed to gather {} participants.**".format(
+                    self.name, self.num))
+                return
 
             if reply:  # A user replied with a valid check
                 asyncio.ensure_future(
@@ -115,7 +120,10 @@ class Roulette(Game):
             def check(m):
                 return m.channel == self.channel and m.author == member and "go" in m.content.lower()
 
-            reply = await client.wait_for("message", timeout=15, check=check)
+            try:
+                reply = await client.wait_for("message", timeout=15, check=check)
+            except asyncio.TimeoutError:
+                reply = None
 
             hit = ":dash:"
 
@@ -178,7 +186,10 @@ class HotPotato(Game):
                 return m.channel == self.channel and m.author == member and m.mentions[0] in pass_to
 
             wait = (self.time_remaining - notify) if (self.time_remaining >= notify) else self.time_remaining
-            reply = await client.wait_for("message", timeout=wait, check=check)
+            try:
+                reply = await client.wait_for("message", timeout=wait, check=check)
+            except asyncio.TimeoutError:
+                reply = None
 
             if reply:
                 member = reply.mentions[0]
@@ -250,8 +261,9 @@ class Typing(Game):
             def check(m):
                 return m.channel == self.channel and self.is_participant is True
 
-            reply = await client.wait_for("message", timeout=timeout, check=check)
-            if not reply:
+            try:
+                reply = await client.wait_for("message", timeout=timeout, check=check)
+            except asyncio.TimeoutError:
                 await client.send_message(self.channel, "**Time is up.**")
                 return
 

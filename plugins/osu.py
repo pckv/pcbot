@@ -926,8 +926,9 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
         def check(m):
             return m.author == message.author and m.channel == message.channel
 
-        reply = await client.wait_for("message", timeout=60, check=check)
-        if not reply:
+        try:
+            reply = await client.wait_for("message", timeout=60, check=check)
+        except asyncio.TimeoutError:
             return
 
         mode = api.GameMode.get_mode(reply.content)

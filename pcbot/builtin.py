@@ -81,9 +81,12 @@ async def setowner(message: discord.Message):
     def check(m):
         return m.content == owner_code and m.channel == message.channel
 
-    user_code = await client.wait_for("message", timeout=60, check=check)
 
-    assert user_code, "You failed to send the desired code."
+    try:
+        user_code = await client.wait_for("message", timeout=60, check=check)
+    except asyncio.TimeoutError:
+        await client.say(message, "You failed to send the desired code.")
+        return
 
     if user_code:
         await client.say(message, "You have been assigned bot owner.")
