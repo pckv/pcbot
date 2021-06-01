@@ -6,10 +6,9 @@ setting the bot's version and a class for creating configs.
 
 import json
 from os.path import exists
-from os import mkdir
+from os import mkdir, walk, path, rename
 
 import discord
-
 
 github_repo = "pckv/pcbot/"
 default_command_prefix = "!"
@@ -29,10 +28,36 @@ def set_version(ver: str):
     return version
 
 
+def migrate():
+    directory = "config/"
+    find = "server"
+    replace = "guild"
+    for root, dirs, filenames in walk(directory):
+        dirs[:] = [d for d in dirs if d != '.git']  # skip .git dirs
+        for filename in filenames:
+            path1 = path.join(root, filename)
+            if filename != "renameall2.py":  # name of the script. Don't change yourself!
+
+                # search and replace within files themselves
+                filepath = path.join(root, filename)
+                with open(filepath) as f:
+                    file_contents = f.read()
+                    new_contents = file_contents.replace(find, replace)
+                    if new_contents != file_contents:
+                        with open(filepath, "w") as f:
+                            f.write(new_contents)
+
+                # rename files (ignoring file extensions)
+                filename_zero, extension = path.splitext(filename)
+                if find in filename_zero:
+                    path2 = path.join(root, filename_zero.replace(find, replace) + extension)
+                    rename(path1, path2)
+
+
 class Config:
     config_path = "config/"
 
-    def __init__(self, filename: str, data=None, load: bool=True, pretty=False):
+    def __init__(self, filename: str, data=None, load: bool = True, pretty=False):
         """ Setup the config file if it does not exist.
 
         :param filename: usually a string representing the module name.
@@ -67,6 +92,7 @@ class Config:
 
         if not self.data == loaded_data:
             self.save()
+            migrate()
 
     def save(self):
         """ Write the current config to file. """
