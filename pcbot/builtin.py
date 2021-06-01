@@ -425,7 +425,7 @@ async def bot_hub(message: discord.Message):
     await client.say(message, "**{ver}** - **{name}** ```elm\n"
                                   "Owner   : {owner}\n"
                                   "Up      : {up} UTC\n"
-                                  "Guilds : {guilds}```"
+                                  "Guilds  : {guilds}```"
                                   "{desc}".format(
         ver=config.version, name=app_info.name,
         repo="https://github.com/{}".format(config.github_repo),
