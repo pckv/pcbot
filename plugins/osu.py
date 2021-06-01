@@ -318,8 +318,8 @@ def get_user_url(member_id: str):
 def is_playing(member: discord.Member):
     """ Check if a member has "osu!" in their Game name. """
     # See if the member is playing
-    return getattr(member.activities, "name", None) and (
-            "osu" in member.activities.name.lower() or rank_regex.search(member.activities.name))
+    return getattr(member.activity, "name", None) and (
+            "osu" in member.activity.name.lower() or rank_regex.search(member.activity.name))
 
 
 async def update_user_data():
@@ -338,8 +338,8 @@ async def update_user_data():
             continue
 
         # Add the member to tracking
-        if str(member_id) not in osu_tracking:
-            osu_tracking[str(member_id)] = dict(member=member, ticks=-1)
+        if member_id not in osu_tracking:
+            osu_tracking[member_id] = dict(member=member, ticks=-1)
 
         osu_tracking[str(member_id)]["ticks"] += 1
 
@@ -374,8 +374,9 @@ async def update_user_data():
             osu_tracking[str(member_id)]["old"] = osu_tracking[str(member_id)]["new"]
         else:
             # If this is the first time, update the user's list of scores for later
-            osu_tracking[str(member_id)]["scores"] = await api.get_user_best(u=profile, type="id", limit=score_request_limit,
-                                                                        m=mode)
+            osu_tracking[str(member_id)]["scores"] = await api.get_user_best(u=profile, type="id",
+                                                                             limit=score_request_limit,
+                                                                             m=mode)
 
         # Update the "new" data
         osu_tracking[str(member_id)]["new"] = user_data
@@ -518,7 +519,7 @@ async def notify_pp(member_id: str, data: dict):
         # There might not be any events
         scoreboard_rank = None
         if new["events"]:
-            scoreboard_rank = api.rank_from_events(new["events"], score["beatmap_id"])
+            scoreboard_rank = api.rank_from_events(new["events"], str(score["beatmap_id"]))
 
         potential_pp = await get_potential_pp(score, beatmap, member, float(score["pp"]))
 
@@ -836,8 +837,8 @@ async def on_message(message):
     timestamps = ["{} {}".format(stamp, url) for stamp, url in get_timestamps_with_url(message.content)]
     if timestamps:
         await client.send_message(message.channel,
-                                      embed=discord.Embed(color=message.author.color,
-                                                          description="\n".join(timestamps)))
+                                  embed=discord.Embed(color=message.author.color,
+                                                      description="\n".join(timestamps)))
         return True
 
 
@@ -919,9 +920,9 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
     if float(osu_user["pp_raw"]) < minimum_pp_required:
         # Perhaps the user wants to display another gamemode
         await client.say(message,
-                             "**You have less than the required {}pp.\nIf you're not an osu!standard player, please "
-                             "enter your gamemode below. Valid gamemodes are `{}`.**".format(minimum_pp_required,
-                                                                                             gamemodes))
+                         "**You have less than the required {}pp.\nIf you're not an osu!standard player, please "
+                         "enter your gamemode below. Valid gamemodes are `{}`.**".format(minimum_pp_required,
+                                                                                         gamemodes))
 
         def check(m):
             return m.author == message.author and m.channel == message.channel
@@ -1074,8 +1075,8 @@ async def pp_(message: discord.Message, beatmap_url: str, *options):
         options.insert(0, "{}%".format(pp_stats.acc))
 
     await client.say(message,
-                         "*{artist} - {title}* **[{version}] {0}** {stars:.02f}\u2605 would be worth `{pp:,.02f}pp`.".format(
-                             " ".join(options), **pp_stats._asdict()))
+                     "*{artist} - {title}* **[{version}] {0}** {stars:.02f}\u2605 would be worth `{pp:,.02f}pp`.".format(
+                         " ".join(options), **pp_stats._asdict()))
 
 
 if can_calc_pp:
@@ -1211,9 +1212,9 @@ async def maps(message: discord.Message, *channels: discord.TextChannel):
 async def debug(message: discord.Message):
     """ Display some debug info. """
     await client.say(message, "Sent `{}` requests since the bot started (`{}`).\n"
-                                  "Spent `{:.3f}` seconds last update.\n"
-                                  "Members registered as playing: {}\n"
-                                  "Total members tracked: `{}`".format(
+                              "Spent `{:.3f}` seconds last update.\n"
+                              "Members registered as playing: {}\n"
+                              "Total members tracked: `{}`".format(
         api.requests_sent, client.time_started.ctime(),
         time_elapsed,
         utils.format_objects(*[d["member"] for d in osu_tracking.values() if is_playing(d["member"])], dec="`"),
