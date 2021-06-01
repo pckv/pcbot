@@ -81,9 +81,9 @@ async def wouldyourather(message: discord.Message, opt: options = None):
                 reply = await client.wait_for("message", timeout=timeout, check=check)
             # Break on timeout
             except asyncio.TimeoutError:
-                return
+                break
 
-            # Check if the choice is vlaid
+            # Check if the choice is valid
             choice = get_choice(choices, reply.content)
             if choice is None:
                 continue
@@ -96,7 +96,8 @@ async def wouldyourather(message: discord.Message, opt: options = None):
             question["answers"][choice] += 1
 
             name = reply.author.display_name
-            response = random.choice(db.data["responses"]).format(name=name, NAME=name.upper(), choice=choices[choice])
+            response = random.choice(db.data["responses"]).format(name=name, NAME=name.upper(),
+                                                                  choice=choices[choice])
             await client.say(message, response)
 
         # Say the total tallies
