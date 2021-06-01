@@ -353,7 +353,12 @@ async def update_user_data():
         # Get the user data for the player
         mode = get_mode(str(member_id)).value
         try:
-            user_data = await api.get_user(u=profile, type="id", m=mode)
+            params = {
+                "u": profile,
+                "m": mode,
+                "type": "id"
+            }
+            user_data = await api.get_user(**params)
         except aiohttp.ServerDisconnectedError:
             continue
         except asyncio.TimeoutError:
@@ -372,14 +377,22 @@ async def update_user_data():
         if "new" in osu_tracking[str(member_id)]:
             # Move the "new" data into the "old" data of this user
             osu_tracking[str(member_id)]["old"] = osu_tracking[str(member_id)]["new"]
+            logging.info(osu_tracking["New tracking: " + str(member_id)]["new"])
+            logging.info(osu_tracking["Old tracking: " + str(member_id)]["old"])
         else:
             # If this is the first time, update the user's list of scores for later
-            osu_tracking[str(member_id)]["scores"] = await api.get_user_best(u=profile, type="id",
-                                                                             limit=score_request_limit,
-                                                                             m=mode)
+            params = {
+                "u": profile,
+                "m": mode,
+                "limit": score_request_limit,
+                "type": "id"
+            }
+            osu_tracking[str(member_id)]["scores"] = await api.get_user_best(**params)
+            logging.info(osu_tracking["Score tracking: " + str(member_id)]["scores"])
 
         # Update the "new" data
         osu_tracking[str(member_id)]["new"] = user_data
+        logging.info("New tracking: " + osu_tracking[str(member_id)]["new"])
         osu_tracking[str(member_id)]["new"]["ripple"] = True if api.ripple_pattern.match(profile) else False
 
 
@@ -389,8 +402,14 @@ async def get_new_score(member_id: str):
     player's top plays can be retrieved with score["pos"]. """
     # Download a list of the user's scores
     profile = osu_config.data["profiles"][member_id]
-    user_scores = await api.get_user_best(u=profile, type="id", limit=score_request_limit, m=get_mode(member_id).value,
-                                          request_tries=3)
+    params = {
+        "u": profile,
+        "m": get_mode(member_id).value,
+        "limit": score_request_limit,
+        "request_tries": 3,
+        "type": "id",
+    }
+    user_scores = await api.get_user_best(**params)
 
     # Compare the scores from top to bottom and try to find a new one
     for i, score in enumerate(user_scores):
@@ -514,7 +533,14 @@ async def notify_pp(member_id: str, data: dict):
 
     # If a new score was found, format the score
     if score:
-        beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1, request_tries=3))[0]
+        params = {
+            "b": int(score["beatmap_id"]),
+            "m": mode.value,
+            "limit": score_request_limit,
+            "request_tries": 3,
+            "a": 1
+        }
+        beatmap = (await api.get_beatmaps(**params))[0]
 
         # There might not be any events
         scoreboard_rank = None
@@ -704,7 +730,10 @@ async def notify_maps(member_id: str, data: dict):
         # Try returning the beatmap info 6 times with a span of a minute
         # This might be needed when new maps are submitted
         for _ in range(6):
-            beatmapset = await api.get_beatmaps(s=event["beatmapset_id"])
+            params = {
+                "s": event["beatmapset_id"],
+            }
+            beatmapset = await api.get_beatmaps(**params)
             if beatmapset:
                 break
             await asyncio.sleep(60)
@@ -910,7 +939,10 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
 
     If you're using ripple, type ripple:<name>. """
     mode = api.GameMode.Standard
-    osu_user = await api.get_user(u=name)
+    params = {
+        "u": name,
+    }
+    osu_user = await api.get_user(**params)
 
     # Check if the osu! user exists
     assert osu_user, "osu! user `{}` does not exist.".format(name)
@@ -1110,7 +1142,7 @@ async def recent(message: discord.Message, member: Annotate.Member = Annotate.Se
 
     params = {
         "u": user_id,
-        "m": str(mode),
+        "m": mode.value,
         "limit": 1
     }
 
@@ -1118,7 +1150,13 @@ async def recent(message: discord.Message, member: Annotate.Member = Annotate.Se
     assert scores, "Found no recent score."
 
     score = scores[0]
-    beatmap = (await api.get_beatmaps(b=int(score["beatmap_id"]), m=mode.value, a=1, request_tries=3))[0]
+    params = {
+        "b": int(score["beatmap_id"]),
+        "m": mode.value,
+        "a": 1,
+        "request_tries": 3
+    }
+    beatmap = (await api.get_beatmaps(**params))[0]
 
     embed = await create_score_embed_with_pp(member, score, beatmap, mode)
     await client.send_message(message.channel, embed=embed)
@@ -1144,7 +1182,14 @@ async def score(message: discord.Message, beatmap_url: str):
 
     assert beatmap_info.beatmap_id, "Please link to a specific difficulty"
 
-    scores = await api.get_scores(b=beatmap_info.beatmap_id, u=user_id, m=mode.value, type="id", limit=1)
+    params = {
+        "b": beatmap_info.beatmap_id,
+        "m": mode.value,
+        "type": "id",
+        "limit": 1,
+        "u": user_id
+    }
+    scores = await api.get_scores(**params)
     assert len(scores) > 0, "Found no scores by **{}**.".format(message.author.name)
 
     score = scores[0]
@@ -1152,7 +1197,12 @@ async def score(message: discord.Message, beatmap_url: str):
     # Add the beatmap_id as it is not provided by the get_scores API endpoint
     score["beatmap_id"] = beatmap_info.beatmap_id
 
-    beatmap = (await api.get_beatmaps(b=beatmap_info.beatmap_id, m=mode.value, limit=1))[0]
+    params = {
+        "b": beatmap_info.beatmap_id,
+        "m": mode.value,
+        "limit": 1,
+    }
+    beatmap = (await api.get_beatmaps(**params))[0]
 
     embed = await create_score_embed_with_pp(message.author, score, beatmap, mode)
     await client.send_message(message.channel, embed=embed)
