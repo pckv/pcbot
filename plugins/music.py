@@ -100,7 +100,7 @@ class VoiceState:
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=1):
+    def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
 
         self.data = data
