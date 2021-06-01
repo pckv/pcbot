@@ -39,26 +39,13 @@ client = plugins.client  # type: discord.Client
 
 music_channels = Config("music_channels", data=[])
 voice_states = {}  # type: Dict[discord.Guild, VoiceState]
-# youtube_dl_options = dict(
-#    format="bestaudio",
-#    extractaudio=True,
-#    preferredcodec="mp3",
-#    noplaylist=True,
-#    default_search="auto",
-#    quiet=False,
-#    nocheckcertificate=True,
-#    outtmpl="song.%(ext)s"
-# )
 ytdl_format_options = {
     'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': False,
-    'no_warnings': True,
+    'quiet': True,
     'default_search': 'auto',
     'source_address': '0.0.0.0'  # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
