@@ -171,8 +171,10 @@ def assert_connected(member: discord.Member):
     """ Throws an AssertionError exception when neither the bot nor
     the member is connected to the music channel."""
     channel = get_guild_channel(member.guild)
-
-    assert member.voice.channel == channel, "**You are not connected to the voice channel.**"
+    if member.voice:
+        assert member.voice.channel is channel, "**You are not connected to the voice channel.**"
+    else:
+        raise AssertionError("**You are not connected to the voice channel.**")
     assert client_connected(member.guild), "**The bot is not connected to the voice channel.**"
 
 
