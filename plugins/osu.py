@@ -772,7 +772,7 @@ async def on_ready():
 
     while not client.loop.is_closed():
         try:
-            await asyncio.sleep(update_interval, loop=client.loop)
+            await asyncio.sleep(float(update_interval), loop=client.loop)
             started = datetime.now()
 
             # First, update every user's data
@@ -792,6 +792,8 @@ async def on_ready():
                 await notify_maps(str(member_id), data)
         except aiohttp.ClientOSError as e:
             logging.error(str(e))
+        except asyncio.futures.CancelledError:
+            return
         except:
             logging.error(traceback.format_exc())
         finally:

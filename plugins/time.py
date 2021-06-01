@@ -168,7 +168,10 @@ async def countdown_list(message: discord.Message, author: discord.Member = None
 
 async def wait_for_reminder(cd, seconds):
     """ Wait for and send the reminder. This is a separate function so that . """
-    await asyncio.sleep(seconds)
+    try:
+        await asyncio.sleep(seconds)
+    except asyncio.futures.CancelledError:
+        pass
 
     channel = client.get_channel(int(cd["channel"]))
     author = channel.guild.get_member(int(cd["author"]))
