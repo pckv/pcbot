@@ -302,7 +302,7 @@ async def vol(message: discord.Message, volume: int):
 async def playing(message: discord.Message):
     """ Return the name and URL of the song currently playing. """
     assert_connected(message.author)
-    await client.say(message, "Playing: " + format_playing(message))
+    await client.say(message, "Playing: " + format_playing())
 
 
 @music.command(aliases="q l list")
