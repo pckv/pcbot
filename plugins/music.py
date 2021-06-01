@@ -283,7 +283,7 @@ async def clear(message: discord.Message):
 @music.command(roles="Shuffler")
 async def shuffle(message: discord.Message):
     """ Shuffles the current queue. """
-    #assert_connected(message.author)
+    assert_connected(message.author)
     state = voice_states[message.guild]
 
     random.shuffle(state.queue)
