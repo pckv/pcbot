@@ -377,8 +377,6 @@ async def update_user_data():
         if "new" in osu_tracking[str(member_id)]:
             # Move the "new" data into the "old" data of this user
             osu_tracking[str(member_id)]["old"] = osu_tracking[str(member_id)]["new"]
-            logging.info(osu_tracking["New tracking: " + str(member_id)]["new"])
-            logging.info(osu_tracking["Old tracking: " + str(member_id)]["old"])
         else:
             # If this is the first time, update the user's list of scores for later
             params = {
@@ -388,11 +386,9 @@ async def update_user_data():
                 "type": "id"
             }
             osu_tracking[str(member_id)]["scores"] = await api.get_user_best(**params)
-            logging.info(osu_tracking["Score tracking: " + str(member_id)]["scores"])
 
         # Update the "new" data
         osu_tracking[str(member_id)]["new"] = user_data
-        logging.info("New tracking: " + osu_tracking[str(member_id)]["new"])
         osu_tracking[str(member_id)]["new"]["ripple"] = True if api.ripple_pattern.match(profile) else False
 
 
@@ -426,9 +422,10 @@ async def get_new_score(member_id: str):
                 diff = pp - float(user_scores[i + 1]["pp"])
             else:
                 diff = 0
-
+            logging.info("Score found")
             return dict(score, pos=i + 1, diff=diff)
     else:
+        logging.info("Score not found")
         return None
 
 
@@ -445,8 +442,8 @@ def get_notify_channels(guild: discord.Guild, data_type: str):
     if data_type + "-channels" not in osu_config.data["guild"][str(guild.id)]:
         return None
 
-    return [guild.get_channel(s) for s in osu_config.data["guild"][str(guild.id)][data_type + "-channels"]
-            if guild.get_channel(s)]
+    return [guild.get_channel(int(s)) for s in osu_config.data["guild"][str(guild.id)][data_type + "-channels"]
+            if guild.get_channel(int(s))]
 
 
 async def get_potential_pp(score, beatmap, member: discord.Member, score_pp: float, use_acc: bool = False):
@@ -549,6 +546,7 @@ async def notify_pp(member_id: str, data: dict):
 
         potential_pp = await get_potential_pp(score, beatmap, member, float(score["pp"]))
 
+
         if update_mode is UpdateModes.Minimal:
             m += await format_minimal_score(mode, score, beatmap, scoreboard_rank, member) + "\n"
         else:
@@ -559,7 +557,7 @@ async def notify_pp(member_id: str, data: dict):
 
     # Send the message to all guilds
     for guild in client.guilds:
-        member = guild.get_member(member_id)
+        member = guild.get_member(int(member_id))
         channels = get_notify_channels(guild, "score")
         if not member or not channels:
             continue
@@ -1242,7 +1240,7 @@ async def config(message, _: utils.placeholder):
 async def scores(message: discord.Message, *channels: discord.TextChannel):
     """ Set which channels to post scores to. """
     init_guild_config(message.guild)
-    osu_config.data["guild"][str(message.guild.id)]["score-channels"] = list(c.id for c in channels)
+    osu_config.data["guild"][str(message.guild.id)]["score-channels"] = list(str(c.id) for c in channels)
     osu_config.save()
     await client.say(message, "**Notifying scores in**: {}".format(
         utils.format_objects(*channels, sep=" ") or "no channels"))
