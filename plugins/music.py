@@ -95,8 +95,6 @@ def format_song(song: Song, url=True):
 class VoiceState:
     def __init__(self, voice):
         self.voice = voice
-        self.current = None
-        self._volume = default_volume
         self.queue = deque()  # The queue contains items of type Song
         self.skip_votes = set()
 
