@@ -238,7 +238,7 @@ async def skip(message: discord.Message):
     state.skip_votes.add(message.author)
 
     # In order to skip, everyone but the requester and the bot must vote
-    needed_to_skip = len(get_guild_channel(message.guild).voice_members) - 2
+    needed_to_skip = len(get_guild_channel(message.guild).members) - 2
     votes = len(state.skip_votes)
     if votes >= needed_to_skip:
         await client.say(message, "**Skipped song.**")
