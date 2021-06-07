@@ -5,7 +5,7 @@ from datetime import datetime
 
 import discord
 
-from pcbot import Annotate
+from pcbot import Annotate, utils
 import plugins
 
 client = plugins.client
@@ -90,3 +90,32 @@ async def year(message: discord.Message, member: discord.Member = Annotate.Self)
     embed = _horoscope(member, date, title=date.strftime("%Y"))
     await client.send_message(message.channel, embed=embed)
 
+
+@plugins.command()
+async def meotey(message: discord.Message):
+    args = utils.split(message.content)
+    d = datetime.now()
+    m = utils.find_member(message.guild, " ".join(args[1:]) or message.author.mention)
+    if m is None:
+        await client.send_message(message.channel, "**Found no such member.**")
+        return
+    random.seed(int(m.id) * d.year * d.month * d.day)
+    await client.send_message(message.channel, "__**{}** emote of the day__".format(
+        "Your" if m == message.author else "{}'s".format(m.display_name)))
+    await client.send_message(message.channel, random.choice(client.emojis))
+    random.seed()
+
+
+@plugins.command()
+async def meoji(message: discord.Message):
+    args = utils.split(message.content)
+    d = datetime.now()
+    m = utils.find_member(message.guild, " ".join(args[1:]) or message.author.mention)
+    if m is None:
+        await client.send_message(message.channel, "**Found no such member.**")
+        return
+    random.seed(int(m.id) * d.year * d.month * d.day)
+    await client.send_message(message.channel, "__**{}** emoji of the day__".format(
+        "Your" if m == message.author else "{}'s".format(m.display_name)))
+    await client.send_message(message.channel, chr(random.randint(128513, 128591)))
+    random.seed()
