@@ -93,6 +93,7 @@ async def year(message: discord.Message, member: discord.Member = Annotate.Self)
 
 @plugins.command()
 async def meotey(message: discord.Message):
+    """ Shows the daily emote for you or for the given member. """
     args = utils.split(message.content)
     d = datetime.now()
     m = utils.find_member(message.guild, " ".join(args[1:]) or message.author.mention)
@@ -108,6 +109,7 @@ async def meotey(message: discord.Message):
 
 @plugins.command()
 async def meoji(message: discord.Message):
+    """ Shows the daily emoji for you or for the given member. """
     args = utils.split(message.content)
     d = datetime.now()
     m = utils.find_member(message.guild, " ".join(args[1:]) or message.author.mention)
