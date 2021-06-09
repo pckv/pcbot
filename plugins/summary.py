@@ -239,7 +239,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
 
         member_match = valid_member.match(value)
         if member_match:
-            member.append(message.guild.get_member(member_match.group("id")))
+            member.append(message.guild.get_member(int(member_match.group("id"))))
             continue
 
         member_match = valid_member_silent.match(value)
@@ -249,7 +249,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
 
         role_match = valid_role.match(value)
         if role_match:
-            role = discord.utils.get(message.guild.roles, id=role_match.group("id"))
+            role = discord.utils.get(message.guild.roles, id=int(role_match.group("id")))
             member.extend(m for m in message.guild.members if role in m.roles)
             continue
 
