@@ -199,7 +199,7 @@ async def join(message):
 
 @music.command(aliases="p pl")
 async def play(message: discord.Message, song: Annotate.Content):
-    """ Play a song. The given song could either be a URL or keywords
+    """ Play a song in the guild voice channel. The given song could either be a URL or keywords
     to lookup videos in youtube. """
 
     assert_connected(message.author, checkbot=False)
