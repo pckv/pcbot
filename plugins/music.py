@@ -205,7 +205,7 @@ async def play(message: discord.Message, song: Annotate.Content):
     assert_connected(message.author, checkbot=False)
 
     # Connect to voice channel if not connected
-    if message.guild.voice_client is None:
+    if message.guild.voice_client is None or message.guild.me.voice_channel == get_guild_channel(message.guild):
         await join(message)
 
     state = voice_states[message.guild]
