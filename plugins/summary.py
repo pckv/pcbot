@@ -379,7 +379,7 @@ async def enable_persistent_messages(message: discord.Message):
     summary_data.data["channels"][str(message.channel.id)] = []
 
     # Download EVERY message in the channel
-    async for m in message.channel.history(limit=1000000):
+    async for m in message.channel.history(limit=None):
         if not m.content:
             continue
 
