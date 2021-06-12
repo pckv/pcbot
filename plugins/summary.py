@@ -45,7 +45,7 @@ summary_data = Config("summary_data", data=dict(channels={}))
 
 
 def to_persistent(message: discord.Message):
-    return dict(content=message.clean_content, author=message.author.id, bot=message.author.bot)
+    return dict(content=message.clean_content, author=str(message.author.id), bot=message.author.bot)
 
 
 async def update_messages(channel: discord.TextChannel):
@@ -292,8 +292,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
         "**You don't have permissions to send tts messages in this channel.**"
 
     async with message.channel.typing():
-        if channel.id in summary_options.data["persistent_channels"]:
-            messages = summary_data.data["channels"][channel.id]
+        if str(channel.id) in summary_options.data["persistent_channels"]:
+            messages = summary_data.data["channels"][str(channel.id)]
         else:
             await update_task.wait()
             await update_messages(channel)
@@ -358,25 +358,25 @@ async def on_message(message: discord.Message):
         stored_messages[message.channel.id].append(to_persistent(message))
 
     # Store to persistent if enabled for this channel
-    if message.channel.id in summary_options.data["persistent_channels"]:
-        summary_data.data["channels"][message.channel.id].append(to_persistent(message))
+    if str(message.channel.id) in summary_options.data["persistent_channels"]:
+        summary_data.data["channels"][str(message.channel.id)].append(to_persistent(message))
         summary_data.save()
 
 
 @summary.command(owner=True)
 async def enable_persistent_messages(message: discord.Message):
     """ Stores every message in this channel in persistent storage. """
-    if message.channel.id in summary_options.data["persistent_channels"]:
+    if str(message.channel.id) in summary_options.data["persistent_channels"]:
         await client.say(message, "Persistent messages are already enabled and tracked in this channel")
         return
 
-    summary_options.data["persistent_channels"].append(message.channel.id)
+    summary_options.data["persistent_channels"].append(str(message.channel.id))
     summary_options.save()
 
     await client.say(message, "Downloading messages. This may take a while.")
 
     # Create the persistent storage
-    summary_data.data["channels"][message.channel.id] = []
+    summary_data.data["channels"][str(message.channel.id)] = []
 
     # Download EVERY message in the channel
     async for m in message.channel.history(limit=1000000):
@@ -384,7 +384,7 @@ async def enable_persistent_messages(message: discord.Message):
             continue
 
         # We have no messages, so insert each from the left, leaving us with the oldest at index -1
-        summary_data.data["channels"][message.channel.id].insert(0, to_persistent(m))
+        summary_data.data["channels"][str(message.channel.id)].insert(0, to_persistent(m))
 
     summary_data.save()
-    await client.say(message, "Downloaded {} messages!".format(len(summary_data.data["channels"][message.channel.id])))
+    await client.say(message, "Downloaded {} messages!".format(len(summary_data.data["channels"][str(message.channel.id)])))
