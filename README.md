@@ -116,7 +116,7 @@ your account will be registered as the bot owner.
 
 ### Plugins
 PCBOT has a folder based plugin system. If you wish to make a plugin, 
-check out [`pcbot/builtin.py`]. There are more features than showcased 
+check out [`builtin.py`](pcbot/builtin.py). There are more features than showcased 
 in the builtin plugin, however there is no documentation for them yet.
 
 **To remove an unwanted plugin from the bot**, simply remove it from 
@@ -126,10 +126,6 @@ the bot using git.
 
 The owner can manage plugins with the `!plugin` command. See
 `!help plugin` for more information.
-
-[`pcbot/builtin.py`]: https://github.com/PcBoy111/PCBOT/blob/master/pcbot/builtin.py
-
-[discord.py]: https://github.com/Rapptz/discord.py
 
 ## Licence
 The MIT License (MIT)
