@@ -145,8 +145,8 @@ def client_connected(guild: discord.Guild):
     return guild.me.voice.channel == channel and guild in voice_states
 
 
-def format_playing():
-    if voiceClient.is_playing():
+def format_playing(message):
+    if message.guild.voice_client.is_playing():
         return format_song(songPlaying, url=False)
     else:
         return "*Nothing.*"
@@ -226,13 +226,13 @@ async def skip(message: discord.Message):
     """ Skip the song currently playing. """
     assert_connected(message.author)
     state = voice_states[message.guild]
-    assert voiceClient.is_playing(), "**There is no song currently playing.**"
+    assert message.guild.voice_client.is_playing(), "**There is no song currently playing.**"
     assert message.author not in state.skip_votes, "**You have already voted to skip this song.**"
 
     # We want to skip immediately when the requester skips their own song.
     if message.author == songPlaying.requester:
         await client.say(message, "Skipped song on behalf of the requester.")
-        voiceClient.stop()
+        message.guild.voice_client.stop()
         return
 
     state.skip_votes.add(message.author)
@@ -242,7 +242,7 @@ async def skip(message: discord.Message):
     votes = len(state.skip_votes)
     if votes >= needed_to_skip:
         await client.say(message, "**Skipped song.**")
-        voiceClient.stop()
+        message.guild.voice_clientt.stop()
     else:
         await client.say(message, "Voted to skip the current song. `{}/{}`".format(votes, needed_to_skip))
 
@@ -294,7 +294,7 @@ async def shuffle(message: discord.Message):
 async def vol(message: discord.Message, volume: int):
     """ Set the volume of the player. Volume should be a number in percent. """
     assert_connected(message.author)
-    voiceClient.source.volume = volume / 100
+    message.guild.voice_client.source.volume = volume / 100
     await client.say(message, "Set the volume to **{:.00%}**.".format(volume / 100))
 
 
@@ -302,7 +302,7 @@ async def vol(message: discord.Message, volume: int):
 async def playing(message: discord.Message):
     """ Return the name and URL of the song currently playing. """
     assert_connected(message.author)
-    await client.say(message, "Playing: " + format_playing())
+    await client.say(message, "Playing: " + format_playing(message))
 
 
 @music.command(aliases="q l list")
