@@ -242,7 +242,7 @@ async def skip(message: discord.Message):
     votes = len(state.skip_votes)
     if votes >= needed_to_skip:
         await client.say(message, "**Skipped song.**")
-        message.guild.voice_clientt.stop()
+        message.guild.voice_client.stop()
     else:
         await client.say(message, "Voted to skip the current song. `{}/{}`".format(votes, needed_to_skip))
 
