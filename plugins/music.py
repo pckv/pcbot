@@ -59,8 +59,8 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 max_songs_queued = 6  # How many songs each member are allowed in the queue at once
 max_song_length = 10 * 60 * 60  # The maximum song length in seconds
 default_volume = .6
-songPlaying = None
-voiceClient = None
+song_playing = None
+voice_client = None
 player = None
 
 # if not discord.opus.is_loaded():
@@ -147,12 +147,12 @@ def client_connected(guild: discord.Guild):
 
 def format_playing(message):
     if message.guild.voice_client.is_playing():
-        return format_song(songPlaying, url=False)
+        return format_song(song_playing, url=False)
     else:
         return "*Nothing.*"
 
 
-def play_next(message):
+async def play_next(message):
     """ Play the next song if there are any. """
     try:
         state = voice_states[message.guild]
@@ -160,12 +160,17 @@ def play_next(message):
         return
     state.skip_votes.clear()
     if not state.queue:
+        guild = message.guild
+        state = voice_states[guild]
+        state.queue.clear()
+        await guild.voice_client.disconnect()
+        del voice_states[guild]
         return
     source = state.queue.popleft()
-    message.guild.voice_client.play(source.player, after=lambda e: play_next(message))
+    message.guild.voice_client.play(source.player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(message), client.loop))
 
 
-def assert_connected(member: discord.Member):
+def assert_connected(member: discord.Member, checkbot=True):
     """ Throws an AssertionError exception when neither the bot nor
     the member is connected to the music channel."""
     channel = get_guild_channel(member.guild)
@@ -173,14 +178,36 @@ def assert_connected(member: discord.Member):
         assert member.voice.channel is channel, "**You are not connected to the voice channel.**"
     else:
         raise AssertionError("**You are not connected to the voice channel.**")
-    assert client_connected(member.guild), "**The bot is not connected to the voice channel.**"
+    if checkbot:
+        assert client_connected(member.guild), "**The bot is not connected to the voice channel.**"
+
+
+async def join(message):
+    """Joins a voice channel"""
+    global voice_client
+    guild = message.guild
+    channel = get_guild_channel(message.guild)
+
+    if guild.voice_client is not None:
+        voice_client = await guild.voice_client.move_to(channel)
+        voice_states[guild] = VoiceState(voice_client)
+        return
+    else:
+        voice_client = await channel.connect()
+        voice_states[guild] = VoiceState(voice_client)
 
 
 @music.command(aliases="p pl")
 async def play(message: discord.Message, song: Annotate.Content):
     """ Play a song. The given song could either be a URL or keywords
     to lookup videos in youtube. """
-    assert_connected(message.author)
+
+    assert_connected(message.author, checkbot=False)
+
+    # Connect to voice channel if not connected
+    if message.guild.voice_client is None:
+        await join(message)
+
     state = voice_states[message.guild]
 
     # Check that the member hasn't already requested enough songs
@@ -211,14 +238,14 @@ async def play(message: discord.Message, song: Annotate.Content):
             if name_match:
                 player.title = "".join(name_match.group("name").split(".")[:-1])
 
-    global songPlaying
-    songPlaying = Song(player=player, requester=message.author, channel=message.channel)
-    await client.send_message(songPlaying.channel, "Queued: " + format_song(songPlaying, url=False))
-    state.queue.append(songPlaying)
+    global song_playing
+    song_playing = Song(player=player, requester=message.author, channel=message.channel)
+    await client.send_message(song_playing.channel, "Queued: " + format_song(song_playing, url=False))
+    state.queue.append(song_playing)
 
     # Start the song when there are none
     if not message.guild.voice_client.is_playing():
-        play_next(message)
+        await play_next(message)
 
 
 @music.command(aliases="s next")
@@ -230,7 +257,7 @@ async def skip(message: discord.Message):
     assert message.author not in state.skip_votes, "**You have already voted to skip this song.**"
 
     # We want to skip immediately when the requester skips their own song.
-    if message.author == songPlaying.requester:
+    if message.author == song_playing.requester:
         await client.say(message, "Skipped song on behalf of the requester.")
         message.guild.voice_client.stop()
         return
@@ -358,15 +385,3 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
             state.queue.clear()
             await guild.voice_client.disconnect()
             del voice_states[guild]
-
-    # Connect to the voice channel when there are people in it
-    else:
-        if count_members >= 1:
-            try:
-                global voiceClient
-                voiceClient = await channel.connect()
-            except discord.errors.ClientException:
-                # The bot is in another channel, so we'll get the voice client and move the bot
-                await guild.voice_client.move_to(channel)
-                voice_states[guild] = VoiceState(voiceClient)
-            voice_states[guild] = VoiceState(voiceClient)
