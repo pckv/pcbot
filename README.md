@@ -77,16 +77,6 @@ You should get a prompt asking for your bot token. One can also use the
 python bot.py -t TOKEN
 ```
 
-If you want to login to a regular account, use the --email / -e 
-argument like so:
-
-```
-python bot.py -e EMAIL
-```
-
-The bot will prompt for a password the first time you login with an 
-email. 
-
 For more command-line arguments, execute `python bot.py -h`.
 
 ## Configuration
