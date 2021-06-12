@@ -9,13 +9,11 @@ WIP discord bot using [discord.py].
 ## BotéMon
 **For those who have arrived from BotéMon and wish to contribute/have 
 a look/access the resources**, the libraries used are found in 
-`plugins/pokedex.py` and `plugins/pokedexlib/`!
+[`plugins/pokedex.py`](plugins/pokedex.py) and [`plugins/pokedexlib/`](plugins/pokedexlib)!
 
 Currently, BotéMon is the only version of PCBOT I host for public use. 
 **If you wish to add the bot to your server, check 
-[its bots.discord.pw entry!][botemon]**
-
-[botemon]: https://bots.discord.pw/bots/203868728884985857
+[its bots.discord.pw entry!](https://bots.discord.pw/bots/203868728884985857)**
 
 ## Installing
 Before installing the bot, you must make sure you're running python 
