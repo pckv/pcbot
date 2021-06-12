@@ -17,11 +17,11 @@ Currently, BotéMon is the only version of PCBOT I host for public use.
 
 ## Installing
 Before installing the bot, you must make sure you're running python 
-3.5.0+
+3.5.3+
 
 ```
 $ python -V
-Python 3.5.2
+Python 3.5.3
 ```
 
 The next step is installing [discord.py](https://github.com/Rapptz/discord.py) with voice support:
