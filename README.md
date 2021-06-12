@@ -24,7 +24,7 @@ $ python -V
 Python 3.5.2
 ```
 
-The next step is installing [discord.py] with voice support:
+The next step is installing [discord.py](https://github.com/Rapptz/discord.py) with voice support:
 
 ```
 python -m pip install discord.py[voice]
@@ -41,7 +41,7 @@ If you want to update the bot using git, run `git pull` and either
 restart the bot or reload the updated plugins.
 
 If you do not care about updates, you can 
-[download the repo as ZIP][zip].
+[download the repo as ZIP](https://github.com/pckv/pcbot/archive/master.zip).
 
 Several plugins require additional modules. These modules are not 
 required unless you want a specific plugin to work. Some features and 
@@ -56,8 +56,6 @@ errors when modules are missing, although modules as of now are:
 | oppai-ng  | `pip install oppai`, used for pp calculation in [`pp.py`](plugins/osulib/pp.py) |
 | ffmpeg    | Not a python module; see doc in [`music.py`](plugins/music.py)      |
 | imageio   | `pip install imageio`, support gif in [`image.py`](plugins/image.py)|
-
-[zip]: https://github.com/PcBoy111/PCBOT/archive/master.zip
 
 ## Running
 Running the bot is simple. Go to the root directory 
