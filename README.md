@@ -27,7 +27,7 @@ Python 3.5.3
 The next step is installing [discord.py](https://github.com/Rapptz/discord.py) with voice support:
 
 ```
-python -m pip install discord.py[voice]
+python -m pip install "discord.py[voice]"
 ```
 
 To install the bot, one can clone the repo:
