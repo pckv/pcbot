@@ -61,7 +61,6 @@ max_song_length = 10 * 60 * 60  # The maximum song length in seconds
 default_volume = .6
 song_playing = None
 voice_client = None
-player = None
 
 # if not discord.opus.is_loaded():
 #    discord.opus.load_opus('libopus-0.x64.dll')
@@ -218,11 +217,9 @@ async def play(message: discord.Message, song: Annotate.Content):
     song = song.strip("< >`")
 
     try:
-        global player
         player = await YTDLSource.from_url(song)
     except:
         await client.say(message, "**Could not add this song to the queue.**")
-        print_exc()
         return
 
     # Make sure the song isn't too long
