@@ -760,7 +760,7 @@ async def notify_maps(member_id: str, data: dict):
 
         # Send the message to all guilds
         for guild in client.guilds:
-            member = guild.get_member(member_id)
+            member = guild.get_member(int(member_id))
             channels = get_notify_channels(guild, "map")  # type: list
 
             if not member or not channels:
