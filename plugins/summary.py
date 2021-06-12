@@ -291,63 +291,62 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
     assert not tts or message.author.permissions_in(message.channel).send_tts_messages, \
         "**You don't have permissions to send tts messages in this channel.**"
 
-    await message.channel.trigger_typing()
-
-    if channel.id in summary_options.data["persistent_channels"]:
-        messages = summary_data.data["channels"][channel.id]
-    else:
-        await update_task.wait()
-        await update_messages(channel)
-        messages = stored_messages[channel.id]
-
-    message_content = filter_messages_by_arguments(messages, channel, member, bots)
-
-    # Replace new lines with text to make them persist through splitting
-    message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
-
-    # Filter looking for phrases if specified
-    if phrase and not is_endswith(phrase):
-        message_content = list(filter_messages(message_content, phrase, regex, case))
-
-    command_prefix = config.guild_command_prefix(message.guild)
-    # Clean up by removing all commands from the summaries
-    if phrase is None or not phrase.startswith(command_prefix):
-        message_content = [s for s in message_content if not s.startswith(command_prefix)]
-
-    # Check if we even have any messages
-    assert message_content, on_no_messages.format(message)
-
-    markovify_model = None
-    if strict:
-        try:
-            markovify_model = markovify.Text(message_content)
-        except NameError:
-            logging.warning("+strict was used but markovify is not imported")
-            strict = False
-        except KeyError:
-            markovify_model = None
-
-    # Generate the summary, or num summaries
-    for i in range(num):
-        if strict and markovify_model:
-            if phrase and is_endswith(phrase):
-                try:
-                    sentence = markovify_model.make_sentence_with_start(phrase[:-3])
-                except KeyError:
-                    sentence = markovify_model.make_sentence(tries=1000)
-
-            else:
-                sentence = markovify_model.make_sentence(tries=1000)
+    async with message.channel.typing():
+        if channel.id in summary_options.data["persistent_channels"]:
+            messages = summary_data.data["channels"][channel.id]
         else:
-            sentence = markov_messages(message_content, coherent)
+            await update_task.wait()
+            await update_messages(channel)
+            messages = stored_messages[channel.id]
 
-        if not sentence:
-            sentence = markov_messages(message_content, coherent)
+        message_content = filter_messages_by_arguments(messages, channel, member, bots)
 
-        assert sentence, on_fail.format(message)
+        # Replace new lines with text to make them persist through splitting
+        message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
 
-        # Convert new line identifiers back to characters
-        sentence = sentence.replace(NEW_LINE_IDENTIFIER.strip(" "), "\n")
+        # Filter looking for phrases if specified
+        if phrase and not is_endswith(phrase):
+            message_content = list(filter_messages(message_content, phrase, regex, case))
+
+        command_prefix = config.guild_command_prefix(message.guild)
+        # Clean up by removing all commands from the summaries
+        if phrase is None or not phrase.startswith(command_prefix):
+            message_content = [s for s in message_content if not s.startswith(command_prefix)]
+
+        # Check if we even have any messages
+        assert message_content, on_no_messages.format(message)
+
+        markovify_model = None
+        if strict:
+            try:
+                markovify_model = markovify.Text(message_content)
+            except NameError:
+                logging.warning("+strict was used but markovify is not imported")
+                strict = False
+            except KeyError:
+                markovify_model = None
+
+        # Generate the summary, or num summaries
+        for i in range(num):
+            if strict and markovify_model:
+                if phrase and is_endswith(phrase):
+                    try:
+                        sentence = markovify_model.make_sentence_with_start(phrase[:-3])
+                    except KeyError:
+                        sentence = markovify_model.make_sentence(tries=1000)
+
+                else:
+                    sentence = markovify_model.make_sentence(tries=1000)
+            else:
+                sentence = markov_messages(message_content, coherent)
+
+            if not sentence:
+                sentence = markov_messages(message_content, coherent)
+
+            assert sentence, on_fail.format(message)
+
+            # Convert new line identifiers back to characters
+            sentence = sentence.replace(NEW_LINE_IDENTIFIER.strip(" "), "\n")
 
         await client.send_message(message.channel, sentence, tts=tts)
 
