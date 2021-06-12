@@ -53,16 +53,13 @@ errors when modules are missing, although modules as of now are:
 | Module    | Notes                                                     |
 | --------- | --------------------------------------------------------- |
 | Pillow    | `pip install Pillow`                                      |
-| pendulum  | `pip install pendulum==1.0.2`, might also need `pytz`            |
+| pendulum  | `pip install pendulum==1.0.2`, might also need `pytz`     |
 | cairosvg  | `pip install cairosvg`, only supported for Linux          |
 | oppai-ng  | `pip install oppai`, used for pp calculation in osu       |
-| ffmpeg    | Not a python module; see doc in [`plugins/music.py`]      |
-| imageio   | `pip install imageio`, support gif in [`plugins/image.py`]|
+| ffmpeg    | Not a python module; see doc in [`plugins/music.py`](plugins/music.py)      |
+| imageio   | `pip install imageio`, support gif in [`plugins/image.py`](plugins/image.py)|
 
 [zip]: https://github.com/PcBoy111/PCBOT/archive/master.zip
-[`plugins/osu.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/osu.py
-[`plugins/music.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/music.py
-[`plugins/image.py`]: https://github.com/PcBoy111/PCBOT/blob/master/plugins/image.py
 
 ## Running
 Running the bot is simple. Go to the root directory 
