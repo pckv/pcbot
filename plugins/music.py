@@ -162,7 +162,7 @@ def play_next(message):
     if not state.queue:
         return
     source = state.queue.popleft()
-    voiceClient.play(source.player, after=lambda e: play_next(message))
+    message.guild.voice_client.play(source.player, after=lambda e: play_next(message))
 
 
 def assert_connected(member: discord.Member):
@@ -217,7 +217,7 @@ async def play(message: discord.Message, song: Annotate.Content):
     state.queue.append(songPlaying)
 
     # Start the song when there are none
-    if not voiceClient.is_playing():
+    if not message.guild.voice_client.is_playing():
         play_next(message)
 
 
