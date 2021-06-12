@@ -26,10 +26,10 @@ $ python -V
 Python 3.5.2
 ```
 
-The next step is installing the correct version of [discord.py]:
+The next step is installing [discord.py] with voice support:
 
 ```
-python -m pip install discord.py==0.16.12
+python -m pip install discord.py[voice]
 ```
 
 To install the bot, one can clone the repo:
@@ -53,7 +53,7 @@ errors when modules are missing, although modules as of now are:
 | Module    | Notes                                                     |
 | --------- | --------------------------------------------------------- |
 | Pillow    | `pip install Pillow`                                      |
-| pendulum  | `pip install pendulum`, might also need `pytz`            |
+| pendulum  | `pip install pendulum==1.0.2`, might also need `pytz`            |
 | cairosvg  | `pip install cairosvg`, only supported for Linux          |
 | oppai-ng  | `pip install oppai`, used for pp calculation in osu       |
 | ffmpeg    | Not a python module; see doc in [`plugins/music.py`]      |
