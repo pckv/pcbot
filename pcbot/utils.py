@@ -162,20 +162,20 @@ async def subprocess(*args, pipe=None, carriage_return=False):
     :param carriage_return: When True, carriage returns, \r, are not removed from the result.
     """
     process = await sub.create_subprocess_exec(*args, stdout=sub.PIPE, stdin=sub.PIPE, stderr=sub.PIPE)
-    result, stderr = await process.communicate(input=bytes(pipe, encoding="utf-8") if pipe else None)
+    stdout, stderr = await process.communicate(input=bytes(pipe, encoding="utf-8") if pipe else None)
 
-    result = result.decode("utf-8")
+    stdout = stdout.decode("utf-8")
     stderr = stderr.decode("utf-8")
 
     # There were some problems with the carriage_return in windows, so by default they're removed
     if not carriage_return:
-        result = result.replace("\r", "")
+        stdout = stdout.replace("\r", "")
         stderr = stderr.replace("\r", "")
 
     if stderr:
         raise Exception(stderr)
 
-    return result
+    return stdout
 
 
 async def retrieve_page(url: str, head=False, call=None, headers=None, **params):
