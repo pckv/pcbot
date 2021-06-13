@@ -46,7 +46,7 @@ async def notify_channels(message: discord.Message, *channels: discord.TextChann
         twitch_config.data["guilds"][str(message.guild.id)] = {}
 
     twitch_config.data["guilds"][str(message.guild.id)]["notify_channels"] = [str(c.id) for c in channels]
-    twitch_config.save()
+    await twitch_config.asyncsave()
 
     # Tell the user if notifications were disabled
     assert channels, "**Disabled stream notifications in this guild.**"

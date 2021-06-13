@@ -130,7 +130,7 @@ async def create(message: discord.Message, tag: tag_arg, *time, timezone: tz_arg
     cd = dict(time=dt.to_datetime_string(), tz=timezone, tz_name=timezone_name, tag=tag,
               author=str(message.author.id), channel=str(message.channel.id))
     time_cfg.data["countdown"][tag] = cd
-    time_cfg.save()
+    await time_cfg.asyncsave()
     await client.say(message, "Added countdown with tag `{}`.".format(tag))
 
     client.loop.create_task(wait_for_reminder(cd, seconds))
@@ -148,7 +148,7 @@ async def delete(message: discord.Message, tag: Annotate.Content):
         getattr(discord.utils.get(client.get_all_members(), id=author_id), "name", None) or "~~Unknown~~")
 
     del time_cfg.data["countdown"][tag]
-    time_cfg.save()
+    await time_cfg.asyncsave()
     await client.say(message, "Countdown with tag `{}` removed.".format(tag))
 
 
@@ -180,7 +180,7 @@ async def wait_for_reminder(cd, seconds):
     await client.send_message(channel, msg)
 
     del time_cfg.data["countdown"][cd["tag"]]
-    time_cfg.save()
+    await time_cfg.asyncsave()
 
 
 async def handle_countdown_reminders():
@@ -212,7 +212,7 @@ async def handle_countdown_reminders():
         # If below, remove the countdown and continue
         if seconds < -10:
             del time_cfg.data["countdown"][cd["tag"]]
-            time_cfg.save()
+            await time_cfg.asyncsave()
             continue
         elif seconds < 0:
             seconds = 0

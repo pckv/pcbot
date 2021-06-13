@@ -81,5 +81,5 @@ async def get_id(member: discord.Member, name: str = None):
     # Save and return the id
     twitch_id = response["users"][0]["_id"]
     twitch_config.data["ids"][str(member.id)] = twitch_id
-    twitch_config.save()
+    await twitch_config.asyncsave()
     return twitch_id

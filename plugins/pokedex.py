@@ -404,5 +404,5 @@ async def scalefactor(message: discord.Message, factor: float = default_scale_fa
         pokedex_config.data[message.guild.id]["scale-factor"] = factor
         reply = "Pokédex image scale factor set to **{factor}**."
 
-    pokedex_config.save()
+    await pokedex_config.asyncsave()
     await client.say(message, reply.format(factor=factor))

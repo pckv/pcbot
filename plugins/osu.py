@@ -670,7 +670,7 @@ async def calculate_pp_for_beatmapset(beatmapset: list):
             "pp": pp_stats.pp,
         }
 
-    osu_config.save()
+    await osu_config.asyncsave()
 
 
 async def notify_maps(member_id: str, data: dict):
@@ -978,7 +978,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
     osu_config.data["profiles"][str(message.author.id)] = user_id
     osu_config.data["mode"][str(message.author.id)] = mode.value
     osu_config.data["primary_guild"][str(message.author.id)] = str(message.guild.id)
-    osu_config.save()
+    await osu_config.asyncsave()
     await client.say(message, "Set your osu! profile to `{}`.".format(osu_user["username"]))
 
 
@@ -995,7 +995,7 @@ async def unlink(message: discord.Message, member: discord.Member = Annotate.Sel
 
     # Unlink the given member (usually the message author)
     del osu_config.data["profiles"][str(member.id)]
-    osu_config.save()
+    await osu_config.asyncsave()
     await client.say(message, "Unlinked **{}'s** osu! profile.".format(member.name))
 
 
@@ -1012,7 +1012,7 @@ async def gamemode(message: discord.Message, mode: api.GameMode.get_mode):
         "**Your pp in {} is less than the required {}pp.**".format(mode.name, minimum_pp_required)
 
     osu_config.data["mode"][str(message.author.id)] = mode.value
-    osu_config.save()
+    await osu_config.asyncsave()
 
     # Clear the scores when changing mode
     if str(message.author.id) in osu_tracking:
@@ -1053,7 +1053,7 @@ async def notify(message: discord.Message, mode: UpdateModes.get_mode):
         "No osu! profile assigned to **{}**!".format(message.author.name)
 
     osu_config.data["update_mode"][str(message.author.id)] = mode.name
-    osu_config.save()
+    await osu_config.asyncsave()
 
     # Clear the scores when disabling mode
     if str(message.author.id) in osu_tracking and mode == UpdateModes.Disabled:
@@ -1239,7 +1239,7 @@ async def scores(message: discord.Message, *channels: discord.TextChannel):
     """ Set which channels to post scores to. """
     init_guild_config(message.guild)
     osu_config.data["guild"][str(message.guild.id)]["score-channels"] = list(str(c.id) for c in channels)
-    osu_config.save()
+    await osu_config.asyncsave()
     await client.say(message, "**Notifying scores in**: {}".format(
         utils.format_objects(*channels, sep=" ") or "no channels"))
 
@@ -1249,7 +1249,7 @@ async def maps(message: discord.Message, *channels: discord.TextChannel):
     """ Set which channels to post map updates to. """
     init_guild_config(message.guild)
     osu_config.data["guild"][str(message.guild.id)]["map-channels"] = list(c.id for c in channels)
-    osu_config.save()
+    await osu_config.asyncsave()
     await client.say(message, "**Notifying map updates in**: {}".format(
         utils.format_objects(*channels, sep=" ") or "no channels"))
 

@@ -212,7 +212,7 @@ async def add(message: discord.Message, name: snippet_name, code: Annotate.Code)
     assert name not in cfg.data, "Entry `{}` already exists.".format(name)
 
     cfg.data[name] = dict(author=str(str(message.author.id)), code=code)
-    cfg.save()
+    await cfg.asyncsave()
     await client.say(message, "Entry `{}` created.".format(name))
 
 
@@ -224,7 +224,7 @@ async def append(message: discord.Message, name: snippet_name, code: Annotate.Co
     assert_author(name, message.author)
 
     cfg.data[name]["code"] += code
-    cfg.save()
+    await cfg.asyncsave()
     await client.say(message, "The given code was appended to `{}`.".format(name))
 
 
@@ -235,7 +235,7 @@ async def remove(message: discord.Message, name: snippet_name):
     assert_author(name, message.author)
 
     del cfg.data[name]
-    cfg.save()
+    await cfg.asyncsave()
     await client.say(message, "Removed entry with name `{}`.".format(name))
 
 

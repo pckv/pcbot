@@ -36,7 +36,7 @@ def setup_default_config(guild: discord.Guild):
         moderate.save()
         return
 
-    # Set to defaults if guild's config is missing values
+    # Set to defaults if guild's config is mis>asing values
     if not all(k in moderate.data[str(guild.id)].keys() for k in default_config):
         moderate.data[str(guild.id)] = default_config
         moderate.save()
@@ -72,14 +72,14 @@ def add_setting(setting: str, default=True, name=None, permissions=None):
     async def on(message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[str(message.guild.id)][name] = True
-        moderate.save()
+        await moderate.asyncsave()
         await client.say(message, "{} **enabled**.".format(setting))
 
     @display_setting.command(hidden=True, aliases="false unset disable", permissions=permissions)
     async def off(message: discord.Message):
         """ The command to enable this setting. """
         moderate.data[str(message.guild.id)][name] = False
-        moderate.save()
+        await moderate.asyncsave()
         await client.say(message, "{} **disabled**.".format(setting))
 
 

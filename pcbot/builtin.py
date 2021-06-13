@@ -91,7 +91,7 @@ async def setowner(message: discord.Message):
     if user_code:
         await client.say(message, "You have been assigned bot owner.")
         plugins.owner_cfg.data = str(message.author.id)
-        plugins.owner_cfg.save()
+        await plugins.owner_cfg.asyncsave()
 
 
 @plugins.command(owner=True)
@@ -272,7 +272,7 @@ async def lambda_(message: discord.Message):
 async def add(message: discord.Message, trigger: str, python_code: Annotate.Code):
     """ Add a command that runs the specified python code. """
     lambdas.data[trigger] = python_code
-    lambdas.save()
+    await lambdas.asyncsave()
     await client.say(message, "Command `{}` set.".format(trigger))
 
 
@@ -283,7 +283,7 @@ async def remove(message: discord.Message, trigger: str):
 
     # The command specified exists and we remove it
     del lambdas.data[trigger]
-    lambdas.save()
+    await lambdas.asyncsave()
     await client.say(message, "Command `{}` removed.".format(trigger))
 
 
@@ -293,7 +293,7 @@ async def enable(message: discord.Message, trigger: str):
     # If the specified trigger is in the blacklist, we remove it
     if trigger in lambda_config.data["blacklist"]:
         lambda_config.data["blacklist"].remove(trigger)
-        lambda_config.save()
+        await lambda_config.asyncsave()
         await client.say(message, "Command `{}` enabled.".format(trigger))
     else:
         assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
@@ -308,7 +308,7 @@ async def disable(message: discord.Message, trigger: str):
     # If the specified trigger is not in the blacklist, we add it
     if trigger not in lambda_config.data["blacklist"]:
         lambda_config.data["blacklist"].append(trigger)
-        lambda_config.save()
+        await lambda_config.asyncsave()
         await client.say(message, "Command `{}` disabled.".format(trigger))
     else:
         assert trigger in lambdas.data, "Command `{}` does not exist.".format(trigger)
@@ -363,7 +363,7 @@ async def import_(message: discord.Message, module: str, attr: str = None):
     else:
         # There were no errors when importing, so we add the name to our startup imports
         lambda_config.data["imports"].append((module, attr))
-        lambda_config.save()
+        await lambda_config.asyncsave()
         await client.say(message, "Imported and setup `{}` for import.".format(name))
 
 
@@ -445,7 +445,7 @@ async def changelog_(message: discord.Message, num: utils.int_range(f=1) = 3):
 @bot_hub.command(name="prefix", permissions="administrator", disabled_pm=True)
 async def set_prefix(message: discord.Message, prefix: str = None):
     """ Set the bot prefix. **The prefix is case sensitive and may not include spaces.** """
-    config.set_guild_config(message.guild, "command_prefix", utils.split(prefix)[0] if prefix else None)
+    await config.set_guild_config(message.guild, "command_prefix", utils.split(prefix)[0] if prefix else None)
 
     pre = config.default_command_prefix if prefix is None else prefix
     await client.say(message, "Set the guild prefix to `{}`.".format(pre))
@@ -454,7 +454,7 @@ async def set_prefix(message: discord.Message, prefix: str = None):
 @bot_hub.command(name="case", permissions="administrator", disabled_pm=True)
 async def set_case_sensitivity(message: discord.Message, value: plugins.true_or_false):
     """ Enable or disable case sensitivity in command triggers. """
-    config.set_guild_config(message.guild, "case_sensitive_commands", value)
+    await config.set_guild_config(message.guild, "case_sensitive_commands", value)
     await client.say(message, "**{}** case sensitive command triggers in this guild. ".format(
         "Enabled" if value else "Disabled"))
 
@@ -493,7 +493,7 @@ def init():
 
         # Something went wrong and we'll remove the module from the config
         lambda_config.data["imports"].remove([module, attr])
-        lambda_config.save()
+        ambda_config.save()
 
 
 @plugins.event()

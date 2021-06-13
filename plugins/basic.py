@@ -149,7 +149,7 @@ async def new(message: discord.Message, plugin: plugin_in_req, content: Annotate
 
     # Add the feature request if an identical request does not exist
     feature_reqs.data[plugin].append(content)
-    feature_reqs.save()
+    await feature_reqs.asyncsave()
     await client.say(message, "Feature saved as `{0}` id **#{1}**.".format(plugin, len(req_list)))
 
 
@@ -165,11 +165,11 @@ async def mark(message: discord.Message, plugin: plugin_in_req, req_id: get_req_
     # Mark or unmark the feature request by adding or removing +++ from the end (slightly hacked)
     if not req.endswith("+++"):
         feature_reqs.data[plugin][req_id] += "+++"
-        feature_reqs.save()
+        await feature_reqs.asyncsave()
         await client.say(message, "Marked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
     else:
         feature_reqs.data[plugin][req_id] = req[:-3]
-        feature_reqs.save()
+        await feature_reqs.asyncsave()
         await client.say(message, "Unmarked feature with `{}` id **#{}**.".format(plugin, req_id + 1))
 
 
@@ -182,5 +182,5 @@ async def remove(message: discord.Message, plugin: plugin_in_req, req_id: get_re
 
     # Remove the feature
     del feature_reqs.data[plugin][req_id]
-    feature_reqs.save()
+    await feature_reqs.asyncsave()
     await client.say(message, "Removed feature with `{}` id **#{}**.".format(plugin, req_id + 1))

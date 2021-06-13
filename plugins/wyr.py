@@ -103,7 +103,7 @@ async def wouldyourather(message: discord.Message, opt: options = None):
         # Say the total tallies
         await client.say(message, "A total of {0} would **{2}**, while {1} would **{3}**!".format(
             *question["answers"], *choices))
-        db.save()
+        await db.asyncsave()
         sessions.remove(message.channel.id)
 
     # Otherwise, the member asked a question to the bot
@@ -112,7 +112,7 @@ async def wouldyourather(message: discord.Message, opt: options = None):
             choices=list(opt),
             answers=[0, 0]
         ))
-        db.save()
+        await db.asyncsave()
 
         answer = random.choice(opt)
         await client.say(message, "**I would {}**!".format(answer))
@@ -124,7 +124,7 @@ async def remove(message: discord.Message, opt: options):
     for q in db.data["questions"]:
         if q["choices"][0] == opt[0] and q["choices"][1] == opt[1]:
             db.data["questions"].remove(q)
-            db.save()
+            await db.asyncsave()
             await client.say(message, "**Entry removed.**")
             break
     else:

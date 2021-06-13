@@ -104,7 +104,7 @@ class Config:
                 json.dump(self.data, f)
 
     async def asyncsave(self):
-        """ Write the current config to file. """
+        """ Write the current config to file asynchronously. """
         async with aiofiles.open(self.filepath, "w") as f:
             if self.pretty:
                 await f.write(json.dumps(self.data, sort_keys=True, indent=4))
@@ -126,7 +126,7 @@ class Config:
 guild_config = Config("guild-config", data={})
 
 
-def set_guild_config(guild: discord.Guild, key: str, value):
+async def set_guild_config(guild: discord.Guild, key: str, value):
     """ Set a guild config value. """
     if str(guild.id) not in guild_config.data:
         guild_config.data[str(guild.id)] = {}
@@ -137,7 +137,7 @@ def set_guild_config(guild: discord.Guild, key: str, value):
     else:
         guild_config.data[str(guild.id)][key] = value
 
-    guild_config.save()
+    await guild_config.asyncsave()
 
 
 def guild_command_prefix(guild: discord.Guild):

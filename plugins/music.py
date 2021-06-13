@@ -349,7 +349,7 @@ async def link(message: discord.Message, voice_channel: Annotate.VoiceChannel):
 
     # Link the channel
     music_channels.data.append(str(voice_channel.id))
-    music_channels.save()
+    await music_channels.asyncsave()
     await client.say(message, "Voice channel **{0.name}** is now the music channel.".format(voice_channel))
 
 
@@ -361,7 +361,7 @@ async def unlink(message: discord.Message):
 
     # Unlink the channel
     music_channels.data.remove(str(channel.id))
-    music_channels.save()
+    await music_channels.asyncsave()
     await client.say(message, "This guild no longer has a music channel.")
 
 
