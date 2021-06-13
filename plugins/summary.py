@@ -50,7 +50,7 @@ def to_persistent(message: discord.Message):
 
 async def update_messages(channel: discord.TextChannel):
     """ Download messages. """
-    messages = stored_messages[channel.id]  # type: deque
+    messages = stored_messages[str(channel.id)]  # type: deque
 
     # We only want to log messages when there are none
     # Any messages after this logging will be logged in the on_message event
@@ -201,13 +201,13 @@ def is_valid_option(arg: str):
 
 def filter_messages_by_arguments(messages, channel, member, bots):
     # Split the messages into content and filter member and phrase
-    messages = (m for m in messages if not member or m["author"] in [mm.id for mm in member])
+    messages = (m for m in messages if not member or m["author"] in [str(mm.id) for mm in member])
 
     # Filter bot messages or own messages if the option is enabled in the config
     if not bots:
         messages = (m for m in messages if not m["bot"])
     elif summary_options.data["no_self"]:
-        messages = (m for m in messages if not m["author"] == client.user.id)
+        messages = (m for m in messages if not m["author"] == str(client.user.id))
 
     # Convert all messages to content
     return (m["content"] for m in messages)
@@ -297,7 +297,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
         else:
             await update_task.wait()
             await update_messages(channel)
-            messages = stored_messages[channel.id]
+            messages = stored_messages[str(channel.id)]
 
         message_content = filter_messages_by_arguments(messages, channel, member, bots)
 
@@ -354,8 +354,8 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
 @plugins.event(bot=True, self=True)
 async def on_message(message: discord.Message):
     """ Whenever a message is sent, see if we can update in one of the channels. """
-    if message.channel.id in stored_messages and message.content:
-        stored_messages[message.channel.id].append(to_persistent(message))
+    if str(message.channel.id) in stored_messages and message.content:
+        stored_messages[str(message.channel.id)].append(to_persistent(message))
 
     # Store to persistent if enabled for this channel
     if str(message.channel.id) in summary_options.data["persistent_channels"]:
