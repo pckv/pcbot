@@ -818,9 +818,7 @@ async def on_ready():
                 await notify_maps(str(member_id), data)
         except aiohttp.ClientOSError as e:
             logging.error(str(e))
-        except asyncio.futures.CancelledError:
-            return
-        except asyncio.exceptions.CancelledError:
+        except asyncio.CancelledError:
             return
         except:
             logging.error(traceback.format_exc())
