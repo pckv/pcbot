@@ -4,7 +4,7 @@
 
 WIP discord bot using [discord.py](https://github.com/Rapptz/discord.py).
 
-**PCBOT is only supported by python version 3.5.3 and newer.**
+**PCBOT is only supported by python version 3.6.0 and newer.**
 
 ## BotéMon
 **For those who have arrived from BotéMon and wish to contribute/have 
