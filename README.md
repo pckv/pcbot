@@ -53,6 +53,7 @@ errors when modules are missing, although modules as of now are:
 | Pillow    | `pip install Pillow`                                      |
 | pendulum  | `pip install pendulum==1.0.2`, might also need `pytz`     |
 | cairosvg  | `pip install cairosvg`, only supported for Linux          |
+| aiofiles  | `pip install aiofiles`, support async file operations in [config.py](pcbot/config.py)          |
 | oppai-ng  | `pip install oppai`, used for pp calculation in [`pp.py`](plugins/osulib/pp.py) |
 | ffmpeg    | Not a python module; see doc in [`music.py`](plugins/music.py)      |
 | imageio   | `pip install imageio`, support gif in [`image.py`](plugins/image.py)|

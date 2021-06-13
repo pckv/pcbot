@@ -360,7 +360,7 @@ async def on_message(message: discord.Message):
     # Store to persistent if enabled for this channel
     if str(message.channel.id) in summary_options.data["persistent_channels"]:
         summary_data.data["channels"][str(message.channel.id)].append(to_persistent(message))
-        summary_data.save()
+        await summary_data.asyncsave()
 
 
 @summary.command(owner=True)
@@ -371,7 +371,7 @@ async def enable_persistent_messages(message: discord.Message):
         return
 
     summary_options.data["persistent_channels"].append(str(message.channel.id))
-    summary_options.save()
+    await summary_options.asyncsave()
 
     await client.say(message, "Downloading messages. This may take a while.")
 
@@ -386,6 +386,6 @@ async def enable_persistent_messages(message: discord.Message):
         # We have no messages, so insert each from the left, leaving us with the oldest at index -1
         summary_data.data["channels"][str(message.channel.id)].insert(0, to_persistent(m))
 
-    summary_data.save()
+    await summary_data.asyncsave()
     await client.say(message,
                      "Downloaded {} messages!".format(len(summary_data.data["channels"][str(message.channel.id)])))

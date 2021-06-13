@@ -9,6 +9,7 @@ from os.path import exists
 from os import mkdir, walk, path, rename
 
 import discord
+import aiofiles
 
 github_repo = "pckv/pcbot/"
 default_command_prefix = "!"
@@ -101,6 +102,14 @@ class Config:
                 json.dump(self.data, f, sort_keys=True, indent=4)
             else:
                 json.dump(self.data, f)
+
+    async def asyncsave(self):
+        """ Write the current config to file. """
+        async with aiofiles.open(self.filepath, "w") as f:
+            if self.pretty:
+                await f.write(json.dumps(self.data, sort_keys=True, indent=4))
+            else:
+                await f.write(json.dumps(self.data))
 
     def load(self):
         """ Load the config from file if it exists.
