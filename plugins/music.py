@@ -60,7 +60,7 @@ max_songs_queued = 6  # How many songs each member are allowed in the queue at o
 max_song_length = 10 * 60 * 60  # The maximum song length in seconds
 default_volume = .6
 song_playing = None
-voice_client = None
+voiceclient = None
 
 # if not discord.opus.is_loaded():
 #    discord.opus.load_opus('libopus-0.x64.dll')
@@ -183,17 +183,17 @@ def assert_connected(member: discord.Member, checkbot=True):
 
 async def join(message):
     """Joins a voice channel"""
-    global voice_client
+    global voiceclient
     guild = message.guild
     channel = get_guild_channel(message.guild)
 
     if guild.voice_client is not None:
-        voice_client = await guild.voice_client.move_to(channel)
-        voice_states[guild] = VoiceState(voice_client)
+        voiceclient = await guild.voice_client.move_to(channel)
+        voice_states[guild] = VoiceState(voiceclient)
         return
     else:
-        voice_client = await channel.connect()
-        voice_states[guild] = VoiceState(voice_client)
+        voiceclient = await channel.connect()
+        voice_states[guild] = VoiceState(voiceclient)
 
 
 @music.command(aliases="p pl")
@@ -380,5 +380,5 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         if count_members == 0:
             state = voice_states[guild]
             state.queue.clear()
-            await guild.voice_client.disconnect()
+            await guild.voice_client.disconnect(guild.voice_client.cleanup())
             del voice_states[guild]
