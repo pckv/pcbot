@@ -820,6 +820,8 @@ async def on_ready():
             logging.error(str(e))
         except asyncio.futures.CancelledError:
             return
+        except asyncio.exceptions.CancelledError:
+            return
         except:
             logging.error(traceback.format_exc())
         finally:
