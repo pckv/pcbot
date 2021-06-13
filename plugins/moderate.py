@@ -321,11 +321,20 @@ async def on_message_delete(message: discord.Message):
 
     if message.author == client.user:
         return
-
-    await log_change(
-        changelog_channel,
-        "{0.author.mention}'s message was deleted in {0.channel.mention}:\n{0.clean_content}".format(message)
-    )
+    if not message.attachments == []:
+        attachments = ""
+        for i in range(len(message.attachments)):
+            attachments += message.attachments[i].filename + "\n"
+        await log_change(
+            changelog_channel,
+            "{0.author.mention}'s message was deleted in {0.channel.mention}:\n{0.clean_content}\nAttachments:\n``{"
+            "1}``".format(message, attachments)
+        )
+    else:
+        await log_change(
+            changelog_channel,
+            "{0.author.mention}'s message was deleted in {0.channel.mention}:\n{0.clean_content}".format(message)
+        )
 
 
 @plugins.event()
