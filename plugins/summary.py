@@ -230,68 +230,68 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
     regex, case, tts, coherent, strict = False, False, False, False, True
     bots = not summary_options.data["no_bot"]
 
-    for value in options:
-        num_match = valid_num.match(value)
-        if num_match:
-            assert not num
-            num = int(num_match.group("num"))
-            continue
-
-        member_match = valid_member.match(value)
-        if member_match:
-            member.append(message.guild.get_member(int(member_match.group("id"))))
-            continue
-
-        member_match = valid_member_silent.match(value)
-        if member_match:
-            member.append(utils.find_member(message.guild, member_match.group("name")))
-            continue
-
-        role_match = valid_role.match(value)
-        if role_match:
-            role = discord.utils.get(message.guild.roles, id=int(role_match.group("id")))
-            member.extend(m for m in message.guild.members if role in m.roles)
-            continue
-
-        channel_match = valid_channel.match(value)
-        if channel_match:
-            assert not channel
-            channel = utils.find_channel(message.guild, channel_match.group())
-            continue
-
-        if value in valid_options:
-            if value == "+re" or value == "+regex":
-                regex = True
-            if value == "+case":
-                case = True
-            if value == "+tts":
-                tts = True
-            if value == "+coherent":
-                coherent = True
-            if value == "+loose":
-                strict = False
-
-            bots = False if value == "+nobot" else True if value == "+bot" else bots
-
-    # Assign defaults and number of summaries limit
-    is_privileged = message.author.permissions_in(message.channel).manage_messages
-
-    if num is None or num < 1:
-        num = 1
-    elif num > max_admin_summaries and is_privileged:
-        num = max_admin_summaries
-    elif num > max_summaries:
-        num = max_summaries if not is_privileged else num
-
-    if not channel:
-        channel = message.channel
-
-    # Check channel permissions after the given channel has been decided
-    assert channel.permissions_for(message.guild.me).read_message_history, "**I can't see this channel.**"
-    assert not tts or message.author.permissions_in(message.channel).send_tts_messages, \
-        "**You don't have permissions to send tts messages in this channel.**"
-
     async with message.channel.typing():
+        for value in options:
+            num_match = valid_num.match(value)
+            if num_match:
+                assert not num
+                num = int(num_match.group("num"))
+                continue
+
+            member_match = valid_member.match(value)
+            if member_match:
+                member.append(message.guild.get_member(int(member_match.group("id"))))
+                continue
+
+            member_match = valid_member_silent.match(value)
+            if member_match:
+                member.append(utils.find_member(message.guild, member_match.group("name")))
+                continue
+
+            role_match = valid_role.match(value)
+            if role_match:
+                role = discord.utils.get(message.guild.roles, id=int(role_match.group("id")))
+                member.extend(m for m in message.guild.members if role in m.roles)
+                continue
+
+            channel_match = valid_channel.match(value)
+            if channel_match:
+                assert not channel
+                channel = utils.find_channel(message.guild, channel_match.group())
+                continue
+
+            if value in valid_options:
+                if value == "+re" or value == "+regex":
+                    regex = True
+                if value == "+case":
+                    case = True
+                if value == "+tts":
+                    tts = True
+                if value == "+coherent":
+                    coherent = True
+                if value == "+loose":
+                    strict = False
+
+                bots = False if value == "+nobot" else True if value == "+bot" else bots
+
+        # Assign defaults and number of summaries limit
+        is_privileged = message.author.permissions_in(message.channel).manage_messages
+
+        if num is None or num < 1:
+            num = 1
+        elif num > max_admin_summaries and is_privileged:
+            num = max_admin_summaries
+        elif num > max_summaries:
+            num = max_summaries if not is_privileged else num
+
+        if not channel:
+            channel = message.channel
+
+        # Check channel permissions after the given channel has been decided
+        assert channel.permissions_for(message.guild.me).read_message_history, "**I can't see this channel.**"
+        assert not tts or message.author.permissions_in(message.channel).send_tts_messages, \
+            "**You don't have permissions to send tts messages in this channel.**"
+
         if str(channel.id) in summary_options.data["persistent_channels"]:
             messages = summary_data.data["channels"][str(channel.id)]
         else:
@@ -348,7 +348,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
             # Convert new line identifiers back to characters
             sentence = sentence.replace(NEW_LINE_IDENTIFIER.strip(" "), "\n")
 
-        await client.send_message(message.channel, sentence, tts=tts)
+    await client.send_message(message.channel, sentence, tts=tts)
 
 
 @plugins.event(bot=True, self=True)
@@ -387,4 +387,5 @@ async def enable_persistent_messages(message: discord.Message):
         summary_data.data["channels"][str(message.channel.id)].insert(0, to_persistent(m))
 
     summary_data.save()
-    await client.say(message, "Downloaded {} messages!".format(len(summary_data.data["channels"][str(message.channel.id)])))
+    await client.say(message,
+                     "Downloaded {} messages!".format(len(summary_data.data["channels"][str(message.channel.id)])))
