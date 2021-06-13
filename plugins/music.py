@@ -166,7 +166,8 @@ async def play_next(message):
         del voice_states[guild]
         return
     source = state.queue.popleft()
-    message.guild.voice_client.play(source.player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(message), client.loop))
+    message.guild.voice_client.play(source.player,
+                                    after=lambda e: asyncio.run_coroutine_threadsafe(play_next(message), client.loop))
 
 
 def assert_connected(member: discord.Member, checkbot=True):
@@ -376,9 +377,10 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
     count_members = sum(1 for m in channel.members if not m.bot)
 
     # Leave the voice channel we're client_connected to when the only one here is the bot
-    if guild in voice_states and guild.me.voice.channel == channel:
-        if count_members == 0:
-            state = voice_states[guild]
-            state.queue.clear()
-            await guild.voice_client.disconnect(guild.voice_client.cleanup())
-            del voice_states[guild]
+    if guild.me.voice is not None:
+        if guild in voice_states and guild.me.voice.channel == channel:
+            if count_members == 0:
+                state = voice_states[guild]
+                state.queue.clear()
+                await guild.voice_client.disconnect()
+                del voice_states[guild]
