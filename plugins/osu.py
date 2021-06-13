@@ -670,7 +670,7 @@ async def calculate_pp_for_beatmapset(beatmapset: list):
             "pp": pp_stats.pp,
         }
 
-    osu_config.save()
+    await osu_config.asyncsave()
 
 
 async def notify_maps(member_id: str, data: dict):
