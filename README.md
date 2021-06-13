@@ -85,7 +85,7 @@ set a custom command prefix. To change the bot prefix, head over to
 PCBOT has a dedicated info command, by default `!pcbot`, which 
 displays info such as the name, owner, uptime, servers and the bot 
 application description. To change the name of the command to suit 
-your bot name, change the "name" key in `config/bot-meta.json`. This 
+your bot name, change the "name" key in [`config/bot-meta.json`](config/bot_meta.json). This 
 name should avoid any non-alphanumeric characters, although you are
 free to include spaces in the name. 
 
@@ -112,7 +112,7 @@ your account will be registered as the bot owner.
 
 ### Plugins
 PCBOT has a folder based plugin system. If you wish to make a plugin, 
-check out [`builtin.py`](pcbot/builtin.py). There are more features than showcased 
+check out [`pcbot/builtin.py`](pcbot/builtin.py). There are more features than showcased 
 in the builtin plugin, however there is no documentation for them yet.
 
 **To remove an unwanted plugin from the bot**, simply remove it from 
