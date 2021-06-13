@@ -159,11 +159,7 @@ async def play_next(message):
         return
     state.skip_votes.clear()
     if not state.queue:
-        guild = message.guild
-        state = voice_states[guild]
-        state.queue.clear()
-        await guild.voice_client.disconnect()
-        del voice_states[guild]
+        await disconnect(message.guild)
         return
     source = state.queue.popleft()
     message.guild.voice_client.play(source.player,
@@ -182,7 +178,7 @@ def assert_connected(member: discord.Member, checkbot=True):
         assert client_connected(member.guild), "**The bot is not connected to the voice channel.**"
 
 
-async def join(message):
+async def join(message: discord.Message):
     """Joins a voice channel"""
     global voiceclient
     guild = message.guild
@@ -195,6 +191,13 @@ async def join(message):
     else:
         voiceclient = await channel.connect()
         voice_states[guild] = VoiceState(voiceclient)
+
+
+async def disconnect(guild: discord.Guild):
+    state = voice_states[guild]
+    state.queue.clear()
+    await guild.voice_client.disconnect()
+    del voice_states[guild]
 
 
 @music.command(aliases="p pl")
@@ -380,7 +383,4 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
     if guild.me.voice is not None:
         if guild in voice_states and guild.me.voice.channel == channel:
             if count_members == 0:
-                state = voice_states[guild]
-                state.queue.clear()
-                await guild.voice_client.disconnect()
-                del voice_states[guild]
+                await disconnect(guild)
