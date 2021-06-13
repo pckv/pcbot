@@ -45,7 +45,7 @@ async def notify_channels(message: discord.Message, *channels: discord.TextChann
     if str(message.guild.id) not in twitch_config.data["guilds"]:
         twitch_config.data["guilds"][str(message.guild.id)] = {}
 
-    twitch_config.data["guilds"][str(message.guild.id)]["notify_channels"] = [c.id for c in channels]
+    twitch_config.data["guilds"][str(message.guild.id)]["notify_channels"] = [str(c.id) for c in channels]
     twitch_config.save()
 
     # Tell the user if notifications were disabled
@@ -78,8 +78,8 @@ def started_streaming(before: discord.Member, after: discord.Member):
         return False
 
     # Update the stream history
-    previous_stream = stream_history.get(after.id)
-    stream_history[after.id] = datetime.now()
+    previous_stream = stream_history.get(str(after.id))
+    stream_history[str(after.id)] = datetime.now()
 
     # Check that they didn't start streaming recently
     if previous_stream and datetime.now() < (previous_stream + repeat_notification_delta):
@@ -123,4 +123,4 @@ async def on_member_update(before: discord.Member, after: discord.Member):
     # Create the embedded message and send it to every stream channel
     embed = make_twitch_embed(after, stream_response)
     for channel_id in twitch_config.data["guilds"][str(after.guild.id)]["notify_channels"]:
-        await client.send_message(after.guild.get_channel(channel_id), embed=embed)
+        await client.send_message(after.guild.get_channel(int(channel_id)), embed=embed)
