@@ -79,7 +79,7 @@ For more command-line arguments, execute `python bot.py -h`.
 ### Changing the command prefix
 The command prefix is **bot specific**, which means that servers can't
 set a custom command prefix. To change the bot prefix, head over to 
-`config/bot-meta.json`. The prefix can be any number of characters.
+[`config/bot-meta.json`](config/bot_meta.json). The prefix can be any number of characters.
 
 ### The info command
 PCBOT has a dedicated info command, by default `!pcbot`, which 
