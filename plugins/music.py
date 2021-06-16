@@ -174,11 +174,11 @@ def assert_connected(member: discord.Member, checkbot=True):
     the member is connected to the music channel."""
     channel = get_guild_channel(member.guild)
     if member.voice:
-        assert member.voice.channel is channel, "**You are not connected to the voice channel.**"
+        assert member.voice.channel is channel, "**You are not connected to the music channel.**"
     else:
-        raise AssertionError("**You are not connected to the voice channel.**")
+        raise AssertionError("**You are not connected to the music channel.**")
     if checkbot:
-        assert client_connected(member.guild), "**The bot is not connected to the voice channel.**"
+        assert client_connected(member.guild), "**The bot is not connected to the music channel.**"
 
 
 async def join(message: discord.Message):
