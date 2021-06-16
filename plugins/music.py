@@ -141,7 +141,10 @@ def client_connected(guild: discord.Guild):
     """ Returns True or False whether the bot is client_connected to the
     Music channel in this guild. """
     channel = get_guild_channel(guild)
-    return guild.me.voice.channel == channel and guild in voice_states
+    if guild.me.voice:
+        return guild.me.voice.channel == channel and guild in voice_states
+    else:
+        return False
 
 
 def format_playing(message):
