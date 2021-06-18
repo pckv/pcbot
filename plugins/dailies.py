@@ -92,29 +92,28 @@ async def year(message: discord.Message, member: discord.Member = Annotate.Self)
 
 
 @plugins.command()
-async def meotey(message: discord.Message, member: discord.Member = Annotate.Self):
+async def meotey(message: discord.Message, member: discord.Member = Annotate.Self, date=None):
     """ Shows the daily emote for you or for the given member. """
-    d = datetime.now()
+    date = date or datetime.now()
     m = utils.find_member(message.guild, member.mention)
     if m is None:
         await client.send_message(message.channel, "**Found no such member.**")
         return
-    random.seed(int(m.id) * d.year * d.month * d.day)
+    random.seed(seed_for_member(member, date))
     await client.send_message(message.channel, "__**{}** emote of the day__".format(
         "Your" if m == message.author else "{}'s".format(m.display_name)))
     await client.send_message(message.channel, random.choice(client.emojis))
-    random.seed()
 
 
 @plugins.command()
-async def meoji(message: discord.Message, member: discord.Member = Annotate.Self):
+async def meoji(message: discord.Message, member: discord.Member = Annotate.Self, date=None):
     """ Shows the daily emoji for you or for the given member. """
-    d = datetime.now()
+    date = date or datetime.now()
     m = utils.find_member(message.guild, member.mention)
     if m is None:
         await client.send_message(message.channel, "**Found no such member.**")
         return
-    random.seed(int(m.id) * d.year * d.month * d.day)
+    random.seed(seed_for_member(member, date))
     await client.send_message(message.channel, "__**{}** emoji of the day__".format(
         "Your" if m == message.author else "{}'s".format(m.display_name)))
     await client.send_message(message.channel, chr(random.randint(128513, 128591)))
