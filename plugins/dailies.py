@@ -92,9 +92,9 @@ async def year(message: discord.Message, member: discord.Member = Annotate.Self)
 
 
 @plugins.command()
-async def meotey(message: discord.Message, member: discord.Member = Annotate.Self, date=None):
+async def meotey(message: discord.Message, member: discord.Member = Annotate.Self):
     """ Shows the daily emote for you or for the given member. """
-    date = date or datetime.now()
+    date = datetime.now()
     m = utils.find_member(message.guild, member.mention)
     if m is None:
         await client.send_message(message.channel, "**Found no such member.**")
@@ -106,9 +106,9 @@ async def meotey(message: discord.Message, member: discord.Member = Annotate.Sel
 
 
 @plugins.command()
-async def meoji(message: discord.Message, member: discord.Member = Annotate.Self, date=None):
+async def meoji(message: discord.Message, member: discord.Member = Annotate.Self):
     """ Shows the daily emoji for you or for the given member. """
-    date = date or datetime.now()
+    date = datetime.now()
     m = utils.find_member(message.guild, member.mention)
     if m is None:
         await client.send_message(message.channel, "**Found no such member.**")
