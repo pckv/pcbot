@@ -884,7 +884,7 @@ async def osu(message: discord.Message, member: discord.Member = Annotate.Self,
 
     # Set the signature color to that of the role color
     color = "pink" if member.color == discord.Color.default() \
-        else "#{0:02x}{1:02x}{2:02x}".format(*member.color.to_tuple())
+        else "#{0:02x}{1:02x}{2:02x}".format(*member.color.to_rgb())
 
     # Calculate whether the header color should be black or white depending on the background color.
     # Stupidly, the API doesn't accept True/False. It only looks for the &darkheaders keyword.
