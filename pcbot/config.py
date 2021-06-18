@@ -9,7 +9,12 @@ from os.path import exists
 from os import mkdir, walk, path, rename
 
 import discord
-import aiofiles
+
+try:
+    import aiofiles
+    async_io = True
+except ImportError:
+    async_io = False
 
 github_repo = "pckv/pcbot/"
 default_command_prefix = "!"
@@ -37,22 +42,20 @@ def migrate():
         dirs[:] = [d for d in dirs if d != '.git']  # skip .git dirs
         for filename in filenames:
             path1 = path.join(root, filename)
-            if filename != "renameall2.py":  # name of the script. Don't change yourself!
+            # search and replace within files themselves
+            filepath = path.join(root, filename)
+            with open(filepath) as f:
+                file_contents = f.read()
+                new_contents = file_contents.replace(find, replace)
+                if new_contents != file_contents:
+                    with open(filepath, "w") as f:
+                        f.write(new_contents)
 
-                # search and replace within files themselves
-                filepath = path.join(root, filename)
-                with open(filepath) as f:
-                    file_contents = f.read()
-                    new_contents = file_contents.replace(find, replace)
-                    if new_contents != file_contents:
-                        with open(filepath, "w") as f:
-                            f.write(new_contents)
-
-                # rename files (ignoring file extensions)
-                filename_zero, extension = path.splitext(filename)
-                if find in filename_zero:
-                    path2 = path.join(root, filename_zero.replace(find, replace) + extension)
-                    rename(path1, path2)
+            # rename files (ignoring file extensions)
+            filename_zero, extension = path.splitext(filename)
+            if find in filename_zero:
+                path2 = path.join(root, filename_zero.replace(find, replace) + extension)
+                rename(path1, path2)
 
 
 class Config:
@@ -105,11 +108,14 @@ class Config:
 
     async def asyncsave(self):
         """ Write the current config to file asynchronously. """
-        async with aiofiles.open(self.filepath, "w") as f:
-            if self.pretty:
-                await f.write(json.dumps(self.data, sort_keys=True, indent=4))
-            else:
-                await f.write(json.dumps(self.data))
+        if async_io:
+            async with aiofiles.open(self.filepath, "w") as f:
+                if self.pretty:
+                    await f.write(json.dumps(self.data, sort_keys=True, indent=4))
+                else:
+                    await f.write(json.dumps(self.data))
+        else:
+            self.save()
 
     def load(self):
         """ Load the config from file if it exists.
