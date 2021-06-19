@@ -58,7 +58,7 @@ async def get_id(member: discord.Member, name: str = None):
     """
     # Return the cached id if this member has been checked before
     if str(member.id) in twitch_config.data["ids"]:
-        return twitch_config.data["ids"][member.id]
+        return twitch_config.data["ids"][str(member.id)]
 
     # Try getting the name from the activity url if name is not specified
     if not name:
