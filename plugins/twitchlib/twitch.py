@@ -48,7 +48,7 @@ async def get_id(member: discord.Member, name: str = None):
     """ Return a member's twitch user ID.
 
     If the name kwarg is omitted, the member should be connected to discord and
-    already be streaming, so that member.game.url can be used. When omitted and
+    already be streaming, so that member.activity.url can be used. When omitted and
     the member isn't streaming, a ValueError is raised.
 
     :param member: The member to return the ID for.
@@ -60,14 +60,14 @@ async def get_id(member: discord.Member, name: str = None):
     if str(member.id) in twitch_config.data["ids"]:
         return twitch_config.data["ids"][member.id]
 
-    # Try getting the name from the game url if name is not specified
+    # Try getting the name from the activity url if name is not specified
     if not name:
         # Raise NameResolveError if the name is unknown
-        if not member.game or not member.game.url:
+        if not member.activity or not member.activity.url:
             raise UserNotResolved("Could not resolve twitch name of {}: they are not streaming.".format(member))
 
-        # Attempt finding the twitch name using the discord.Game object url
-        match = url_pattern.match(member.game.url)
+        # Attempt finding the twitch name using the Member.activity object url
+        match = url_pattern.match(member.activity.url)
         if match is None:
             raise UserNotResolved("Could not resolve twitch name of {}: their url is broken.".format(member))
         name = match.group("name")
