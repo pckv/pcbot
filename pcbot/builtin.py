@@ -493,7 +493,7 @@ def init():
 
         # Something went wrong and we'll remove the module from the config
         lambda_config.data["imports"].remove([module, attr])
-        ambda_config.save()
+        lambda_config.save()
 
 
 @plugins.event()
