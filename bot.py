@@ -111,22 +111,21 @@ class Client(discord.Client):
     async def delete_message(self, message):
         """ Override to add info on the last deleted message. """
         self.last_deleted_messages = [message]
-        await discord.Message.delete(message)
+        await message.delete()
 
     async def delete_messages(self, channel, messages):
         """ Override to add info on the last deleted messages. """
         self.last_deleted_messages = list(messages)
         await channel.delete_messages(messages=messages)
 
-    async def wait_for_message(self, timeout=None, *, author=None, channel=None, content=None, check=None, bot=False):
+    async def wait_for_message(self, timeout=None, *, check=None, bot=False):
         """ Override the check with the bot keyword: if bot=False, the function
         won't accept messages from bot accounts, where if bot=True it doesn't care. """
 
         def new_check(m):
             return (
-                       m.author == author and m.channel == channel and m.content == content
-                       if check is not None else True) \
-                   and (True if bot else not discord.Message.author.bot)
+                       check and (True if bot else not m.author.bot)
+            )
 
         return await super().wait_for("message", check=new_check, timeout=timeout)
 

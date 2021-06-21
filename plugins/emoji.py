@@ -245,7 +245,7 @@ async def merge(message: discord.Message, text: Annotate.CleanContent):
                    m.content.startswith("!merge")
 
         try:
-            reply = await client.wait_for("message", timeout=60, check=check)
+            reply = await client.wait_for_message(timeout=60, check=check)
         except asyncio.TimeoutError:
             reply = None
 

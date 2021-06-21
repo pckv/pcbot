@@ -956,7 +956,7 @@ async def link(message: discord.Message, name: Annotate.LowerContent):
             return m.author == message.author and m.channel == message.channel
 
         try:
-            reply = await client.wait_for("message", timeout=60, check=check)
+            reply = await client.wait_for_message(timeout=60, check=check)
         except asyncio.TimeoutError:
             return
 
