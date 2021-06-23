@@ -123,7 +123,7 @@ class VoiceState:
         source = self.queue.popleft()
         source.player.volume = self.volume
         self.voice.play(source.player,
-                        after=lambda e: asyncio.run(self.play_next()))
+                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), client.loop))
 
     def skip(self):
         """ Skip the song currently playing. """
