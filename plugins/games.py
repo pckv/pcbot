@@ -50,9 +50,7 @@ class Game:
             try:
                 reply = await client.wait_for_message(timeout=120, check=check)
             except asyncio.TimeoutError:
-                await client.say(self.message, "**The {} game failed to gather {} participants.**".format(
-                    self.name, self.num))
-                return
+                reply = None
 
             if reply:  # A user replied with a valid check
                 asyncio.ensure_future(
@@ -259,7 +257,7 @@ class Typing(Game):
         # We'll wait for a message from all of our participants
         for i in range(len(self.participants)):
             def check(m):
-                return m.channel == self.channel and self.is_participant is True
+                return m.channel == self.channel and self.is_participant(m) is True
 
             try:
                 reply = await client.wait_for_message(timeout=timeout, check=check)
