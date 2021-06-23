@@ -23,6 +23,7 @@ Commands:
     music
 """
 import asyncio
+import logging
 import random
 import re
 from collections import namedtuple, deque
@@ -41,8 +42,7 @@ music_channels = Config("music_channels", data=[])
 voice_states = {}  # type: Dict[discord.Guild, VoiceState]
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
+    'extractaudio:': True,
     'noplaylist': True,
     'nocheckcertificate': True,
     'quiet': True,
@@ -85,9 +85,9 @@ def format_song(song: Song, url=True):
     # The player duration is given in seconds; convert it to h:mm
     duration = ""
     if song.player.duration:
-        duration = " / **{0}:{1:02}**".format(*divmod(int(song.player.duration), 60))
+        duration = "Duration: **{0}:{1:02}**".format(*divmod(int(song.player.duration), 60))
 
-    return "**{0.title}** requested by **{1.display_name}**{2}".format(song.player, song.requester, duration) \
+    return "**{0.title}**\nRequested by: **{1.display_name}**\n{2}".format(song.player, song.requester, duration) \
            + ("\n**URL**: <{0.url}>".format(song.player) if url else "")
 
 
@@ -132,7 +132,7 @@ class VoiceState:
 
     def format_playing(self):
         if self.voice.is_playing():
-            return format_song(song_playing, url=False)
+            return format_song(song_playing, url=True)
         else:
             return "*Nothing.*"
 
@@ -145,18 +145,18 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         self.duration = data.get('duration')
         self.title = data.get('title')
-        self.url = data.get('url')
+        self.url = "https://youtube.com/watch?v=" + data.get('id')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=True):
+    async def from_url(cls, url, *, loop=None):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
 
         if 'entries' in data:
             # take first item from a playlist
             data = data['entries'][0]
 
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        filename = data['url']
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_before_options), data=data)
 
 
@@ -262,7 +262,11 @@ async def play(message: discord.Message, song: Annotate.Content):
 
     global song_playing
     song_playing = Song(player=player, requester=message.author, channel=message.channel)
-    await client.send_message(song_playing.channel, "Queued: " + format_song(song_playing, url=False))
+
+    embed = discord.Embed(color=message.author.color)
+    embed.description = "Queued:\n" + format_song(song_playing, url=False)
+
+    await client.send_message(song_playing.channel, embed=embed)
     state.queue.append(song_playing)
 
     # Start the song when there are none
@@ -353,7 +357,11 @@ async def playing(message: discord.Message):
     """ Return the name and URL of the song currently playing. """
     assert_connected(message.author)
     state = voice_states[message.guild]
-    await client.say(message, "Playing: " + state.format_playing())
+
+    embed = discord.Embed(color=message.author.color)
+    embed.description = "Playing:\n" + state.format_playing()
+
+    await client.send_message(message.channel, embed=embed)
 
 
 @music.command(aliases="q l list")
@@ -363,8 +371,11 @@ async def queue(message: discord.Message):
     state = voice_states[message.guild]
     assert state.queue, "**There are no songs queued.**"
 
-    await client.say(message, "```elm\n{}```".format(
-        "\n".join(format_song(s, url=False).replace("**", "") for s in state.queue)))
+    embed = discord.Embed(color=message.author.color)
+    embed.description = "elm\n{}".format(
+        "\n".join(format_song(s, url=False).replace("**", "") for s in state.queue))
+
+    await client.send_message(message.channel, embed=embed)
 
 
 @music.command(owner=True)
