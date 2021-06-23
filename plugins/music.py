@@ -49,7 +49,7 @@ ytdl_format_options = {
     'source_address': '0.0.0.0'  # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
 
-ffmpeg_before_options = {
+ffmpeg_options = {
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
     'options': '-vn',
 }
@@ -60,7 +60,6 @@ max_songs_queued = 6  # How many songs each member are allowed in the queue at o
 max_song_length = 10 * 60 * 60  # The maximum song length in seconds
 default_volume = .6
 song_playing = None
-voiceclient = None
 
 # if not discord.opus.is_loaded():
 #    discord.opus.load_opus('libopus-0.x64.dll')
@@ -158,7 +157,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
 
         filename = data['url']
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_before_options), data=data)
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
 @plugins.command(aliases="m", disabled_pm=True)
@@ -201,7 +200,6 @@ def assert_connected(member: discord.Member, checkbot=True):
 
 async def join(message: discord.Message):
     """  Joins a voice channel  """
-    global voiceclient
     guild = message.guild
     channel = get_guild_channel(message.guild)
 
