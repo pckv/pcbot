@@ -371,8 +371,8 @@ async def queue(message: discord.Message):
     assert state.queue, "**There are no songs queued.**"
 
     embed = discord.Embed(color=message.author.color)
-    embed.description = "elm\n{}".format(
-        "\n".join(format_song(s, url=False).replace("**", "") for s in state.queue))
+    embed.description = "{}".format(
+        "\n".join(format_song(s, url=False) + "\n" for s in state.queue))
 
     await client.send_message(message.channel, embed=embed)
 
