@@ -112,17 +112,17 @@ class VoiceState:
         if self.voice.is_playing():
             self.voice.source.volume = self._volume
 
-    async def play_next(self, message):
+    async def play_next(self):
         """ Play the next song if there are any. """
 
         self.skip_votes.clear()
         if not self.queue:
-            await disconnect(message.guild)
+            await disconnect(self.voice.guild)
             return
         source = self.queue.popleft()
         source.player.volume = self.volume
         self.voice.play(source.player,
-                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(message), client.loop))
+                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), client.loop))
 
     def skip(self):
         """ Skip the song currently playing. """
@@ -270,7 +270,7 @@ async def play(message: discord.Message, song: Annotate.Content):
 
     # Start the song when there are none
     if not state.voice.is_playing():
-        await state.play_next(message)
+        await state.play_next()
 
 
 @music.command(aliases="s next")
