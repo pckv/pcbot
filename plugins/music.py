@@ -10,8 +10,8 @@ TUTORIAL:
 
     The bot owner can link a music channel to any voice channel in a guild
     using the !music link <voice channel ...> command. After doing this, the
-    bot should automatically join the linked channel whenever a member joins
-    it. The members in the channel can then manage music playing.
+    bot should automatically join the linked channel whenever a member plays a song.
+    The members in the channel can then manage music playing.
 
 ISSUES:
     The music player seems to randomly start skipping songs, or rather
@@ -164,7 +164,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 @plugins.command(aliases="m", disabled_pm=True)
 async def music(message, _: utils.placeholder):
     """ Manage music. If a music channel is assigned, the bot will join
-    whenever someone joins it. """
+    whenever someone plays music. """
     pass
 
 
@@ -200,7 +200,7 @@ def assert_connected(member: discord.Member, checkbot=True):
 
 
 async def join(message: discord.Message):
-    """Joins a voice channel"""
+    """  Joins a voice channel  """
     global voiceclient
     guild = message.guild
     channel = get_guild_channel(message.guild)
@@ -405,8 +405,8 @@ async def unlink(message: discord.Message):
 
 @plugins.event()
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    """ Handle joining and leaving channels. The bot will automatically
-    join the guild's voice channel when a member joins. """
+    """ Handle leaving channels. The bot will automatically
+    leave the guild's voice channel when all members leave. """
     guild = member.guild
     channel = get_guild_channel(member.guild)
     if channel is None:
