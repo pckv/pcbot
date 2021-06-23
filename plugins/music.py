@@ -117,7 +117,8 @@ class VoiceState:
 
         self.skip_votes.clear()
         if not self.queue:
-            await disconnect(self.voice.guild)
+            if self.voice.is_connected():
+                await disconnect(self.voice.guild)
             return
         source = self.queue.popleft()
         source.player.volume = self.volume
@@ -144,7 +145,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         self.duration = data.get('duration')
         self.title = data.get('title')
-        self.url = "https://youtube.com/watch?v=" + data.get('id')
+        self.url = data.get('webpage_url')
 
     @classmethod
     async def from_url(cls, url, *, loop=None):
