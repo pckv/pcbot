@@ -124,7 +124,7 @@ class Client(discord.Client):
 
         def new_check(m):
             return (
-                       check and (True if bot else not m.author.bot)
+                       check(m) and (True if bot else not m.author.bot)
             )
 
         return await super().wait_for("message", check=new_check, timeout=timeout)
