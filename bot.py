@@ -517,7 +517,6 @@ def main():
     # Setup a login group for handling only token or email, but not both
     login_group = parser.add_mutually_exclusive_group()
     login_group.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
-    login_group.add_argument("--email", "-e", help="Alternative email to login with.")
 
     shard_group = parser.add_argument_group(title="Sharding",
                                             description="Arguments for sharding for bots on 2500+ guilds")
