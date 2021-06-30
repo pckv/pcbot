@@ -385,7 +385,7 @@ async def effect(message: discord.Message, slot_1_or_pokemon: str.lower, slot_2:
 async def scalefactor(message: discord.Message, factor: float = default_scale_factor):
     """ Set the image scaling factor for your guild. If no factor is given, the default is set. /
     **This command requires the `Manage Guild` permission.**"""
-    assert not factor == 0, "If you wish to disable images, remove the `Attach Files` permission from this "
+    assert not factor == 0, "If you wish to disable images, remove the `Attach Files` permission from this bot."
 
     assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(factor, max_scale_factor)
     assert min_scale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(factor, min_scale_factor)
