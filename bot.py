@@ -111,7 +111,7 @@ class Client(discord.Client):
     async def delete_message(self, message):
         """ Override to add info on the last deleted message. """
         self.last_deleted_messages = [message]
-        await discord.Message.delete(message)
+        await message.delete()
 
     async def delete_messages(self, channel, messages):
         """ Override to add info on the last deleted messages. """
