@@ -253,7 +253,7 @@ def event(name=None, bot=False, self=False):
                             "event listener call). It was not added to the list of events.")
             return func
 
-        if self and not bot and discord.User.bot:
+        if self and not bot:
             logging.warning("self=True has no effect in event {}. Consider setting bot=True".format(func.__name__))
 
         # Set the bot attribute, which determines whether the function will be triggered by messages from bot accounts
