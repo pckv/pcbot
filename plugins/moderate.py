@@ -134,7 +134,6 @@ async def mute(message: discord.Message, *members: discord.Member):
 
     # Some members were muted, success!
     if muted_members:
-        await client.say(message, str(*muted_members))
         await client.say(message, "Muted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
