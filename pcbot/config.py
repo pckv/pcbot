@@ -53,8 +53,8 @@ def migrate():
                             with open(filepath, "w") as e:
                                 file_contents[keys.replace(find, replace)] = file_contents[keys]
                                 del file_contents[keys]
-                                if "bot_meta" or "blacklist" or "osu" or "summary_options" or "would_you-rather" \
-                                        in filename:
+                                if "bot_meta" in filename or "blacklist" in filename or "osu" in filename or \
+                                        "summary_options" in filename or "would_you-rather" in filename:
                                     json.dump(file_contents, e, sort_keys=True, indent=4)
                                 else:
                                     json.dump(file_contents, e)
