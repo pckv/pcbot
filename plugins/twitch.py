@@ -68,7 +68,7 @@ def make_twitch_embed(member: discord.Member, response: dict):
         if streaming_activity is None:
             raise TypeError("No twitch stream found when making embed.")
 
-    e = discord.Embed(title="Playing " + response["stream"]["game"], url=streaming_activity.url,
+    e = discord.Embed(title="Playing " + streaming_activity.game, url=streaming_activity.url,
                       description=streaming_activity.name, color=member.color)
     e.set_author(name=member.display_name, url=streaming_activity.url, icon_url=member.avatar_url)
     e.set_thumbnail(url=response["stream"]["preview"]["small"] + "?date=" + datetime.now().ctime().replace(" ", "%20"))
