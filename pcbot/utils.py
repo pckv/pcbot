@@ -97,8 +97,7 @@ def placeholder(_: str):
 
 async def confirm(message: discord.Message, text: str, timeout: int = 10):
     """ Have the message author confirm their action. """
-    import bot
-    await bot.client.send_message(message.channel,
+    await client.send_message(message.channel,
                                   text + " [{}{}]".format(str(timeout) + "s " if timeout else "", "yes/no"))
     author = message.author
     channel = message.channel
