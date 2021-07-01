@@ -142,6 +142,10 @@ client = Client(intents=discord.Intents.all(), loop=asyncio.ProactorEventLoop() 
 autosave_interval = 60 * 30
 
 
+# Migrate deprecated values to updated values
+config.migrate()
+
+
 async def autosave():
     """ Sleep for set time (default 30 minutes) before saving. """
     while not client.is_closed:

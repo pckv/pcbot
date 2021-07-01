@@ -12,6 +12,7 @@ import discord
 
 try:
     import aiofiles
+
     async_io = True
 except ImportError:
     async_io = False
@@ -45,11 +46,19 @@ def migrate():
             # search and replace within files themselves
             filepath = path.join(root, filename)
             with open(filepath) as f:
-                file_contents = f.read()
-                new_contents = file_contents.replace(find, replace)
-                if new_contents != file_contents:
-                    with open(filepath, "w") as f:
-                        f.write(new_contents)
+                print(filename)
+                file_contents = json.load(f)
+                if isinstance(file_contents, dict):
+                    for keys in list(file_contents.keys()):
+                        if find in keys:
+                            with open(filepath, "w") as e:
+                                file_contents[keys.replace(find, replace)] = file_contents[keys]
+                                del file_contents[keys]
+                                if "bot_meta" or "blacklist" or "osu" or "summary_options" or "would_you-rather" \
+                                        in filename:
+                                    json.dump(file_contents, e, sort_keys=True, indent=4)
+                                else:
+                                    json.dump(file_contents, e)
 
             # rename files (ignoring file extensions)
             filename_zero, extension = path.splitext(filename)
@@ -96,7 +105,6 @@ class Config:
 
         if not self.data == loaded_data:
             self.save()
-        migrate()
 
     def save(self):
         """ Write the current config to file. """
