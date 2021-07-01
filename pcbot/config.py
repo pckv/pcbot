@@ -46,7 +46,6 @@ def migrate():
             # search and replace within files themselves
             filepath = path.join(root, filename)
             with open(filepath) as f:
-                print(filename)
                 file_contents = json.load(f)
                 if isinstance(file_contents, dict):
                     for keys in list(file_contents.keys()):
