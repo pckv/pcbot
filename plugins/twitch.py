@@ -65,8 +65,9 @@ def make_twitch_embed(member: discord.Member, response: dict):
         if activity is not None and activity.type == discord.ActivityType.streaming and activity.platform.lower() == \
                 "twitch":
             streaming_activity = activity
-        if streaming_activity is None:
-            raise TypeError("No twitch stream found when making embed.")
+
+    if streaming_activity is None:
+        raise TypeError("No twitch stream found when making embed.")
 
     e = discord.Embed(title="Playing " + streaming_activity.game, url=streaming_activity.url,
                       description=streaming_activity.name, color=member.color)
