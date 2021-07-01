@@ -60,9 +60,17 @@ def make_twitch_embed(member: discord.Member, response: dict):
     :param member: Member object streaming.
     :param response: Dict received through twitch.request("streams").
     """
-    e = discord.Embed(title="Playing " + response["stream"]["game"], url=member.activity.url,
-                      description=member.activity.name, color=member.color)
-    e.set_author(name=member.display_name, url=member.activity.url, icon_url=member.avatar_url)
+    streaming_activity = None
+    for activity in member.activities:
+        if activity is not None and activity.type == discord.ActivityType.streaming and activity.platform.lower() == \
+                "twitch":
+            streaming_activity = activity
+        if streaming_activity is None:
+            raise TypeError("No twitch stream found when making embed.")
+
+    e = discord.Embed(title="Playing " + response["stream"]["game"], url=streaming_activity.url,
+                      description=streaming_activity.name, color=member.color)
+    e.set_author(name=member.display_name, url=streaming_activity.url, icon_url=member.avatar_url)
     e.set_thumbnail(url=response["stream"]["preview"]["small"] + "?date=" + datetime.now().ctime().replace(" ", "%20"))
     return e
 
