@@ -63,28 +63,30 @@ async def get_id(member: discord.Member, name: str = None):
     # Try getting the name from the activity url if name is not specified
     if not name:
         url_found = False
+        streaming_activity = None
         for activity in member.activities:
             # Raise NameResolveError if the name is unknown
             if activity and activity.type == discord.ActivityType.streaming and activity.url:
                 url_found = True
+                streaming_activity = activity
 
-            if not url_found:
-                raise UserNotResolved("Could not resolve twitch name of {}: they are not streaming.".format(member))
+        if not url_found:
+            raise UserNotResolved("Could not resolve twitch name of {}: they are not streaming.".format(member))
 
-            # Attempt finding the twitch name using the Member.activity object url
-            match = url_pattern.match(activity.url)
-            if match is None:
-                raise UserNotResolved("Could not resolve twitch name of {}: their url is broken.".format(member))
-            name = match.group("name")
+        # Attempt finding the twitch name using the Member.activity object url
+        match = url_pattern.match(streaming_activity.url)
+        if match is None:
+            raise UserNotResolved("Could not resolve twitch name of {}: their url is broken.".format(member))
+        name = match.group("name")
 
-            # Make a request for the user found
-            response = await request("users", login=name)
-            if response["_total"] == 0:
-                raise UserNotResolved(
-                    "Could not resolve twitch user account of {}: twitch user {} does not exist.".format(member, name))
+        # Make a request for the user found
+        response = await request("users", login=name)
+        if response["_total"] == 0:
+            raise UserNotResolved(
+                "Could not resolve twitch user account of {}: twitch user {} does not exist.".format(member, name))
 
-            # Save and return the id
-            twitch_id = response["users"][0]["_id"]
-            twitch_config.data["ids"][str(member.id)] = twitch_id
-            await twitch_config.asyncsave()
-            return twitch_id
+        # Save and return the id
+        twitch_id = response["users"][0]["_id"]
+        twitch_config.data["ids"][str(member.id)] = twitch_id
+        await twitch_config.asyncsave()
+        return twitch_id
