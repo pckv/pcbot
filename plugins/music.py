@@ -23,6 +23,7 @@ Commands:
     music
 """
 import asyncio
+import logging
 import random
 import re
 from collections import namedtuple, deque
@@ -241,9 +242,9 @@ async def play(message: discord.Message, song: Annotate.Content):
 
     try:
         player = await YTDLSource.from_url(song)
-    except:
+    except Exception as e:
         await client.say(message, "**Could not add this song to the queue.**")
-        print_exc()
+        logging.info(e)
         return
 
     # Make sure the song isn't too long
