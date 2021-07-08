@@ -890,7 +890,7 @@ async def osu(message: discord.Message, member: discord.Member = Annotate.Self,
     # Stupidly, the API doesn't accept True/False. It only looks for the &darkheaders keyword.
     # The silly trick done here is extracting either the darkheader param or nothing.
     r, g, b = member.color.to_rgb()
-    dark = dict(darkheader=True) if (r * 0.299 + g * 0.587 + b * 0.144) > 186 else {}
+    dark = dict(darkheader="True") if (r * 0.299 + g * 0.587 + b * 0.144) > 186 else {}
 
     # Download and upload the signature
     params = {
