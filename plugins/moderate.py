@@ -459,9 +459,9 @@ async def on_member_update(before: discord.Member, after: discord.Member):
 
 
 @plugins.event()
-async def on_member_ban(member: discord.Member):
+async def on_member_ban(guild: discord.Guild, member: discord.Member):
     """ Update the changelog with banned members. """
-    changelog_channel = get_changelog_channel(member.guild)
+    changelog_channel = get_changelog_channel(guild)
     if not changelog_channel:
         return
 
