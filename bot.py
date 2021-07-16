@@ -20,7 +20,6 @@ import plugins
 
 # Sets the version to enable accessibility for other modules
 __version__ = config.set_version("PCBOT V3")
-start_args = None
 
 
 class Client(discord.Client):
@@ -162,11 +161,11 @@ def parse_arguments():
                         action="store_true")
 
     parser.add_argument("--log-file", "-o", help="File to log to. Prints to terminal if omitted.")
-    global start_args
     start_args = parser.parse_args()
+    return start_args
 
 
-parse_arguments()
+start_args = parse_arguments()
 
 # Setup our client
 if start_args.shard_id is not None:
