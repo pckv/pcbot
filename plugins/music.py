@@ -244,7 +244,7 @@ async def play(message: discord.Message, song: Annotate.Content):
         player = await YTDLSource.from_url(song)
     except Exception as e:
         await client.say(message, "**Could not add this song to the queue.**")
-        logging.info(e)
+        logging.error(e)
         return
 
     # Make sure the song isn't too long
