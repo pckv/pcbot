@@ -100,12 +100,10 @@ async def meotey(message: discord.Message, member: discord.Member = Annotate.Sel
         await client.send_message(message.channel, "**Found no such member.**")
         return
     random.seed(seed_for_member(member, date))
-    random_emote = random.choice(client.emojis)
-    embed = discord.Embed(color=member.color)
-    embed.description = "__**{}** emote of the day:__".format(
-        "Your" if m == message.author else "{}'s".format(m.display_name))
-    embed.set_image(url=random_emote.url)
-    await client.send_message(message.channel, embed=embed)
+    random_emote = str(random.choice(client.emojis))
+    await client.send_message(message.channel, "__**{}** emote of the day__".format(
+        "Your" if m == message.author else "{}'s".format(m.display_name)))
+    await client.send_message(message.channel, random_emote)
 
 
 @plugins.command()
