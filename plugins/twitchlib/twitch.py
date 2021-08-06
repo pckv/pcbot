@@ -79,14 +79,14 @@ async def get_id(member: discord.Member, name: str = None):
             raise UserNotResolved("Could not resolve twitch name of {}: their url is broken.".format(member))
         name = match.group("name")
 
-        # Make a request for the user found
-        response = await request("users", login=name)
-        if response["_total"] == 0:
-            raise UserNotResolved(
-                "Could not resolve twitch user account of {}: twitch user {} does not exist.".format(member, name))
+    # Make a request for the user found
+    response = await request("users", login=name)
+    if response["_total"] == 0:
+        raise UserNotResolved(
+            "Could not resolve twitch user account of {}: twitch user {} does not exist.".format(member, name))
 
-        # Save and return the id
-        twitch_id = response["users"][0]["_id"]
-        twitch_config.data["ids"][str(member.id)] = twitch_id
-        await twitch_config.asyncsave()
-        return twitch_id
+    # Save and return the id
+    twitch_id = response["users"][0]["_id"]
+    twitch_config.data["ids"][str(member.id)] = twitch_id
+    await twitch_config.asyncsave()
+    return twitch_id
