@@ -14,15 +14,16 @@ Commands:
     suspend
 """
 
+import asyncio
 from collections import defaultdict
 
 import discord
-import asyncio
 
-from pcbot import Config, utils, Annotate
+import bot
 import plugins
+from pcbot import Config, utils, Annotate
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 moderate = Config("moderate", data=defaultdict(dict))
 default_config = {}  # Used by add_setting helper function

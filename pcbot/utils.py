@@ -6,13 +6,13 @@ command specific functions and helpers.
 
 import re
 import shlex
+from asyncio import subprocess as sub
 from enum import Enum
 from functools import wraps
 from io import BytesIO
 
 import aiohttp
 import discord
-from asyncio import subprocess as sub
 
 member_mention_pattern = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_pattern = re.compile(r"<#(?P<id>\d+)>")

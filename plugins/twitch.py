@@ -6,15 +6,17 @@ Commands:
     twitch
 """
 
-import discord
 import logging
 from datetime import datetime, timedelta
 
+import discord
 
-from pcbot import utils, Config
+import bot
 import plugins
+from pcbot import utils, Config
 from plugins.twitchlib import twitch
-client = plugins.client  # type: discord.Client
+
+client = plugins.client  # type: bot.Client
 
 
 twitch_config = Config("twitch-config", data=dict(guilds={}))

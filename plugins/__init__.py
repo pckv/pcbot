@@ -2,9 +2,9 @@
 """
 
 import importlib
-import os
-import logging
 import inspect
+import logging
+import os
 from collections import namedtuple, defaultdict
 from functools import partial
 from traceback import format_exc

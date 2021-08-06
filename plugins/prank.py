@@ -10,9 +10,11 @@ from io import BytesIO
 import discord
 from PIL import Image, ImageDraw, ImageFont
 
-from pcbot import Annotate
+import bot
 import plugins
-client = plugins.client  # type: discord.Client
+from pcbot import Annotate
+
+client = plugins.client  # type: bot.Client
 
 
 prank_path = "plugins/pranklib/"

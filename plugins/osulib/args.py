@@ -5,7 +5,6 @@ from collections import namedtuple
 
 from .api import Mods
 
-
 Argument = namedtuple("Argument", "pattern kwarg_pattern type default")
 mods_names = re.compile(r"\w{2}")
 kwarg = r"{}=(?P<value>\S+)"

@@ -5,13 +5,12 @@ Commands:
 """
 
 import discord
-from datetime import datetime
 
-from pcbot import Annotate, utils
+import bot
 import plugins
+from pcbot import Annotate, utils
 
-
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 
 # Create exchange rate cache and keep track of when we last reset it

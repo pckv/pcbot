@@ -3,6 +3,7 @@
 This script works just like any of the plugins in plugins/
 """
 
+import asyncio
 import importlib
 import inspect
 import logging
@@ -10,12 +11,12 @@ import random
 from datetime import datetime, timedelta
 
 import discord
-import asyncio
 
-from pcbot import utils, Config, Annotate, config
+import bot
 import plugins
+from pcbot import utils, Config, Annotate, config
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 sub = asyncio.subprocess
 lambdas = Config("lambdas", data={})

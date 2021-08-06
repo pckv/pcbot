@@ -26,16 +26,16 @@ import asyncio
 import random
 import re
 from collections import namedtuple, deque
-from traceback import print_exc
 from typing import Dict
 
 import discord
 import youtube_dl
 
+import bot
 import plugins
 from pcbot import utils, Annotate, Config
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 music_channels = Config("music_channels", data=[])
 voice_states = {}  # type: Dict[discord.Guild, VoiceState]

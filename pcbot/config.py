@@ -5,8 +5,8 @@ setting the bot's version and a class for creating configs.
 """
 
 import json
-from os.path import exists
 from os import mkdir, walk, path, rename
+from os.path import exists
 
 import discord
 

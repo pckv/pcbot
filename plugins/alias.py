@@ -5,10 +5,11 @@ alias
 """
 import discord
 
-from pcbot import Config, Annotate, config, utils
+import bot
 import plugins
+from pcbot import Config, Annotate, config, utils
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 alias_desc = \
     "Assign an alias command, where trigger is the command in it's entirety: `{pre}cmd` or `>cmd` or `cmd`.\n" \

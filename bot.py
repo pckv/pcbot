@@ -4,19 +4,19 @@ The main module which contains the Client. This is the module
 that would be executed.
 """
 
-import logging
+import asyncio
 import inspect
+import logging
 import sys
 import traceback
+from argparse import ArgumentParser
 from copy import copy
 from datetime import datetime
-from argparse import ArgumentParser
 
 import discord
-import asyncio
 
-from pcbot import utils, config
 import plugins
+from pcbot import utils, config
 
 # Sets the version to enable accessibility for other modules
 __version__ = config.set_version("PCBOT V3")

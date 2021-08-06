@@ -28,6 +28,7 @@ Commands:
     pp
 """
 
+import asyncio
 import logging
 import re
 import traceback
@@ -36,15 +37,15 @@ from enum import Enum
 from typing import List
 
 import aiohttp
-import asyncio
 import discord
 
+import bot
 import plugins
 from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods, calculate_pp, can_calc_pp, ClosestPPStats
 from plugins.twitchlib import twitch
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 # Configuration data for this plugin, including settings for members and the API key
 osu_config = Config("osu", pretty=True, data=dict(

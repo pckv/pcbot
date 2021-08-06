@@ -5,10 +5,11 @@ from datetime import datetime
 
 import discord
 
-from pcbot import Annotate, utils
+import bot
 import plugins
+from pcbot import Annotate, utils
 
-client = plugins.client
+client = plugins.client  # type: bot.Client
 
 words_path = pathlib.Path("plugins/wordlib/")
 
