@@ -9,10 +9,12 @@ import random
 from re import match
 
 import discord
-from pcbot import utils, Config, Annotate
-import plugins
 
-client = plugins.client  # type: discord.Client
+import bot
+import plugins
+from pcbot import utils, Config, Annotate
+
+client = plugins.client  # type: bot.Client
 
 feature_reqs = Config(filename="feature_requests", data={})
 
@@ -59,9 +61,8 @@ async def dice(message: discord.Message, num_and_sides: dice_roll = (1, 6)):
     for i in range(num):
         rolls.append(random.randint(1, sides))
 
-    await client.say(message, "**{0.display_name}** rolls `[{1}]`".format(message.author, ", ".join(str(r)
-                                                                                                        for r in
-                                                                                                        rolls)))
+    await client.say(message, "**{0.display_name}** rolls `[{1}]`".format(message.author,
+                                                                          ", ".join(str(r)for r in rolls)))
 
 
 @plugins.command()

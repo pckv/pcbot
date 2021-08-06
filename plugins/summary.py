@@ -1,18 +1,19 @@
 """ Plugin for generating markov text, or a summary if you will. """
 
+import asyncio
 import logging
 import random
 import re
 from collections import defaultdict, deque
 from functools import partial
 
-import asyncio
 import discord
 
-from pcbot import utils, Annotate, config, Config
+import bot
 import plugins
+from pcbot import utils, Annotate, config, Config
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 try:
     import markovify

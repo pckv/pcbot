@@ -8,10 +8,12 @@ import re
 from collections import namedtuple
 
 import discord
+
+import bot
 import plugins
 from pcbot import Config
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 blacklist = Config("blacklist", data={"enabled": False, "global": {}, "guild": [], "channel": []}, pretty=True)
 

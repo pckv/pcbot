@@ -14,15 +14,16 @@ Commands:
     suspend
 """
 
+import asyncio
 from collections import defaultdict
 
 import discord
-import asyncio
 
-from pcbot import Config, utils, Annotate
+import bot
 import plugins
+from pcbot import Config, utils, Annotate
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 moderate = Config("moderate", data=defaultdict(dict))
 default_config = {}  # Used by add_setting helper function
@@ -134,7 +135,6 @@ async def mute(message: discord.Message, *members: discord.Member):
 
     # Some members were muted, success!
     if muted_members:
-        await client.say(message, str(*muted_members))
         await client.say(message, "Muted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
@@ -460,9 +460,9 @@ async def on_member_update(before: discord.Member, after: discord.Member):
 
 
 @plugins.event()
-async def on_member_ban(member: discord.Member):
+async def on_member_ban(guild: discord.Guild, member: discord.Member):
     """ Update the changelog with banned members. """
-    changelog_channel = get_changelog_channel(member.guild)
+    changelog_channel = get_changelog_channel(guild)
     if not changelog_channel:
         return
 

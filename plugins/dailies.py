@@ -5,10 +5,11 @@ from datetime import datetime
 
 import discord
 
-from pcbot import Annotate, utils
+import bot
 import plugins
+from pcbot import Annotate, utils
 
-client = plugins.client
+client = plugins.client  # type: bot.Client
 
 words_path = pathlib.Path("plugins/wordlib/")
 
@@ -100,9 +101,10 @@ async def meotey(message: discord.Message, member: discord.Member = Annotate.Sel
         await client.send_message(message.channel, "**Found no such member.**")
         return
     random.seed(seed_for_member(member, date))
+    random_emote = str(random.choice(client.emojis))
     await client.send_message(message.channel, "__**{}** emote of the day__".format(
         "Your" if m == message.author else "{}'s".format(m.display_name)))
-    await client.send_message(message.channel, random.choice(client.emojis))
+    await client.send_message(message.channel, random_emote)
 
 
 @plugins.command()

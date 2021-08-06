@@ -4,16 +4,17 @@ Commands:
     wordsearch
 """
 
-from re import match
-from random import choice
-
-import discord
 import asyncio
-import aiohttp
+from random import choice
+from re import match
 
+import aiohttp
+import discord
+
+import bot
 import plugins
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 wordsearch = []
 wordsearch_words = []

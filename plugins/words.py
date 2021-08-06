@@ -2,10 +2,11 @@ from difflib import get_close_matches
 
 import discord
 
-from pcbot import Annotate
+import bot
 import plugins
+from pcbot import Annotate
 
-client = plugins.client
+client = plugins.client  # type: bot.Client
 
 
 def load_wordlist(filename: str):
@@ -46,4 +47,3 @@ async def synonym(message: discord.Message, phrase: Annotate.CleanContent):
 @plugins.command()
 async def homonym(message: discord.Message, phrase: Annotate.CleanContent):
     await client.say(message, phrase)
-
