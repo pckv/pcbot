@@ -3,10 +3,11 @@ import asyncio
 
 import discord
 
+import bot
 import plugins
 from pcbot import Annotate, Config
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 cfg = Config("brainfuck", data={})  # Keys are names and values are dict with author, code
 max_iterations = 2 ** 17

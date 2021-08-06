@@ -6,10 +6,11 @@ import re
 
 import discord
 
+import bot
 import plugins
 from pcbot import Config
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 db = Config("would-you-rather", data=dict(timeout=10, responses=["**{name}** would **{choice}**!"], questions=[]),
             pretty=True)

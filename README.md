@@ -33,7 +33,7 @@ python -m pip install "discord.py[voice]"
 To install the bot, one can clone the repo:
 
 ```
-git clone https://github.com/pckv/pcbot.git
+git clone --recursive https://github.com/pckv/pcbot.git
 ```
 
 This is the best way to install as the bot is actively in development. 

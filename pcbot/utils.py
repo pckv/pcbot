@@ -6,13 +6,13 @@ command specific functions and helpers.
 
 import re
 import shlex
+from asyncio import subprocess as sub
 from enum import Enum
 from functools import wraps
 from io import BytesIO
 
 import aiohttp
 import discord
-from asyncio import subprocess as sub
 
 member_mention_pattern = re.compile(r"<@!?(?P<id>\d+)>")
 channel_mention_pattern = re.compile(r"<#(?P<id>\d+)>")
@@ -97,8 +97,7 @@ def placeholder(_: str):
 
 async def confirm(message: discord.Message, text: str, timeout: int = 10):
     """ Have the message author confirm their action. """
-    import bot
-    await bot.client.send_message(message.channel,
+    await client.send_message(message.channel,
                                   text + " [{}{}]".format(str(timeout) + "s " if timeout else "", "yes/no"))
     author = message.author
     channel = message.channel
@@ -189,8 +188,7 @@ async def retrieve_page(url: str, head=False, call=None, headers=None, **params)
     :param params: Any additional url parameters.
     :return: The byte-like file OR whatever return value of the attribute set in call.
     """
-    import bot
-    async with aiohttp.ClientSession(loop=bot.client.loop) as session:
+    async with aiohttp.ClientSession(loop=client.loop) as session:
         coro = session.head if head else session.get
 
         async with coro(url, params=params, headers=headers or {}) as response:

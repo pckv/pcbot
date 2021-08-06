@@ -4,16 +4,17 @@ Commands:
     pokedex
 """
 
-import os
+import json
 import logging
-from io import BytesIO
+import os
 from collections import defaultdict
-from operator import itemgetter
 from difflib import get_close_matches
+from io import BytesIO
+from operator import itemgetter
 
 import discord
-import json
 
+import bot
 import plugins
 from pcbot import Config, Annotate, guild_command_prefix, utils
 
@@ -25,7 +26,7 @@ except:
 else:
     resize = True
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 api_path = "plugins/pokedexlib/pokedex.json"
 sprites_path = "plugins/pokedexlib/sprites/"
@@ -385,7 +386,7 @@ async def effect(message: discord.Message, slot_1_or_pokemon: str.lower, slot_2:
 async def scalefactor(message: discord.Message, factor: float = default_scale_factor):
     """ Set the image scaling factor for your guild. If no factor is given, the default is set. /
     **This command requires the `Manage Guild` permission.**"""
-    assert not factor == 0, "If you wish to disable images, remove the `Attach Files` permission from this "
+    assert not factor == 0, "If you wish to disable images, remove the `Attach Files` permission from this bot."
 
     assert factor <= max_scale_factor, "The factor **{}** is too high **(max={})**.".format(factor, max_scale_factor)
     assert min_scale_factor <= factor, "The factor **{}** is too low **(min={})**.".format(factor, min_scale_factor)

@@ -2,9 +2,9 @@
 """
 
 import importlib
-import os
-import logging
 import inspect
+import logging
+import os
 from collections import namedtuple, defaultdict
 from functools import partial
 from traceback import format_exc
@@ -253,7 +253,7 @@ def event(name=None, bot=False, self=False):
                             "event listener call). It was not added to the list of events.")
             return func
 
-        if self and not bot and discord.User.bot:
+        if self and not bot:
             logging.warning("self=True has no effect in event {}. Consider setting bot=True".format(func.__name__))
 
         # Set the bot attribute, which determines whether the function will be triggered by messages from bot accounts
@@ -399,7 +399,7 @@ def is_owner(user: discord.User):
     :param user: discord.User, discord.Member or a str representing the user's ID.
     :raises: TypeError: user is wrong type.
     """
-    if user is not None and user.bot is not True:
+    if hasattr(user, 'id'):
         user = str(user.id)
     elif type(user) is not str:
         raise TypeError("member must be an instance of discord.User or a str representing the user's ID.")

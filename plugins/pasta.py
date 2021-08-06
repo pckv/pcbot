@@ -4,15 +4,17 @@ Commands:
     pasta
 """
 
+import asyncio
 from difflib import get_close_matches
 from random import choice
 
 import discord
-import asyncio
 
-from pcbot import Config, Annotate, convert_to_embed
+import bot
 import plugins
-client = plugins.client  # type: discord.Client
+from pcbot import Config, Annotate, convert_to_embed
+
+client = plugins.client  # type: bot.Client
 
 
 pastas = Config("pastas", data={})

@@ -12,10 +12,11 @@ import random
 import re
 from io import BytesIO
 
-import discord
 import cairosvg
+import discord
 from PIL import Image
 
+import bot
 import plugins
 from pcbot import Annotate, utils
 
@@ -26,7 +27,7 @@ except ImportError:
     imageio = None
 gif_support = imageio is not None
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 emoji_path = "plugins/twemoji12lib/"
 default_size = 1024

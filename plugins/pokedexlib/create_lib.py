@@ -1,9 +1,8 @@
-from operator import itemgetter
+import json
 from collections import defaultdict
+from operator import itemgetter
 
 import csv
-import json
-
 
 pokedex = dict(
     pokemon={},
