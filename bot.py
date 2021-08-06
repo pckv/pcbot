@@ -4,19 +4,19 @@ The main module which contains the Client. This is the module
 that would be executed.
 """
 
-import logging
+import asyncio
 import inspect
+import logging
 import sys
 import traceback
+from argparse import ArgumentParser
 from copy import copy
 from datetime import datetime
-from argparse import ArgumentParser
 
 import discord
-import asyncio
 
-from pcbot import utils, config
 import plugins
+from pcbot import utils, config
 
 # Sets the version to enable accessibility for other modules
 __version__ = config.set_version("PCBOT V3")
@@ -137,8 +137,45 @@ class Client(discord.Client):
         return msg
 
 
+def parse_arguments():
+    """ Parse startup arguments """
+    parser = ArgumentParser(description="Run PCBOT.")
+    parser.add_argument("--version", "-V", help="Return the current version.",
+                        action="version", version=__version__)
+
+    # Setup a login group for handling only token or email, but not both
+    login_group = parser.add_mutually_exclusive_group()
+    login_group.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
+
+    shard_group = parser.add_argument_group(title="Sharding",
+                                            description="Arguments for sharding for bots on 2500+ guilds")
+    shard_group.add_argument("--shard-id", help="Shard id. --shard-total must also be specified when used.", type=int,
+                             default=None)
+    shard_group.add_argument("--shard-total", help="Total number of shards.", type=int, default=None)
+
+    parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
+    parser.add_argument("--log-level", "-l",
+                        help="Use the specified logging level (see the docs on logging for values).",
+                        type=lambda s: getattr(logging, s.upper()), default=logging.INFO, metavar="LEVEL")
+    parser.add_argument("--enable-protocol-logging", "-p", help="Enables logging protocol events. THESE SPAM THE LOG.",
+                        action="store_true")
+
+    parser.add_argument("--log-file", "-o", help="File to log to. Prints to terminal if omitted.")
+    start_args = parser.parse_args()
+    return start_args
+
+
+start_args = parse_arguments()
+
 # Setup our client
-client = Client(intents=discord.Intents.all(), loop=asyncio.ProactorEventLoop() if sys.platform == "win32" else None)
+if start_args.shard_id is not None:
+    if start_args.shard_total is None:
+        raise ValueError("--shard-total must be specified")
+    client = Client(intents=discord.Intents.all(), shard_id=start_args.shard_id, shard_count=start_args.shard_total,
+                    loop=asyncio.ProactorEventLoop() if sys.platform == "win32" else None)
+else:
+    client = Client(intents=discord.Intents.all(), loop=asyncio.ProactorEventLoop() if sys.platform ==
+                                                                                       "win32" else None)
 autosave_interval = 60 * 30
 
 
@@ -513,31 +550,6 @@ async def add_tasks():
 def main():
     """ The main function. Parses command line arguments, sets up logging,
     gets the user's login info, sets up any background task and starts the bot. """
-    # Add all command-line arguments
-    parser = ArgumentParser(description="Run PCBOT.")
-    parser.add_argument("--version", "-V", help="Return the current version.",
-                        action="version", version=__version__)
-
-    # Setup a login group for handling only token or email, but not both
-    login_group = parser.add_mutually_exclusive_group()
-    login_group.add_argument("--token", "-t", help="The token to login with. Prompts if omitted.")
-
-    shard_group = parser.add_argument_group(title="Sharding",
-                                            description="Arguments for sharding for bots on 2500+ guilds")
-    shard_group.add_argument("--shard-id", help="Shard id. --shard-total must also be specified when used.", type=int,
-                             default=None)
-    shard_group.add_argument("--shard-total", help="Total number of shards.", type=int, default=None)
-
-    parser.add_argument("--new-pass", "-n", help="Always prompts for password.", action="store_true")
-    parser.add_argument("--log-level", "-l",
-                        help="Use the specified logging level (see the docs on logging for values).",
-                        type=lambda s: getattr(logging, s.upper()), default=logging.INFO, metavar="LEVEL")
-    parser.add_argument("--enable-protocol-logging", "-p", help="Enables logging protocol events. THESE SPAM THE LOG.",
-                        action="store_true")
-
-    parser.add_argument("--log-file", "-o", help="File to log to. Prints to terminal if omitted.")
-    start_args = parser.parse_args()
-
     # Setup logger with level specified in start_args or logging.INFO
     logging.basicConfig(filename=start_args.log_file, level=start_args.log_level,
                         format="%(levelname)s %(asctime)s [%(module)s / %(name)s]: %(message)s")
@@ -552,9 +564,11 @@ def main():
         name="PCBOT",
         command_prefix=config.default_command_prefix,
         case_sensitive_commands=config.default_case_sensitive_commands,
+        github_repo="pckv/pcbot/",
         display_owner_error_in_chat=False
     ))
     config.name = bot_meta.data["name"]
+    config.github_repo = bot_meta.data["github_repo"]
     config.default_command_prefix = bot_meta.data["command_prefix"]
     config.default_case_sensitive_commands = bot_meta.data["case_sensitive_commands"]
     config.owner_error = bot_meta.data["display_owner_error_in_chat"]
@@ -578,13 +592,7 @@ def main():
     client.loop.create_task(add_tasks())
 
     try:
-        if start_args.shard_id is not None:
-            if start_args.shard_total is None:
-                raise ValueError("--shard-total must be specified")
-
-            client.run(*login, shard_id=start_args.shard_id, shard_count=start_args.shard_total)
-        else:
-            client.run(*login)
+        client.run(*login)
     except discord.errors.LoginFailure as e:
         logging.error(utils.format_exception(e))
 

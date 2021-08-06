@@ -4,16 +4,17 @@ Commands:
     pokedex
 """
 
-import os
+import json
 import logging
-from io import BytesIO
+import os
 from collections import defaultdict
-from operator import itemgetter
 from difflib import get_close_matches
+from io import BytesIO
+from operator import itemgetter
 
 import discord
-import json
 
+import bot
 import plugins
 from pcbot import Config, Annotate, guild_command_prefix, utils
 
@@ -25,7 +26,7 @@ except:
 else:
     resize = True
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 api_path = "plugins/pokedexlib/pokedex.json"
 sprites_path = "plugins/pokedexlib/sprites/"

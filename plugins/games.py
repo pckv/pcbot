@@ -5,17 +5,18 @@ Commands:
     hotpotato
 """
 
+import asyncio
 from datetime import datetime
 from difflib import SequenceMatcher
 from random import randint, choice
 from threading import Timer
 
-import asyncio
 import discord
 
+import bot
 import plugins
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 # List containing all channels playing a game
 started = []

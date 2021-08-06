@@ -2,15 +2,16 @@
 
 Commands:
     resize """
+import logging
 import random
 import re
 from functools import partial
 from io import BytesIO
 
-from PIL import Image, ImageSequence, ImageOps
 import discord
+from PIL import Image, ImageSequence, ImageOps
 
-import logging
+import bot
 import plugins
 from pcbot import utils
 
@@ -28,7 +29,7 @@ try:
 except:
     gif_support = False
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 extension_regex = re.compile(r"image/(?P<ext>\w+)(?:\s|$)")
 mention_regex = re.compile(r"<@!?(?P<id>\d+)>")

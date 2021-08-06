@@ -2,9 +2,9 @@
     https://github.com/Francesco149/oppai-ng
 """
 
+import logging
 import os
 from collections import namedtuple
-import logging
 
 from pcbot import utils
 from . import api

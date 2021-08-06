@@ -28,6 +28,7 @@ Commands:
     pp
 """
 
+import asyncio
 import logging
 import re
 import traceback
@@ -36,15 +37,15 @@ from enum import Enum
 from typing import List
 
 import aiohttp
-import asyncio
 import discord
 
+import bot
 import plugins
 from pcbot import Config, utils, Annotate
 from plugins.osulib import api, Mods, calculate_pp, can_calc_pp, ClosestPPStats
 from plugins.twitchlib import twitch
 
-client = plugins.client  # type: discord.Client
+client = plugins.client  # type: bot.Client
 
 # Configuration data for this plugin, including settings for members and the API key
 osu_config = Config("osu", pretty=True, data=dict(
@@ -890,7 +891,7 @@ async def osu(message: discord.Message, member: discord.Member = Annotate.Self,
     # Stupidly, the API doesn't accept True/False. It only looks for the &darkheaders keyword.
     # The silly trick done here is extracting either the darkheader param or nothing.
     r, g, b = member.color.to_rgb()
-    dark = dict(darkheader=True) if (r * 0.299 + g * 0.587 + b * 0.144) > 186 else {}
+    dark = dict(darkheader="True") if (r * 0.299 + g * 0.587 + b * 0.144) > 186 else {}
 
     # Download and upload the signature
     params = {
