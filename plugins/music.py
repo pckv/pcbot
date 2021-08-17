@@ -60,7 +60,6 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 max_songs_queued = 6  # How many songs each member are allowed in the queue at once
 max_song_length = 10 * 60 * 60  # The maximum song length in seconds
 default_volume = .6
-song_playing = None
 
 # if not discord.opus.is_loaded():
 #    discord.opus.load_opus('libopus-0.x64.dll')
@@ -95,6 +94,7 @@ class VoiceState:
     def __init__(self, voice):
         self.voice = voice
         self._volume = default_volume
+        self.current = None
         self.queue = deque()  # The queue contains items of type Song
         self.skip_votes = set()
 
@@ -121,9 +121,9 @@ class VoiceState:
             if self.voice.is_connected():
                 await disconnect(self.voice.guild)
             return
-        source = self.queue.popleft()
-        source.player.volume = self.volume
-        self.voice.play(source.player,
+        self.current = self.queue.popleft()
+        self.current.player.volume = self.volume
+        self.voice.play(self.current.player,
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), client.loop))
 
     def skip(self):
@@ -133,9 +133,9 @@ class VoiceState:
 
     def format_playing(self):
         if self.voice.is_playing():
-            return format_song(song_playing, url=True)
-        else:
-            return "*Nothing.*"
+            return format_song(self.current, url=True)
+
+        return "*Nothing.*"
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -183,8 +183,8 @@ def client_connected(guild: discord.Guild):
     channel = get_guild_channel(guild)
     if guild.me.voice:
         return guild.me.voice.channel == channel and guild in voice_states
-    else:
-        return False
+
+    return False
 
 
 def assert_connected(member: discord.Member, checkbot=True):
@@ -208,9 +208,9 @@ async def join(message: discord.Message):
         voiceclient = await guild.voice_client.move_to(channel)
         voice_states[guild] = VoiceState(voiceclient)
         return
-    else:
-        voiceclient = await channel.connect()
-        voice_states[guild] = VoiceState(voiceclient)
+
+    voiceclient = await channel.connect()
+    voice_states[guild] = VoiceState(voiceclient)
 
 
 async def disconnect(guild: discord.Guild):
@@ -260,14 +260,13 @@ async def play(message: discord.Message, song: Annotate.Content):
             if name_match:
                 player.title = "".join(name_match.group("name").split(".")[:-1])
 
-    global song_playing
-    song_playing = Song(player=player, requester=message.author, channel=message.channel)
+    song = Song(player=player, requester=message.author, channel=message.channel)
 
     embed = discord.Embed(color=message.author.color)
-    embed.description = "Queued:\n" + format_song(song_playing, url=False)
+    embed.description = "Queued:\n" + format_song(song, url=False)
 
-    await client.send_message(song_playing.channel, embed=embed)
-    state.queue.append(song_playing)
+    await client.send_message(song.channel, embed=embed)
+    state.queue.append(song)
 
     # Start the song when there are none
     if not state.voice.is_playing():
@@ -283,7 +282,7 @@ async def skip(message: discord.Message):
     assert message.author not in state.skip_votes, "**You have already voted to skip this song.**"
 
     # We want to skip immediately when the requester skips their own song.
-    if message.author == song_playing.requester:
+    if message.author == state.current.requester:
         await client.say(message, "Skipped song on behalf of the requester.")
         state.skip()
         return
