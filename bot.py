@@ -63,7 +63,7 @@ class Client(discord.Client):
             if isinstance(arg, discord.User):
                 member = arg
                 break
-            elif isinstance(arg, discord.Message):
+            if isinstance(arg, discord.Message):
                 member = arg.author
                 break
 
@@ -81,16 +81,18 @@ class Client(discord.Client):
                     continue
                 client.loop.create_task(self._handle_event(func, event, *args, **kwargs))
 
-    async def send_message(self, destination, content=None, *args, **kwargs):
-        # Convert content to str, but also log this since it shouldn't happen
+    @staticmethod
+    async def send_message(destination, content=None, *args, **kwargs):
+        """ Override to check if content is str and replace mass user mentions. """
+        # Convert content to str, but also log this sincecontent=None it shouldn't happen
         if content is not None:
-            if type(content) is not str:
+            if not isinstance(content, str):
                 # Log the traceback too when the content is an exception (it was probably meant to be
                 # converted to string) as to make debugging easier
                 tb = ""
                 if isinstance(content, Exception):
                     tb = "\n" + "\n".join(traceback.format_exception(type(content), content, content.__traceback__))
-                logging.warning("type '{}' was passed to client.send_message: {}{}".format(type(content), content, tb))
+                logging.warning("type '%s' was passed to client.send_message: %s%s", type(content), content, tb)
 
                 content = str(content)
 
@@ -126,7 +128,7 @@ class Client(discord.Client):
             return (
                        m.author == author and m.channel == channel and m.content == content
                        if check is not None else True) \
-                   and (True if bot else not discord.Message.author.bot)
+                   and (True if bot else not m.author.bot)
 
         return await super().wait_for("message", check=new_check, timeout=timeout)
 
@@ -161,8 +163,8 @@ def parse_arguments():
                         action="store_true")
 
     parser.add_argument("--log-file", "-o", help="File to log to. Prints to terminal if omitted.")
-    start_args = parser.parse_args()
-    return start_args
+    parsed_args = parser.parse_args()
+    return parsed_args
 
 
 start_args = parse_arguments()
@@ -174,10 +176,9 @@ if start_args.shard_id is not None:
     client = Client(intents=discord.Intents.all(), shard_id=start_args.shard_id, shard_count=start_args.shard_total,
                     loop=asyncio.ProactorEventLoop() if sys.platform == "win32" else None)
 else:
-    client = Client(intents=discord.Intents.all(), loop=asyncio.ProactorEventLoop() if sys.platform ==
-                                                                                       "win32" else None)
+    client = Client(intents=discord.Intents.all(),
+                    loop=asyncio.ProactorEventLoop() if sys.platform == "win32" else None)
 autosave_interval = 60 * 30
-
 
 # Migrate deprecated values to updated values
 config.migrate()
@@ -193,12 +194,10 @@ async def autosave():
 
 def log_message(message: discord.Message, prefix: str = ""):
     """ Logs a command/message. """
-    logging.info("{prefix}@{author}{guild} -> {content}".format(
-        author=message.author,
-        content=message.content.split("\n")[0],
-        guild=" ({})".format(message.guild.name) if not isinstance(message.channel, discord.abc.PrivateChannel) else "",
-        prefix=prefix, )
-    )
+    logging.info("%s@%s%s -> %s", prefix, message.author,
+                 " ({})".format(message.guild.name) if not isinstance(message.channel,
+                                                                      discord.abc.PrivateChannel) else "",
+                 message.content.split("\n")[0])
 
 
 async def execute_command(command: plugins.Command, message: discord.Message, *args, **kwargs):
@@ -223,7 +222,7 @@ def default_self(anno, default, message: discord.Message):
     if default is utils.Annotate.Self:
         if anno is utils.Annotate.Member:
             return message.author
-        elif anno is utils.Annotate.Channel:
+        if anno is utils.Annotate.Channel:
             return message.channel
 
     return default
@@ -233,10 +232,10 @@ def override_annotation(anno):
     """ Returns an annotation of a discord object as an Annotate object. """
     if anno is discord.Member:
         return utils.Annotate.Member
-    elif anno is discord.TextChannel:
+    if anno is discord.TextChannel:
         return utils.Annotate.Channel
-    else:
-        return anno
+
+    return anno
 
 
 async def parse_annotation(param: inspect.Parameter, default, arg: str, index: int, message: discord.Message):
@@ -254,22 +253,24 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
 
         # Valid enum checks
         if isinstance(anno, utils.Annotate):
+            annotate = None
             if anno is utils.Annotate.Content:  # Split and get raw content from this point
-                return content(message.content) or default
+                annotate = content(message.content) or default
             elif anno is utils.Annotate.LowerContent:  # Lowercase of above check
-                return content(message.content).lower() or default
+                annotate = content(message.content).lower() or default
             elif anno is utils.Annotate.CleanContent:  # Split and get clean raw content from this point
-                return content(message.clean_content) or default
+                annotate = content(message.clean_content) or default
             elif anno is utils.Annotate.LowerCleanContent:  # Lowercase of above check
-                return content(message.clean_content).lower() or default
+                annotate = content(message.clean_content).lower() or default
             elif anno is utils.Annotate.Member:  # Checks member names or mentions
-                return utils.find_member(message.guild, arg) or default_self(anno, default, message)
+                annotate = utils.find_member(message.guild, arg) or default_self(anno, default, message)
             elif anno is utils.Annotate.Channel:  # Checks text channel names or mentions
-                return utils.find_channel(message.guild, arg) or default_self(anno, default, message)
+                annotate = utils.find_channel(message.guild, arg) or default_self(anno, default, message)
             elif anno is utils.Annotate.VoiceChannel:  # Checks voice channel names or mentions
-                return utils.find_channel(message.guild, arg, channel_type="voice")
+                annotate = utils.find_channel(message.guild, arg, channel_type="voice")
             elif anno is utils.Annotate.Code:  # Works like Content but extracts code
-                return utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
+                annotate = utils.get_formatted_code(utils.split(message.content, maxsplit=index)[-1]) or default
+            return annotate
 
         try:  # Try running as a method
             if getattr(anno, "allow_spaces", False):
@@ -286,11 +287,11 @@ async def parse_annotation(param: inspect.Parameter, default, arg: str, index: i
                 result = await result
 
             return result if result is not None else default
-        except TypeError:
+        except TypeError as e:
             raise TypeError(
-                "Command parameter annotation must be either pcbot.utils.Annotate, a callable or a coroutine")
+                "Command parameter annotation must be either pcbot.utils.Annotate, a callable or a coroutine") from e
         except AssertionError as e:  # raise the error in order to catch it at a lower level
-            raise AssertionError(e)
+            raise AssertionError from e
         except:  # On error, eg when annotation is int and given argument is str
             return None
 
@@ -333,14 +334,14 @@ async def parse_command_args(command: plugins.Command, cmd_args: list, message: 
                 elif param.kind is param.KEYWORD_ONLY:
                     kwargs[param.name] = default_self(anno, param.default, message)
 
-                if type(command.pos_check) is not bool:
+                if not isinstance(command.pos_check, bool):
                     index -= 1
 
                 continue  # Move onwards once we find a default
-            else:
-                if num_pos_args == 0:
-                    index -= 1
-                break  # We're done when there is no default argument and none passed
+
+            if num_pos_args == 0:
+                index -= 1
+            break  # We're done when there is no default argument and none passed
 
         if param.kind is param.POSITIONAL_OR_KEYWORD:  # Parse the regular argument
             tmp_arg = await parse_annotation(param, param.default, cmd_arg, index + start_index, message)
@@ -353,14 +354,14 @@ async def parse_command_args(command: plugins.Command, cmd_args: list, message: 
             # We want to override the default, as this is often handled by python itself.
             # It also seems to break some flexibility when parsing commands with positional arguments
             # followed by a keyword argument with it's default being anything but None.
-            default = param.default if type(param.default) is utils.Annotate else None
+            default = param.default if isinstance(param.default, utils.Annotate) else None
             tmp_arg = await parse_annotation(param, default, cmd_arg, index + start_index, message)
 
             if tmp_arg is not None:
                 kwargs[param.name] = tmp_arg
                 num_given_kwargs += 1
             else:  # It didn't work, so let's try parsing it as an optional argument
-                if type(command.pos_check) is bool and pos_param:
+                if isinstance(command.pos_check, bool) and pos_param:
                     tmp_arg = await parse_annotation(pos_param, None, cmd_arg, index + start_index, message)
 
                     if tmp_arg is not None:
@@ -370,7 +371,7 @@ async def parse_command_args(command: plugins.Command, cmd_args: list, message: 
 
                 return args, kwargs, False  # Force quit
         elif param.kind is param.VAR_POSITIONAL:  # Parse all positional arguments
-            if num_kwargs == 0 or type(command.pos_check) is not bool:
+            if num_kwargs == 0 or not isinstance(command.pos_check, bool):
                 end_search = None
             else:
                 end_search = -num_kwargs
@@ -378,7 +379,7 @@ async def parse_command_args(command: plugins.Command, cmd_args: list, message: 
 
             for cmd_arg in cmd_args[index:end_search]:
                 # Do not register the positional argument if it does not meet the optional criteria
-                if type(command.pos_check) is not bool:
+                if not isinstance(command.pos_check, bool):
                     if not command.pos_check(cmd_arg):
                         break
 
@@ -444,7 +445,7 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
                 if len(cmd_args) == 1:
                     send_help = True
                 await client.say(message, plugins.format_help(command, message.guild,
-                                                              no_subcommand=False if send_help else True))
+                                                              no_subcommand=not send_help))
 
         command = None
 
@@ -453,9 +454,8 @@ async def parse_command(command: plugins.Command, cmd_args: list, message: disco
 
 @client.event
 async def on_ready():
-    logging.info("Logged in as\n"
-                 "{0.user} ({0.user.id})\n".format(client) +
-                 "-" * len(str(client.user.id)))
+    """ Log user and user ID after bot has logged in. """
+    logging.info("Logged in as\n{%s} ({%s})\n%s", client.user, client.user.id, "-" * len(str(client.user.id)))
 
 
 @client.event
