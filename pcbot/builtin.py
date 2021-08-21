@@ -106,12 +106,12 @@ async def stop(message: discord.Message):
 @plugins.command(owner=True)
 async def update(message: discord.Message):
     """ Update the bot by running `git pull`. """
-    await client.say(message, "```diff\n{}```".format(await utils.subprocess("git", "pull")))
+    await client.say(message, "```diff\n{}```".format(await utils.subprocess("git", "pull", no_stderr=True)))
 
 
 @update.command(owner=True)
 async def reset(message: discord.Message):
-    """ **RESET THE HEAD** before updating. This removes all local changes done to the repository 
+    """ **RESET THE HEAD** before updating. This removes all local changes done to the repository
     (excluding the .gitignore files).
     """
     confirmed = await utils.confirm(message, "Are you sure you want to remove all local changes?")
