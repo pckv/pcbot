@@ -185,10 +185,9 @@ async def suspend(message: discord.Message, channel: discord.TextChannel = Annot
     assert message.guild.me.permissions_in(message.channel).manage_roles, \
         "I need `Manage Roles` permission to use this command."
     send = channel.overwrites_for(message.guild.default_role).send_messages
-    print(send, False if send is None else not send)
     overwrite = discord.PermissionOverwrite(send_messages=False if send is None else not send)
     bot_overwrite = discord.PermissionOverwrite(send_messages=True)
-    if not channel.overwrites_for(message.guild.me) == discord.PermissionOverwrite(send_messages=True):
+    if channel.overwrites_for(message.guild.me.top_role).send_messages is None:
         await channel.set_permissions(message.guild.me.top_role, overwrite=bot_overwrite)
     await channel.set_permissions(message.guild.default_role, overwrite=overwrite)
 
