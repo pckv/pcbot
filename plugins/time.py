@@ -49,7 +49,7 @@ async def init_dt(message: discord.Message, time: str, timezone: str):
     timezone = reverse_gmt(timezone)
 
     try:
-        dt = pendulum.parse(time, tz=timezone, strict=False)
+        dt = pendulum.parse(time, tz=timezone)
     except ValueError:
         await client.say(message, "Time format not recognized.")
         return None, None
