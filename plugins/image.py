@@ -2,7 +2,6 @@
 
 Commands:
     resize """
-import logging
 import random
 import re
 from functools import partial
@@ -172,7 +171,6 @@ async def image(message: discord.Message, url_or_emoji: str):
         headers = await utils.retrieve_headers(url_or_emoji)
     except ValueError:  # Not a valid url, let's see if it's a mention
         match = mention_regex.match(url_or_emoji)
-        logging.info(url_or_emoji)
         if match:
             member = message.guild.get_member(int(match.group("id")))
             avatar_headers = await utils.retrieve_headers(str(member.avatar_url_as(static_format="png")))
