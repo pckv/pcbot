@@ -117,6 +117,28 @@ async def countdown(message: discord.Message, tag: Annotate.Content):
     await client.say(message, format_when(dt, timezone_name))
 
 
+@plugins.command()
+async def created(message: discord.Message, member: discord.Member = Annotate.Self):
+    """ When your or the selected member's discord account was created. """
+    member_created = pendulum.instance(member.created_at)
+    channel = message.channel
+    embed = discord.Embed(description=f'**Created {member_created.diff_for_humans()}**', timestamp=member.created_at,
+                          color=member.color)
+    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
+    await client.send_message(channel, embed=embed)
+
+
+@plugins.command()
+async def joined(message: discord.Message, member: discord.Member = Annotate.Self):
+    """ When your or the selected member joined the guild. """
+    member_joined = pendulum.instance(member.joined_at)
+    channel = message.channel
+    embed = discord.Embed(description=f'**Joined {member_joined.diff_for_humans()}**', timestamp=member.joined_at,
+                          color=member.color)
+    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
+    await client.send_message(channel, embed=embed)
+
+
 @countdown.command(aliases="add", pos_check=True)
 async def create(message: discord.Message, tag: tag_arg, *time, timezone: tz_arg = "UTC"):
     """ Create a countdown with the specified tag, using the same format as `{pre}when`. """

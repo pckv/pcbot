@@ -60,9 +60,27 @@ async def help_(message: discord.Message, command: str.lower = None, *args):
         commands = ", ".join(sorted(commands))
 
         m = "**Commands**: ```{0}```Use `{1}help <command>`, `{1}<command> {2}` or " \
-            "`{1}<command> {3}` for command specific help.".format(
-            commands, command_prefix, *config.help_arg)
+            "`{1}<command> {3}` for command specific help.".format(commands, command_prefix, *config.help_arg)
         await client.say(message, m)
+
+
+@plugins.command()
+async def rate(message: discord.Message, to_rate: str = None):
+    """ Rate the member or word from 1 to 10 """
+    if not to_rate:
+        member = message.author
+    else:
+        member = utils.find_member(guild=message.guild, name=to_rate)
+    if member:
+        random.seed(str(member.id))
+        num = random.randint(0, 10)
+        random.seed()
+        await client.say(message, "I rate **{0}** a **{1}/10**".format(member.display_name, num))
+    else:
+        random.seed(to_rate)
+        num = random.randint(0, 10)
+        random.seed()
+        await client.say(message, "I rate **{0}** a **{1}/10**".format(to_rate, num))
 
 
 @plugins.command(hidden=True)
@@ -74,14 +92,12 @@ async def setowner(message: discord.Message):
     assert not plugins.owner_cfg.data, "An owner is already set."
 
     owner_code = str(random.randint(100, 999))
-    logging.critical("Owner code for assignment: {}".format(owner_code))
+    logging.critical("Owner code for assignment: %s", owner_code)
 
-    await client.say(message,
-                         "A code has been printed in the console for you to repeat within 60 seconds.")
+    await client.say(message, "A code has been printed in the console for you to repeat within 60 seconds.")
 
     def check(m):
         return m.content == owner_code and m.channel == message.channel
-
 
     try:
         user_code = await client.wait_for("message", timeout=60, check=check)
@@ -145,7 +161,7 @@ async def do_as(message: discord.Message, member: discord.Member, command: Annot
 
 async def send_result(channel: discord.TextChannel, result, time_elapsed: timedelta):
     """ Sends eval results. """
-    if type(result) is discord.Embed:
+    if isinstance(result, discord.Embed):
         await client.send_message(channel, embed=result)
     else:
         embed = discord.Embed(color=channel.guild.me.color, description="```py\n{}```".format(result))
@@ -265,8 +281,7 @@ async def lambda_(message: discord.Message):
     where the default argument is what to return when the argument does not exist.
     **Owner command unless no argument is specified.**
     """
-    await client.say(message,
-                         "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
+    await client.say(message, "**Lambdas:** ```\n" "{}```".format(", ".join(sorted(lambdas.data.keys()))))
 
 
 @lambda_.command(aliases="a", owner=True)
@@ -329,10 +344,10 @@ def import_module(module: str, attr: str = None):
 
     try:
         imported = importlib.import_module(module)
-    except ImportError:
+    except ImportError as error:
         e = "Unable to import module {}.".format(module)
         logging.error(e)
-        raise ImportError(e)
+        raise ImportError from error
     else:
         if attr and not attr.startswith(":"):
             if hasattr(imported, attr):
@@ -424,17 +439,17 @@ async def bot_hub(message: discord.Message):
     app_info = await client.application_info()
 
     await client.say(message, "**{ver}** - **{name}** ```elm\n"
-                                  "Owner   : {owner}\n"
-                                  "Up      : {up} UTC\n"
-                                  "Guilds  : {guilds}```"
-                                  "{desc}".format(
-        ver=config.version, name=app_info.name,
-        repo="https://github.com/{}".format(config.github_repo),
-        owner=str(app_info.owner),
-        up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"),
-        guilds=len(client.guilds),
-        desc=app_info.description.replace("\\n", "\n")
-    ))
+                              "Owner   : {owner}\n"
+                              "Up      : {up} UTC\n"
+                              "Guilds  : {guilds}```"
+                              "{desc}".format(
+                               ver=config.version, name=app_info.name,
+                               owner=str(app_info.owner),
+                               up=client.time_started.strftime("%d-%m-%Y %H:%M:%S"),
+                               guilds=len(client.guilds),
+                               desc=app_info.description.replace("\\n", "\n")
+                              )
+                     )
 
 
 @bot_hub.command(name="changelog")
@@ -509,8 +524,8 @@ async def on_message(message: discord.Message):
         def arg(i, default=0):
             if len(args) > i:
                 return args[i]
-            else:
-                return default
+
+            return default
 
         code_globals.update(dict(arg=arg, args=args, message=message, client=client,
                                  author=message.author, guild=message.guild, channel=message.channel))
@@ -525,20 +540,20 @@ async def on_message(message: discord.Message):
                 await client.say(message, "```" + utils.format_syntax_error(e) + "```")
             else:
                 logging.warning("An exception occurred when parsing lambda command:"
-                                "\n{}".format(utils.format_syntax_error(e)))
+                                "\n%s", utils.format_syntax_error(e))
             return True
 
         # Execute the command
         try:
             await eval("lambda_session()", code_globals)
         except AssertionError as e:  # Send assertion errors to the core module
-            raise AssertionError(e)
+            raise AssertionError from e
         except Exception as e:
             if plugins.is_owner(message.author):
                 await client.say(message, "```" + utils.format_exception(e) + "```")
             else:
                 logging.warning("An exception occurred when parsing lambda command:"
-                                "\n{}".format(utils.format_exception(e)))
+                                "\n%s", utils.format_exception(e))
 
         return True
 
