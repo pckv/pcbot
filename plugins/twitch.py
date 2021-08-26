@@ -86,7 +86,8 @@ def started_streaming(before: discord.Member, after: discord.Member):
 
     # The member is streaming currently
     for activity in after.activities:
-        if activity and (activity.type == discord.ActivityType.streaming and activity.platform.lower() == "twitch"):
+        if activity and activity.type == discord.ActivityType.streaming and hasattr(activity, "platform") \
+                and activity.platform.lower() == "twitch":
             currently_streaming = True
 
     if not currently_streaming:
@@ -94,7 +95,8 @@ def started_streaming(before: discord.Member, after: discord.Member):
 
     # Check if they were also streaming before
     for activity in before.activities:
-        if activity and (activity.type == discord.ActivityType.streaming and activity.platform.lower() == "twitch"):
+        if activity and activity.type == discord.ActivityType.streaming and hasattr(activity, "platform") \
+                and activity.platform.lower() == "twitch":
             streamed_before = True
 
     if streamed_before:
