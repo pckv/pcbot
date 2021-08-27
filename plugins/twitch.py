@@ -91,7 +91,7 @@ def started_streaming(before: discord.Member, after: discord.Member):
 
 
 @plugins.event()
-async def on_presemce_update(before: discord.Member, after: discord.Member):
+async def on_presence_update(before: discord.Member, after: discord.Member):
     """ Notify given channels whenever a member goes live. """
     # Return if the guild doesn't have any notify channels setup
     if not twitch_config.data["guilds"].get(str(after.guild.id), {}).get("notify_channels", False):
@@ -105,7 +105,7 @@ async def on_presemce_update(before: discord.Member, after: discord.Member):
     try:
         twitch_id = await twitch.get_id(after)
     except twitch.RequestFailed as e:  # Could not find the streamer due to a request error
-        logging.info("Could not get twitch id of {}: {}".format(after, e))
+        logging.info("Could not get twitch id of %s: %s", after, e)
         return
     except twitch.UserNotResolved as e:  # Ignore them if the id was not found.
         logging.debug(e)
@@ -115,7 +115,7 @@ async def on_presemce_update(before: discord.Member, after: discord.Member):
     try:
         stream_response = await twitch.request("streams/" + twitch_id)
     except twitch.RequestFailed as e:
-        logging.info("Could not get twitch stream of {} (id: {}): {}".format(after, twitch_id, e))
+        logging.info("Could not get twitch stream of %s (id: %s): %s", after, twitch_id, e)
         return
 
     # If the member isn't actually streaming, return (should not be the case as discord uses the twitch api too)
