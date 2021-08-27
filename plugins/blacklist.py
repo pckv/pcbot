@@ -57,12 +57,12 @@ def update_data(data: dict, section: str, object_id: str = None):
     :param object_id: The id of the channel or guild the message was sent from.
     """
 
-    for guild_data in ([blacklist.data["global"]] if section == "global" else blacklist.data[section]):
+    for guild_data in [blacklist.data["global"]] if section == "global" else blacklist.data[section]:
         # Since this could also be the global config, only check for id when it's not
         if object_id:
             # The guild id is required, skip if not found and issue an error
             if "id" not in guild_data:
-                logging.error("Missing id key under the \"{}\" section of blacklist.json".format(section))
+                logging.error("Missing id key under the \"%s\" section of blacklist.json", section)
                 continue
 
             # If the guild is found, append all valid keys
@@ -75,7 +75,7 @@ def update_data(data: dict, section: str, object_id: str = None):
         for key, local_data in guild_data.items():
             # Remove invalid keys with a warning (unless they're one of the special field names)
             if key not in blacklist_config_fieldnames:
-                logging.warning("Invalid key name in blacklist.json: " + key)
+                logging.warning("Invalid key name in blacklist.json: %s", key)
                 continue
 
             # Always reset override after each cycle
@@ -143,7 +143,7 @@ async def delete_message(message: discord.Message, response: str, pattern: str):
 async def on_message(message: discord.Message):
     """ Handle any message accordingly to the data in the blacklist config. """
     # We don't care about private channels
-    if isinstance(message.channel, discord.DMChannel) or isinstance(message.channel, discord.GroupChannel):
+    if isinstance(message.channel, (discord.DMChannel, discord.GroupChannel)):
         return
 
     channel_config = complete_config(message)
