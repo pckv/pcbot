@@ -99,3 +99,4 @@ async def on_message(message: discord.Message):
             asyncio.ensure_future(client.delete_message(message))
         embed, content = await generate_pasta(message.content[1:].lower())
         await client.send_message(message.channel, content, embed=embed)
+        return True
