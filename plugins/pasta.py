@@ -88,7 +88,7 @@ async def remove(message: discord.Message, name: Annotate.LowerContent):
     copypasta = pastas.data.pop(parsed_name)
     await pastas.asyncsave()
     await client.say(message, "Pasta `{}` removed. In case this was a mistake, "
-                                   "here's the pasta: ```{}```".format(name, copypasta))
+                              "here's the pasta: ```{}```".format(name, copypasta))
 
 
 @plugins.event()
@@ -97,11 +97,5 @@ async def on_message(message: discord.Message):
     if message.content.startswith("|") and not message.content.startswith("||"):
         if message.channel.permissions_for(message.guild.me).manage_messages:
             asyncio.ensure_future(client.delete_message(message))
-        try:
-            embed, content = await generate_pasta(message.content[1:].lower())
-        except AssertionError as e:
-            await client.say(message, e)
-        else:
-            await client.send_message(message.channel, content, embed=embed)
-        finally:
-            return True
+        embed, content = await generate_pasta(message.content[1:].lower())
+        await client.send_message(message.channel, content, embed=embed)
