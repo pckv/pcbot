@@ -71,7 +71,7 @@ def _horoscope(member: discord.Member, date=None, title: str = None):
     donts = ["\u2022 " + make_agenda().capitalize() for _ in range(3)]
 
     embed = discord.Embed(color=member.color, title=title or date.strftime("%A"))
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
+    embed.set_author(name=member.display_name, icon_url=member.display_avatar.url)
     embed.add_field(name="Do", value="\n".join(dos))
     embed.add_field(name="Don't", value="\n".join(donts))
     return embed

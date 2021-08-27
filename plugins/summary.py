@@ -277,7 +277,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
                 bots = False if value == "+nobot" else True if value == "+bot" else bots
 
         # Assign defaults and number of summaries limit
-        is_privileged = message.author.permissions_in(message.channel).manage_messages
+        is_privileged = message.channel.permissions_for(message.author).manage_messages
 
         if num is None or num < 1:
             num = 1
@@ -291,7 +291,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
 
         # Check channel permissions after the given channel has been decided
         assert channel.permissions_for(message.guild.me).read_message_history, "**I can't see this channel.**"
-        assert not tts or message.author.permissions_in(message.channel).send_tts_messages, \
+        assert not tts or message.channel.permissions_for(message.author).send_tts_messages, \
             "**You don't have permissions to send tts messages in this channel.**"
 
         if str(channel.id) in summary_options.data["persistent_channels"]:

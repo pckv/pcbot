@@ -99,7 +99,7 @@ async def on_message(message: discord.Message):
 
             if execute:
                 if command.get("delete_message", False):
-                    if message.guild.me.permissions_in(message.channel).manage_messages:
+                    if message.channel.permissions_for(message.guild.me).manage_messages:
                         client.loop.create_task(client.delete_message(message))
 
                 text = command["text"]

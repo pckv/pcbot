@@ -66,11 +66,30 @@ async def dice(message: discord.Message, num_and_sides: dice_roll = (1, 6)):
 
 
 @plugins.command()
+async def rate(message: discord.Message, to_rate: str = None):
+    """ Rate the member or word from 1 to 10 """
+    if not to_rate:
+        member = message.author
+    else:
+        member = utils.find_member(guild=message.guild, name=to_rate)
+    if member:
+        random.seed(str(member.id))
+        num = random.randint(0, 10)
+        random.seed()
+        await client.say(message, "I rate **{0}** a **{1}/10**".format(member.display_name, num))
+    else:
+        random.seed(to_rate)
+        num = random.randint(0, 10)
+        random.seed()
+        await client.say(message, "I rate **{0}** a **{1}/10**".format(to_rate, num))
+
+
+@plugins.command()
 async def avatar(message: discord.Message, member: discord.Member = Annotate.Self):
     """ Display your or another member's avatar. """
     e = discord.Embed(color=member.color)
-    e = e.set_image(url=member.avatar_url_as(static_format="png"))
-    e.set_author(name=member.display_name, icon_url=member.avatar_url)
+    e = e.set_image(url=member.display_avatar.url)
+    e.set_author(name=member.display_name, icon_url=member.display_avatar.url)
     await client.send_message(message.channel, embed=e)
 
 

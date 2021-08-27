@@ -473,7 +473,7 @@ async def on_message(message: discord.Message):
     message = copy(message)
 
     # We don't care about channels we can't write in as the bot usually sends feedback
-    if message.guild and message.guild.owner and not message.guild.me.permissions_in(message.channel).send_messages:
+    if message.guild and message.guild.owner and not message.channel.permissions_for(message.guild.me).send_messages:
         return
 
     # Don't accept commands from bot accounts

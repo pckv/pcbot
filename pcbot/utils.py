@@ -123,7 +123,7 @@ def permission(*perms: str):
     def decorator(func):
         @wraps(func)
         async def wrapped(message: discord.Message, *args, **kwargs):
-            member_perms = message.author.permissions_in(message.channel)
+            member_perms = message.channel.permissions_for(message.author)
 
             if all(getattr(member_perms, perm, False) for perm in perms):
                 await func(message, *args, **kwargs)
@@ -488,7 +488,7 @@ async def convert_to_embed(text: str, *, author: discord.Member = None, **kwargs
 
     # Set the author if given
     if author:
-        embed.set_author(name=author.display_name, icon_url=author.avatar_url, url=url)
+        embed.set_author(name=author.display_name, icon_url=author.display_avatar.url, url=url)
 
     return embed
 

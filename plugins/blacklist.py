@@ -143,7 +143,7 @@ async def delete_message(message: discord.Message, response: str, pattern: str):
 async def on_message(message: discord.Message):
     """ Handle any message accordingly to the data in the blacklist config. """
     # We don't care about private channels
-    if isinstance(message.channel, discord.abc.PrivateChannel):
+    if isinstance(message.channel, discord.DMChannel) or isinstance(message.channel, discord.GroupChannel):
         return
 
     channel_config = complete_config(message)

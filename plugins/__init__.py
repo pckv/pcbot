@@ -415,7 +415,7 @@ def has_permissions(cmd: Command, author: discord.Member, channel: discord.TextC
     if not cmd.permissions:
         return True
 
-    member_perms = author.permissions_in(channel)
+    member_perms = channel.permissions_for(author)
     if all(getattr(member_perms, perm, False) for perm in cmd.permissions):
         return True
 

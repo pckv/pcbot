@@ -124,7 +124,7 @@ async def created(message: discord.Message, member: discord.Member = Annotate.Se
     channel = message.channel
     embed = discord.Embed(description=f'**Created {member_created.diff_for_humans()}**', timestamp=member.created_at,
                           color=member.color)
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
+    embed.set_author(name=member.display_name, icon_url=member.display_avatar.url)
     await client.send_message(channel, embed=embed)
 
 
@@ -135,7 +135,7 @@ async def joined(message: discord.Message, member: discord.Member = Annotate.Sel
     channel = message.channel
     embed = discord.Embed(description=f'**Joined {member_joined.diff_for_humans()}**', timestamp=member.joined_at,
                           color=member.color)
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
+    embed.set_author(name=member.display_name, icon_url=member.display_avatar.url)
     await client.send_message(channel, embed=embed)
 
 

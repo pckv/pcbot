@@ -64,7 +64,7 @@ def make_twitch_embed(member: discord.Member, response: dict):
     """
     e = discord.Embed(title="Playing " + response["stream"]["game"], url=member.activity.url,
                       description=member.activity.name, color=member.color)
-    e.set_author(name=member.display_name, url=member.activity.url, icon_url=member.avatar_url)
+    e.set_author(name=member.display_name, url=member.activity.url, icon_url=member.display_avatar.url)
     e.set_thumbnail(url=response["stream"]["preview"]["small"] + "?date=" + datetime.now().ctime().replace(" ", "%20"))
     return e
 
@@ -91,7 +91,7 @@ def started_streaming(before: discord.Member, after: discord.Member):
 
 
 @plugins.event()
-async def on_member_update(before: discord.Member, after: discord.Member):
+async def on_presemce_update(before: discord.Member, after: discord.Member):
     """ Notify given channels whenever a member goes live. """
     # Return if the guild doesn't have any notify channels setup
     if not twitch_config.data["guilds"].get(str(after.guild.id), {}).get("notify_channels", False):

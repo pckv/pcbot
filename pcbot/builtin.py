@@ -64,25 +64,6 @@ async def help_(message: discord.Message, command: str.lower = None, *args):
         await client.say(message, m)
 
 
-@plugins.command()
-async def rate(message: discord.Message, to_rate: str = None):
-    """ Rate the member or word from 1 to 10 """
-    if not to_rate:
-        member = message.author
-    else:
-        member = utils.find_member(guild=message.guild, name=to_rate)
-    if member:
-        random.seed(str(member.id))
-        num = random.randint(0, 10)
-        random.seed()
-        await client.say(message, "I rate **{0}** a **{1}/10**".format(member.display_name, num))
-    else:
-        random.seed(to_rate)
-        num = random.randint(0, 10)
-        random.seed()
-        await client.say(message, "I rate **{0}** a **{1}/10**".format(to_rate, num))
-
-
 @plugins.command(hidden=True)
 async def setowner(message: discord.Message):
     """ Set the bot owner. Only works in private messages. """

@@ -95,7 +95,7 @@ async def manage_mute(message: discord.Message, *members: discord.Member, mute=N
     :param mute: either member.add_roles or member.remove_roles
     :return: list of muted/unmuted members or None """
     # Manage Roles is required to add or remove the Muted role
-    assert message.guild.me.permissions_in(message.channel).manage_roles, \
+    assert message.channel.permissions_for(message.guild.me).manage_roles, \
         "I need `Manage Roles` permission to use this command."
 
     muted_role = discord.utils.get(message.guild.roles, name="Muted")
@@ -182,7 +182,7 @@ async def timeout(message: discord.Message, member: discord.Member, minutes: flo
 async def suspend(message: discord.Message, channel: discord.TextChannel = Annotate.Self):
     """ Suspends a channel by removing send permission for the guild's default role.
     This function acts like a toggle. """
-    assert message.guild.me.permissions_in(message.channel).manage_roles, \
+    assert message.channel.permissions_for(message.guild.me).manage_roles, \
         "I need `Manage Roles` permission to use this command."
     send = channel.overwrites_for(message.guild.default_role).send_messages
     overwrite = discord.PermissionOverwrite(send_messages=False if send is None else not send)
@@ -260,7 +260,7 @@ async def check_nsfw(message: discord.Message):
     # Check if message includes keyword nsfw and a link
     msg = message.content.lower()
     if "nsfw" in msg and ("http://" in msg or "https://" in msg):
-        if message.guild.me.permissions_in(message.channel).manage_messages:
+        if message.channel.permissions_for(message.guild.me).manage_messages:
             await client.delete_message(message)
 
         nsfw_channel = discord.utils.find(lambda c: "nsfw" in c.name, message.guild.channels)

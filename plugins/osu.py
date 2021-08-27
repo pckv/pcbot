@@ -918,7 +918,7 @@ async def osu(message: discord.Message, member: discord.Member = Annotate.Self,
         }
         signature = await utils.retrieve_page("https://sig.ripple.moe/sig.php", **params, **dark)
     embed = discord.Embed(color=member.color)
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(str(member.id)))
+    embed.set_author(name=member.display_name, icon_url=member.display_avatar.url, url=get_user_url(str(member.id)))
     embed.set_image(url=signature.url)
     await client.send_message(message.channel, embed=embed)
 
@@ -1033,7 +1033,7 @@ async def info(message: discord.Message, member: discord.Member = Annotate.Self)
     update_mode = get_update_mode(str(member.id))
 
     e = discord.Embed(color=member.color)
-    e.set_author(name=member.display_name, icon_url=member.avatar_url, url=host + "u/" + user_id)
+    e.set_author(name=member.display_name, icon_url=member.display_avatar.url, url=host + "u/" + user_id)
     e.add_field(name="Game Mode", value=mode.name)
     e.add_field(name="Notification Mode", value=update_mode.name)
     e.add_field(name="Playing osu!", value="YES" if str(member.id) in osu_tracking.keys() else "NO")
@@ -1125,7 +1125,7 @@ async def create_score_embed_with_pp(member: discord.Member, score, beatmap, mod
     score["pp"] = round(score_pp.pp, 2)
 
     embed = get_formatted_score_embed(member, score, await format_new_score(mode, score, beatmap), potential_pp)
-    embed.set_author(name=member.display_name, icon_url=member.avatar_url, url=get_user_url(str(member.id)))
+    embed.set_author(name=member.display_name, icon_url=member.display_avatar.url, url=get_user_url(str(member.id)))
     return embed
 
 

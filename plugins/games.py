@@ -64,7 +64,7 @@ class Game:
                 self.participants.append(reply.author)
 
                 # Remove the message if bot has permissions
-                if self.member.permissions_in(self.channel).manage_messages:
+                if self.channel.permissions_for(self.member).manage_messages:
                     asyncio.ensure_future(client.delete_message(reply))
             else:
                 # At this point we got no reply in time and thus, gathering participants failed
@@ -195,7 +195,7 @@ class HotPotato(Game):
             if reply:
                 member = reply.mentions[0]
                 pass_to = []
-                if self.member.permissions_in(self.channel).manage_messages:
+                if self.channel.permissions_for(self.member).manage_messages:
                     asyncio.ensure_future(client.delete_message(reply))
             elif self.time_remaining == notify:
                 asyncio.ensure_future(client.send_message(self.channel, ":bomb: :fire: **IT'S GONNA BLOW!**"))
