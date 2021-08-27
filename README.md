@@ -4,7 +4,7 @@
 
 WIP discord bot using [discord.py](https://github.com/Rapptz/discord.py).
 
-**PCBOT is only supported by python version 3.6.0 and newer.**
+**PCBOT is only supported by python version 3.8.0 and newer.**
 
 ## BotéMon
 **For those who have arrived from BotéMon and wish to contribute/have 
@@ -17,11 +17,11 @@ Currently, BotéMon is the only version of PCBOT I host for public use.
 
 ## Installing
 Before installing the bot, you must make sure you're running python 
-3.6.0+
+3.8.0+
 
 ```
 $ python -V
-Python 3.6.0
+Python 3.8.0
 ```
 
 The next step is installing [discord.py](https://github.com/Rapptz/discord.py) with voice support:
