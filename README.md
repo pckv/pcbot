@@ -24,10 +24,16 @@ $ python -V
 Python 3.8.0
 ```
 
-The next step is installing [discord.py](https://github.com/Rapptz/discord.py) with voice support:
+The next step is installing [discord.py](https://github.com/Rapptz/discord.py):
 
 ```
-python -m pip install "discord.py[voice]"
+pip install -U git+https://github.com/Rapptz/discord.py  
+```
+
+To get voice support, you can optionally install PyNaCl:
+
+```
+pip install -U PyNaCl
 ```
 
 To install the bot, one can clone the repo:
