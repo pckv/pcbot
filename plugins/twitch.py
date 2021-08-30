@@ -123,6 +123,9 @@ async def on_member_update(before: discord.Member, after: discord.Member):
 
     user = client.get_user(after.id)
 
+    if not user:
+        return
+
     for guild in user.mutual_guilds:
         # Continue with next iteration if the guild doesn't have any notify channels setup
         if not twitch_config.data["guilds"].get(str(guild.id), {}).get("notify_channels", False):
