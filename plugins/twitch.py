@@ -121,12 +121,10 @@ async def on_member_update(before: discord.Member, after: discord.Member):
     if not started_streaming(before, after):
         return
 
-    user = client.get_user(after.id)
-
-    if not user:
+    if not after.mutual_guilds:
         return
 
-    for guild in user.mutual_guilds:
+    for guild in after.mutual_guilds:
         # Continue with next iteration if the guild doesn't have any notify channels setup
         if not twitch_config.data["guilds"].get(str(guild.id), {}).get("notify_channels", False):
             continue
