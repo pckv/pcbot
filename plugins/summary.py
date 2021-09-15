@@ -104,10 +104,10 @@ def random_with_bias(messages: list, word: str):
 
     if not last_word_messages:
         return random.choice(non_last_word_messages)
-    elif not non_last_word_messages:
+    if not non_last_word_messages:
         return random.choice(last_word_messages)
-    else:
-        return random.choice(last_word_messages if random.randint(0, 5) == 0 else non_last_word_messages)
+
+    return random.choice(last_word_messages if random.randint(0, 5) == 0 else non_last_word_messages)
 
 
 def markov_messages(messages, coherent=False):
@@ -116,7 +116,7 @@ def markov_messages(messages, coherent=False):
     imitated = []
     word = ""
 
-    if all(True if s.startswith("@") or s.startswith("http") else False for s in messages):
+    if all(bool(s.startswith("@") or s.startswith("http")) for s in messages):
         return "**The given phrase would crash the bot.**"
 
     # First word
@@ -155,14 +155,14 @@ def markov_messages(messages, coherent=False):
             if len(m_from) > 1:
                 imitated.append(m_from[1])  # Then we'll add the next word
                 continue
-            else:
-                # Have the chance of breaking be 1/4 at start and 1/1 when imitated approaches 150 words
-                # unless the entire summary should be coherent
-                chance = 0 if coherent else int(-0.02 * len(imitated) + 4)
-                chance = chance if chance >= 0 else 0
 
-                if random.randint(0, chance) == 0:
-                    break
+            # Have the chance of breaking be 1/4 at start and 1/1 when imitated approaches 150 words
+            # unless the entire summary should be coherent
+            chance = 0 if coherent else int(-0.02 * len(imitated) + 4)
+            chance = chance if chance >= 0 else 0
+
+            if random.randint(0, chance) == 0:
+                break
 
         # Add a random word if all valid messages are one word or there are less than 2 messages
         if len(valid) <= 1 or all(len(m.split()) <= 1 for m in valid):
@@ -200,7 +200,7 @@ def is_valid_option(arg: str):
     return False
 
 
-def filter_messages_by_arguments(messages, channel, member, bots):
+def filter_messages_by_arguments(messages, member, bots):
     # Split the messages into content and filter member and phrase
     messages = (m for m in messages if not member or m["author"] in [str(mm.id) for mm in member])
 
@@ -230,6 +230,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
     member, channel, num = [], None, None
     regex, case, tts, coherent, strict = False, False, False, False, True
     bots = not summary_options.data["no_bot"]
+    sentences = []
 
     async with message.channel.typing():
         for value in options:
@@ -262,7 +263,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
                 continue
 
             if value in valid_options:
-                if value == "+re" or value == "+regex":
+                if value in ("+re", "+regex"):
                     regex = True
                 if value == "+case":
                     case = True
@@ -300,7 +301,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
             await update_messages(channel)
             messages = stored_messages[str(channel.id)]
 
-        message_content = filter_messages_by_arguments(messages, channel, member, bots)
+        message_content = filter_messages_by_arguments(messages, member, bots)
 
         # Replace new lines with text to make them persist through splitting
         message_content = (s.replace("\n", NEW_LINE_IDENTIFIER) for s in message_content)
@@ -348,8 +349,9 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
 
             # Convert new line identifiers back to characters
             sentence = sentence.replace(NEW_LINE_IDENTIFIER.strip(" "), "\n")
+            sentences.append(sentence)
 
-            await client.send_message(message.channel, sentence, tts=tts)
+        await client.send_message(message.channel, "\n".join(sentences), tts=tts)
 
 
 @plugins.event(bot=True, self=True)
