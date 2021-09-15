@@ -351,7 +351,7 @@ async def summary(message: discord.Message, *options, phrase: Annotate.Content =
             sentence = sentence.replace(NEW_LINE_IDENTIFIER.strip(" "), "\n")
             sentences.append(sentence)
 
-        await client.send_message(message.channel, "\n".join(sentences), tts=tts)
+    await client.send_message(message.channel, "\n".join(sentences), tts=tts)
 
 
 @plugins.event(bot=True, self=True)
