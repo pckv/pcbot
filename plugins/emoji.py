@@ -252,9 +252,9 @@ async def merge(message: discord.Message, text: Annotate.CleanContent):
 
         # If the user types this command, stop waiting for the "re" keyword
         if not reply or reply.content.startswith("!merge"):
-            if replies and not message.channel.is_private:
+            if replies and not isinstance(message.channel, discord.abc.PrivateChannel):
                 if len(replies) > 1:
-                    await client.delete_messages(replies)
+                    await client.delete_messages(message.channel, replies)
                 else:
                     await client.delete_message(replies.pop())
 
