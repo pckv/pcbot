@@ -193,7 +193,7 @@ async def format_stream(member: discord.Member, score: dict, beatmap: dict):
 
     # Add the stream url and return immediately if twitch is not setup
     text = "**Watch live @** <{}>".format(stream_url)
-    if not twitch.client_id:
+    if not twitch.twitch_client:
         return text + "\n"
 
     # Try getting the vod information of the current stream
