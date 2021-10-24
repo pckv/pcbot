@@ -10,6 +10,7 @@ import logging
 from datetime import datetime, timedelta
 
 import discord
+import twitchio.models
 
 import bot
 import plugins
@@ -38,7 +39,6 @@ async def on_reload(name):
 @plugins.command(name="twitch")
 async def twitch_group(message: discord.Message, _: utils.placeholder):
     """ Administrative commands for twitch functions. Notifies when discord says you're streaming. """
-    pass
 
 
 @twitch_group.command(name="channels", permissions="manage_guild")
@@ -53,10 +53,10 @@ async def notify_channels(message: discord.Message, *channels: discord.TextChann
     # Tell the user if notifications were disabled
     assert channels, "**Disabled stream notifications in this guild.**"
 
-    await client.say(message, "**Notifying streams in:** {}".format(utils.format_objects(*channels, sep=" ")))
+    await client.say(message, f"**Notifying streams in:** {utils.format_objects(*channels, sep=' ')}")
 
 
-def make_twitch_embed(member: discord.Member, response: dict):
+def make_twitch_embed(member: discord.Member, response: twitchio.models.Stream):
     """ Return an embed of the twitch stream, using the twitch api response.
 
     :param member: Member object streaming.
@@ -71,10 +71,12 @@ def make_twitch_embed(member: discord.Member, response: dict):
     if streaming_activity is None:
         raise TypeError("No twitch stream found when making embed.")
 
+    thumbnail_url = response.thumbnail_url.replace("{width}", "640").replace("{height}", "360")
+
     e = discord.Embed(title="Playing " + streaming_activity.game, url=streaming_activity.url,
                       description=streaming_activity.name, color=member.color)
     e.set_author(name=member.name, url=streaming_activity.url, icon_url=member.avatar_url)
-    e.set_thumbnail(url=response["stream"]["preview"]["small"] + "?date=" + datetime.now().ctime().replace(" ", "%20"))
+    e.set_thumbnail(url=thumbnail_url + "?date=" + datetime.now().ctime().replace(" ", "%20"))
     return e
 
 
@@ -141,17 +143,16 @@ async def on_member_update(before: discord.Member, after: discord.Member):
 
         # Return the stream info of the specified user
         try:
-            stream_response = await twitch.request("streams/" + twitch_id)
+            stream_response = await twitch.get_stream(twitch_id)
         except twitch.RequestFailed as e:
             logging.info("Could not get twitch stream of {} (id: {}): {}".format(after, twitch_id, e))
             return
 
         # If the member isn't actually streaming, return (should not be the case as discord uses the twitch api too)
-        if stream_response["stream"] is None:
+        if not stream_response:
             return
 
         # Create the embedded message and send it to every stream channel
         embed = make_twitch_embed(after, stream_response)
         for channel_id in twitch_config.data["guilds"][str(guild.id)]["notify_channels"]:
             await client.send_message(guild.get_channel(int(channel_id)), embed=embed)
-

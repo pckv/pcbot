@@ -1,46 +1,48 @@
 """ API wrapper for twitch.tv. """
-
 import re
 
 import discord
 
-from pcbot import utils, Config
+try:
+    import twitchio
+except ImportError:
+    twitchio = None
 
-twitch_config = Config("twitch-api", data=dict(ids={}, client_id=None))
+from pcbot import Config
+
+twitch_config = Config("twitch-api", data=dict(ids={}, client_id=None, client_secret=None))
 
 # Define twitch API info
 client_id = twitch_config.data["client_id"] or ""
-api_url = "https://api.twitch.tv/kraken/"
+client_secret = twitch_config.data["client_secret"] or ""
 
 url_pattern = re.compile(r"^https://www.twitch.tv/(?P<name>.+)$")
+
+if client_id and client_secret and twitchio:
+    twitch_client = twitchio.Client.from_client_credentials(client_id=client_id, client_secret=client_secret)
+else:
+    twitch_client = None
 
 
 class RequestFailed(Exception):
     """ For when the api request fails. """
-    pass
 
 
 class UserNotResolved(Exception):
     """ For when a name isn't resolved. """
-    pass
 
 
-async def request(endpoint: str = None, **params):
-    """ Perform a request using the twitch kraken v5 API.
+async def get_stream(twitch_id: int):
+    """ Get stream info from twitch API. """
+    response = await twitch_client.fetch_streams(user_ids=[twitch_id])
+    if len(response) == 0:
+        raise RequestFailed
+    return response[0]
 
-    If the url key is not given, the request is sent to the root URL.
 
-    :param endpoint: The endpoint to request from, e.g users would be /kraken/users.
-    :param params: Any parameters to pass to the URL.
-    :raises RequestFailed: Generic error when the request is refused.
-    """
-    headers = {"Client-ID": client_id, "Accept": "application/vnd.twitchtv.v5+json"}
-    response = await utils.download_json(api_url + (endpoint or ""), headers=headers, **params)
-
-    # Raise an Exception when the request was invalid
-    if "error" in response:
-        raise RequestFailed(response["message"])
-
+async def get_videos(user_id: int):
+    """ Return a user's archived videos sorted by time. """
+    response = await twitch_client.fetch_videos(user_id=user_id, sort="time", type="archive")
     return response
 
 
@@ -71,22 +73,22 @@ async def get_id(member: discord.Member, name: str = None):
                 streaming_activity = activity
 
         if not url_found:
-            raise UserNotResolved("Could not resolve twitch name of {}: they are not streaming.".format(member))
+            raise UserNotResolved(f"Could not resolve twitch name of {member}: they are not streaming.")
 
         # Attempt finding the twitch name using the Member.activity object url
         match = url_pattern.match(streaming_activity.url)
         if match is None:
-            raise UserNotResolved("Could not resolve twitch name of {}: their url is broken.".format(member))
+            raise UserNotResolved(f"Could not resolve twitch name of {member}: their url is broken.")
         name = match.group("name")
 
     # Make a request for the user found
-    response = await request("users", login=name)
-    if response["_total"] == 0:
+    response = await twitch_client.fetch_users(names=[name])
+    if len(response) == 0:
         raise UserNotResolved(
-            "Could not resolve twitch user account of {}: twitch user {} does not exist.".format(member, name))
+            f"Could not resolve twitch user account of {member}: twitch user {name} does not exist.")
 
     # Save and return the id
-    twitch_id = response["users"][0]["_id"]
+    twitch_id = str(response[0].id)
     twitch_config.data["ids"][str(member.id)] = twitch_id
     await twitch_config.asyncsave()
     return twitch_id
