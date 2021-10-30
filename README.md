@@ -24,10 +24,10 @@ $ python -V
 Python 3.8.0
 ```
 
-The next step is installing [discord.py](https://github.com/Rapptz/discord.py):
+The next step is installing [enhanced-discord.py](https://github.com/iDevision/enhanced-discord.py):
 
 ```
-pip install -U git+https://github.com/Rapptz/discord.py  
+pip install -U git+https://github.com/iDevision/enhanced-discord.py 
 ```
 
 To get voice support, you can optionally install PyNaCl:
