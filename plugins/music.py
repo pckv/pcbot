@@ -405,15 +405,14 @@ async def unlink(message: discord.Message):
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
     """ Handle leaving channels. The bot will automatically
     leave the guild's voice channel when all members leave. """
-    guild = member.guild
     channel = get_guild_channel(member.guild)
-    if channel is None:
+    if not channel:
         return
 
     count_members = sum(1 for m in channel.members if not m.bot)
 
     # Leave the voice channel we're client_connected to when the only one here is the bot
-    if guild.me.voice is not None:
-        if guild in voice_states and guild.me.voice.channel == channel:
+    if member.guild.me and member.guild.me.voice:
+        if member.guild in voice_states and member.guild.me.voice.channel == channel:
             if count_members == 0:
-                await disconnect(guild)
+                await disconnect(member.guild)
