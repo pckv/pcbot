@@ -15,7 +15,7 @@ Commands:
 """
 
 import asyncio
-import logging
+import datetime
 from collections import defaultdict
 
 import discord
@@ -47,7 +47,6 @@ def setup_default_config(guild: discord.Guild):
 @plugins.command(name="moderate", permissions="manage_messages")
 async def moderate_(message, _: utils.placeholder):
     """ Change moderation settings. """
-    pass
 
 
 def add_setting(setting: str, default=True, name=None, permissions=None):
@@ -89,93 +88,59 @@ add_setting("NSFW filter", permissions=["manage_guild"])
 add_setting("Changelog", permissions=["manage_guild"], default=False)
 
 
-async def manage_mute(message: discord.Message, *members: discord.Member, mute=None):
-    """ Add or remove Muted role for given members.
-
-    :param mute: either member.add_roles or member.remove_roles
-    :return: list of muted/unmuted members or None """
-    # Manage Roles is required to add or remove the Muted role
-    assert message.channel.permissions_for(message.guild.me).manage_roles, \
-        "I need `Manage Roles` permission to use this command."
-
-    muted_role = discord.utils.get(message.guild.roles, name="Muted")
-
-    # The guild needs to properly manage the Muted role
-    assert muted_role, "No role assigned for muting. Please create a `Muted` role."
-
-    muted_members = []
-
-    # Try giving members the Muted role
-    for member in members:
-        if member is message.guild.me:
-            await client.say(message, "I refuse to mute myself!")
-            continue
-
-        while True:
-            try:
-                if mute:
-                    await member.add_roles(muted_role)
-                if not mute:
-                    await member.remove_roles(muted_role)
-            except discord.errors.Forbidden:
-                await client.say(message, "I do not have permission to give members the `Muted` role.")
-                return None
-            except discord.errors.HTTPException:
-                continue
-            else:
-                muted_members.append(member)
-                break
-
-    return muted_members or None
-
-
-@plugins.command(pos_check=True, permissions="manage_messages")
-async def mute(message: discord.Message, *members: discord.Member):
-    """ Mute the specified members. """
-    muted_members = await manage_mute(message, *members, mute=True)
-
-    # Some members were muted, success!
-    if muted_members:
-        await client.say(message, "Muted {}".format(utils.format_objects(*muted_members, dec="`")))
-
-
-@plugins.command(pos_check=True, permissions="manage_messages")
+@plugins.command(pos_check=True, permissions="moderate_members")
 async def unmute(message: discord.Message, *members: discord.Member):
     """ Unmute the specified members. """
-    muted_members = await manage_mute(message, *members, mute=False)
+    assert message.channel.permissions_for(message.guild.me).moderate_members, \
+        "I need `Time out members` permission to use this command."
+
+    muted_members = []
+    for member in members:
+        if member.timed_out:
+            await member.edit(timeout_until=None)
+            muted_members.append(member)
+        else:
+            await client.say(message, "{} isn't muted.".format(member.display_name))
 
     # Some members were unmuted, success!
     if muted_members:
         await client.say(message, "Unmuted {}".format(utils.format_objects(*muted_members, dec="`")))
 
 
-@plugins.command(permissions="manage_messages")
+@plugins.command(permissions="moderate_members", aliases="mute")
 async def timeout(message: discord.Message, member: discord.Member, minutes: float, reason: Annotate.Content):
     """ Timeout a user in minutes (will accept decimal numbers), send them
     the reason for being timed out and post the reason in the guild's
     changelog if it has one. """
     client.loop.create_task(client.delete_message(message))
-    muted_members = await manage_mute(message, member, mute=True)
+
+    assert message.channel.permissions_for(message.guild.me).moderate_members, \
+        "I need `Time out members` permission to use this command."
+
+    timeout_duration = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=minutes)
+    try:
+        await member.edit(timeout_until=timeout_duration)
+    except discord.Forbidden:
+        await client.say(message, "I don't have permission to timeout this member.")
 
     # Do not progress if the members were not successfully muted
     # At this point, manage_mute will have reported any errors
-    if not muted_members:
+    if not member.timed_out:
         return
 
     changelog_channel = get_changelog_channel(message.guild)
 
     # Tell the member and post in the changelog
     m = "You were timed out from **{}** for **{} minutes**. \n**Reason:** {}".format(message.guild, minutes, reason)
-    await client.send_message(member, m)
+    try:
+        await client.send_message(member, m)
+    except discord.Forbidden:
+        pass
 
     if changelog_channel:
         await client.send_message(changelog_channel, "{} Timed out {} for **{} minutes**. **Reason:** {}".format(
             message.author.mention, member.mention, minutes, reason
         ))
-
-    # Sleep for the given hours and unmute the member
-    await asyncio.sleep(minutes * 60)  # Since asyncio.sleep takes seconds, multiply by 60^2
-    await manage_mute(message, *muted_members, mute=False)
 
 
 @plugins.command(aliases="muteall mute* unmuteall unmute*", permissions="manage_messages")
@@ -209,7 +174,7 @@ def members_and_channels(message: discord.Message, arg: str):
     return utils.find_member(message.guild, arg)
 
 
-@plugins.command(permissions="manage_messages")
+@plugins.command(permissions="manage_messages", aliases="prune delete")
 async def purge(message: discord.Message, *instances: members_and_channels, num: utils.int_range(1, 100)):
     """ Purge the given amount of messages from the specified members or all.
     You may also specify a channel to delete from.
@@ -219,15 +184,15 @@ async def purge(message: discord.Message, *instances: members_and_channels, num:
 
     channel = message.channel
     for instance in instances:
-        if type(instance) is discord.TextChannel:
+        if isinstance(instance, discord.TextChannel):
             channel = instance
             instances.remove(instance)
             break
 
-    assert not any(i for i in instances if type(i) is discord.TextChannel), "**I can only purge in one channel.**"
+    assert not any(i for i in instances if isinstance(i, discord.TextChannel)), "**I can only purge in one channel.**"
     to_delete = []
 
-    async for m in channel.history(limit=100, before=message):
+    async for m in channel.history(before=message):
         if len(to_delete) >= num:
             break
 
@@ -290,20 +255,21 @@ def get_changelog_channel(guild: discord.Guild):
     """ Return the changelog channel for a guild. """
     setup_default_config(guild)
     if not moderate.data[str(guild.id)]["changelog"]:
-        return
+        return None
 
     channel = discord.utils.get(guild.channels, name="changelog")
-    if not channel:
-        return
+    if channel is None:
+        return None
 
     permissions = channel.permissions_for(guild.me)
     if not permissions.send_messages or not permissions.read_messages:
-        return
+        return None
 
     return channel
 
 
 async def log_change(channel: discord.TextChannel, message: str):
+    """ Log change to changelog channel. """
     embed = discord.Embed(description=message)
     await client.send_message(channel, embed=embed)
 
