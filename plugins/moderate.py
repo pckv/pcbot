@@ -97,7 +97,7 @@ async def unmute(message: discord.Message, *members: discord.Member):
     muted_members = []
     for member in members:
         if member.timed_out:
-            await member.edit(timeout_until=None)
+            await member.edit(timed_out_until=None)
             muted_members.append(member)
         else:
             await client.say(message, "{} isn't muted.".format(member.display_name))
@@ -119,7 +119,7 @@ async def timeout(message: discord.Message, member: discord.Member, minutes: flo
 
     timeout_duration = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=minutes)
     try:
-        await member.edit(timeout_until=timeout_duration)
+        await member.timeout(timeout_duration, reason=reason)
     except discord.Forbidden:
         await client.say(message, "I don't have permission to timeout this member.")
 

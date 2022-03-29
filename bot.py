@@ -547,55 +547,55 @@ async def add_tasks():
     client.loop.create_task(autosave())
 
 
-def main():
-    """ The main function. Parses command line arguments, sets up logging,
-    gets the user's login info, sets up any background task and starts the bot. """
-    # Setup logger with level specified in start_args or logging.INFO
-    logging.basicConfig(filename=start_args.log_file, level=start_args.log_level,
-                        format="%(levelname)s %(asctime)s [%(module)s / %(name)s]: %(message)s")
+async def main():
+    async with client:
+        """ The main function. Parses command line arguments, sets up logging,
+            gets the user's login info, sets up any background task and starts the bot. """
+        # Setup logger with level specified in start_args or logging.INFO
+        logging.basicConfig(filename=start_args.log_file, level=start_args.log_level,
+                            format="%(levelname)s %(asctime)s [%(module)s / %(name)s]: %(message)s")
 
-    # Always keep the websockets.protocol logger at INFO as a minimum unless --enable-protocol-logging is set
-    if not start_args.enable_protocol_logging:
-        discord_logger = logging.getLogger("websockets.protocol")
-        discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
+        # Always keep the websockets.protocol logger at INFO as a minimum unless --enable-protocol-logging is set
+        if not start_args.enable_protocol_logging:
+            discord_logger = logging.getLogger("websockets.protocol")
+            discord_logger.setLevel(start_args.log_level if start_args.log_level >= logging.INFO else logging.INFO)
 
-    # Setup some config for more customization
-    bot_meta = config.Config("bot_meta", pretty=True, data=dict(
-        name="PCBOT",
-        command_prefix=config.default_command_prefix,
-        case_sensitive_commands=config.default_case_sensitive_commands,
-        github_repo="pckv/pcbot/",
-        display_owner_error_in_chat=False
-    ))
-    config.name = bot_meta.data["name"]
-    config.github_repo = bot_meta.data["github_repo"]
-    config.default_command_prefix = bot_meta.data["command_prefix"]
-    config.default_case_sensitive_commands = bot_meta.data["case_sensitive_commands"]
-    config.owner_error = bot_meta.data["display_owner_error_in_chat"]
+        # Setup some config for more customization
+        bot_meta = config.Config("bot_meta", pretty=True, data=dict(
+            name="PCBOT",
+            command_prefix=config.default_command_prefix,
+            case_sensitive_commands=config.default_case_sensitive_commands,
+            github_repo="pckv/pcbot/",
+            display_owner_error_in_chat=False
+        ))
+        config.name = bot_meta.data["name"]
+        config.github_repo = bot_meta.data["github_repo"]
+        config.default_command_prefix = bot_meta.data["command_prefix"]
+        config.default_case_sensitive_commands = bot_meta.data["case_sensitive_commands"]
+        config.owner_error = bot_meta.data["display_owner_error_in_chat"]
 
-    # Set the client for the plugins to use
-    plugins.set_client(client)
-    utils.set_client(client)
+        # Set the client for the plugins to use
+        plugins.set_client(client)
+        utils.set_client(client)
 
-    # Load plugin for builtin commands
-    plugins.load_plugin("builtin", "pcbot")
+        # Load plugin for builtin commands
+        plugins.load_plugin("builtin", "pcbot")
 
-    # Load all dynamic plugins
-    plugins.load_plugins()
+        # Load all dynamic plugins
+        plugins.load_plugins()
 
-    # Login with the specified token if specified
-    token = start_args.token or input("Token: ")
+        # Login with the specified token if specified
+        token = start_args.token or input("Token: ")
 
-    login = [token]
+        login = [token]
 
-    # Setup background tasks
-    client.loop.create_task(add_tasks())
+        # Setup background tasks
+        client.loop.create_task(add_tasks())
 
-    try:
-        client.run(*login)
-    except discord.errors.LoginFailure as e:
-        logging.error(utils.format_exception(e))
-
+        try:
+            await client.start(*login)
+        except discord.errors.LoginFailure as e:
+            logging.error(utils.format_exception(e))
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
