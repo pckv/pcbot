@@ -10,8 +10,8 @@ TUTORIAL:
 
     The bot owner can link a music channel to any voice channel in a guild
     using the !music link <voice channel ...> command. After doing this, the
-    bot should automatically join the linked channel whenever a member joins
-    it. The members in the channel can then manage music playing.
+    bot should automatically join the linked channel whenever a member plays a song.
+    The members in the channel can then manage music playing.
 
 ISSUES:
     The music player seems to randomly start skipping songs, or rather
@@ -23,6 +23,7 @@ Commands:
     music
 """
 import asyncio
+import logging
 import random
 import re
 from collections import namedtuple, deque
@@ -41,8 +42,7 @@ music_channels = Config("music_channels", data=[])
 voice_states = {}  # type: Dict[discord.Guild, VoiceState]
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
+    'extractaudio:': True,
     'noplaylist': True,
     'nocheckcertificate': True,
     'quiet': True,
@@ -50,8 +50,9 @@ ytdl_format_options = {
     'source_address': '0.0.0.0'  # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
 
-ffmpeg_before_options = {
-    "options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
+ffmpeg_options = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn',
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
@@ -59,8 +60,6 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 max_songs_queued = 6  # How many songs each member are allowed in the queue at once
 max_song_length = 10 * 60 * 60  # The maximum song length in seconds
 default_volume = .6
-song_playing = None
-voiceclient = None
 
 # if not discord.opus.is_loaded():
 #    discord.opus.load_opus('libopus-0.x64.dll')
@@ -85,46 +84,87 @@ def format_song(song: Song, url=True):
     # The player duration is given in seconds; convert it to h:mm
     duration = ""
     if song.player.duration:
-        duration = " / **{0}:{1:02}**".format(*divmod(int(song.player.duration), 60))
+        duration = "Duration: **{0}:{1:02}**".format(*divmod(int(song.player.duration), 60))
 
-    return "**{0.title}** requested by **{1.display_name}**{2}".format(song.player, song.requester, duration) \
+    return "**{0.title}**\nRequested by: **{1.display_name}**\n{2}".format(song.player, song.requester, duration) \
            + ("\n**URL**: <{0.url}>".format(song.player) if url else "")
 
 
 class VoiceState:
     def __init__(self, voice):
         self.voice = voice
+        self._volume = default_volume
+        self.current = None
         self.queue = deque()  # The queue contains items of type Song
         self.skip_votes = set()
 
+    @property
+    def volume(self):
+        return self._volume
+
+    @volume.setter
+    def volume(self, value: float):
+        if value > 1:
+            value = 1
+        elif value < .01:
+            value = default_volume
+
+        self._volume = value
+        if self.voice.is_playing():
+            self.voice.source.volume = self._volume
+
+    async def play_next(self):
+        """ Play the next song if there are any. """
+
+        self.skip_votes.clear()
+        if not self.queue:
+            if self.voice.is_connected():
+                await disconnect(self.voice.guild)
+            return
+        self.current = self.queue.popleft()
+        self.current.player.volume = self.volume
+        self.voice.play(self.current.player,
+                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(), client.loop))
+
+    def skip(self):
+        """ Skip the song currently playing. """
+        if self.voice.is_playing():
+            self.voice.stop()
+
+    def format_playing(self):
+        if self.voice.is_playing():
+            return format_song(self.current, url=True)
+
+        return "*Nothing.*"
+
 
 class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
+    def __init__(self, source, *, data, volume=default_volume):
         super().__init__(source, volume)
 
         self.data = data
 
         self.duration = data.get('duration')
         self.title = data.get('title')
-        self.url = data.get('url')
+        self.url = data.get('webpage_url')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=True):
+    async def from_url(cls, url, *, loop=None):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
 
         if 'entries' in data:
             # take first item from a playlist
             data = data['entries'][0]
 
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_before_options), data=data)
+        filename = data['url']
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
 @plugins.command(aliases="m", disabled_pm=True)
 async def music(message, _: utils.placeholder):
     """ Manage music. If a music channel is assigned, the bot will join
-    whenever someone joins it. """
+    whenever someone plays music. """
     pass
 
 
@@ -143,30 +183,8 @@ def client_connected(guild: discord.Guild):
     channel = get_guild_channel(guild)
     if guild.me.voice:
         return guild.me.voice.channel == channel and guild in voice_states
-    else:
-        return False
 
-
-def format_playing(message):
-    if message.guild.voice_client.is_playing():
-        return format_song(song_playing, url=False)
-    else:
-        return "*Nothing.*"
-
-
-async def play_next(message):
-    """ Play the next song if there are any. """
-    try:
-        state = voice_states[message.guild]
-    except:
-        return
-    state.skip_votes.clear()
-    if not state.queue:
-        await disconnect(message.guild)
-        return
-    source = state.queue.popleft()
-    message.guild.voice_client.play(source.player,
-                                    after=lambda e: asyncio.run_coroutine_threadsafe(play_next(message), client.loop))
+    return False
 
 
 def assert_connected(member: discord.Member, checkbot=True):
@@ -182,24 +200,23 @@ def assert_connected(member: discord.Member, checkbot=True):
 
 
 async def join(message: discord.Message):
-    """Joins a voice channel"""
-    global voiceclient
+    """  Joins a voice channel  """
     guild = message.guild
     channel = get_guild_channel(message.guild)
 
-    if guild.voice_client is not None:
+    if guild.voice_client is not None and not guild.me.voice.channel == get_guild_channel(guild):
         voiceclient = await guild.voice_client.move_to(channel)
         voice_states[guild] = VoiceState(voiceclient)
         return
-    else:
-        voiceclient = await channel.connect()
-        voice_states[guild] = VoiceState(voiceclient)
+
+    voiceclient = await channel.connect()
+    voice_states[guild] = VoiceState(voiceclient)
 
 
 async def disconnect(guild: discord.Guild):
     state = voice_states[guild]
     state.queue.clear()
-    await guild.voice_client.disconnect()
+    await state.voice.disconnect()
     del voice_states[guild]
 
 
@@ -225,8 +242,9 @@ async def play(message: discord.Message, song: Annotate.Content):
 
     try:
         player = await YTDLSource.from_url(song)
-    except:
+    except Exception as e:
         await client.say(message, "**Could not add this song to the queue.**")
+        logging.error(e)
         return
 
     # Make sure the song isn't too long
@@ -242,14 +260,17 @@ async def play(message: discord.Message, song: Annotate.Content):
             if name_match:
                 player.title = "".join(name_match.group("name").split(".")[:-1])
 
-    global song_playing
-    song_playing = Song(player=player, requester=message.author, channel=message.channel)
-    await client.send_message(song_playing.channel, "Queued: " + format_song(song_playing, url=False))
-    state.queue.append(song_playing)
+    song = Song(player=player, requester=message.author, channel=message.channel)
+
+    embed = discord.Embed(color=message.author.color)
+    embed.description = "Queued:\n" + format_song(song, url=False)
+
+    await client.send_message(song.channel, embed=embed)
+    state.queue.append(song)
 
     # Start the song when there are none
-    if not message.guild.voice_client.is_playing():
-        await play_next(message)
+    if not state.voice.is_playing():
+        await state.play_next()
 
 
 @music.command(aliases="s next")
@@ -257,13 +278,13 @@ async def skip(message: discord.Message):
     """ Skip the song currently playing. """
     assert_connected(message.author)
     state = voice_states[message.guild]
-    assert message.guild.voice_client.is_playing(), "**There is no song currently playing.**"
+    assert state.voice.is_playing(), "**There is no song currently playing.**"
     assert message.author not in state.skip_votes, "**You have already voted to skip this song.**"
 
     # We want to skip immediately when the requester skips their own song.
-    if message.author == song_playing.requester:
+    if message.author == state.current.requester:
         await client.say(message, "Skipped song on behalf of the requester.")
-        message.guild.voice_client.stop()
+        state.skip()
         return
 
     state.skip_votes.add(message.author)
@@ -273,7 +294,7 @@ async def skip(message: discord.Message):
     votes = len(state.skip_votes)
     if votes >= needed_to_skip:
         await client.say(message, "**Skipped song.**")
-        message.guild.voice_client.stop()
+        state.skip()
     else:
         await client.say(message, "Voted to skip the current song. `{}/{}`".format(votes, needed_to_skip))
 
@@ -325,15 +346,21 @@ async def shuffle(message: discord.Message):
 async def vol(message: discord.Message, volume: int):
     """ Set the volume of the player. Volume should be a number in percent. """
     assert_connected(message.author)
-    message.guild.voice_client.source.volume = volume / 100
-    await client.say(message, "Set the volume to **{:.00%}**.".format(volume / 100))
+    state = voice_states[message.guild]
+    state.volume = volume / 100
+    await client.say(message, "Set the volume to **{:.00%}**.".format(state.volume))
 
 
 @music.command(aliases="np")
 async def playing(message: discord.Message):
     """ Return the name and URL of the song currently playing. """
     assert_connected(message.author)
-    await client.say(message, "Playing: " + format_playing(message))
+    state = voice_states[message.guild]
+
+    embed = discord.Embed(color=message.author.color)
+    embed.description = "Playing:\n" + state.format_playing()
+
+    await client.send_message(message.channel, embed=embed)
 
 
 @music.command(aliases="q l list")
@@ -343,11 +370,14 @@ async def queue(message: discord.Message):
     state = voice_states[message.guild]
     assert state.queue, "**There are no songs queued.**"
 
-    await client.say(message, "```elm\n{}```".format(
-        "\n".join(format_song(s, url=False).replace("**", "") for s in state.queue)))
+    embed = discord.Embed(color=message.author.color)
+    embed.description = "```elm\n{}```".format(
+        "\n".join(format_song(s, url=False).replace("**", "") + "\n" for s in state.queue))
+
+    await client.send_message(message.channel, embed=embed)
 
 
-@music.command(owner=True)
+@music.command(permissions="manage_guild")
 async def link(message: discord.Message, voice_channel: Annotate.VoiceChannel):
     """ Link the Music bot to a voice channel in a guild. """
     assert str(voice_channel.id) not in music_channels.data, "**This voice channel is already linked.**"
@@ -359,7 +389,7 @@ async def link(message: discord.Message, voice_channel: Annotate.VoiceChannel):
     await client.say(message, "Voice channel **{0.name}** is now the music channel.".format(voice_channel))
 
 
-@music.command(owner=True)
+@music.command(permissions="manage_guild")
 async def unlink(message: discord.Message):
     """ Unlink this guild's music channel. """
     channel = get_guild_channel(message.guild)
@@ -373,17 +403,16 @@ async def unlink(message: discord.Message):
 
 @plugins.event()
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    """ Handle joining and leaving channels. The bot will automatically
-    join the guild's voice channel when a member joins. """
-    guild = member.guild
+    """ Handle leaving channels. The bot will automatically
+    leave the guild's voice channel when all members leave. """
     channel = get_guild_channel(member.guild)
-    if channel is None:
+    if not channel:
         return
 
     count_members = sum(1 for m in channel.members if not m.bot)
 
     # Leave the voice channel we're client_connected to when the only one here is the bot
-    if guild.me.voice is not None:
-        if guild in voice_states and guild.me.voice.channel == channel:
+    if member.guild.me and member.guild.me.voice:
+        if member.guild in voice_states and member.guild.me.voice.channel == channel:
             if count_members == 0:
-                await disconnect(guild)
+                await disconnect(member.guild)
