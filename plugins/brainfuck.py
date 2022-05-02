@@ -165,7 +165,7 @@ async def brainfuck(message: discord.Message, code: Annotate.Code):
             return m.author == message.author and m.channel == message.channel
 
         try:
-            reply = await client.wait_for("message", timeout=30, check=check)
+            reply = await client.wait_for_message(timeout=30, check=check)
         except asyncio.TimeoutError:
             await client.say(message, "**You failed to reply.**")
             return

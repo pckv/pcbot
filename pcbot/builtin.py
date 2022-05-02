@@ -81,7 +81,7 @@ async def setowner(message: discord.Message):
         return m.content == owner_code and m.channel == message.channel
 
     try:
-        user_code = await client.wait_for("message", timeout=60, check=check)
+        user_code = await client.wait_for_message(timeout=60, check=check)
     except asyncio.TimeoutError:
         await client.say(message, "You failed to send the desired code.")
         return

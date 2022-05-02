@@ -79,7 +79,7 @@ async def wouldyourather(message: discord.Message, opt: options = None):
                 return m.channel == message.channel and m.author not in replied
 
             try:
-                reply = await client.wait_for("message", timeout=timeout, check=check)
+                reply = await client.wait_for_message(timeout=timeout, check=check)
             # Break on timeout
             except asyncio.TimeoutError:
                 break

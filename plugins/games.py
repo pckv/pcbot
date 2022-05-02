@@ -49,11 +49,9 @@ class Game:
 
             # Wait with a timeout of 2 minutes and check each message with check(m)
             try:
-                reply = await client.wait_for("message", timeout=120, check=check)
+                reply = await client.wait_for_message(timeout=120, check=check)
             except asyncio.TimeoutError:
-                await client.say(self.message, "**The {} game failed to gather {} participants.**".format(
-                    self.name, self.num))
-                return
+                reply = None
 
             if reply:  # A user replied with a valid check
                 asyncio.ensure_future(
@@ -122,7 +120,7 @@ class Roulette(Game):
                 return m.channel == self.channel and m.author == member and "go" in m.content.lower()
 
             try:
-                reply = await client.wait_for("message", timeout=15, check=check)
+                reply = await client.wait_for_message(timeout=15, check=check)
             except asyncio.TimeoutError:
                 reply = None
 
@@ -188,7 +186,7 @@ class HotPotato(Game):
 
             wait = (self.time_remaining - notify) if (self.time_remaining >= notify) else self.time_remaining
             try:
-                reply = await client.wait_for("message", timeout=wait, check=check)
+                reply = await client.wait_for_message(timeout=wait, check=check)
             except asyncio.TimeoutError:
                 reply = None
 
@@ -260,10 +258,10 @@ class Typing(Game):
         # We'll wait for a message from all of our participants
         for i in range(len(self.participants)):
             def check(m):
-                return m.channel == self.channel and self.is_participant is True
+                return m.channel == self.channel and self.is_participant(m) is True
 
             try:
-                reply = await client.wait_for("message", timeout=timeout, check=check)
+                reply = await client.wait_for_message(timeout=timeout, check=check)
             except asyncio.TimeoutError:
                 await client.send_message(self.channel, "**Time is up.**")
                 return
