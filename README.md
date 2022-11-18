@@ -2,6 +2,14 @@
 
 [![Documentation Status](https://readthedocs.org/projects/pcbot/badge/?version=latest)](http://pcbot.readthedocs.io/en/latest/?badge=latest)
 
+> **Warning**
+> 
+> This repo is archived and has moved to 
+> [JeglerJeg/pcbot](https://github.com/Jeglerjeg/pcbot)
+>
+> Thanks so much to [Jeglerjeg](https://github.com/Jeglerjeg) for 
+> maintaining and keeping this project up to date over the years
+
 WIP discord bot using [discord.py].
 
 **PCBOT is only supported by python version 3.5.0 and newer.**
